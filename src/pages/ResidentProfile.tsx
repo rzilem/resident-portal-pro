@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { 
   User, Home, CreditCard, Clock, Mail, Phone, MapPin, 
   FileText, MessageCircle, Bell, ArrowLeft, Building, 
-  Calendar, Download, CircleDollarSign
+  Calendar, Download, CircleDollarSign, MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -326,6 +326,12 @@ const ResidentProfile = () => {
               <a href={`tel:${resident.phone}`}>
                 <Phone className="mr-2 h-4 w-4" />
                 Call
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href={`sms:${resident.phone}`}>
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Text
               </a>
             </Button>
             <Button>
