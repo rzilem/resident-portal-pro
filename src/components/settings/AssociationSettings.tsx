@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Settings, FileText, Mail, Bell, Calendar, DollarSign } from "lucide-react";
+import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database } from "lucide-react";
 import { toast } from "sonner";
 
 // Import components
 import AssociationList from './associations/AssociationList';
 import AssociationDialog from './associations/AssociationDialog';
 import SettingTabs from './associations/SettingTabs';
-import { Association, SettingSection } from './associations/types';
+import { Association, SettingSection, AssociationMenuCategory } from './associations/types';
 
 const AssociationSettings = () => {
   const [associations, setAssociations] = useState<Association[]>([
@@ -43,6 +43,63 @@ const AssociationSettings = () => {
   
   const [activeAssociation, setActiveAssociation] = useState<Association>(associations[0]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('basic');
+  
+  // Comprehensive menu structure based on the image
+  const associationMenuCategories: AssociationMenuCategory[] = [
+    {
+      id: 'general',
+      title: 'General',
+      items: [
+        { id: 'association-list', title: 'Association List', icon: Building },
+        { id: 'action-items', title: 'Action Items', icon: ClipboardList },
+        { id: 'activity-notes', title: 'Activity Notes', icon: Activity },
+        { id: 'amenity-calendar-settings', title: 'Amenity Calendar Settings', icon: Calendar },
+        { id: 'additional-info', title: 'Additional Info', icon: HelpCircle },
+      ]
+    },
+    {
+      id: 'addresses',
+      title: 'Addresses',
+      items: [
+        { id: 'addresses', title: 'Addresses', icon: MapPin },
+        { id: 'address-types', title: 'Address Types', icon: Tag },
+      ]
+    },
+    {
+      id: 'management',
+      title: 'Management',
+      items: [
+        { id: 'arc-types', title: 'ARC Types', icon: Shield },
+        { id: 'association-alias', title: 'Association Alias', icon: Tag },
+        { id: 'assessments', title: 'Assessments', icon: FileBarChart },
+        { id: 'board-committee', title: 'Board/Committee', icon: Users },
+        { id: 'ccr-items', title: 'CCR Items', icon: FileCheck },
+        { id: 'documents', title: 'Documents', icon: FileText },
+        { id: 'inspections', title: 'Inspections', icon: FileCheck },
+        { id: 'portal-pages', title: 'Portal Pages', icon: PanelLeft },
+        { id: 'services', title: 'Services', icon: Briefcase },
+        { id: 'settings', title: 'Settings', icon: Settings },
+      ]
+    },
+    {
+      id: 'financial',
+      title: 'Financial',
+      items: [
+        { id: 'bank-accounts', title: 'Bank Accounts', icon: BanknoteIcon },
+        { id: 'funds', title: 'Funds', icon: DollarSign },
+        { id: 'gl-accounts', title: 'GL Accounts', icon: BookmarkIcon, hasSubmenu: true },
+        { id: 'insurance', title: 'Insurance', icon: Shield },
+      ]
+    },
+    {
+      id: 'calendar',
+      title: 'Calendar',
+      items: [
+        { id: 'calendar', title: 'Calendar', icon: Calendar },
+        { id: 'amenity-calendar', title: 'Amenity Calendar', icon: Calendar },
+      ]
+    },
+  ];
   
   // Define all the setting sections
   const settingSections: SettingSection[] = [
@@ -95,6 +152,7 @@ const AssociationSettings = () => {
           setActiveSettingsTab={setActiveSettingsTab}
           settingSections={settingSections}
           selectAssociation={selectAssociation}
+          menuCategories={associationMenuCategories}
         />
       )}
       
