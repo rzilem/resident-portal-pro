@@ -250,7 +250,7 @@ export function Sidebar({
                 <SidebarMenu key={item.label}>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      variant={item.isActive ? "secondary" : "ghost"}
+                      variant="default"
                       className={cn(
                         "w-full justify-start",
                         item.isActive ? "font-medium" : "font-normal"
