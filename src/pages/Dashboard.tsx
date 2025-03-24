@@ -1,14 +1,34 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Bell, Calendar, CreditCard, FileText, Home, Mail, Menu, MessageSquare, Settings, User, Users, X } from 'lucide-react';
+import { 
+  Bell, 
+  Calendar, 
+  CreditCard, 
+  Database, 
+  FileText, 
+  Home, 
+  LogOut,
+  Mail, 
+  Menu, 
+  MessageSquare, 
+  Settings, 
+  User, 
+  Users, 
+  X,
+  DollarSign,
+  Building,
+  FileSpreadsheet
+} from 'lucide-react';
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   // Automatically close sidebar on mobile
   React.useEffect(() => {
@@ -21,6 +41,16 @@ const Dashboard = () => {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+  
+  const handleLogout = () => {
+    // Clear auth state
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userEmail');
+    
+    // Show toast and redirect
+    toast.info("You have been logged out");
+    navigate('/login');
   };
 
   return (
@@ -55,53 +85,112 @@ const Dashboard = () => {
               </p>
               
               {[
-                { icon: Home, name: 'Dashboard', active: true },
-                { icon: FileText, name: 'Documents' },
-                { icon: CreditCard, name: 'Payments' },
-                { icon: Calendar, name: 'Calendar' },
-                { icon: MessageSquare, name: 'Messages' },
+                { icon: Home, name: 'Dashboard', path: '/dashboard', active: true },
+                { icon: Building, name: 'Properties', path: '/properties' },
+                { icon: Users, name: 'Residents', path: '/residents' },
               ].map((item) => (
                 <Button
                   key={item.name}
                   variant={item.active ? 'default' : 'ghost'}
                   className="w-full justify-start"
+                  asChild
                 >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
+                  <Link to={item.path}>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.name}
+                  </Link>
                 </Button>
               ))}
             </div>
             
             <div className="space-y-1 mb-6">
               <p className="text-xs font-semibold text-muted-foreground px-2 mb-2 uppercase">
-                Community
+                Accounting
               </p>
               
               {[
-                { icon: Users, name: 'Residents' },
-                { icon: Bell, name: 'Announcements' },
-                { icon: Mail, name: 'Requests' },
+                { icon: DollarSign, name: 'Transactions', path: '/accounting/transactions' },
+                { icon: FileSpreadsheet, name: 'Reports', path: '/accounting/reports' },
+                { icon: CreditCard, name: 'Payments', path: '/accounting/payments' },
               ].map((item) => (
                 <Button
                   key={item.name}
                   variant="ghost"
                   className="w-full justify-start"
+                  asChild
                 >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
+                  <Link to={item.path}>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.name}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+            
+            <div className="space-y-1 mb-6">
+              <p className="text-xs font-semibold text-muted-foreground px-2 mb-2 uppercase">
+                Communications
+              </p>
+              
+              {[
+                { icon: Bell, name: 'Announcements', path: '/communications/announcements' },
+                { icon: Mail, name: 'Messages', path: '/communications/messages' },
+                { icon: Calendar, name: 'Events', path: '/communications/events' },
+              ].map((item) => (
+                <Button
+                  key={item.name}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to={item.path}>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.name}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+            
+            <div className="space-y-1 mb-6">
+              <p className="text-xs font-semibold text-muted-foreground px-2 mb-2 uppercase">
+                Database
+              </p>
+              
+              {[
+                { icon: Database, name: 'Records', path: '/database/records' },
+                { icon: FileText, name: 'Documents', path: '/database/documents' },
+              ].map((item) => (
+                <Button
+                  key={item.name}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to={item.path}>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.name}
+                  </Link>
                 </Button>
               ))}
             </div>
           </nav>
           
           <div className="p-4 border-t border-border">
-            <Button variant="ghost" className="w-full justify-start">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </Link>
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <User className="mr-2 h-4 w-4" />
-              Profile
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/profile">
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </Link>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
             </Button>
           </div>
         </div>
