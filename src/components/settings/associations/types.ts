@@ -32,71 +32,115 @@ export interface AssociationMenuCategory {
   items: AssociationMenuItem[];
 }
 
-// Adding missing types referenced by accounting components
+// Budget Management Types
 export interface BudgetItem {
   id: string;
   category: string;
   description: string;
-  amount: number;
+  budgetedAmount: number;
+  actualAmount: number;
+  variance: number;
   fiscalYear: string;
-  createdAt: string;
-  status: 'draft' | 'approved' | 'rejected';
+  associationId?: string;
+  amount?: number; // For backward compatibility
+  createdAt?: string;
+  status?: 'draft' | 'approved' | 'rejected';
 }
 
+// Financial Document Types
 export interface FinancialDocument {
   id: string;
   title: string;
-  documentType: string;
-  createdAt: string;
-  fileSize: string;
-  status: string;
+  type: string;
+  documentType?: string; // For backward compatibility
+  url?: string;
+  uploadDate: string;
+  createdAt?: string;
+  fileSize?: string;
+  status?: string;
+  associationId?: string;
+  tags?: string[];
+  metadata?: Record<string, any>;
 }
 
+// Invoice Types
 export interface Invoice {
   id: string;
-  number: string;
+  invoiceNumber: string;
+  number?: string; // For backward compatibility
   date: string;
   dueDate: string;
   amount: number;
   status: string;
-  customer: {
+  recipientId: string;
+  recipientType: 'resident' | 'vendor';
+  customer?: {
     name: string;
     id: string;
   };
+  items?: {
+    id: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    category: string;
+  }[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
+// Vendor Payment Types
 export interface VendorPayment {
   id: string;
   vendor: string;
+  vendorId?: string; // Used in some components
+  invoiceId?: string;
   amount: number;
   date: string;
+  description?: string;
   status: string;
   paymentMethod: string;
-  reference: string;
+  reference?: string;
+  referenceNumber?: string;
+  associationId?: string;
 }
 
+// Transaction Types
 export interface Transaction {
   id: string;
   date: string;
   description: string;
   amount: number;
-  type: string;
+  type: string; // Changed from TransactionType to string
   category: string;
   account: string;
   status: string;
+  propertyId?: string;
+  residentId?: string;
+  referenceNumber?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface TransactionType {
-  id: string;
-  name: string;
-  category: string;
-}
+// Now a simple string enum
+export type TransactionType = string;
 
+// Interaction Types
 export interface Interaction {
   id: string;
   type: string;
   date: string;
-  user: string;
+  subject: string;
   description: string;
   status: string;
+  user?: string; // For backward compatibility
+  associationId?: string;
+  residentId?: string;
+  propertyId?: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  referenceCode?: string;
+  attachments?: string[];
 }
