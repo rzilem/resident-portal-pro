@@ -226,7 +226,7 @@ const TransactionManagement = () => {
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="failed">Failed</SelectItem>
@@ -244,7 +244,7 @@ const TransactionManagement = () => {
                     <SelectValue placeholder="Filter by association" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Associations</SelectItem>
+                    <SelectItem value="all">All Associations</SelectItem>
                     {associations.map(association => (
                       <SelectItem key={association} value={association}>{association}</SelectItem>
                     ))}
