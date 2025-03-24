@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Bank, Layers, FileOutput, Import, Pencil } from "lucide-react";
+import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 // Import components
@@ -86,7 +86,7 @@ const AssociationSettings = () => {
       id: 'financial',
       title: 'Financial',
       items: [
-        { id: 'bank-accounts', title: 'Banks', icon: Bank, route: '/settings/associations/banks' },
+        { id: 'bank-accounts', title: 'Banks', icon: Landmark, route: '/settings/associations/banks' },
         { id: 'check-signatures', title: 'Check Signatures', icon: Pencil, route: '/settings/associations/check-signatures' },
         { id: 'gl-accounts', title: 'GL Accounts', icon: BookmarkIcon, route: '/settings/associations/gl-accounts' },
         { id: 'funds', title: 'Funds', icon: DollarSign, route: '/settings/associations/funds' },
@@ -191,4 +191,3 @@ const AssociationSettings = () => {
 };
 
 export default AssociationSettings;
-
