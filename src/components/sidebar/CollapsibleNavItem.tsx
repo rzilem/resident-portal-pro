@@ -1,0 +1,57 @@
+
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useNavigate } from "react-router-dom";
+import { NavItem } from "@/data/navigation";
+
+interface CollapsibleNavItemProps {
+  item: NavItem;
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavItemProps) {
+  const navigate = useNavigate();
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={onToggle}>
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="default"
+          className={cn(
+            "w-full justify-between font-normal",
+            item.isActive ? "font-medium" : "font-normal"
+          )}
+        >
+          <span className="flex items-center">
+            {item.icon && <span className="mr-2">{item.icon}</span>}
+            {item.label}
+          </span>
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 transition-transform",
+              isOpen ? "rotate-180" : ""
+            )}
+          />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-6 pt-1">
+        {item.items?.map((subItem) => (
+          <Button
+            key={subItem.label}
+            variant="default"
+            className={cn(
+              "w-full justify-start",
+              subItem.isActive ? "font-medium" : "font-normal"
+            )}
+            onClick={() => navigate(subItem.href)}
+          >
+            {subItem.label}
+          </Button>
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}

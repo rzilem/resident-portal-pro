@@ -1,44 +1,22 @@
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Fragment, useEffect, useState } from "react";
-import { 
-  Home, 
-  Building, 
-  Users, 
-  FileText, 
-  Settings, 
-  ChevronDown, 
-  Bell, 
-  Database,
-  MessageCircle,
-  Zap
-} from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarSeparator
+  SidebarProvider
 } from "@/components/ui/sidebar";
-
-type NavItem = {
-  label: string;
-  href: string;
-  icon?: React.ReactNode;
-  isActive?: boolean;
-  items?: NavItem[];
-};
+import { CollapsibleNavItem } from "./sidebar/CollapsibleNavItem";
+import { RegularNavItem } from "./sidebar/RegularNavItem";
+import { NavSeparator } from "./sidebar/NavSeparator";
+import { getNavItems, NavItem } from "@/data/navigation";
 
 export function Sidebar({
   className,
 }: React.HTMLAttributes<HTMLDivElement>) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "Accounting": true,
     "Communications": false,
@@ -71,202 +49,46 @@ export function Sidebar({
     }));
   };
 
-  // Main navigation items
-  const NAV_ITEMS: (NavItem | 'separator')[] = [
-    {
-      label: "Dashboard",
-      href: "/dashboard",
-      icon: <Home className="h-5 w-5" />,
-      isActive: location.pathname === '/dashboard',
-    },
-    {
-      label: "Properties",
-      href: "/properties",
-      icon: <Building className="h-5 w-5" />,
-      isActive: location.pathname === '/properties',
-    },
-    {
-      label: "Residents",
-      href: "/residents",
-      icon: <Users className="h-5 w-5" />,
-      isActive: location.pathname.startsWith('/residents'),
-    },
-    'separator',
-    {
-      label: "Accounting",
-      href: "#",
-      icon: <FileText className="h-5 w-5" />,
-      isActive: location.pathname.startsWith('/accounting'),
-      items: [
-        {
-          label: "Dashboard",
-          href: "/accounting",
-          isActive: location.pathname === '/accounting',
-        },
-        {
-          label: "Transactions",
-          href: "/accounting/transactions",
-          isActive: location.pathname === '/accounting/transactions',
-        },
-        {
-          label: "Reports",
-          href: "/accounting/reports",
-          isActive: location.pathname === '/accounting/reports',
-        },
-        {
-          label: "Payments",
-          href: "/accounting/payments",
-          isActive: location.pathname === '/accounting/payments',
-        },
-      ],
-    },
-    {
-      label: "Communications",
-      href: "#",
-      icon: <Bell className="h-5 w-5" />,
-      isActive: location.pathname.startsWith('/communications'),
-      items: [
-        {
-          label: "Announcements",
-          href: "/communications/announcements",
-          isActive: location.pathname === '/communications/announcements',
-        },
-        {
-          label: "Messages",
-          href: "/communications/messaging",
-          isActive: location.pathname === '/communications/messaging',
-        },
-        {
-          label: "Email Templates",
-          href: "/communications/email-templates",
-          isActive: location.pathname === '/communications/email-templates',
-        },
-      ],
-    },
-    {
-      label: "Database",
-      href: "#",
-      icon: <Database className="h-5 w-5" />,
-      isActive: location.pathname.startsWith('/database'),
-      items: [
-        {
-          label: "Records",
-          href: "/database/records",
-          isActive: location.pathname === '/database/records',
-        },
-        {
-          label: "Templates",
-          href: "/database/templates",
-          isActive: location.pathname === '/database/templates',
-        },
-      ],
-    },
-    {
-      label: "Workflows",
-      href: "/workflows",
-      icon: <Zap className="h-5 w-5" />,
-      isActive: location.pathname === '/workflows',
-    },
-    {
-      label: "Chatbot",
-      href: "/chatbot",
-      icon: <MessageCircle className="h-5 w-5" />,
-      isActive: location.pathname === '/chatbot',
-    },
-    'separator',
-    {
-      label: "Settings",
-      href: "/settings",
-      icon: <Settings className="h-5 w-5" />,
-      isActive: location.pathname === '/settings',
-    },
-  ];
+  const NAV_ITEMS = getNavItems(location.pathname);
 
   return (
-    <div className={cn("pb-12 border-r min-h-screen", className)}>
-      <SidebarContent className="space-y-4 py-4">
-        <SidebarHeader className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
-            HOA Management
-          </h2>
-        </SidebarHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)] px-3">
-          <div className="space-y-1">
-            {NAV_ITEMS.map((item, i) => {
-              // Render a separator
-              if (item === 'separator') {
-                return <SidebarSeparator key={i} className="my-2" />;
-              }
+    <SidebarProvider defaultOpen={true}>
+      <div className={cn("pb-12 border-r min-h-screen", className)}>
+        <SidebarContent className="space-y-4 py-4">
+          <SidebarHeader className="px-4 py-2">
+            <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
+              HOA Management
+            </h2>
+          </SidebarHeader>
+          <ScrollArea className="h-[calc(100vh-8rem)] px-3">
+            <div className="space-y-1">
+              {NAV_ITEMS.map((item, i) => {
+                // Render a separator
+                if (item === 'separator') {
+                  return <NavSeparator key={`sep-${i}`} />;
+                }
 
-              // Render a nav group with dropdown
-              if (item.items && item.items.length > 0) {
+                // Render a nav group with dropdown
+                if (item.items && item.items.length > 0) {
+                  return (
+                    <CollapsibleNavItem
+                      key={item.label}
+                      item={item}
+                      isOpen={openGroups[item.label]}
+                      onToggle={() => toggleGroup(item.label)}
+                    />
+                  );
+                }
+
+                // Render a regular nav item
                 return (
-                  <Collapsible
-                    key={item.label}
-                    open={openGroups[item.label]}
-                    onOpenChange={() => toggleGroup(item.label)}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant={item.isActive ? "secondary" : "ghost"}
-                        className={cn(
-                          "w-full justify-between font-normal",
-                          item.isActive ? "font-medium" : "font-normal"
-                        )}
-                      >
-                        <span className="flex items-center">
-                          {item.icon && <span className="mr-2">{item.icon}</span>}
-                          {item.label}
-                        </span>
-                        <ChevronDown
-                          className={cn(
-                            "h-4 w-4 transition-transform",
-                            openGroups[item.label] ? "rotate-180" : ""
-                          )}
-                        />
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="pl-6 pt-1">
-                      {item.items.map((subItem) => (
-                        <Button
-                          key={subItem.label}
-                          variant={subItem.isActive ? "secondary" : "ghost"}
-                          className={cn(
-                            "w-full justify-start",
-                            subItem.isActive ? "font-medium" : "font-normal"
-                          )}
-                          onClick={() => navigate(subItem.href)}
-                        >
-                          {subItem.label}
-                        </Button>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
+                  <RegularNavItem key={item.label} item={item} />
                 );
-              }
-
-              // Render a regular nav item
-              return (
-                <SidebarMenu key={item.label}>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      variant="default"
-                      className={cn(
-                        "w-full justify-start",
-                        item.isActive ? "font-medium" : "font-normal"
-                      )}
-                      onClick={() => navigate(item.href)}
-                    >
-                      {item.icon && <span className="mr-2">{item.icon}</span>}
-                      {item.label}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </SidebarContent>
-    </div>
+              })}
+            </div>
+          </ScrollArea>
+        </SidebarContent>
+      </div>
+    </SidebarProvider>
   );
 }
