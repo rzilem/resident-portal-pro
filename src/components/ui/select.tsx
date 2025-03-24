@@ -114,7 +114,7 @@ const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => {
-  // Ensure that value is not an empty string
+  // Ensure that value is not an empty string (prevent Radix Select error)
   if (props.value === '') {
     console.warn('SelectItem received an empty string value, which is not allowed by Radix UI Select');
     props.value = 'default';
