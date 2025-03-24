@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -30,6 +31,12 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, title }: { children: React.ReactNode, title?: string }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const location = useLocation();
+  
+  // Log authentication state for debugging
+  useEffect(() => {
+    console.log("Auth state:", isAuthenticated, "at path:", location.pathname);
+  }, [isAuthenticated, location]);
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
