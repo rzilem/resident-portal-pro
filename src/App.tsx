@@ -15,6 +15,7 @@ import Announcements from "./pages/communications/Announcements";
 import Records from "./pages/database/Records";
 import NotFound from "./pages/NotFound";
 import ChatbotButton from "./components/ChatbotButton";
+import DashboardHeaderWithNav from "./components/DashboardHeaderWithNav";
 
 const queryClient = new QueryClient();
 
@@ -27,10 +28,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   return (
-    <>
-      {children}
+    <div className="min-h-screen bg-background flex flex-col">
+      <DashboardHeaderWithNav />
+      <div className="flex-1 overflow-auto">
+        {children}
+      </div>
       <ChatbotButton />
-    </>
+    </div>
   );
 };
 
