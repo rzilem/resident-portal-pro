@@ -21,18 +21,14 @@ const DashboardHeaderWithNav = ({ toggleSidebar, title = "Dashboard" }: Dashboar
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:hidden" 
+            className="md:inline-flex"  // Show on all screen sizes 
             onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
           </Button>
         )}
         
-        <Link to="/" className="text-xl font-bold text-gradient mr-6 hidden md:block">
-          ResidentPro
-        </Link>
-        
-        <h1 className="text-xl font-semibold md:hidden">{title}</h1>
+        <h1 className="text-xl font-semibold">{title}</h1>
         
         <MainNav />
       </div>

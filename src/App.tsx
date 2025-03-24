@@ -14,13 +14,12 @@ import Reports from "./pages/accounting/Reports";
 import Announcements from "./pages/communications/Announcements";
 import Records from "./pages/database/Records";
 import NotFound from "./pages/NotFound";
-import ChatbotButton from "./components/ChatbotButton";
-import DashboardHeaderWithNav from "./components/DashboardHeaderWithNav";
+import DashboardLayout from "./components/DashboardLayout";
 
 const queryClient = new QueryClient();
 
 // Protection wrapper for authenticated routes
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children, title }: { children: React.ReactNode, title?: string }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   
   if (!isAuthenticated) {
@@ -28,13 +27,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <DashboardHeaderWithNav />
-      <div className="flex-1 overflow-auto">
-        {children}
-      </div>
-      <ChatbotButton />
-    </div>
+    <DashboardLayout title={title}>
+      {children}
+    </DashboardLayout>
   );
 };
 
@@ -50,43 +45,43 @@ const App = () => (
           
           {/* Protected Routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Dashboard">
               <Dashboard />
             </ProtectedRoute>
           } />
           <Route path="/properties" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Properties">
               <Properties />
             </ProtectedRoute>
           } />
           <Route path="/residents" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Residents">
               <Residents />
             </ProtectedRoute>
           } />
           
           {/* Accounting Routes */}
           <Route path="/accounting/transactions" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Transactions">
               <Transactions />
             </ProtectedRoute>
           } />
           <Route path="/accounting/reports" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Reports">
               <Reports />
             </ProtectedRoute>
           } />
           
           {/* Communications Routes */}
           <Route path="/communications/announcements" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Announcements">
               <Announcements />
             </ProtectedRoute>
           } />
           
           {/* Database Routes */}
           <Route path="/database/records" element={
-            <ProtectedRoute>
+            <ProtectedRoute title="Records">
               <Records />
             </ProtectedRoute>
           } />
