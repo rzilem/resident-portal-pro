@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Database, PlusCircle, Search, Filter, Download, RefreshCw } from 'lucide-react';
+import { Database, PlusCircle, Search, Filter, Download, RefreshCw, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AssociationRecords from '@/components/database/AssociationRecords';
 
 const Records = () => {
   return (
@@ -42,11 +42,11 @@ const Records = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="properties">
+                <Tabs defaultValue="homeowners">
                   <TabsList className="mb-4">
                     <TabsTrigger value="properties">Properties</TabsTrigger>
                     <TabsTrigger value="units">Units</TabsTrigger>
-                    <TabsTrigger value="residents">Residents</TabsTrigger>
+                    <TabsTrigger value="homeowners">Homeowners</TabsTrigger>
                     <TabsTrigger value="transactions">Transactions</TabsTrigger>
                   </TabsList>
                   
@@ -160,13 +160,8 @@ const Records = () => {
                     </Table>
                   </TabsContent>
                   
-                  <TabsContent value="residents" className="pt-4">
-                    <div className="p-8 text-center">
-                      <Database className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Resident Records Selected</h3>
-                      <p className="text-muted-foreground mb-4">View and manage resident information.</p>
-                      <Button>Load Resident Data</Button>
-                    </div>
+                  <TabsContent value="homeowners" className="pt-4">
+                    <AssociationRecords />
                   </TabsContent>
                   
                   <TabsContent value="transactions" className="pt-4">
