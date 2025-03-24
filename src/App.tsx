@@ -20,6 +20,10 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/DashboardLayout";
 
+// Import settings subpages
+import CompanyInfo from "./components/settings/company/CompanyInfo";
+import GlAccounts from "./components/settings/financial/GlAccounts";
+
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, title }: { children: React.ReactNode, title?: string }) => {
@@ -103,6 +107,19 @@ const App = () => (
           <Route path="/settings" element={
             <ProtectedRoute title="Settings">
               <Settings />
+            </ProtectedRoute>
+          } />
+          
+          {/* Settings subpages */}
+          <Route path="/settings/associations/company-info" element={
+            <ProtectedRoute title="Company Information">
+              <CompanyInfo />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/settings/associations/gl-accounts" element={
+            <ProtectedRoute title="GL Accounts">
+              <GlAccounts />
             </ProtectedRoute>
           } />
           

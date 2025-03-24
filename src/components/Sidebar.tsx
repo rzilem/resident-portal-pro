@@ -19,7 +19,9 @@ import {
   X,
   DollarSign,
   Building,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Briefcase,
+  Shield
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from "sonner";
@@ -135,6 +137,15 @@ const SidebarComponent = ({ open, onOpenChange }: SidebarProps) => {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/settings/associations/gl-accounts')}>
+                    <Link to="/settings/associations/gl-accounts">
+                      <FileText className="w-4 h-4" />
+                      <span>GL Accounts</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -174,7 +185,7 @@ const SidebarComponent = ({ open, onOpenChange }: SidebarProps) => {
           </SidebarGroup>
           
           <SidebarGroup>
-            <SidebarGroupLabel>Database</SidebarGroupLabel>
+            <SidebarGroupLabel>Management</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -187,10 +198,19 @@ const SidebarComponent = ({ open, onOpenChange }: SidebarProps) => {
                 </SidebarMenuItem>
                 
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/database/documents')}>
-                    <Link to="/database/documents">
-                      <FileText className="w-4 h-4" />
-                      <span>Documents</span>
+                  <SidebarMenuButton asChild isActive={isActive('/settings/associations/company-info')}>
+                    <Link to="/settings/associations/company-info">
+                      <Briefcase className="w-4 h-4" />
+                      <span>Company Info</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/settings/associations/arc-types')}>
+                    <Link to="/settings/associations/arc-types">
+                      <Shield className="w-4 h-4" />
+                      <span>ARC Types</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

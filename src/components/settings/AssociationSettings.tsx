@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard } from "lucide-react";
+import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Bank, Layers, FileOutput, Import, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 // Import components
@@ -44,17 +43,35 @@ const AssociationSettings = () => {
   const [activeAssociation, setActiveAssociation] = useState<Association>(associations[0]);
   const [activeSettingsTab, setActiveSettingsTab] = useState('basic');
   
-  // Comprehensive menu structure based on the image
+  // Comprehensive menu structure based on the new categories from the image
   const associationMenuCategories: AssociationMenuCategory[] = [
     {
       id: 'general',
       title: 'General',
       items: [
         { id: 'association-list', title: 'Association List', icon: Building, route: '/settings/associations' },
-        { id: 'action-items', title: 'Action Items', icon: ClipboardList, route: '/settings/associations/action-items' },
+        { id: 'company-info', title: 'Company Info', icon: Briefcase, route: '/settings/associations/company-info' },
+        { id: 'action-items', title: 'Action Types/Steps', icon: ClipboardCheck, route: '/settings/associations/action-types' },
         { id: 'activity-notes', title: 'Activity Notes', icon: Activity, route: '/settings/associations/activity-notes' },
-        { id: 'amenity-calendar-settings', title: 'Amenity Calendar Settings', icon: Calendar, route: '/settings/associations/amenity-calendar-settings' },
+        { id: 'custom-info', title: 'Custom Info', icon: FileText, route: '/settings/associations/custom-info' },
         { id: 'additional-info', title: 'Additional Info', icon: HelpCircle, route: '/settings/associations/additional-info' },
+      ]
+    },
+    {
+      id: 'users-roles',
+      title: 'Users & Roles',
+      items: [
+        { id: 'users', title: 'Users', icon: Users, route: '/settings/associations/users' },
+        { id: 'roles', title: 'Roles', icon: UserCheck, route: '/settings/associations/roles' },
+        { id: 'responsibilities', title: 'Responsibilities', icon: ClipboardList, route: '/settings/associations/responsibilities' },
+      ]
+    },
+    {
+      id: 'amenities',
+      title: 'Amenities',
+      items: [
+        { id: 'amenity-category', title: 'Amenity Category', icon: Tag, route: '/settings/associations/amenity-category' },
+        { id: 'amenity-calendar-settings', title: 'Amenity Calendar Settings', icon: Calendar, route: '/settings/associations/amenity-calendar-settings' },
       ]
     },
     {
@@ -66,37 +83,41 @@ const AssociationSettings = () => {
       ]
     },
     {
-      id: 'management',
-      title: 'Management',
-      items: [
-        { id: 'arc-types', title: 'ARC Types', icon: Shield, route: '/settings/associations/arc-types' },
-        { id: 'association-alias', title: 'Association Alias', icon: Tag, route: '/settings/associations/association-alias' },
-        { id: 'assessments', title: 'Assessments', icon: FileBarChart, route: '/settings/associations/assessments' },
-        { id: 'board-committee', title: 'Board/Committee', icon: Users, route: '/settings/associations/board-committee' },
-        { id: 'ccr-items', title: 'CCR Items', icon: FileCheck, route: '/settings/associations/ccr-items' },
-        { id: 'documents', title: 'Documents', icon: FileText, route: '/settings/associations/documents' },
-        { id: 'inspections', title: 'Inspections', icon: FileCheck, route: '/settings/associations/inspections' },
-        { id: 'portal-pages', title: 'Portal Pages', icon: PanelLeft, route: '/settings/associations/portal-pages' },
-        { id: 'services', title: 'Services', icon: Briefcase, route: '/settings/associations/services' },
-        { id: 'settings', title: 'Settings', icon: Settings, route: '/settings/associations/settings' },
-      ]
-    },
-    {
       id: 'financial',
       title: 'Financial',
       items: [
-        { id: 'bank-accounts', title: 'Bank Accounts', icon: BanknoteIcon, route: '/settings/associations/bank-accounts' },
+        { id: 'bank-accounts', title: 'Banks', icon: Bank, route: '/settings/associations/banks' },
+        { id: 'check-signatures', title: 'Check Signatures', icon: Pencil, route: '/settings/associations/check-signatures' },
+        { id: 'gl-accounts', title: 'GL Accounts', icon: BookmarkIcon, route: '/settings/associations/gl-accounts' },
         { id: 'funds', title: 'Funds', icon: DollarSign, route: '/settings/associations/funds' },
-        { id: 'gl-accounts', title: 'GL Accounts', icon: BookmarkIcon, hasSubmenu: true, route: '/settings/associations/gl-accounts' },
-        { id: 'insurance', title: 'Insurance', icon: Shield, route: '/settings/associations/insurance' },
+        { id: 'portfolios', title: 'Portfolios', icon: Layers, route: '/settings/associations/portfolios' },
+        { id: 'portfolio-types', title: 'Portfolio Types', icon: Folder, route: '/settings/associations/portfolio-types' },
+        { id: 'custom-reports', title: 'Custom Reports', icon: FileSpreadsheet, route: '/settings/associations/custom-reports' },
       ]
     },
     {
-      id: 'calendar',
-      title: 'Calendar',
+      id: 'property-management',
+      title: 'Property Management',
       items: [
-        { id: 'calendar', title: 'Calendar', icon: Calendar, route: '/settings/associations/calendar' },
-        { id: 'amenity-calendar', title: 'Amenity Calendar', icon: Calendar, route: '/settings/associations/amenity-calendar' },
+        { id: 'arc-types', title: 'ARC Types', icon: Shield, route: '/settings/associations/arc-types' },
+        { id: 'ccr-items', title: 'CCR Items', icon: FileCheck, route: '/settings/associations/ccr-items' },
+        { id: 'import', title: 'Import', icon: Import, route: '/settings/associations/import' },
+      ]
+    },
+    {
+      id: 'communications',
+      title: 'Communications',
+      items: [
+        { id: 'letter-templates', title: 'Letter Templates', icon: FileOutput, route: '/settings/associations/letter-templates' },
+        { id: 'portal-pages', title: 'Portal Pages', icon: Layout, route: '/settings/associations/portal-pages' },
+        { id: 'logo-management', title: 'Logo Management', icon: Image, route: '/settings/associations/logo-management' },
+      ]
+    },
+    {
+      id: 'integrations',
+      title: 'Integrations',
+      items: [
+        { id: 'interfaces', title: 'Interfaces', icon: Cog, route: '/settings/associations/interfaces' },
       ]
     },
   ];
@@ -170,3 +191,4 @@ const AssociationSettings = () => {
 };
 
 export default AssociationSettings;
+
