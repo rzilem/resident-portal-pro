@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,19 +35,43 @@ const CONDITION_TYPES = [
   { id: 'isFalse', label: 'Is False' }
 ];
 
-// Define proper types for workflow steps
-type WorkflowStep = 
-  | { id: string; type: 'trigger'; triggerType: string; name: string; config: any }
-  | { id: string; type: 'action'; actionType: string; name: string; config: any }
-  | { id: string; type: 'condition'; conditionType: string; field: string; value: string; name: string; config: { trueSteps: any[]; falseSteps: any[] } };
+type BaseWorkflowStep = {
+  id: string;
+  name: string;
+};
+
+type TriggerStep = BaseWorkflowStep & {
+  type: 'trigger';
+  triggerType: string;
+  config: any;
+};
+
+type ActionStep = BaseWorkflowStep & {
+  type: 'action';
+  actionType: string;
+  config: any;
+};
+
+type ConditionStep = BaseWorkflowStep & {
+  type: 'condition';
+  conditionType: string;
+  field: string;
+  value: string;
+  config: { 
+    trueSteps: WorkflowStep[];
+    falseSteps: WorkflowStep[]; 
+  };
+};
+
+type WorkflowStep = TriggerStep | ActionStep | ConditionStep;
 
 const WorkflowBuilder = () => {
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
   const [workflowCategory, setWorkflowCategory] = useState('');
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([
-    { id: '1', type: 'trigger', triggerType: '', name: '', config: {} },
-    { id: '2', type: 'action', actionType: '', name: '', config: {} }
+    { id: '1', type: 'trigger', triggerType: '', name: '', config: {} } as TriggerStep,
+    { id: '2', type: 'action', actionType: '', name: '', config: {} } as ActionStep
   ]);
   
   const addStep = (afterId: string) => {
@@ -62,7 +85,7 @@ const WorkflowBuilder = () => {
       actionType: '', 
       name: '',
       config: {}
-    });
+    } as ActionStep);
     
     setWorkflowSteps(newSteps);
   };
@@ -83,7 +106,7 @@ const WorkflowBuilder = () => {
         trueSteps: [],
         falseSteps: []
       }
-    });
+    } as ConditionStep);
     
     setWorkflowSteps(newSteps);
   };
@@ -115,9 +138,12 @@ const WorkflowBuilder = () => {
   
   const updateStep = (id: string, data: Partial<WorkflowStep>) => {
     setWorkflowSteps(
-      workflowSteps.map(step => 
-        step.id === id ? { ...step, ...data } : step
-      )
+      workflowSteps.map(step => {
+        if (step.id === id) {
+          return { ...step, ...data } as WorkflowStep;
+        }
+        return step;
+      })
     );
   };
   
@@ -228,13 +254,12 @@ const WorkflowBuilder = () => {
                   </div>
                 </div>
                 
-                {/* Trigger Configuration */}
                 {step.type === 'trigger' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Trigger Type</Label>
                       <Select 
-                        value={step.triggerType} 
+                        value={(step as TriggerStep).triggerType} 
                         onValueChange={(value) => updateStep(step.id, { triggerType: value })}
                       >
                         <SelectTrigger>
@@ -253,7 +278,7 @@ const WorkflowBuilder = () => {
                       </Select>
                     </div>
                     
-                    {step.triggerType === 'time' && (
+                    {(step as TriggerStep).triggerType === 'time' && (
                       <div className="space-y-2">
                         <Label>Schedule</Label>
                         <Select defaultValue="daily">
@@ -270,7 +295,7 @@ const WorkflowBuilder = () => {
                       </div>
                     )}
                     
-                    {step.triggerType === 'event' && (
+                    {(step as TriggerStep).triggerType === 'event' && (
                       <div className="space-y-2">
                         <Label>Event Type</Label>
                         <Select defaultValue="payment">
@@ -299,13 +324,12 @@ const WorkflowBuilder = () => {
                   </div>
                 )}
                 
-                {/* Action Configuration */}
                 {step.type === 'action' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Action Type</Label>
                       <Select 
-                        value={step.actionType}
+                        value={(step as ActionStep).actionType}
                         onValueChange={(value) => updateStep(step.id, { actionType: value })}
                       >
                         <SelectTrigger>
@@ -324,7 +348,7 @@ const WorkflowBuilder = () => {
                       </Select>
                     </div>
                     
-                    {step.actionType === 'email' && (
+                    {(step as ActionStep).actionType === 'email' && (
                       <div className="space-y-2">
                         <Label>Email Template</Label>
                         <Select defaultValue="reminder">
@@ -353,7 +377,6 @@ const WorkflowBuilder = () => {
                   </div>
                 )}
                 
-                {/* Condition Configuration */}
                 {step.type === 'condition' && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-3 gap-2">
@@ -376,7 +399,7 @@ const WorkflowBuilder = () => {
                       <div className="space-y-2">
                         <Label>Condition</Label>
                         <Select 
-                          value={(step as any).conditionType}
+                          value={(step as ConditionStep).conditionType}
                           onValueChange={(value) => updateStep(step.id, { conditionType: value })}
                         >
                           <SelectTrigger>

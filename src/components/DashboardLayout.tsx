@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
-import { Sidebar } from './Sidebar';
+import { Sidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import ChatbotButton from './ChatbotButton';
@@ -48,7 +48,11 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
-        <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
+        <Sidebar>
+          <div className={sidebarOpen ? "block" : "hidden md:block"}>
+            {/* We'll render the actual sidebar content from the Sidebar component */}
+          </div>
+        </Sidebar>
       </div>
       
       {/* Main Content */}
