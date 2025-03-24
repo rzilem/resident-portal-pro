@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocation } from "react-router-dom";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import {
   SidebarContent,
   SidebarHeader,
@@ -12,42 +12,17 @@ import { CollapsibleNavItem } from "./sidebar/CollapsibleNavItem";
 import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
 import { getNavItems, NavItem } from "@/data/navigation";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
 
 export function Sidebar({
   className,
 }: React.HTMLAttributes<HTMLDivElement>) {
   const location = useLocation();
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+  const { openGroups, toggleGroup } = useSidebarState({
     "Accounting": true,
     "Communications": false,
     "Database": false
   });
-
-  useEffect(() => {
-    // Auto-open groups based on current path
-    const newOpenGroups = { ...openGroups };
-    
-    if (location.pathname.includes('/accounting')) {
-      newOpenGroups["Accounting"] = true;
-    }
-    
-    if (location.pathname.includes('/communications')) {
-      newOpenGroups["Communications"] = true;
-    }
-    
-    if (location.pathname.includes('/database')) {
-      newOpenGroups["Database"] = true;
-    }
-    
-    setOpenGroups(newOpenGroups);
-  }, [location.pathname]);
-
-  const toggleGroup = (group: string) => {
-    setOpenGroups(prev => ({
-      ...prev,
-      [group]: !prev[group]
-    }));
-  };
 
   const NAV_ITEMS = getNavItems(location.pathname);
 
