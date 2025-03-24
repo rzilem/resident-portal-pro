@@ -41,48 +41,50 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar - improved animations */}
-      <div 
-        className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
-      >
-        <Sidebar>
-          <div className={sidebarOpen ? "block" : "hidden md:block"}>
-            {/* We'll render the actual sidebar content from the Sidebar component */}
-          </div>
-        </Sidebar>
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen w-full">
-        {/* Header */}
-        <DashboardHeaderWithNav 
-          toggleSidebar={toggleSidebar} 
-          title={title} 
-        />
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="min-h-screen bg-background flex w-full">
+        {/* Sidebar - improved animations */}
+        <div 
+          className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
+        >
+          <Sidebar>
+            <div className={sidebarOpen ? "block" : "hidden md:block"}>
+              {/* We'll render the actual sidebar content from the Sidebar component */}
+            </div>
+          </Sidebar>
+        </div>
         
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col min-h-screen w-full">
+          {/* Header */}
+          <DashboardHeaderWithNav 
+            toggleSidebar={toggleSidebar} 
+            title={title} 
+          />
+          
+          {/* Main Content */}
+          <main className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
+            {children}
+          </main>
+        </div>
+        
+        {/* Chatbot Button - positioned better for mobile */}
+        <div className="fixed bottom-4 right-4 z-40">
+          <ChatbotButton />
+        </div>
+        
+        {/* Overlay for mobile sidebar */}
+        {sidebarOpen && isMobile && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+            onClick={toggleSidebar}
+            aria-hidden="true"
+          />
+        )}
       </div>
-      
-      {/* Chatbot Button - positioned better for mobile */}
-      <div className="fixed bottom-4 right-4 z-40">
-        <ChatbotButton />
-      </div>
-      
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && isMobile && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
-          onClick={toggleSidebar}
-          aria-hidden="true"
-        />
-      )}
-    </div>
+    </SidebarProvider>
   );
 };
 

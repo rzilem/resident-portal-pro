@@ -17,6 +17,14 @@ import {
   Zap
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarSeparator
+} from "@/components/ui/sidebar";
 
 type NavItem = {
   label: string;
@@ -125,8 +133,8 @@ export function Sidebar({
         },
         {
           label: "Messages",
-          href: "/communications/messages",
-          isActive: location.pathname === '/communications/messages',
+          href: "/communications/messaging",
+          isActive: location.pathname === '/communications/messaging',
         },
         {
           label: "Email Templates",
@@ -176,18 +184,18 @@ export function Sidebar({
 
   return (
     <div className={cn("pb-12 border-r min-h-screen", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-4 py-2">
+      <SidebarContent className="space-y-4 py-4">
+        <SidebarHeader className="px-4 py-2">
           <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
             HOA Management
           </h2>
-        </div>
+        </SidebarHeader>
         <ScrollArea className="h-[calc(100vh-8rem)] px-3">
           <div className="space-y-1">
             {NAV_ITEMS.map((item, i) => {
               // Render a separator
               if (item === 'separator') {
-                return <div key={i} className="my-2 h-px bg-muted" />;
+                return <SidebarSeparator key={i} className="my-2" />;
               }
 
               // Render a nav group with dropdown
@@ -239,23 +247,26 @@ export function Sidebar({
 
               // Render a regular nav item
               return (
-                <Button
-                  key={item.label}
-                  variant={item.isActive ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full justify-start",
-                    item.isActive ? "font-medium" : "font-normal"
-                  )}
-                  onClick={() => navigate(item.href)}
-                >
-                  {item.icon && <span className="mr-2">{item.icon}</span>}
-                  {item.label}
-                </Button>
+                <SidebarMenu key={item.label}>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      variant={item.isActive ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full justify-start",
+                        item.isActive ? "font-medium" : "font-normal"
+                      )}
+                      onClick={() => navigate(item.href)}
+                    >
+                      {item.icon && <span className="mr-2">{item.icon}</span>}
+                      {item.label}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
               );
             })}
           </div>
         </ScrollArea>
-      </div>
+      </SidebarContent>
     </div>
   );
 }
