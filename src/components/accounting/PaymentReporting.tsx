@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { FileDown, Filter, Calendar, DollarSign, Wallet, PieChart as PieChartIcon, BarChart as BarChartIcon, TrendingUp } from "lucide-react";
+import { FileDown, Filter, Calendar, DollarSign, Wallet, PieChart as PieChartIcon, BarChart as BarChartIcon, TrendingUp, Building } from "lucide-react";
 import { toast } from "sonner";
 
 // Sample data for charts
