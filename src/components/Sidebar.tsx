@@ -1,255 +1,261 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Fragment, useEffect, useState } from "react";
 import { 
-  Bell, 
-  Calendar, 
-  CreditCard, 
-  Database, 
-  FileText, 
   Home, 
-  LogOut,
-  Mail, 
-  Menu, 
-  MessageSquare, 
-  Settings, 
-  User, 
+  Building, 
   Users, 
-  X,
-  DollarSign,
-  Building,
-  FileSpreadsheet,
-  Briefcase,
-  Shield
-} from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { toast } from "sonner";
-import {
-  Sidebar as SidebarUI,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+  FileText, 
+  Settings, 
+  ChevronDown, 
+  Bell, 
+  Database,
+  MessageCircle,
+  Zap
+} from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-interface SidebarProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}
-
-const SidebarComponent = ({ open, onOpenChange }: SidebarProps) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  
-  const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
-  };
-  
-  const handleLogout = () => {
-    // Clear auth state
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
-    
-    // Show toast and redirect
-    toast.info("You have been logged out");
-    navigate('/login');
-  };
-
-  return (
-    <SidebarProvider defaultOpen={!isMobile} open={open} onOpenChange={onOpenChange}>
-      <SidebarUI>
-        <SidebarHeader>
-          <Link to="/" className="text-xl font-bold text-gradient">
-            ResidentPro
-          </Link>
-        </SidebarHeader>
-        
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Main</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/dashboard')}>
-                    <Link to="/dashboard">
-                      <Home className="w-4 h-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/properties')}>
-                    <Link to="/properties">
-                      <Building className="w-4 h-4" />
-                      <span>Properties</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/residents')}>
-                    <Link to="/residents">
-                      <Users className="w-4 h-4" />
-                      <span>Residents</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
-          <SidebarGroup>
-            <SidebarGroupLabel>Accounting</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/accounting/transactions')}>
-                    <Link to="/accounting/transactions">
-                      <DollarSign className="w-4 h-4" />
-                      <span>Transactions</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/accounting/reports')}>
-                    <Link to="/accounting/reports">
-                      <FileSpreadsheet className="w-4 h-4" />
-                      <span>Reports</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/accounting/payments')}>
-                    <Link to="/accounting/payments">
-                      <CreditCard className="w-4 h-4" />
-                      <span>Payments</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/settings/associations/gl-accounts')}>
-                    <Link to="/settings/associations/gl-accounts">
-                      <FileText className="w-4 h-4" />
-                      <span>GL Accounts</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
-          <SidebarGroup>
-            <SidebarGroupLabel>Communications</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/communications/announcements')}>
-                    <Link to="/communications/announcements">
-                      <Bell className="w-4 h-4" />
-                      <span>Announcements</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/communications/messages')}>
-                    <Link to="/communications/messages">
-                      <Mail className="w-4 h-4" />
-                      <span>Messages</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/communications/events')}>
-                    <Link to="/communications/events">
-                      <Calendar className="w-4 h-4" />
-                      <span>Events</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
-          <SidebarGroup>
-            <SidebarGroupLabel>Management</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/database/records')}>
-                    <Link to="/database/records">
-                      <Database className="w-4 h-4" />
-                      <span>Records</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/settings/associations/company-info')}>
-                    <Link to="/settings/associations/company-info">
-                      <Briefcase className="w-4 h-4" />
-                      <span>Company Info</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/settings/associations/arc-types')}>
-                    <Link to="/settings/associations/arc-types">
-                      <Shield className="w-4 h-4" />
-                      <span>ARC Types</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/settings')}>
-                <Link to="/settings">
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/profile')}>
-                <Link to="/profile">
-                  <User className="w-4 h-4" />
-                  <span>Profile</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout}>
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </SidebarUI>
-    </SidebarProvider>
-  );
+type NavItem = {
+  label: string;
+  href: string;
+  icon?: React.ReactNode;
+  isActive?: boolean;
+  items?: NavItem[];
 };
 
-export default SidebarComponent;
+export function Sidebar({
+  className,
+}: React.HTMLAttributes<HTMLDivElement>) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "Accounting": true,
+    "Communications": false,
+    "Database": false
+  });
+
+  useEffect(() => {
+    // Auto-open groups based on current path
+    const newOpenGroups = { ...openGroups };
+    
+    if (location.pathname.includes('/accounting')) {
+      newOpenGroups["Accounting"] = true;
+    }
+    
+    if (location.pathname.includes('/communications')) {
+      newOpenGroups["Communications"] = true;
+    }
+    
+    if (location.pathname.includes('/database')) {
+      newOpenGroups["Database"] = true;
+    }
+    
+    setOpenGroups(newOpenGroups);
+  }, [location.pathname]);
+
+  const toggleGroup = (group: string) => {
+    setOpenGroups(prev => ({
+      ...prev,
+      [group]: !prev[group]
+    }));
+  };
+
+  // Main navigation items
+  const NAV_ITEMS: (NavItem | 'separator')[] = [
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: <Home className="h-5 w-5" />,
+      isActive: location.pathname === '/dashboard',
+    },
+    {
+      label: "Properties",
+      href: "/properties",
+      icon: <Building className="h-5 w-5" />,
+      isActive: location.pathname === '/properties',
+    },
+    {
+      label: "Residents",
+      href: "/residents",
+      icon: <Users className="h-5 w-5" />,
+      isActive: location.pathname.startsWith('/residents'),
+    },
+    'separator',
+    {
+      label: "Accounting",
+      href: "#",
+      icon: <FileText className="h-5 w-5" />,
+      isActive: location.pathname.startsWith('/accounting'),
+      items: [
+        {
+          label: "Dashboard",
+          href: "/accounting",
+          isActive: location.pathname === '/accounting',
+        },
+        {
+          label: "Transactions",
+          href: "/accounting/transactions",
+          isActive: location.pathname === '/accounting/transactions',
+        },
+        {
+          label: "Reports",
+          href: "/accounting/reports",
+          isActive: location.pathname === '/accounting/reports',
+        },
+        {
+          label: "Payments",
+          href: "/accounting/payments",
+          isActive: location.pathname === '/accounting/payments',
+        },
+      ],
+    },
+    {
+      label: "Communications",
+      href: "#",
+      icon: <Bell className="h-5 w-5" />,
+      isActive: location.pathname.startsWith('/communications'),
+      items: [
+        {
+          label: "Announcements",
+          href: "/communications/announcements",
+          isActive: location.pathname === '/communications/announcements',
+        },
+        {
+          label: "Messages",
+          href: "/communications/messages",
+          isActive: location.pathname === '/communications/messages',
+        },
+        {
+          label: "Email Templates",
+          href: "/communications/email-templates",
+          isActive: location.pathname === '/communications/email-templates',
+        },
+      ],
+    },
+    {
+      label: "Database",
+      href: "#",
+      icon: <Database className="h-5 w-5" />,
+      isActive: location.pathname.startsWith('/database'),
+      items: [
+        {
+          label: "Records",
+          href: "/database/records",
+          isActive: location.pathname === '/database/records',
+        },
+        {
+          label: "Templates",
+          href: "/database/templates",
+          isActive: location.pathname === '/database/templates',
+        },
+      ],
+    },
+    {
+      label: "Workflows",
+      href: "/workflows",
+      icon: <Zap className="h-5 w-5" />,
+      isActive: location.pathname === '/workflows',
+    },
+    {
+      label: "Chatbot",
+      href: "/chatbot",
+      icon: <MessageCircle className="h-5 w-5" />,
+      isActive: location.pathname === '/chatbot',
+    },
+    'separator',
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: <Settings className="h-5 w-5" />,
+      isActive: location.pathname === '/settings',
+    },
+  ];
+
+  return (
+    <div className={cn("pb-12 border-r min-h-screen", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
+            HOA Management
+          </h2>
+        </div>
+        <ScrollArea className="h-[calc(100vh-8rem)] px-3">
+          <div className="space-y-1">
+            {NAV_ITEMS.map((item, i) => {
+              // Render a separator
+              if (item === 'separator') {
+                return <div key={i} className="my-2 h-px bg-muted" />;
+              }
+
+              // Render a nav group with dropdown
+              if (item.items && item.items.length > 0) {
+                return (
+                  <Collapsible
+                    key={item.label}
+                    open={openGroups[item.label]}
+                    onOpenChange={() => toggleGroup(item.label)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant={item.isActive ? "secondary" : "ghost"}
+                        className={cn(
+                          "w-full justify-between font-normal",
+                          item.isActive ? "font-medium" : "font-normal"
+                        )}
+                      >
+                        <span className="flex items-center">
+                          {item.icon && <span className="mr-2">{item.icon}</span>}
+                          {item.label}
+                        </span>
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform",
+                            openGroups[item.label] ? "rotate-180" : ""
+                          )}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pl-6 pt-1">
+                      {item.items.map((subItem) => (
+                        <Button
+                          key={subItem.label}
+                          variant={subItem.isActive ? "secondary" : "ghost"}
+                          className={cn(
+                            "w-full justify-start",
+                            subItem.isActive ? "font-medium" : "font-normal"
+                          )}
+                          onClick={() => navigate(subItem.href)}
+                        >
+                          {subItem.label}
+                        </Button>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              }
+
+              // Render a regular nav item
+              return (
+                <Button
+                  key={item.label}
+                  variant={item.isActive ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start",
+                    item.isActive ? "font-medium" : "font-normal"
+                  )}
+                  onClick={() => navigate(item.href)}
+                >
+                  {item.icon && <span className="mr-2">{item.icon}</span>}
+                  {item.label}
+                </Button>
+              );
+            })}
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+}

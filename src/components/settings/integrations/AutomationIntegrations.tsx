@@ -1,13 +1,33 @@
 
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Zap, Link } from "lucide-react";
+import { Zap, Link, Workflow, ArrowRight } from "lucide-react";
 import IntegrationCard from './IntegrationCard';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const AutomationIntegrations = () => {
+  const navigate = useNavigate();
+
+  const handleGoToWorkflows = () => {
+    navigate('/workflows');
+  };
+
   return (
     <ScrollArea className="h-[600px] pr-4">
       <div className="grid gap-6">
+        {/* Workflow System Integration */}
+        <IntegrationCard 
+          title="HOA Workflow Automation"
+          description="Create custom workflows for HOA processes like delinquencies, violations, and approvals"
+          icon={<Zap className="h-5 w-5" />}
+          customActions={
+            <Button onClick={handleGoToWorkflows}>
+              Go to Workflows <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          }
+        />
+        
         {/* Zapier Integration */}
         <IntegrationCard 
           title="Zapier"

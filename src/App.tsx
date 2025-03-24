@@ -19,6 +19,7 @@ import Records from "./pages/database/Records";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/DashboardLayout";
+import Workflows from "./pages/Workflows";
 
 // Import settings subpages
 import CompanyInfo from "./components/settings/company/CompanyInfo";
@@ -101,6 +102,12 @@ const App = () => (
           <Route path="/database/records" element={
             <ProtectedRoute title="Records">
               <Records />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/workflows" element={
+            <ProtectedRoute title="Workflows">
+              <Workflows />
             </ProtectedRoute>
           } />
           
