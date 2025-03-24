@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import ResidentProfile from "./pages/ResidentProfile";
 import Transactions from "./pages/accounting/Transactions";
 import Reports from "./pages/accounting/Reports";
 import Payments from "./pages/accounting/Payments";
+import AccountingDashboard from "./pages/accounting/AccountingDashboard";
 import Announcements from "./pages/communications/Announcements";
 import Records from "./pages/database/Records";
 import Settings from "./pages/Settings";
@@ -65,6 +67,11 @@ const App = () => (
             </ProtectedRoute>
           } />
           
+          <Route path="/accounting" element={
+            <ProtectedRoute title="Accounting Dashboard">
+              <AccountingDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/accounting/transactions" element={
             <ProtectedRoute title="Transactions">
               <Transactions />
