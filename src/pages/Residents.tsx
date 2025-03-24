@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Users, UserCheck, UserX, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Residents = () => {
   return (
@@ -68,18 +69,39 @@ const Residents = () => {
               </TableHeader>
               <TableBody>
                 {[
-                  { name: 'Alice Johnson', unit: '301', property: 'Oakwood Heights', email: 'alice.j@example.com', status: 'Active' },
-                  { name: 'Robert Smith', unit: '142', property: 'Willow Creek Estates', email: 'robert.s@example.com', status: 'Active' },
-                  { name: 'Emily Davis', unit: '506', property: 'Riverfront Towers', email: 'emily.d@example.com', status: 'Active' },
-                  { name: 'Michael Wilson', unit: '203', property: 'Sunset Gardens', email: 'michael.w@example.com', status: 'Pending' },
-                  { name: 'Sarah Brown', unit: '118', property: 'Pine Valley Community', email: 'sarah.b@example.com', status: 'Active' },
-                  { name: 'David Miller', unit: '224', property: 'Oakwood Heights', email: 'david.m@example.com', status: 'Inactive' },
+                  { id: 101, name: 'Alice Johnson', unit: '301', property: 'Oakwood Heights', email: 'alice.j@example.com', status: 'Active' },
+                  { id: 102, name: 'Robert Smith', unit: '142', property: 'Willow Creek Estates', email: 'robert.s@example.com', status: 'Active' },
+                  { id: 103, name: 'Emily Davis', unit: '506', property: 'Riverfront Towers', email: 'emily.d@example.com', status: 'Active' },
+                  { id: 201, name: 'Michael Wilson', unit: '203', property: 'Sunset Gardens', email: 'michael.w@example.com', status: 'Pending' },
+                  { id: 202, name: 'Sarah Brown', unit: '118', property: 'Pine Valley Community', email: 'sarah.b@example.com', status: 'Active' },
+                  { id: 301, name: 'David Miller', unit: '224', property: 'Oakwood Heights', email: 'david.m@example.com', status: 'Inactive' },
                 ].map((resident, i) => (
                   <TableRow key={i}>
-                    <TableCell className="font-medium">{resident.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link 
+                        to={`/residents/${resident.id}`} 
+                        className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                      >
+                        {resident.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{resident.unit}</TableCell>
-                    <TableCell>{resident.property}</TableCell>
-                    <TableCell>{resident.email}</TableCell>
+                    <TableCell>
+                      <Link 
+                        to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
+                        className="hover:underline hover:text-primary/80 transition-colors"
+                      >
+                        {resident.property}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <a 
+                        href={`mailto:${resident.email}`} 
+                        className="hover:underline hover:text-primary/80 transition-colors"
+                      >
+                        {resident.email}
+                      </a>
+                    </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         resident.status === 'Active' ? 'bg-green-100 text-green-800' : 

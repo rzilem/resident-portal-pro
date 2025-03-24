@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 // Mock data for associations and owners
 const associationsData = [
@@ -177,9 +178,24 @@ const SearchAssociations = () => {
                               {filteredOwners.length > 0 ? (
                                 filteredOwners.map((owner) => (
                                   <tr key={owner.id} className="border-t">
-                                    <td className="p-2 text-sm">{owner.name}</td>
+                                    <td className="p-2 text-sm">
+                                      <Link 
+                                        to={`/residents/${owner.id}`}
+                                        className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                                        onClick={() => setIsDialogOpen(false)}
+                                      >
+                                        {owner.name}
+                                      </Link>
+                                    </td>
                                     <td className="p-2 text-sm">{owner.unit}</td>
-                                    <td className="p-2 text-sm">{owner.email}</td>
+                                    <td className="p-2 text-sm">
+                                      <a 
+                                        href={`mailto:${owner.email}`}
+                                        className="hover:underline hover:text-primary/80 transition-colors"
+                                      >
+                                        {owner.email}
+                                      </a>
+                                    </td>
                                   </tr>
                                 ))
                               ) : (
@@ -226,9 +242,23 @@ const SearchAssociations = () => {
                   {filteredOwners.length > 0 ? (
                     filteredOwners.map((owner) => (
                       <tr key={owner.id} className="border-t">
-                        <td className="p-2 text-sm">{owner.name}</td>
+                        <td className="p-2 text-sm">
+                          <Link 
+                            to={`/residents/${owner.id}`}
+                            className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                          >
+                            {owner.name}
+                          </Link>
+                        </td>
                         <td className="p-2 text-sm">{owner.unit}</td>
-                        <td className="p-2 text-sm">{owner.email}</td>
+                        <td className="p-2 text-sm">
+                          <a 
+                            href={`mailto:${owner.email}`}
+                            className="hover:underline hover:text-primary/80 transition-colors"
+                          >
+                            {owner.email}
+                          </a>
+                        </td>
                       </tr>
                     ))
                   ) : (

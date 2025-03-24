@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import Residents from "./pages/Residents";
+import ResidentProfile from "./pages/ResidentProfile";
 import Transactions from "./pages/accounting/Transactions";
 import Reports from "./pages/accounting/Reports";
 import Announcements from "./pages/communications/Announcements";
@@ -58,6 +59,11 @@ const App = () => (
           <Route path="/residents" element={
             <ProtectedRoute title="Residents">
               <Residents />
+            </ProtectedRoute>
+          } />
+          <Route path="/residents/:id" element={
+            <ProtectedRoute title="Resident Profile">
+              <ResidentProfile />
             </ProtectedRoute>
           } />
           
