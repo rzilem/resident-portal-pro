@@ -1,0 +1,130 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { Sun, Moon, SunMoon, Monitor } from "lucide-react";
+import { toast } from "sonner";
+
+const DisplaySettings = () => {
+  const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState("light");
+  const [cardStyle, setCardStyle] = useState("default");
+  const [density, setDensity] = useState("comfortable");
+  const [animations, setAnimations] = useState(true);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      toast.success("Display settings saved!");
+    }, 800);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Theme Settings</CardTitle>
+            <CardDescription>Customize the appearance of your interface</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <Label>Theme Mode</Label>
+              <ToggleGroup type="single" value={theme} onValueChange={(value) => value && setTheme(value)} className="justify-start">
+                <ToggleGroupItem value="light" aria-label="Light Mode">
+                  <Sun className="h-4 w-4 mr-2" />
+                  Light
+                </ToggleGroupItem>
+                <ToggleGroupItem value="dark" aria-label="Dark Mode">
+                  <Moon className="h-4 w-4 mr-2" />
+                  Dark
+                </ToggleGroupItem>
+                <ToggleGroupItem value="system" aria-label="System Mode">
+                  <Monitor className="h-4 w-4 mr-2" />
+                  System
+                </ToggleGroupItem>
+                <ToggleGroupItem value="auto" aria-label="Auto Mode">
+                  <SunMoon className="h-4 w-4 mr-2" />
+                  Auto
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+            
+            <div className="space-y-4">
+              <Label>Card Style</Label>
+              <RadioGroup value={cardStyle} onValueChange={setCardStyle} className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="default" id="card-default" />
+                  <Label htmlFor="card-default" className="font-normal cursor-pointer">Default</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="flat" id="card-flat" />
+                  <Label htmlFor="card-flat" className="font-normal cursor-pointer">Flat</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="glass" id="card-glass" />
+                  <Label htmlFor="card-glass" className="font-normal cursor-pointer">Glass Morphism</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-4">
+              <Label>Layout Density</Label>
+              <RadioGroup value={density} onValueChange={setDensity} className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="comfortable" id="density-comfortable" />
+                  <Label htmlFor="density-comfortable" className="font-normal cursor-pointer">Comfortable</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="compact" id="density-compact" />
+                  <Label htmlFor="density-compact" className="font-normal cursor-pointer">Compact</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="flex items-center justify-between py-2">
+              <Label htmlFor="animations" className="font-normal cursor-pointer">
+                Enable animations
+              </Label>
+              <Switch 
+                id="animations" 
+                checked={animations} 
+                onCheckedChange={setAnimations} 
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Save Preferences"}
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Dashboard Layout</CardTitle>
+            <CardDescription>Customize your dashboard widgets and layout</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">Dashboard customization options coming soon</p>
+              <Button variant="outline" className="mt-4" disabled>
+                Customize Layout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </form>
+  );
+};
+
+export default DisplaySettings;

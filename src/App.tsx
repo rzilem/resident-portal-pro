@@ -13,6 +13,7 @@ import Transactions from "./pages/accounting/Transactions";
 import Reports from "./pages/accounting/Reports";
 import Announcements from "./pages/communications/Announcements";
 import Records from "./pages/database/Records";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/DashboardLayout";
 
@@ -83,6 +84,13 @@ const App = () => (
           <Route path="/database/records" element={
             <ProtectedRoute title="Records">
               <Records />
+            </ProtectedRoute>
+          } />
+          
+          {/* Settings Route */}
+          <Route path="/settings" element={
+            <ProtectedRoute title="Settings">
+              <Settings />
             </ProtectedRoute>
           } />
           
