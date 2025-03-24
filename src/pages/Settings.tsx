@@ -7,6 +7,7 @@ import DisplaySettings from '@/components/settings/DisplaySettings';
 import SecuritySettings from '@/components/settings/SecuritySettings';
 import AssociationSettings from '@/components/settings/AssociationSettings';
 import PermissionSettings from '@/components/settings/PermissionSettings';
+import IntegrationSettings from '@/components/settings/IntegrationSettings';
 
 const Settings = () => {
   return (
@@ -17,13 +18,14 @@ const Settings = () => {
       </div>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-4">
+        <TabsList className="grid grid-cols-3 md:grid-cols-7 mb-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="display">Display</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="associations">Associations</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile">
@@ -48,6 +50,10 @@ const Settings = () => {
         
         <TabsContent value="permissions">
           <PermissionSettings />
+        </TabsContent>
+        
+        <TabsContent value="integrations">
+          <IntegrationSettings />
         </TabsContent>
       </Tabs>
     </div>
