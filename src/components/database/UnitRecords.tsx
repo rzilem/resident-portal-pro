@@ -35,16 +35,63 @@ const UnitRecords = () => {
             <TableHead>Property</TableHead>
             <TableHead>Sq Ft</TableHead>
             <TableHead>Bedrooms</TableHead>
+            <TableHead>Tax District</TableHead>
+            <TableHead>Tax ID</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {[
-            { id: 'U001', unit: '101', property: 'Oakwood Heights', sqft: '850', bedrooms: '1', status: 'Occupied' },
-            { id: 'U002', unit: '205', property: 'Oakwood Heights', sqft: '1200', bedrooms: '2', status: 'Occupied' },
-            { id: 'U003', unit: '14', property: 'Willow Creek Estates', sqft: '1800', bedrooms: '3', status: 'Occupied' },
-            { id: 'U004', unit: '301', property: 'Riverfront Towers', sqft: '1100', bedrooms: '2', status: 'Vacant' },
-            { id: 'U005', unit: '7', property: 'Pine Valley Community', sqft: '2200', bedrooms: '4', status: 'Occupied' },
+            { 
+              id: 'U001', 
+              unit: '101', 
+              property: 'Oakwood Heights', 
+              sqft: '850', 
+              bedrooms: '1', 
+              status: 'Occupied',
+              taxDistrict: 'North Seattle', 
+              taxId: 'TX-10145-A' 
+            },
+            { 
+              id: 'U002', 
+              unit: '205', 
+              property: 'Oakwood Heights', 
+              sqft: '1200', 
+              bedrooms: '2', 
+              status: 'Occupied',
+              taxDistrict: 'North Seattle', 
+              taxId: 'TX-10146-B' 
+            },
+            { 
+              id: 'U003', 
+              unit: '14', 
+              property: 'Willow Creek Estates', 
+              sqft: '1800', 
+              bedrooms: '3', 
+              status: 'Occupied',
+              taxDistrict: 'Portland Metro', 
+              taxId: 'PDX-2367' 
+            },
+            { 
+              id: 'U004', 
+              unit: '301', 
+              property: 'Riverfront Towers', 
+              sqft: '1100', 
+              bedrooms: '2', 
+              status: 'Vacant',
+              taxDistrict: 'Downtown Denver', 
+              taxId: 'DEN-7701' 
+            },
+            { 
+              id: 'U005', 
+              unit: '7', 
+              property: 'Pine Valley Community', 
+              sqft: '2200', 
+              bedrooms: '4', 
+              status: 'Occupied',
+              taxDistrict: 'Austin City', 
+              taxId: 'AUS-9954-XC' 
+            },
           ].map((unit, i) => (
             <TableRow key={i}>
               <TableCell className="font-mono">{unit.id}</TableCell>
@@ -52,6 +99,8 @@ const UnitRecords = () => {
               <TableCell>{unit.property}</TableCell>
               <TableCell>{unit.sqft}</TableCell>
               <TableCell>{unit.bedrooms}</TableCell>
+              <TableCell>{unit.taxDistrict}</TableCell>
+              <TableCell className="font-mono">{unit.taxId}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 rounded-full text-xs ${
                   unit.status === 'Occupied' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'

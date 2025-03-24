@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -23,6 +22,8 @@ type PropertyDetails = {
   leaseEnd?: string;
   monthlyRent?: string;
   deposit?: string;
+  taxDistrict?: string;
+  taxId?: string;
 }
 
 type LastPayment = {
@@ -121,7 +122,9 @@ const residentProfiles: Record<number, ResidentProfile> = {
       leaseStart: '2023-01-01',
       leaseEnd: '2023-12-31',
       monthlyRent: '$1,200.00',
-      deposit: '$1,800.00'
+      deposit: '$1,800.00',
+      taxDistrict: 'North Seattle',
+      taxId: 'TX-10145-A'
     }
   },
   102: {
@@ -163,7 +166,9 @@ const residentProfiles: Record<number, ResidentProfile> = {
       leaseStart: '2023-01-01',
       leaseEnd: '2023-12-31',
       monthlyRent: '$1,450.00',
-      deposit: '$2,175.00'
+      deposit: '$2,175.00',
+      taxDistrict: 'Portland Metro',
+      taxId: 'PDX-2367'
     }
   },
   103: {
@@ -729,6 +734,31 @@ const ResidentProfile = () => {
                         <div>
                           <p className="text-sm font-medium">Bathrooms</p>
                           <p className="text-muted-foreground">{resident.propertyDetails.bathrooms}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="border p-3 rounded-md bg-slate-50 mt-2">
+                        <h4 className="font-medium text-sm mb-2">Property Tax Information</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium">Tax District</p>
+                            <p className="text-muted-foreground">{resident.propertyDetails.taxDistrict || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Tax ID</p>
+                            <p className="text-muted-foreground font-mono">{resident.propertyDetails.taxId || 'N/A'}</p>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          <a 
+                            href="https://hometaxshield.com/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline flex items-center gap-1"
+                          >
+                            View on HomeTaxShield
+                            <ArrowLeft className="h-3 w-3 rotate-180" />
+                          </a>
                         </div>
                       </div>
                       
