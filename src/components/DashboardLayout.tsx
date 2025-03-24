@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
-import Sidebar from './Sidebar';
+import { Sidebar } from './Sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import ChatbotButton from './ChatbotButton';

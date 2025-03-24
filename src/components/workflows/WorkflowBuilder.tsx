@@ -36,16 +36,22 @@ const CONDITION_TYPES = [
   { id: 'isFalse', label: 'Is False' }
 ];
 
+// Define proper types for workflow steps
+type WorkflowStep = 
+  | { id: string; type: 'trigger'; triggerType: string; name: string; config: any }
+  | { id: string; type: 'action'; actionType: string; name: string; config: any }
+  | { id: string; type: 'condition'; conditionType: string; field: string; value: string; name: string; config: { trueSteps: any[]; falseSteps: any[] } };
+
 const WorkflowBuilder = () => {
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
   const [workflowCategory, setWorkflowCategory] = useState('');
-  const [workflowSteps, setWorkflowSteps] = useState([
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([
     { id: '1', type: 'trigger', triggerType: '', name: '', config: {} },
     { id: '2', type: 'action', actionType: '', name: '', config: {} }
   ]);
   
-  const addStep = (afterId) => {
+  const addStep = (afterId: string) => {
     const newId = Date.now().toString();
     const afterIndex = workflowSteps.findIndex(step => step.id === afterId);
     
@@ -61,7 +67,7 @@ const WorkflowBuilder = () => {
     setWorkflowSteps(newSteps);
   };
   
-  const addCondition = (afterId) => {
+  const addCondition = (afterId: string) => {
     const newId = Date.now().toString();
     const afterIndex = workflowSteps.findIndex(step => step.id === afterId);
     
@@ -82,11 +88,11 @@ const WorkflowBuilder = () => {
     setWorkflowSteps(newSteps);
   };
   
-  const removeStep = (id) => {
+  const removeStep = (id: string) => {
     setWorkflowSteps(workflowSteps.filter(step => step.id !== id));
   };
   
-  const moveStep = (id, direction) => {
+  const moveStep = (id: string, direction: 'up' | 'down') => {
     const stepIndex = workflowSteps.findIndex(step => step.id === id);
     if ((direction === 'up' && stepIndex === 0) || 
         (direction === 'down' && stepIndex === workflowSteps.length - 1)) {
@@ -107,7 +113,7 @@ const WorkflowBuilder = () => {
     setWorkflowSteps(newSteps);
   };
   
-  const updateStep = (id, data) => {
+  const updateStep = (id: string, data: Partial<WorkflowStep>) => {
     setWorkflowSteps(
       workflowSteps.map(step => 
         step.id === id ? { ...step, ...data } : step
@@ -370,7 +376,7 @@ const WorkflowBuilder = () => {
                       <div className="space-y-2">
                         <Label>Condition</Label>
                         <Select 
-                          value={step.conditionType}
+                          value={(step as any).conditionType}
                           onValueChange={(value) => updateStep(step.id, { conditionType: value })}
                         >
                           <SelectTrigger>

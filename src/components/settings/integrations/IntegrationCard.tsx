@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +21,7 @@ interface IntegrationCardProps {
   isWebhook?: boolean;
   isApiKey?: boolean;
   isWebhookEndpoint?: boolean;
+  customActions?: React.ReactNode;
 }
 
 const IntegrationCard = ({ 
@@ -31,7 +31,8 @@ const IntegrationCard = ({
   integrations,
   isWebhook,
   isApiKey,
-  isWebhookEndpoint
+  isWebhookEndpoint,
+  customActions
 }: IntegrationCardProps) => {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -240,6 +241,10 @@ const IntegrationCard = ({
               ))}
             </div>
           </div>
+        )}
+        
+        {customActions && (
+          <div className="mt-4">{customActions}</div>
         )}
       </CardContent>
     </Card>
