@@ -13,8 +13,73 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
+// Define types for our resident data to avoid TypeScript errors
+type PropertyDetails = {
+  address: string;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  leaseStart?: string;
+  leaseEnd?: string;
+  monthlyRent?: string;
+  deposit?: string;
+}
+
+type LastPayment = {
+  date: string;
+  amount: string;
+  method: string;
+}
+
+type Transaction = {
+  date: string;
+  description: string;
+  amount: string;
+  balance: string;
+}
+
+type Communication = {
+  date: string;
+  type: string;
+  subject: string;
+  status: string;
+}
+
+type Note = {
+  date: string;
+  author: string;
+  content: string;
+}
+
+type Document = {
+  name: string;
+  type: string;
+  date: string;
+  size: string;
+}
+
+type ResidentProfile = {
+  id: number;
+  name: string;
+  unit: string;
+  property: string;
+  email: string;
+  phone: string;
+  status: string;
+  moveInDate: string;
+  moveOutDate?: string;
+  paymentPreference?: string;
+  balance: string;
+  lastPayment?: LastPayment;
+  accountHistory?: Transaction[];
+  communications: Communication[];
+  notes: Note[];
+  documents: Document[];
+  propertyDetails: PropertyDetails;
+}
+
 // Mock data for resident profiles
-const residentProfiles = {
+const residentProfiles: Record<number, ResidentProfile> = {
   101: {
     id: 101,
     name: 'Alice Johnson',
@@ -101,11 +166,9 @@ const residentProfiles = {
       deposit: '$2,175.00'
     }
   },
-  // Add more resident data as needed for each ID
   103: {
     id: 103,
     name: 'Emily Davis',
-    // ... include similar detailed data structure
     unit: '506',
     property: 'Riverfront Towers',
     email: 'emily.d@example.com',
@@ -137,7 +200,6 @@ const residentProfiles = {
   201: {
     id: 201,
     name: 'Michael Wilson',
-    // ... similar structure
     unit: '203',
     property: 'Sunset Gardens',
     email: 'michael.w@example.com',
@@ -158,7 +220,6 @@ const residentProfiles = {
   202: {
     id: 202,
     name: 'Sarah Brown',
-    // ... similar structure
     unit: '118',
     property: 'Pine Valley Community',
     email: 'sarah.b@example.com',
@@ -183,7 +244,6 @@ const residentProfiles = {
   301: {
     id: 301,
     name: 'David Miller',
-    // ... similar structure
     unit: '224',
     property: 'Oakwood Heights',
     email: 'david.m@example.com',
@@ -204,10 +264,22 @@ const residentProfiles = {
   }
 };
 
+// Helper function to get badge variant
+const getStatusBadgeVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
+  switch (status) {
+    case "Active":
+      return "default"; // Using default instead of success
+    case "Pending":
+      return "secondary"; // Using secondary instead of warning
+    default:
+      return "outline";
+  }
+};
+
 const ResidentProfile = () => {
   const { id } = useParams<{ id: string }>();
   const residentId = parseInt(id || '0');
-  const resident = residentProfiles[residentId as keyof typeof residentProfiles];
+  const resident = residentProfiles[residentId];
 
   if (!resident) {
     return (
@@ -238,10 +310,7 @@ const ResidentProfile = () => {
             <div className="flex items-center gap-2 text-muted-foreground mt-1">
               <MapPin className="h-4 w-4" />
               <span>{resident.property} • Unit {resident.unit}</span>
-              <Badge variant={
-                resident.status === "Active" ? "success" : 
-                resident.status === "Pending" ? "warning" : "secondary"
-              }>
+              <Badge variant={getStatusBadgeVariant(resident.status)}>
                 {resident.status}
               </Badge>
             </div>
