@@ -34,6 +34,7 @@ const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
   const [payments, setPayments] = useState<VendorPayment[]>([
     {
       id: "PAY-001",
+      vendor: "Landscaping Services Inc.",
       vendorId: "VEN-001",
       invoiceId: "VINV-001",
       amount: 750.00,
@@ -46,6 +47,7 @@ const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
     },
     {
       id: "PAY-002",
+      vendor: "Blue Waters Pool Co.",
       vendorId: "VEN-002",
       invoiceId: "VINV-002",
       amount: 450.00,
@@ -58,6 +60,7 @@ const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
     },
     {
       id: "PAY-003",
+      vendor: "Secure Guard Services",
       vendorId: "VEN-003",
       invoiceId: "VINV-003",
       amount: 1250.00,
@@ -69,6 +72,7 @@ const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
     },
     {
       id: "PAY-004",
+      vendor: "ABC Pest Control",
       vendorId: "VEN-004",
       invoiceId: "VINV-004",
       amount: 325.00,
@@ -80,6 +84,7 @@ const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
     },
     {
       id: "PAY-005",
+      vendor: "Landscaping Services Inc.",
       vendorId: "VEN-001",
       invoiceId: "VINV-005",
       amount: 800.00,
