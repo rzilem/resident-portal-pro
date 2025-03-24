@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import Residents from "./pages/Residents";
 import ResidentProfile from "./pages/ResidentProfile";
 import Transactions from "./pages/accounting/Transactions";
 import Reports from "./pages/accounting/Reports";
+import Payments from "./pages/accounting/Payments";
 import Announcements from "./pages/communications/Announcements";
 import Records from "./pages/database/Records";
 import Settings from "./pages/Settings";
@@ -20,7 +20,6 @@ import DashboardLayout from "./components/DashboardLayout";
 
 const queryClient = new QueryClient();
 
-// Protection wrapper for authenticated routes
 const ProtectedRoute = ({ children, title }: { children: React.ReactNode, title?: string }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   
@@ -45,7 +44,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           
-          {/* Protected Routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute title="Dashboard">
               <Dashboard />
@@ -67,7 +65,6 @@ const App = () => (
             </ProtectedRoute>
           } />
           
-          {/* Accounting Routes */}
           <Route path="/accounting/transactions" element={
             <ProtectedRoute title="Transactions">
               <Transactions />
@@ -78,29 +75,30 @@ const App = () => (
               <Reports />
             </ProtectedRoute>
           } />
+          <Route path="/accounting/payments" element={
+            <ProtectedRoute title="Payments">
+              <Payments />
+            </ProtectedRoute>
+          } />
           
-          {/* Communications Routes */}
           <Route path="/communications/announcements" element={
             <ProtectedRoute title="Announcements">
               <Announcements />
             </ProtectedRoute>
           } />
           
-          {/* Database Routes */}
           <Route path="/database/records" element={
             <ProtectedRoute title="Records">
               <Records />
             </ProtectedRoute>
           } />
           
-          {/* Settings Route */}
           <Route path="/settings" element={
             <ProtectedRoute title="Settings">
               <Settings />
             </ProtectedRoute>
           } />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
