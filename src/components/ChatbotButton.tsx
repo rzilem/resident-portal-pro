@@ -13,9 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+// Define a type for our chat messages
+type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 const ChatbotButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: 'Hello! I\'m your AI assistant. How can I help you today?' }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -26,8 +32,8 @@ const ChatbotButton = () => {
     
     if (!inputValue.trim()) return;
     
-    // Add user message
-    const newMessages = [...messages, { role: 'user', content: inputValue }];
+    // Add user message - explicitly typed as 'user'
+    const newMessages = [...messages, { role: 'user' as const, content: inputValue }];
     setMessages(newMessages);
     setInputValue('');
     
@@ -36,7 +42,7 @@ const ChatbotButton = () => {
       setMessages([
         ...newMessages,
         { 
-          role: 'assistant', 
+          role: 'assistant' as const, 
           content: `I understand you're asking about "${inputValue}". This is a simulated response. In a production environment, this would connect to an AI backend service.`
         }
       ]);
