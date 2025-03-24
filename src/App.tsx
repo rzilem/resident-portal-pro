@@ -14,6 +14,7 @@ import Reports from "./pages/accounting/Reports";
 import Announcements from "./pages/communications/Announcements";
 import Records from "./pages/database/Records";
 import NotFound from "./pages/NotFound";
+import ChatbotButton from "./components/ChatbotButton";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
   
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <ChatbotButton />
+    </>
+  );
 };
 
 const App = () => (
