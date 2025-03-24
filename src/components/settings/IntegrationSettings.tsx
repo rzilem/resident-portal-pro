@@ -82,7 +82,20 @@ const IntegrationSettings = () => {
                     integrations={[
                       { name: "Twilio Voice", connected: false },
                       { name: "RingCentral", connected: false },
-                      { name: "Vonage", connected: false }
+                      { name: "Vonage", connected: false },
+                      { name: "Microsoft Teams Phone", connected: false }
+                    ]}
+                  />
+                  
+                  {/* Microsoft Teams Phone Integration */}
+                  <IntegrationCard 
+                    title="Microsoft Teams Phone"
+                    description="Connect Microsoft Teams Phone for unified communications and calling capabilities"
+                    icon={<Phone className="h-5 w-5" />}
+                    integrations={[
+                      { name: "Teams Direct Routing", connected: false },
+                      { name: "Teams Calling Plan", connected: false },
+                      { name: "Teams Operator Connect", connected: false }
                     ]}
                   />
                   
@@ -158,6 +171,19 @@ const IntegrationSettings = () => {
                       { name: "AppFolio", connected: false },
                       { name: "Propertyware", connected: false },
                       { name: "Yardi", connected: false }
+                    ]}
+                  />
+                  
+                  {/* Microsoft Dynamics 365 */}
+                  <IntegrationCard 
+                    title="Microsoft Dynamics 365"
+                    description="Connect with Microsoft Dynamics 365 for comprehensive business management"
+                    icon={<Building className="h-5 w-5" />}
+                    integrations={[
+                      { name: "Dynamics 365 Business Central", connected: false },
+                      { name: "Dynamics 365 Finance", connected: false },
+                      { name: "Dynamics 365 Customer Service", connected: false },
+                      { name: "Dynamics 365 Field Service", connected: false }
                     ]}
                   />
                   
