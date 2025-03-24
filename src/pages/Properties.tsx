@@ -3,10 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Building, Users, Home } from 'lucide-react';
+import DashboardHeader from '@/components/DashboardHeader';
 
 const Properties = () => {
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col">
+      <DashboardHeader />
+      
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Content */}
