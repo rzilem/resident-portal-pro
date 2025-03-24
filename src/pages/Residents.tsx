@@ -2,12 +2,24 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserX, Search } from 'lucide-react';
+import { Users, UserCheck, UserX, Search, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Residents = () => {
+  const isMobile = useIsMobile();
+  
+  const residents = [
+    { id: 101, name: 'Alice Johnson', unit: '301', property: 'Oakwood Heights', email: 'alice.j@example.com', status: 'Active' },
+    { id: 102, name: 'Robert Smith', unit: '142', property: 'Willow Creek Estates', email: 'robert.s@example.com', status: 'Active' },
+    { id: 103, name: 'Emily Davis', unit: '506', property: 'Riverfront Towers', email: 'emily.d@example.com', status: 'Active' },
+    { id: 201, name: 'Michael Wilson', unit: '203', property: 'Sunset Gardens', email: 'michael.w@example.com', status: 'Pending' },
+    { id: 202, name: 'Sarah Brown', unit: '118', property: 'Pine Valley Community', email: 'sarah.b@example.com', status: 'Active' },
+    { id: 301, name: 'David Miller', unit: '224', property: 'Oakwood Heights', email: 'david.m@example.com', status: 'Inactive' },
+  ];
+  
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-4 md:gap-6 mb-6">
@@ -57,52 +69,18 @@ const Residents = () => {
               <Button>Add Resident</Button>
             </div>
             
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Property</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[
-                  { id: 101, name: 'Alice Johnson', unit: '301', property: 'Oakwood Heights', email: 'alice.j@example.com', status: 'Active' },
-                  { id: 102, name: 'Robert Smith', unit: '142', property: 'Willow Creek Estates', email: 'robert.s@example.com', status: 'Active' },
-                  { id: 103, name: 'Emily Davis', unit: '506', property: 'Riverfront Towers', email: 'emily.d@example.com', status: 'Active' },
-                  { id: 201, name: 'Michael Wilson', unit: '203', property: 'Sunset Gardens', email: 'michael.w@example.com', status: 'Pending' },
-                  { id: 202, name: 'Sarah Brown', unit: '118', property: 'Pine Valley Community', email: 'sarah.b@example.com', status: 'Active' },
-                  { id: 301, name: 'David Miller', unit: '224', property: 'Oakwood Heights', email: 'david.m@example.com', status: 'Inactive' },
-                ].map((resident, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">
-                      <Link 
-                        to={`/residents/${resident.id}`} 
-                        className="text-primary hover:underline hover:text-primary/80 transition-colors"
+            {/* Mobile view */}
+            {isMobile && (
+              <div className="space-y-4 md:hidden">
+                {residents.map((resident, i) => (
+                  <Card key={i} className="p-4 border">
+                    <div className="flex justify-between items-center mb-2">
+                      <Link
+                        to={`/residents/${resident.id}`}
+                        className="font-medium text-primary hover:underline"
                       >
                         {resident.name}
                       </Link>
-                    </TableCell>
-                    <TableCell>{resident.unit}</TableCell>
-                    <TableCell>
-                      <Link 
-                        to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
-                        className="hover:underline hover:text-primary/80 transition-colors"
-                      >
-                        {resident.property}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <a 
-                        href={`mailto:${resident.email}`} 
-                        className="hover:underline hover:text-primary/80 transition-colors"
-                      >
-                        {resident.email}
-                      </a>
-                    </TableCell>
-                    <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         resident.status === 'Active' ? 'bg-green-100 text-green-800' : 
                         resident.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 
@@ -110,11 +88,95 @@ const Residents = () => {
                       }`}>
                         {resident.status}
                       </span>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Unit:</span>
+                        <span>{resident.unit}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Property:</span>
+                        <Link 
+                          to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
+                          className="hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          {resident.property}
+                        </Link>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Email:</span>
+                        <a 
+                          href={`mailto:${resident.email}`} 
+                          className="hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          {resident.email}
+                        </a>
+                      </div>
+                    </div>
+                    <Link to={`/residents/${resident.id}`}>
+                      <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
+                        View Profile <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            )}
+            
+            {/* Desktop view */}
+            <div className={isMobile ? "hidden" : "overflow-auto"}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Property</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {residents.map((resident, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">
+                        <Link 
+                          to={`/residents/${resident.id}`} 
+                          className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          {resident.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{resident.unit}</TableCell>
+                      <TableCell>
+                        <Link 
+                          to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
+                          className="hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          {resident.property}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <a 
+                          href={`mailto:${resident.email}`} 
+                          className="hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          {resident.email}
+                        </a>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          resident.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                          resident.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {resident.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

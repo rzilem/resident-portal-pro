@@ -2,9 +2,21 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, Users, Home } from 'lucide-react';
+import { Building, Users, Home, ChevronRight } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
 
 const Properties = () => {
+  const isMobile = useIsMobile();
+  
+  const properties = [
+    { name: 'Oakwood Heights', type: 'Condominium', units: '48', location: 'Seattle, WA', status: 'Active' },
+    { name: 'Willow Creek Estates', type: 'HOA', units: '86', location: 'Portland, OR', status: 'Active' },
+    { name: 'Riverfront Towers', type: 'Condominium', units: '64', location: 'Denver, CO', status: 'Active' },
+    { name: 'Sunset Gardens', type: 'HOA', units: '32', location: 'San Diego, CA', status: 'Maintenance' },
+    { name: 'Pine Valley Community', type: 'HOA', units: '26', location: 'Austin, TX', status: 'Active' },
+  ];
+  
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-4 md:gap-6 mb-6">
@@ -42,40 +54,72 @@ const Properties = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Property Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Units</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[
-                  { name: 'Oakwood Heights', type: 'Condominium', units: '48', location: 'Seattle, WA', status: 'Active' },
-                  { name: 'Willow Creek Estates', type: 'HOA', units: '86', location: 'Portland, OR', status: 'Active' },
-                  { name: 'Riverfront Towers', type: 'Condominium', units: '64', location: 'Denver, CO', status: 'Active' },
-                  { name: 'Sunset Gardens', type: 'HOA', units: '32', location: 'San Diego, CA', status: 'Maintenance' },
-                  { name: 'Pine Valley Community', type: 'HOA', units: '26', location: 'Austin, TX', status: 'Active' },
-                ].map((property, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">{property.name}</TableCell>
-                    <TableCell>{property.type}</TableCell>
-                    <TableCell>{property.units}</TableCell>
-                    <TableCell>{property.location}</TableCell>
-                    <TableCell>
+            {/* Mobile view */}
+            {isMobile && (
+              <div className="space-y-4 md:hidden">
+                {properties.map((property, i) => (
+                  <Card key={i} className="p-4 border">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-medium">{property.name}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
                       }`}>
                         {property.status}
                       </span>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Type:</span>
+                        <span>{property.type}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Units:</span>
+                        <span>{property.units}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Location:</span>
+                        <span>{property.location}</span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
+                      View Details <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            )}
+            
+            {/* Desktop view */}
+            <div className={isMobile ? "hidden" : "overflow-auto"}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Property Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Units</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {properties.map((property, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">{property.name}</TableCell>
+                      <TableCell>{property.type}</TableCell>
+                      <TableCell>{property.units}</TableCell>
+                      <TableCell>{property.location}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {property.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

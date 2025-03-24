@@ -8,6 +8,7 @@ import {
   Calculator, 
   FileImage 
 } from "lucide-react";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DocumentTabsProps {
   activeTab: string;
@@ -15,20 +16,22 @@ interface DocumentTabsProps {
 }
 
 const DocumentTabs: React.FC<DocumentTabsProps> = ({ activeTab, onTabChange }) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <TabsList>
-      <TabsTrigger value="all">All Documents</TabsTrigger>
+    <TabsList className="grid grid-cols-2 md:grid-cols-5">
+      <TabsTrigger value="all">All{!isMobile && " Documents"}</TabsTrigger>
       <TabsTrigger value="receipts" className="flex items-center gap-1">
-        <FileCheck size={14} /> Receipts
+        <FileCheck size={14} /> {!isMobile && "Receipts"}
       </TabsTrigger>
       <TabsTrigger value="invoices" className="flex items-center gap-1">
-        <FileText size={14} /> Invoices
+        <FileText size={14} /> {!isMobile && "Invoices"}
       </TabsTrigger>
       <TabsTrigger value="statements" className="flex items-center gap-1">
-        <FileBarChart2 size={14} /> Statements
+        <FileBarChart2 size={14} /> {!isMobile && "Statements"}
       </TabsTrigger>
       <TabsTrigger value="tax" className="flex items-center gap-1">
-        <Calculator size={14} /> Tax
+        <Calculator size={14} /> {!isMobile && "Tax"}
       </TabsTrigger>
     </TabsList>
   );

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileSettings from '@/components/settings/ProfileSettings';
@@ -8,8 +7,11 @@ import SecuritySettings from '@/components/settings/SecuritySettings';
 import AssociationSettings from '@/components/settings/AssociationSettings';
 import PermissionSettings from '@/components/settings/PermissionSettings';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Settings = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
@@ -18,14 +20,22 @@ const Settings = () => {
       </div>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid grid-cols-3 md:grid-cols-7 mb-4">
+        <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-7'} mb-4`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="notifications">
+            {isMobile ? 'Notif.' : 'Notifications'}
+          </TabsTrigger>
           <TabsTrigger value="display">Display</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="associations">Associations</TabsTrigger>
-          <TabsTrigger value="permissions">Permissions</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          <TabsTrigger value="associations">
+            {isMobile ? 'Assoc.' : 'Associations'}
+          </TabsTrigger>
+          <TabsTrigger value="permissions">
+            {isMobile ? 'Perms.' : 'Permissions'}
+          </TabsTrigger>
+          <TabsTrigger value="integrations">
+            {isMobile ? 'Integ.' : 'Integrations'}
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile">
