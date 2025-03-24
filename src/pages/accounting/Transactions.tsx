@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter, RefreshCw, Download, PlusCircle, Search, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Transaction } from '@/components/settings/associations/types';
+import { Transaction, TransactionType } from '@/components/settings/associations/types';
 
 const Transactions = () => {
   const [activeTab, setActiveTab] = useState('all');
