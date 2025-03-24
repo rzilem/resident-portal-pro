@@ -1,3 +1,4 @@
+
 export interface Association {
   id: string;
   name: string;
@@ -134,4 +135,70 @@ export interface FinancialDocument {
   associationId: string;
   tags?: string[];
   metadata?: Record<string, any>;
+}
+
+// Adding additional financial entities
+
+export interface BankAccount {
+  id: string;
+  accountNumber: string;
+  accountName: string;
+  bankName: string;
+  accountType: 'checking' | 'savings' | 'reserve';
+  balance: number;
+  isActive: boolean;
+  associationId: string;
+  lastReconciled?: string;
+}
+
+export interface ReserveFund {
+  id: string;
+  name: string;
+  description: string;
+  currentBalance: number;
+  targetAmount: number;
+  contributionFrequency: 'monthly' | 'quarterly' | 'annually';
+  contributionAmount: number;
+  establishedDate: string;
+  lastUpdated: string;
+  associationId: string;
+}
+
+export interface TaxDocument {
+  id: string;
+  title: string;
+  year: string;
+  type: 'federal' | 'state' | 'local' | 'property';
+  fileUrl: string;
+  dateFiled: string;
+  preparedBy: string;
+  associationId: string;
+  status: 'draft' | 'filed' | 'accepted' | 'amended';
+}
+
+export interface FinancialApproval {
+  id: string;
+  description: string;
+  amount: number;
+  requestedBy: string;
+  requestedDate: string;
+  status: 'pending' | 'approved' | 'rejected' | 'on_hold';
+  category: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  notes?: string;
+  attachments?: string[];
+  associationId: string;
+}
+
+export interface AuditTrail {
+  id: string;
+  timestamp: string;
+  action: string;
+  performedBy: string;
+  entityType: 'transaction' | 'invoice' | 'payment' | 'budget' | 'approval' | 'document';
+  entityId: string;
+  details: string;
+  ipAddress?: string;
+  associationId: string;
 }
