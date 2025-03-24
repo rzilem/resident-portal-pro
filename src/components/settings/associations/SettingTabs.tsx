@@ -42,6 +42,7 @@ const SettingTabs = ({
 }: SettingTabsProps) => {
   
   const [activeSubMenu, setActiveSubMenu] = useState<string | null>(null);
+  const [activeAccordion, setActiveAccordion] = useState<string | null>("general");
   
   const handleSettingChange = (settingName: string, value: any) => {
     if (!activeAssociation) return;
@@ -105,8 +106,14 @@ const SettingTabs = ({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Left sidebar with association menu categories */}
-          <div className="col-span-1 border-r pr-4">
-            <Accordion type="single" collapsible className="w-full">
+          <div className="col-span-1 border-r pr-4 overflow-y-auto max-h-[calc(100vh-250px)]">
+            <Accordion 
+              type="single" 
+              collapsible 
+              className="w-full"
+              value={activeAccordion || undefined}
+              onValueChange={(value) => setActiveAccordion(value)}
+            >
               {menuCategories.map((category) => (
                 <AccordionItem key={category.id} value={category.id}>
                   <AccordionTrigger className="text-sm font-medium">

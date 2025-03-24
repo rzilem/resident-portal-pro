@@ -22,10 +22,17 @@ export type AssociationMenuItem = {
   icon?: React.ElementType;
   description?: string;
   hasSubmenu?: boolean;
+  route?: string;
 }
 
 export type AssociationMenuCategory = {
   id: string;
   title: string;
   items: AssociationMenuItem[];
+}
+
+export type AssociationTabs = {
+  id: string;
+  title: string;
+  icon?: React.ElementType;
 }

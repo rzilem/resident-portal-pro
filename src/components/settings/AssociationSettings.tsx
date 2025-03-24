@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database } from "lucide-react";
+import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 
 // Import components
@@ -50,53 +50,53 @@ const AssociationSettings = () => {
       id: 'general',
       title: 'General',
       items: [
-        { id: 'association-list', title: 'Association List', icon: Building },
-        { id: 'action-items', title: 'Action Items', icon: ClipboardList },
-        { id: 'activity-notes', title: 'Activity Notes', icon: Activity },
-        { id: 'amenity-calendar-settings', title: 'Amenity Calendar Settings', icon: Calendar },
-        { id: 'additional-info', title: 'Additional Info', icon: HelpCircle },
+        { id: 'association-list', title: 'Association List', icon: Building, route: '/settings/associations' },
+        { id: 'action-items', title: 'Action Items', icon: ClipboardList, route: '/settings/associations/action-items' },
+        { id: 'activity-notes', title: 'Activity Notes', icon: Activity, route: '/settings/associations/activity-notes' },
+        { id: 'amenity-calendar-settings', title: 'Amenity Calendar Settings', icon: Calendar, route: '/settings/associations/amenity-calendar-settings' },
+        { id: 'additional-info', title: 'Additional Info', icon: HelpCircle, route: '/settings/associations/additional-info' },
       ]
     },
     {
       id: 'addresses',
       title: 'Addresses',
       items: [
-        { id: 'addresses', title: 'Addresses', icon: MapPin },
-        { id: 'address-types', title: 'Address Types', icon: Tag },
+        { id: 'addresses', title: 'Addresses', icon: MapPin, route: '/settings/associations/addresses' },
+        { id: 'address-types', title: 'Address Types', icon: Tag, route: '/settings/associations/address-types' },
       ]
     },
     {
       id: 'management',
       title: 'Management',
       items: [
-        { id: 'arc-types', title: 'ARC Types', icon: Shield },
-        { id: 'association-alias', title: 'Association Alias', icon: Tag },
-        { id: 'assessments', title: 'Assessments', icon: FileBarChart },
-        { id: 'board-committee', title: 'Board/Committee', icon: Users },
-        { id: 'ccr-items', title: 'CCR Items', icon: FileCheck },
-        { id: 'documents', title: 'Documents', icon: FileText },
-        { id: 'inspections', title: 'Inspections', icon: FileCheck },
-        { id: 'portal-pages', title: 'Portal Pages', icon: PanelLeft },
-        { id: 'services', title: 'Services', icon: Briefcase },
-        { id: 'settings', title: 'Settings', icon: Settings },
+        { id: 'arc-types', title: 'ARC Types', icon: Shield, route: '/settings/associations/arc-types' },
+        { id: 'association-alias', title: 'Association Alias', icon: Tag, route: '/settings/associations/association-alias' },
+        { id: 'assessments', title: 'Assessments', icon: FileBarChart, route: '/settings/associations/assessments' },
+        { id: 'board-committee', title: 'Board/Committee', icon: Users, route: '/settings/associations/board-committee' },
+        { id: 'ccr-items', title: 'CCR Items', icon: FileCheck, route: '/settings/associations/ccr-items' },
+        { id: 'documents', title: 'Documents', icon: FileText, route: '/settings/associations/documents' },
+        { id: 'inspections', title: 'Inspections', icon: FileCheck, route: '/settings/associations/inspections' },
+        { id: 'portal-pages', title: 'Portal Pages', icon: PanelLeft, route: '/settings/associations/portal-pages' },
+        { id: 'services', title: 'Services', icon: Briefcase, route: '/settings/associations/services' },
+        { id: 'settings', title: 'Settings', icon: Settings, route: '/settings/associations/settings' },
       ]
     },
     {
       id: 'financial',
       title: 'Financial',
       items: [
-        { id: 'bank-accounts', title: 'Bank Accounts', icon: BanknoteIcon },
-        { id: 'funds', title: 'Funds', icon: DollarSign },
-        { id: 'gl-accounts', title: 'GL Accounts', icon: BookmarkIcon, hasSubmenu: true },
-        { id: 'insurance', title: 'Insurance', icon: Shield },
+        { id: 'bank-accounts', title: 'Bank Accounts', icon: BanknoteIcon, route: '/settings/associations/bank-accounts' },
+        { id: 'funds', title: 'Funds', icon: DollarSign, route: '/settings/associations/funds' },
+        { id: 'gl-accounts', title: 'GL Accounts', icon: BookmarkIcon, hasSubmenu: true, route: '/settings/associations/gl-accounts' },
+        { id: 'insurance', title: 'Insurance', icon: Shield, route: '/settings/associations/insurance' },
       ]
     },
     {
       id: 'calendar',
       title: 'Calendar',
       items: [
-        { id: 'calendar', title: 'Calendar', icon: Calendar },
-        { id: 'amenity-calendar', title: 'Amenity Calendar', icon: Calendar },
+        { id: 'calendar', title: 'Calendar', icon: Calendar, route: '/settings/associations/calendar' },
+        { id: 'amenity-calendar', title: 'Amenity Calendar', icon: Calendar, route: '/settings/associations/amenity-calendar' },
       ]
     },
   ];
