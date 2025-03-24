@@ -1,37 +1,80 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useNavigate } from 'react-router-dom';
+import { toast } from "sonner";
+
+// Predefined credentials for internal employee
+const INTERNAL_CREDENTIALS = {
+  email: "admin@residentpro.com",
+  password: "admin123"
+};
 
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [loginValues, setLoginValues] = useState({
+    email: '',
+    password: '',
+  });
+  const [signupValues, setSignupValues] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+  });
+
+  const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setLoginValues({ ...loginValues, [id]: value });
+  };
+
+  const handleSignupInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setSignupValues({ ...signupValues, [id.replace('-register', '')]: value });
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login request
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/dashboard');
-    }, 1500);
+    // Check if credentials match predefined ones
+    if (loginValues.email === INTERNAL_CREDENTIALS.email && 
+        loginValues.password === INTERNAL_CREDENTIALS.password) {
+      // Successful login
+      toast.success("Login successful! Welcome back.");
+      
+      // Store auth state in localStorage (in a real app, you'd use a proper auth system)
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userEmail', loginValues.email);
+      
+      // Navigate to dashboard after successful login
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate('/dashboard');
+      }, 1000);
+    } else {
+      // Failed login
+      setTimeout(() => {
+        setIsLoading(false);
+        toast.error("Invalid credentials. Please try again.");
+      }, 1000);
+    }
   };
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate signup request
+    // In a real application, you would add proper signup logic here
     setTimeout(() => {
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1500);
+      toast.info("Registration is currently limited to approved employees only.");
+    }, 1000);
   };
 
   return (
@@ -63,6 +106,8 @@ const Login = () => {
                     id="email"
                     type="email"
                     placeholder="hello@example.com"
+                    value={loginValues.email}
+                    onChange={handleLoginInputChange}
                     required
                   />
                 </div>
@@ -81,6 +126,8 @@ const Login = () => {
                     id="password"
                     type="password"
                     placeholder="••••••••"
+                    value={loginValues.password}
+                    onChange={handleLoginInputChange}
                     required
                   />
                 </div>
@@ -104,19 +151,23 @@ const Login = () => {
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="first-name">First name</Label>
+                    <Label htmlFor="first-name-register">First name</Label>
                     <Input
-                      id="first-name"
+                      id="first-name-register"
                       placeholder="John"
+                      value={signupValues.firstName}
+                      onChange={handleSignupInputChange}
                       required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="last-name">Last name</Label>
+                    <Label htmlFor="last-name-register">Last name</Label>
                     <Input
-                      id="last-name"
+                      id="last-name-register"
                       placeholder="Doe"
+                      value={signupValues.lastName}
+                      onChange={handleSignupInputChange}
                       required
                     />
                   </div>
@@ -128,6 +179,8 @@ const Login = () => {
                     id="email-register"
                     type="email"
                     placeholder="hello@example.com"
+                    value={signupValues.email}
+                    onChange={handleSignupInputChange}
                     required
                   />
                 </div>
@@ -138,6 +191,8 @@ const Login = () => {
                     id="password-register"
                     type="password"
                     placeholder="••••••••"
+                    value={signupValues.password}
+                    onChange={handleSignupInputChange}
                     required
                   />
                 </div>
