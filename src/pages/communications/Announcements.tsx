@@ -1,8 +1,10 @@
+
 import React from 'react';
+import { Link } from 'react-router-dom';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Bell, Edit, Eye, PlusCircle, Search, Trash } from 'lucide-react';
+import { Bell, Edit, Eye, PlusCircle, Search, Trash, Send } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -20,10 +22,18 @@ const Announcements = () => {
                 <h2 className="text-2xl font-bold">Community Announcements</h2>
                 <p className="text-muted-foreground">Manage announcements for your community</p>
               </div>
-              <Button className="gap-2">
-                <PlusCircle className="h-4 w-4" />
-                New Announcement
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  New Announcement
+                </Button>
+                <Button variant="outline" className="gap-2" asChild>
+                  <Link to="/communications/messaging">
+                    <Send className="h-4 w-4" />
+                    Send Message
+                  </Link>
+                </Button>
+              </div>
             </div>
           </section>
           

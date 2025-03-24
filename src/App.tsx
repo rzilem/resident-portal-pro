@@ -15,6 +15,7 @@ import Reports from "./pages/accounting/Reports";
 import Payments from "./pages/accounting/Payments";
 import AccountingDashboard from "./pages/accounting/AccountingDashboard";
 import Announcements from "./pages/communications/Announcements";
+import CommunityMessaging from "./pages/communications/CommunityMessaging";
 import Records from "./pages/database/Records";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -96,6 +97,12 @@ const App = () => (
           <Route path="/communications/announcements" element={
             <ProtectedRoute title="Announcements">
               <Announcements />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/communications/messaging" element={
+            <ProtectedRoute title="Community Messaging">
+              <CommunityMessaging />
             </ProtectedRoute>
           } />
           
