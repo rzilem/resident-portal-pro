@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useSettings } from '@/hooks/use-settings';
-import { useThemeContext } from '@/components/theme-provider';
+import { useTheme } from '@/hooks/use-theme';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
-  const { theme, setTheme } = useThemeContext();
+  const { theme, setTheme } = useTheme();
   
   const [localTheme, setLocalTheme] = useState(theme || "light");
   const [cardStyle, setCardStyle] = useState("default");
