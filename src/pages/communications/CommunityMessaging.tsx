@@ -130,6 +130,7 @@ const CommunityMessaging = () => {
   };
 
   const handleTemplateSelect = (template: MessageTemplate) => {
+    console.log("Template selected:", template);
     setSelectedTemplate(template);
     // Immediately switch to the compose tab when a template is selected
     setActiveTab("compose");
@@ -184,6 +185,7 @@ const CommunityMessaging = () => {
                     onSendMessage={handleSendMessage}
                     initialSubject={selectedTemplate?.subject || ''}
                     initialContent={selectedTemplate?.content || ''}
+                    key={selectedTemplate?.id || 'no-template'} 
                   />
                 </TabsContent>
                 
