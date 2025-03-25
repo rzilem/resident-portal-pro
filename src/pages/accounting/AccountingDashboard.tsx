@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import InvoiceQueue from '@/components/accounting/InvoiceQueue';
@@ -38,14 +37,12 @@ const AccountingDashboard = () => {
     <div className="flex-1">
       <div className="grid gap-4 md:gap-6 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Accounting Dashboard</h1>
+          <div className="hidden md:block">
             <p className="text-muted-foreground">
               Manage all financial aspects of your properties and associations
             </p>
           </div>
           
-          {/* Association Selector */}
           <div className="md:w-72 mt-4 md:mt-0">
             <Select 
               value={selectedAssociationId} 
@@ -72,41 +69,33 @@ const AccountingDashboard = () => {
         </div>
       </div>
       
-      {/* Main Tabs */}
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <DashboardTabs activeTab={activeTab} />
         
-        {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <OverviewTab associationId={selectedAssociationId} />
         </TabsContent>
         
-        {/* Invoices Tab */}
         <TabsContent value="invoices" className="space-y-4">
           <InvoiceQueue associationId={selectedAssociationId} />
         </TabsContent>
         
-        {/* Transactions Tab */}
         <TabsContent value="transactions" className="space-y-4">
           <TransactionsTab associationId={selectedAssociationId} />
         </TabsContent>
         
-        {/* Budget Tab */}
         <TabsContent value="budget" className="space-y-4">
           <BudgetManagement associationId={selectedAssociationId} />
         </TabsContent>
         
-        {/* Financial Statements Tab */}
         <TabsContent value="statements" className="space-y-4">
           <FinancialStatements associationId={selectedAssociationId} />
         </TabsContent>
         
-        {/* Vendor Payments Tab */}
         <TabsContent value="vendors" className="space-y-4">
           <VendorPayments associationId={selectedAssociationId} />
         </TabsContent>
         
-        {/* Financial Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
           <FinancialDocuments associationId={selectedAssociationId} />
         </TabsContent>

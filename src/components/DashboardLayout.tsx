@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
@@ -22,6 +21,12 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     
     const path = location.pathname;
     
+    // Accounting routes take precedence
+    if (path === '/accounting/dashboard') return 'Accounting Dashboard';
+    if (path === '/accounting/transactions') return 'Transactions';
+    if (path === '/accounting/payments') return 'Payments';
+    if (path === '/accounting/reports') return 'Financial Reports';
+    
     // Main sections
     if (path === '/dashboard') return 'Dashboard';
     if (path === '/properties') return 'Properties';
@@ -36,39 +41,6 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     if (path === '/settings') return 'Settings';
     if (path === '/settings/calendar') return 'Calendar Settings';
     if (path === '/settings/permissions') return 'User Permissions';
-    
-    // Accounting section
-    if (path.startsWith('/accounting')) {
-      if (path === '/accounting/dashboard') return 'Accounting Dashboard';
-      if (path === '/accounting/transactions') return 'Transactions';
-      if (path === '/accounting/reports') return 'Financial Reports';
-      if (path === '/accounting/payments') return 'Payments';
-      if (path === '/accounting/journal-entries') return 'Journal Entries';
-      return 'Accounting';
-    }
-    
-    // Communications section
-    if (path.startsWith('/communications')) {
-      if (path === '/communications/announcements') return 'Announcements';
-      if (path === '/communications/messaging') return 'Community Messaging';
-      return 'Communications';
-    }
-    
-    // Database section
-    if (path.startsWith('/database')) {
-      if (path === '/database/records') return 'Association Records';
-      return 'Records';
-    }
-    
-    // Documents section
-    if (path.startsWith('/documents')) {
-      if (path === '/documents/association') return 'Association Documents';
-      if (path === '/documents/templates') return 'Document Templates';
-      return 'Documents';
-    }
-    
-    // Profile section
-    if (path === '/profile') return 'User Profile';
     
     return 'HOA Management';
   };
