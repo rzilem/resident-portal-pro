@@ -42,7 +42,7 @@ const ResidentTabs: React.FC<ResidentTabsProps> = ({ resident }) => {
       
       {/* Notes Tab */}
       <TabsContent value="notes">
-        <NotesTab notes={resident.notes} />
+        <NotesTab notes={resident.notes} activityLogs={resident.activityLogs} />
       </TabsContent>
       
       {/* Documents Tab */}

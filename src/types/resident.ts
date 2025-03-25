@@ -42,6 +42,13 @@ export type Note = {
   content: string;
 }
 
+export type ActivityLog = {
+  timestamp: string;
+  activity: string;
+  type: 'login' | 'payment' | 'document' | 'message' | 'request' | 'other';
+  details?: string;
+}
+
 export type Document = {
   name: string;
   type: string;
@@ -65,6 +72,7 @@ export type ResidentProfile = {
   accountHistory?: Transaction[];
   communications: Communication[];
   notes: Note[];
+  activityLogs?: ActivityLog[];
   documents: Document[];
   propertyDetails: PropertyDetails;
 }

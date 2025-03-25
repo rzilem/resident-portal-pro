@@ -1,4 +1,3 @@
-
 import { ResidentProfiles } from '@/types/resident';
 
 // Mock data for resident profiles
@@ -30,6 +29,15 @@ const residentProfiles: ResidentProfiles = {
       { date: '2023-05-16', author: 'System', content: 'Late payment notice automatically sent' },
       { date: '2023-05-02', author: 'Jane Smith', content: 'Resident called about maintenance request for kitchen sink' },
       { date: '2023-04-10', author: 'John Doe', content: 'Resident mentioned they might renew for another year' },
+    ],
+    activityLogs: [
+      { timestamp: '2023-06-10 09:15 AM', activity: 'User logged in', type: 'login', details: 'Device: Chrome on Windows' },
+      { timestamp: '2023-06-10 09:18 AM', activity: 'Viewed payment history', type: 'payment' },
+      { timestamp: '2023-06-10 09:22 AM', activity: 'Downloaded HOA guidelines document', type: 'document' },
+      { timestamp: '2023-06-10 09:30 AM', activity: 'User logged out', type: 'login' },
+      { timestamp: '2023-06-05 02:45 PM', activity: 'User logged in', type: 'login', details: 'Device: Safari on iOS' },
+      { timestamp: '2023-06-05 02:50 PM', activity: 'Submitted maintenance request', type: 'request', details: 'Kitchen sink repair' },
+      { timestamp: '2023-06-05 03:00 PM', activity: 'User logged out', type: 'login' },
     ],
     documents: [
       { name: 'Lease Agreement', type: 'PDF', date: '2021-03-01', size: '1.2 MB' },
@@ -75,6 +83,12 @@ const residentProfiles: ResidentProfiles = {
       { date: '2023-05-20', author: 'Jane Smith', content: 'Resident inquired about renewing lease' },
       { date: '2023-04-12', author: 'John Doe', content: 'Completed annual unit inspection - all in good condition' },
     ],
+    activityLogs: [
+      { timestamp: '2023-06-12 10:30 AM', activity: 'User logged in', type: 'login', details: 'Device: Firefox on MacOS' },
+      { timestamp: '2023-06-12 10:35 AM', activity: 'Updated contact information', type: 'other' },
+      { timestamp: '2023-06-12 10:42 AM', activity: 'Scheduled community event RSVP', type: 'other', details: 'Summer BBQ' },
+      { timestamp: '2023-06-12 10:50 AM', activity: 'User logged out', type: 'login' },
+    ],
     documents: [
       { name: 'Lease Agreement', type: 'PDF', date: '2020-06-01', size: '1.4 MB' },
       { name: 'Move-in Inspection', type: 'PDF', date: '2020-06-10', size: '2.1 MB' },
@@ -113,6 +127,11 @@ const residentProfiles: ResidentProfiles = {
     communications: [],
     notes: [],
     documents: [],
+    activityLogs: [
+      { timestamp: '2023-06-08 03:15 PM', activity: 'User logged in', type: 'login', details: 'Device: Chrome on Android' },
+      { timestamp: '2023-06-08 03:20 PM', activity: 'Made online payment', type: 'payment', details: 'Amount: $1,575.00' },
+      { timestamp: '2023-06-08 03:25 PM', activity: 'User logged out', type: 'login' },
+    ],
     propertyDetails: {
       address: '789 River Rd, Denver, CO 80201',
       bedrooms: 2,
@@ -137,6 +156,7 @@ const residentProfiles: ResidentProfiles = {
     communications: [],
     notes: [],
     documents: [],
+    activityLogs: [],
     propertyDetails: {
       address: '321 Sunset Blvd, San Diego, CA 92101',
       bedrooms: 1,
@@ -157,6 +177,12 @@ const residentProfiles: ResidentProfiles = {
     communications: [],
     notes: [],
     documents: [],
+    activityLogs: [
+      { timestamp: '2023-06-11 11:05 AM', activity: 'User logged in', type: 'login', details: 'Device: Edge on Windows' },
+      { timestamp: '2023-06-11 11:10 AM', activity: 'Viewed community announcements', type: 'other' },
+      { timestamp: '2023-06-11 11:15 AM', activity: 'Sent message to management', type: 'message', details: 'Subject: Pool access question' },
+      { timestamp: '2023-06-11 11:25 AM', activity: 'User logged out', type: 'login' },
+    ],
     propertyDetails: {
       address: '555 Pine St, Austin, TX 78701',
       bedrooms: 2,
@@ -182,6 +208,7 @@ const residentProfiles: ResidentProfiles = {
     communications: [],
     notes: [],
     documents: [],
+    activityLogs: [],
     propertyDetails: {
       address: '123 Oakwood Dr, Seattle, WA 98101',
       bedrooms: 1,
