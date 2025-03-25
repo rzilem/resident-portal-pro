@@ -1,31 +1,19 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Send, Bot, Copy, TagIcon } from 'lucide-react';
-import HtmlEditor from './HtmlEditor';
-import { Textarea } from '@/components/ui/textarea';
-import { mergeTagService } from '@/services/mergeTagService';
-import MergeTagsDialog from './MergeTagsDialog';
-import { MessageData } from './composer/types';
+import React from 'react';
+import { ComposerProvider } from './composer/ComposerContext';
+import CommunitySelector, { SAMPLE_COMMUNITIES } from './composer/CommunitySelector';
 import RecipientSelector from './composer/RecipientSelector';
-import FormatSelector from './composer/FormatSelector';
+import SubjectField from './composer/SubjectField';
+import ContentEditor from './composer/ContentEditor';
 import ScheduleOptions from './composer/ScheduleOptions';
+import ComposerActions from './composer/ComposerActions';
+import MergeTagsDialog from './MergeTagsDialog';
 import MessagePreview from './composer/MessagePreview';
 import AiAssistant from './composer/AiAssistant';
-import TemplateSelector from './composer/TemplateSelector';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDialogState } from './composer/ComposerUtils';
+import { useComposer } from './composer/ComposerContext';
 
-// Sample community data
-const SAMPLE_COMMUNITIES = [
-  { id: 'comm1', name: 'Riverside HOA' },
-  { id: 'comm2', name: 'Oakwood Condos' },
-  { id: 'comm3', name: 'Mountain View Estates' },
-  { id: 'comm4', name: 'Harbor Point' },
-];
-
+// Sample template data
 const SAMPLE_TEMPLATES = [
   {
     id: '1',
@@ -68,55 +56,41 @@ interface MessageComposerProps {
   initialContent?: string;
 }
 
+// Main component wrapper
 const MessageComposer: React.FC<MessageComposerProps> = ({ 
   onSendMessage,
   initialSubject = '',
   initialContent = '',
 }) => {
-  const [subject, setSubject] = useState(initialSubject);
-  const [content, setContent] = useState(initialContent);
-  const [format, setFormat] = useState<'plain' | 'html'>('html');
-  const [selectedRecipients, setSelectedRecipients] = useState<string[]>(['all']);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState<string>('');
-  const [isScheduled, setIsScheduled] = useState(false);
-  const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
-  const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
-  const [previewContent, setPreviewContent] = useState('');
-  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
-  const [templates, setTemplates] = useState(SAMPLE_TEMPLATES);
-  const [selectedCommunity, setSelectedCommunity] = useState<string>(SAMPLE_COMMUNITIES[0].id);
+  return (
+    <ComposerProvider 
+      initialSubject={initialSubject} 
+      initialContent={initialContent}
+      initialCommunity={SAMPLE_COMMUNITIES[0].id}
+    >
+      <ComposerContent onSendMessage={onSendMessage} />
+    </ComposerProvider>
+  );
+};
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!subject.trim()) {
-      alert('Please enter a subject');
-      return;
-    }
-    
-    if (!content.trim()) {
-      alert('Please enter a message');
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      onSendMessage({
-        subject,
-        content,
-        recipients: selectedRecipients,
-      });
-      
-      setSubject('');
-      setContent('');
-    } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+// Inner component that uses the context
+const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMessage'] }> = ({ onSendMessage }) => {
+  const { 
+    previewContent, 
+    content, 
+    format, 
+    setContent,
+    selectedCommunity
+  } = useComposer();
+  
+  const {
+    isAiAssistantOpen,
+    setIsAiAssistantOpen,
+    isMergeTagsDialogOpen,
+    setIsMergeTagsDialogOpen,
+    showMergeTagPreview,
+    setShowMergeTagPreview
+  } = useDialogState();
 
   const handleInsertMergeTag = (tag: any) => {
     if (format === 'plain') {
@@ -124,12 +98,6 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     } else {
       setContent(prev => prev + ' ' + tag.tag + ' ');
     }
-  };
-
-  const handlePreviewWithMergeTags = async () => {
-    const processed = await mergeTagService.processMergeTags(content, {});
-    setPreviewContent(processed);
-    setShowMergeTagPreview(true);
   };
 
   const handleAiSuggestion = (aiResponse: string) => {
@@ -144,152 +112,26 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     }
   };
 
-  const handleTemplateSelect = (template: any) => {
-    setSubject(template.subject);
-    setContent(template.content);
-    if (format === 'plain' && template.content.includes('<')) {
-      setFormat('html');
-    }
-  };
-
-  // Filter templates based on the selected community
-  const communityTemplates = templates.filter(template => 
-    !template.communities || 
-    template.communities.includes('all') || 
-    template.communities.includes(selectedCommunity)
-  );
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form className="space-y-6">
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="community">Community</Label>
-            <Select 
-              value={selectedCommunity} 
-              onValueChange={setSelectedCommunity}
-            >
-              <SelectTrigger id="community">
-                <SelectValue placeholder="Select a community" />
-              </SelectTrigger>
-              <SelectContent>
-                {SAMPLE_COMMUNITIES.map(community => (
-                  <SelectItem key={community.id} value={community.id}>
-                    {community.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <RecipientSelector 
-            selectedRecipients={selectedRecipients}
-            onRecipientsChange={setSelectedRecipients}
-          />
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="subject">Subject</Label>
-              <TemplateSelector 
-                templates={communityTemplates}
-                onSelectTemplate={handleTemplateSelect}
-                currentCommunity={selectedCommunity}
-              />
-            </div>
-            <Input
-              id="subject"
-              placeholder="Enter message subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="content">Message Content</Label>
-              <div className="flex items-center gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsAiAssistantOpen(true)}
-                  className="gap-1"
-                >
-                  <Bot className="h-4 w-4" />
-                  AI Assist
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsMergeTagsDialogOpen(true)}
-                >
-                  <TagIcon className="mr-2 h-4 w-4" />
-                  Insert Merge Tag
-                </Button>
-                <FormatSelector 
-                  format={format}
-                  onFormatChange={setFormat}
-                />
-              </div>
-            </div>
-
-            {format === 'plain' ? (
-              <Textarea
-                id="content"
-                placeholder="Enter your message"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="min-h-[250px]"
-                required
-              />
-            ) : (
-              <Card className="border">
-                <HtmlEditor 
-                  value={content} 
-                  onChange={setContent}
-                />
-              </Card>
-            )}
-
-            <div className="flex justify-end">
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={handlePreviewWithMergeTags}
-              >
-                Preview with Merge Tags
-              </Button>
-            </div>
-          </div>
+          <CommunitySelector />
           
-          <ScheduleOptions 
-            isScheduled={isScheduled}
-            scheduledDate={scheduledDate}
-            onScheduledChange={setIsScheduled}
-            onDateChange={setScheduledDate}
+          <RecipientSelector />
+          
+          <SubjectField templates={SAMPLE_TEMPLATES} />
+          
+          <ContentEditor 
+            onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
+            onOpenMergeTagsDialog={() => setIsMergeTagsDialogOpen(true)}
           />
+          
+          <ScheduleOptions />
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2">
-        <Button 
-          type="button" 
-          variant="outline"
-          onClick={() => {
-            console.log("Save as draft:", { subject, content, recipients: selectedRecipients });
-          }}
-        >
-          <Copy className="mr-2 h-4 w-4" />
-          Save as Draft
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          <Send className="mr-2 h-4 w-4" />
-          {isSubmitting ? 'Sending...' : isScheduled ? 'Schedule Message' : 'Send Message'}
-        </Button>
-      </div>
+      <ComposerActions onSendMessage={onSendMessage} />
 
       <MergeTagsDialog
         open={isMergeTagsDialogOpen}

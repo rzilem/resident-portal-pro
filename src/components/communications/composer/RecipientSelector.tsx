@@ -7,11 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Info, Users } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { RecipientGroup } from './types';
-
-interface RecipientSelectorProps {
-  selectedRecipients: string[];
-  onRecipientsChange: (recipients: string[]) => void;
-}
+import { useComposer } from './ComposerContext';
 
 // Recipient groups data
 const RecipientGroups: RecipientGroup[] = [
@@ -27,12 +23,11 @@ const RecipientGroups: RecipientGroup[] = [
   { id: 'social', name: 'Social Committee', description: 'Members of the social committee' },
 ];
 
-const RecipientSelector: React.FC<RecipientSelectorProps> = ({ 
-  selectedRecipients, 
-  onRecipientsChange 
-}) => {
+const RecipientSelector: React.FC = () => {
+  const { selectedRecipients, setSelectedRecipients } = useComposer();
+
   const toggleRecipientGroup = (groupId: string) => {
-    onRecipientsChange(
+    setSelectedRecipients(
       selectedRecipients.includes(groupId) 
         ? selectedRecipients.filter(id => id !== groupId) 
         : [...selectedRecipients, groupId]
@@ -106,5 +101,5 @@ const RecipientSelector: React.FC<RecipientSelectorProps> = ({
   );
 };
 
-export default RecipientSelector;
 export { RecipientGroups };
+export default RecipientSelector;

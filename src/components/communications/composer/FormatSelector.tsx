@@ -1,17 +1,15 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useComposer } from './ComposerContext';
 
-interface FormatSelectorProps {
-  format: 'plain' | 'html';
-  onFormatChange: (format: 'plain' | 'html') => void;
-}
+const FormatSelector: React.FC = () => {
+  const { format, setFormat } = useComposer();
 
-const FormatSelector: React.FC<FormatSelectorProps> = ({ format, onFormatChange }) => {
   return (
     <Select 
       value={format} 
-      onValueChange={(value) => onFormatChange(value as 'plain' | 'html')}
+      onValueChange={(value) => setFormat(value as 'plain' | 'html')}
     >
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Message Format" />

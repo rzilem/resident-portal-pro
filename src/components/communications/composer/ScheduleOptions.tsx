@@ -3,27 +3,23 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { useComposer } from './ComposerContext';
 
-interface ScheduleOptionsProps {
-  isScheduled: boolean;
-  scheduledDate: string;
-  onScheduledChange: (isScheduled: boolean) => void;
-  onDateChange: (date: string) => void;
-}
+const ScheduleOptions: React.FC = () => {
+  const { 
+    isScheduled, 
+    setIsScheduled, 
+    scheduledDate, 
+    setScheduledDate 
+  } = useComposer();
 
-const ScheduleOptions: React.FC<ScheduleOptionsProps> = ({
-  isScheduled,
-  scheduledDate,
-  onScheduledChange,
-  onDateChange
-}) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center space-x-2">
         <Checkbox 
           id="scheduled"
           checked={isScheduled}
-          onCheckedChange={(checked) => onScheduledChange(checked === true)}
+          onCheckedChange={(checked) => setIsScheduled(checked === true)}
         />
         <Label htmlFor="scheduled">Schedule message for later</Label>
       </div>
@@ -35,7 +31,7 @@ const ScheduleOptions: React.FC<ScheduleOptionsProps> = ({
             id="scheduledDate"
             type="datetime-local"
             value={scheduledDate}
-            onChange={(e) => onDateChange(e.target.value)}
+            onChange={(e) => setScheduledDate(e.target.value)}
             className="mt-1"
           />
         </div>
