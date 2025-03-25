@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Cog, Building, Shield, Puzzle, Sliders, Upload } from 'lucide-react';
+import { Cog, Building, Shield, Puzzle, Sliders, Upload, Mail } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getSystemSection = (currentPath: string): NavItem => ({
@@ -8,7 +8,8 @@ export const getSystemSection = (currentPath: string): NavItem => ({
   icon: <Cog className="h-4 w-4" />,
   active: currentPath.startsWith("/integrations") || 
           currentPath.startsWith("/settings") ||
-          currentPath.startsWith("/system-uploads"),
+          currentPath.startsWith("/system-uploads") ||
+          currentPath.startsWith("/email-workflows"),
   href: "/integrations", // Default href
   items: [
     {
@@ -22,6 +23,12 @@ export const getSystemSection = (currentPath: string): NavItem => ({
       icon: <Sliders className="h-4 w-4" />,
       href: "/settings",
       active: currentPath === "/settings"
+    },
+    {
+      label: "Email Workflows",
+      icon: <Mail className="h-4 w-4" />,
+      href: "/email-workflows",
+      active: currentPath === "/email-workflows"
     },
     {
       label: "System Uploads",

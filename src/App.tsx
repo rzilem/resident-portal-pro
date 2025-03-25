@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -56,6 +55,9 @@ import HoaEvents from '@/pages/hoa/Events';
 // Add import for UserProfile component
 import UserProfile from "./pages/profile/UserProfile";
 
+// Add import for EmailWorkflows component
+import EmailWorkflows from "./pages/EmailWorkflows";
+
 const App = () => {
   return (
     <ThemeProvider>
@@ -110,6 +112,9 @@ const App = () => {
           {/* Document routes */}
           <Route path="/documents/association" element={<AssociationDocuments />} />
           <Route path="/documents/templates" element={<DocumentTemplates />} />
+          
+          {/* Email workflows route */}
+          <Route path="/email-workflows" element={<EmailWorkflows />} />
         </Route>
         
         <Route path="*" element={<NotFound />} />
