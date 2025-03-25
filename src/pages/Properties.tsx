@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/hooks/use-settings';
 import { useAssociations } from '@/hooks/use-associations';
-import { toast } from 'sonner';
-import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
+import { usePropertyExport } from '@/hooks/usePropertyExport';
 import PropertyStats from '@/components/properties/PropertyStats';
 import PropertyList from '@/components/properties/PropertyList';
 import { 
@@ -42,32 +41,11 @@ const Properties = () => {
     }
   };
   
-  const handleExport = () => {
-    const visibleColumns = columns.filter(col => col.checked);
-    const exportData = properties.map(property => {
-      const exportObj: Record<string, any> = {};
-      
-      visibleColumns.forEach(col => {
-        let value = property[col.id as keyof typeof property];
-        
-        if (typeof value === 'boolean') {
-          value = value ? 'Yes' : 'No';
-        }
-        
-        exportObj[col.label] = value;
-      });
-      
-      return exportObj;
-    });
-    
-    exportToExcel(exportData, 'Property_Report');
-    toast.success('Property report exported successfully');
-  };
-  
-  const handleTemplateDownload = () => {
-    generateOnboardingTemplate();
-    toast.success('Onboarding template downloaded');
-  };
+  const { 
+    isExporting,
+    handleVisibleColumnsExport,
+    handleTemplateDownload 
+  } = usePropertyExport(properties);
   
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
@@ -83,7 +61,7 @@ const Properties = () => {
           properties={properties}
           columns={columns}
           onColumnsChange={handleColumnsChange}
-          onExport={handleExport}
+          onExport={() => handleVisibleColumnsExport(columns)}
           onTemplateDownload={handleTemplateDownload}
         />
       </div>
