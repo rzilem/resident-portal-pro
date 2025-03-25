@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -32,10 +33,10 @@ import Records from '@/pages/database/Records';
 
 // Documents pages
 import AssociationDocuments from '@/pages/documents/AssociationDocuments';
+import DocumentTemplates from '@/pages/documents/DocumentTemplates';
 
 // Settings pages
 import Permissions from '@/pages/settings/Permissions';
-import DocumentTemplates from './pages/documents/DocumentTemplates';
 
 const App = () => {
   return (

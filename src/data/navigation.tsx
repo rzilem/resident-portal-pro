@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   ImageIcon,
@@ -15,6 +16,15 @@ import {
   Building2,
   ShieldCheck,
 } from "lucide-react";
+
+export type NavItem = {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+  description?: string;
+  items?: NavItem[];
+  active?: boolean;
+};
 
 type Route = {
   title: string;
@@ -161,3 +171,38 @@ export const mainNavItems = [
     ],
   },
 ];
+
+// Convert the main navigation items to the format needed by the sidebar
+export const getNavItems = (currentPath: string): (NavItem | 'separator')[] => {
+  const navItems: (NavItem | 'separator')[] = [];
+  
+  // Add main sections
+  mainNavItems.forEach((item) => {
+    const navItem: NavItem = {
+      label: item.title,
+      href: item.href,
+      icon: item.icon,
+      description: item.description,
+      active: currentPath.startsWith(item.href),
+    };
+    
+    // If the item has children, add them
+    if (item.items && item.items.length > 0) {
+      navItem.items = item.items.map((subItem) => ({
+        label: subItem.title,
+        href: subItem.href,
+        description: subItem.description,
+        active: currentPath === subItem.href,
+      }));
+    }
+    
+    navItems.push(navItem);
+    
+    // Add separator after certain sections
+    if (["Calendar", "Workflows"].includes(item.title)) {
+      navItems.push('separator');
+    }
+  });
+  
+  return navItems;
+};
