@@ -4,7 +4,7 @@ import { AssociationCalendarSettings } from '@/types/calendar';
 // Sample association calendar settings
 let associationCalendarSettings: AssociationCalendarSettings[] = [
   {
-    associationId: 'assoc-1',
+    associationId: '1',
     name: 'Oak Ridge Community',
     description: 'Calendar for Oak Ridge Community events and meetings',
     defaultAccessLevel: 'residents',
@@ -19,7 +19,7 @@ let associationCalendarSettings: AssociationCalendarSettings[] = [
     enabled: true
   },
   {
-    associationId: 'assoc-2',
+    associationId: '2',
     name: 'Meadow Creek HOA',
     description: 'Calendar for Meadow Creek Homeowners Association',
     defaultAccessLevel: 'residents',
@@ -48,7 +48,26 @@ export const calendarSettingsService = {
     );
     
     if (!settings) {
-      throw new Error(`Calendar settings for association ${associationId} not found`);
+      // If no settings found, return default settings for the association
+      const defaultSettings: AssociationCalendarSettings = {
+        associationId: associationId,
+        name: 'Association Calendar',
+        description: 'Default calendar settings',
+        defaultAccessLevel: 'residents',
+        viewSettings: {
+          defaultView: 'month',
+          showWeekends: true,
+          workdayStart: 9,
+          workdayEnd: 17,
+          firstDayOfWeek: 0
+        },
+        color: '#4f46e5',
+        enabled: true
+      };
+      
+      // Add the default settings to our collection
+      associationCalendarSettings.push(defaultSettings);
+      return defaultSettings;
     }
     
     return settings;
@@ -61,7 +80,25 @@ export const calendarSettingsService = {
     );
     
     if (index === -1) {
-      throw new Error(`Calendar settings for association ${associationId} not found`);
+      // If no settings found, create new settings with the updates
+      const newSettings: AssociationCalendarSettings = {
+        associationId: associationId,
+        name: updates.name || 'Association Calendar',
+        description: updates.description || 'Default calendar settings',
+        defaultAccessLevel: updates.defaultAccessLevel || 'residents',
+        viewSettings: updates.viewSettings || {
+          defaultView: 'month',
+          showWeekends: true,
+          workdayStart: 9,
+          workdayEnd: 17,
+          firstDayOfWeek: 0
+        },
+        color: updates.color || '#4f46e5',
+        enabled: updates.enabled !== undefined ? updates.enabled : true
+      };
+      
+      associationCalendarSettings.push(newSettings);
+      return newSettings;
     }
     
     const updatedSettings = {

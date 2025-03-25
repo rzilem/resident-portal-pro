@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,16 +30,22 @@ const CalendarSettings = () => {
   });
 
   const [localSettings, setLocalSettings] = useState<AssociationCalendarSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (selectedAssociationId) {
+      setIsLoading(true);
       fetchCalendarSettings();
+      setIsLoading(false);
+    } else if (associations.length > 0 && !selectedAssociationId) {
+      setSelectedAssociationId(associations[0].id);
     }
-  }, [selectedAssociationId, fetchCalendarSettings]);
+  }, [selectedAssociationId, fetchCalendarSettings, associations]);
 
   useEffect(() => {
     if (calendarSettings) {
       setLocalSettings(calendarSettings);
+      setIsLoading(false);
     }
   }, [calendarSettings]);
 
@@ -72,7 +77,24 @@ const CalendarSettings = () => {
     });
   };
 
-  if (!localSettings && !error) {
+  if (associations.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading associations...</p>
+      </div>
+    );
+  }
+
+  if (!selectedAssociationId && associations.length > 0) {
+    setSelectedAssociationId(associations[0].id);
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Selecting default association...</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <p className="text-muted-foreground">Loading calendar settings...</p>
@@ -80,11 +102,35 @@ const CalendarSettings = () => {
     );
   }
 
-  if (error) {
+  if (error && !localSettings) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <p className="text-destructive">Error loading calendar settings</p>
         <Button variant="outline" onClick={fetchCalendarSettings}>Retry</Button>
+      </div>
+    );
+  }
+
+  if (!localSettings && selectedAssociationId) {
+    const defaultSettings: AssociationCalendarSettings = {
+      associationId: selectedAssociationId,
+      name: associations.find(a => a.id === selectedAssociationId)?.name || 'Association Calendar',
+      description: 'Calendar for community events and meetings',
+      defaultAccessLevel: 'residents',
+      viewSettings: {
+        defaultView: 'month',
+        showWeekends: true,
+        workdayStart: 9,
+        workdayEnd: 17,
+        firstDayOfWeek: 0
+      },
+      color: '#4f46e5',
+      enabled: true
+    };
+    setLocalSettings(defaultSettings);
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Creating default calendar settings...</p>
       </div>
     );
   }

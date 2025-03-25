@@ -14,11 +14,15 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
   
   // Fetch calendar settings
   const fetchCalendarSettings = useCallback(() => {
-    if (!associationId) return;
+    if (!associationId) {
+      setError('No association selected');
+      return;
+    }
     
     try {
       const settings = calendarService.getCalendarSettingsByAssociationId(associationId);
       setCalendarSettings(settings);
+      setError(null);
     } catch (err) {
       console.error('Error fetching calendar settings:', err);
       setError('Failed to load calendar settings');
@@ -27,7 +31,10 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
   
   // Update calendar settings
   const updateCalendarSettings = useCallback((updates: Partial<AssociationCalendarSettings>) => {
-    if (!associationId || !calendarSettings) return;
+    if (!associationId) {
+      toast.error('No association selected');
+      return null;
+    }
     
     try {
       const updatedSettings = calendarService.updateCalendarSettings(associationId, updates);
@@ -39,7 +46,7 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
       toast.error('Failed to update calendar settings');
       throw err;
     }
-  }, [associationId, calendarSettings]);
+  }, [associationId]);
   
   return {
     calendarSettings,
