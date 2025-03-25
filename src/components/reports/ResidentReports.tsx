@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Users } from 'lucide-react';
 import ResidentOverviewReport from './resident/ResidentOverviewReport';
@@ -6,6 +5,7 @@ import ContactInfoReport from './resident/ContactInfoReport';
 import BoardMembersReport from './resident/BoardMembersReport';
 import TransactionHistoryReport from './resident/TransactionHistoryReport';
 import MeetingReport from './resident/MeetingReport';
+import HomeownerStatementReport from './resident/HomeownerStatementReport';
 
 interface ResidentReportsProps {
   timeRange: string;
@@ -16,6 +16,16 @@ interface ResidentReportsProps {
 const ResidentReports = ({ timeRange, association, selectedReport }: ResidentReportsProps) => {
   // Render different resident reports based on the selected report
   const renderReportContent = () => {
+    // Statement-related reports
+    if (selectedReport.startsWith('statement-') || selectedReport === 'homeowner-invoice') {
+      return <HomeownerStatementReport 
+        timeRange={timeRange} 
+        association={association} 
+        selectedReport={selectedReport} 
+      />;
+    }
+    
+    // Other existing reports
     switch (selectedReport) {
       case 'resident-overview':
         return <ResidentOverviewReport timeRange={timeRange} association={association} />;
