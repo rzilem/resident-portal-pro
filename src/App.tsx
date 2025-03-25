@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -26,6 +27,7 @@ import Transactions from '@/pages/accounting/Transactions';
 import Payments from '@/pages/accounting/Payments';
 import AccountingReports from '@/pages/accounting/AccountingReports';
 import JournalEntries from '@/pages/accounting/JournalEntries';
+import GlAccounts from '@/pages/accounting/GlAccounts';
 
 // Communications pages
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
@@ -92,6 +94,7 @@ const App = () => {
           <Route path="/accounting/payments" element={<Payments />} />
           <Route path="/accounting/reports" element={<AccountingReports />} />
           <Route path="/accounting/journal-entries" element={<JournalEntries />} />
+          <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
           
           {/* Communications routes */}
           <Route path="/communications/messaging" element={<CommunityMessaging />} />
@@ -113,4 +116,3 @@ const App = () => {
 };
 
 export default App;
-
