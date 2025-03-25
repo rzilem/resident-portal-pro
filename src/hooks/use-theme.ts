@@ -4,19 +4,20 @@ import { useState, useEffect } from 'react';
 type Theme = 'light' | 'dark' | 'system';
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
+  // Initialize with a default to prevent errors before localStorage is checked
+  const [theme, setTheme] = useState<Theme>('light');
+  
+  // Move localStorage check to useEffect to ensure it only runs in browser
+  useEffect(() => {
     // Check for stored theme preference in localStorage
     const storedTheme = localStorage.getItem('theme') as Theme;
-    if (storedTheme) return storedTheme;
-    
-    // Check for system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'system';
+    if (storedTheme) {
+      setTheme(storedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      // Check for system preference
+      setTheme('system');
     }
-    
-    // Default to light
-    return 'light';
-  });
+  }, []);
 
   // Apply theme changes
   useEffect(() => {
