@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tag as TagIcon } from 'lucide-react';
 import HtmlEditor from '../HtmlEditor';
 import MergeTagsDialog from '../MergeTagsDialog';
-import { MessageTemplate, SAMPLE_COMMUNITIES, CategoryOptions } from './types';
+import { SAMPLE_COMMUNITIES, CategoryOptions, TemplateFormState, TemplateFormSetters } from './types';
 import { MergeTag } from '@/types/mergeTags';
 
 interface TemplateEditorDialogProps {
@@ -19,24 +18,8 @@ interface TemplateEditorDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
-  template: {
-    name: string;
-    description: string;
-    subject: string;
-    content: string;
-    category: string;
-    communities: string[];
-    isHtmlFormat: boolean;
-  };
-  setTemplate: {
-    setName: (value: string) => void;
-    setDescription: (value: string) => void;
-    setSubject: (value: string) => void;
-    setContent: (value: string) => void;
-    setCategory: (value: string) => void;
-    setCommunities: (fn: (prev: string[]) => string[]) => void;
-    setIsHtmlFormat: (value: boolean) => void;
-  };
+  template: TemplateFormState;
+  setTemplate: TemplateFormSetters;
 }
 
 const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
@@ -72,7 +55,6 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
     const subjectInput = document.getElementById('template-subject');
     
     if (activeElement === subjectInput) {
-      // Fix: Instead of passing a function, compute the new value and pass it directly
       const cursorPosition = (activeElement as HTMLInputElement).selectionStart || 0;
       const newSubject = template.subject.substring(0, cursorPosition) + 
                           tag.tag + 
@@ -80,10 +62,8 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
       setTemplate.setSubject(newSubject);
     } else {
       if (template.isHtmlFormat) {
-        // Fix: Pass the new string value directly instead of a function
         setTemplate.setContent(template.content + ' ' + tag.tag + ' ');
       } else {
-        // Fix: Pass the new string value directly instead of a function
         setTemplate.setContent(template.content + ' ' + tag.tag + ' ');
       }
     }

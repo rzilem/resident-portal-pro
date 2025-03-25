@@ -1,4 +1,3 @@
-
 export interface MessageTemplate {
   id: string;
   name: string;
@@ -41,3 +40,23 @@ export const CategoryOptions = [
   { value: 'Events', label: 'Events' },
   { value: 'General', label: 'General' },
 ];
+
+export interface TemplateFormState {
+  name: string;
+  description: string;
+  subject: string;
+  content: string;
+  category: string;
+  communities: string[];
+  isHtmlFormat: boolean;
+}
+
+export interface TemplateFormSetters {
+  setName: (value: string) => void;
+  setDescription: (value: string) => void;
+  setSubject: (value: string) => void;
+  setContent: (value: string) => void;
+  setCategory: (value: string) => void;
+  setCommunities: (fn: (prev: string[]) => string[]) => void;
+  setIsHtmlFormat: (value: boolean) => void;
+}
