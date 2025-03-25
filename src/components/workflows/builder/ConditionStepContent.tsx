@@ -8,15 +8,16 @@ import { ConditionStep, CONDITION_TYPES } from './types';
 interface ConditionStepContentProps {
   step: ConditionStep;
   updateStep: (id: string, data: Partial<ConditionStep>) => void;
+  readOnly?: boolean;
 }
 
-const ConditionStepContent = ({ step, updateStep }: ConditionStepContentProps) => {
+const ConditionStepContent = ({ step, updateStep, readOnly = false }: ConditionStepContentProps) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2">
         <div className="space-y-2">
           <Label>Field</Label>
-          <Select defaultValue={step.field || "paymentStatus"}>
+          <Select defaultValue={step.field || "paymentStatus"} disabled={readOnly}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -34,7 +35,8 @@ const ConditionStepContent = ({ step, updateStep }: ConditionStepContentProps) =
           <Label>Condition</Label>
           <Select 
             value={step.conditionType}
-            onValueChange={(value) => updateStep(step.id, { conditionType: value })}
+            onValueChange={(value) => !readOnly && updateStep(step.id, { conditionType: value })}
+            disabled={readOnly}
           >
             <SelectTrigger>
               <SelectValue />
@@ -54,7 +56,9 @@ const ConditionStepContent = ({ step, updateStep }: ConditionStepContentProps) =
           <Input 
             placeholder="Condition value" 
             value={step.value}
-            onChange={(e) => updateStep(step.id, { value: e.target.value })}
+            onChange={(e) => !readOnly && updateStep(step.id, { value: e.target.value })}
+            readOnly={readOnly}
+            className={readOnly ? "bg-gray-50" : ""}
           />
         </div>
       </div>
@@ -64,7 +68,9 @@ const ConditionStepContent = ({ step, updateStep }: ConditionStepContentProps) =
         <Input 
           placeholder="Condition name" 
           value={step.name}
-          onChange={(e) => updateStep(step.id, { name: e.target.value })}
+          onChange={(e) => !readOnly && updateStep(step.id, { name: e.target.value })}
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-50" : ""}
         />
       </div>
     </div>

@@ -9,9 +9,10 @@ import { Mail, Bell, FileText, MessageSquare, Zap, Settings } from 'lucide-react
 interface ActionStepContentProps {
   step: ActionStep;
   updateStep: (id: string, data: Partial<ActionStep>) => void;
+  readOnly?: boolean;
 }
 
-const ActionStepContent = ({ step, updateStep }: ActionStepContentProps) => {
+const ActionStepContent = ({ step, updateStep, readOnly = false }: ActionStepContentProps) => {
   // Function to render the appropriate icon for the action type
   const renderIcon = (iconName: string) => {
     switch(iconName) {
@@ -31,7 +32,8 @@ const ActionStepContent = ({ step, updateStep }: ActionStepContentProps) => {
         <Label>Action Type</Label>
         <Select 
           value={step.actionType}
-          onValueChange={(value) => updateStep(step.id, { actionType: value })}
+          onValueChange={(value) => !readOnly && updateStep(step.id, { actionType: value })}
+          disabled={readOnly}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select action type" />
@@ -52,7 +54,7 @@ const ActionStepContent = ({ step, updateStep }: ActionStepContentProps) => {
       {step.actionType === 'email' && (
         <div className="space-y-2">
           <Label>Email Template</Label>
-          <Select defaultValue="reminder">
+          <Select defaultValue="reminder" disabled={readOnly}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -72,7 +74,9 @@ const ActionStepContent = ({ step, updateStep }: ActionStepContentProps) => {
         <Input 
           placeholder="Action name" 
           value={step.name}
-          onChange={(e) => updateStep(step.id, { name: e.target.value })}
+          onChange={(e) => !readOnly && updateStep(step.id, { name: e.target.value })}
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-50" : ""}
         />
       </div>
     </div>
