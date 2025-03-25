@@ -24,6 +24,11 @@ interface ComposerContextType {
   setShowMergeTagPreview: (show: boolean) => void;
   isScheduled: boolean;
   setIsScheduled: (isScheduled: boolean) => void;
+  // Add the missing properties for ScheduleOptions component
+  scheduledSend: boolean;
+  setScheduledSend: (scheduled: boolean) => void;
+  scheduledTime: string;
+  setScheduledTime: (time: string) => void;
 }
 
 // Create the context with a default value
@@ -54,6 +59,9 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
   const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
+  // Add state for the missing properties
+  const [scheduledSend, setScheduledSend] = useState(false);
+  const [scheduledTime, setScheduledTime] = useState('');
 
   // The value that will be provided to consumers of the context
   const value = {
@@ -77,6 +85,11 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
     setShowMergeTagPreview,
     isScheduled,
     setIsScheduled,
+    // Add the missing properties to the context value
+    scheduledSend,
+    setScheduledSend,
+    scheduledTime,
+    setScheduledTime,
   };
 
   return (
