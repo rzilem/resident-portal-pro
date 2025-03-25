@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -19,6 +18,7 @@ import Workflows from '@/pages/Workflows';
 import CommunityHub from '@/pages/CommunityHub';
 import NotFound from '@/pages/NotFound';
 import Compliance from '@/pages/compliance/Compliance';
+import SystemUploads from '@/pages/SystemUploads';
 
 // Accounting pages
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
@@ -84,6 +84,7 @@ const App = () => {
           <Route path="/community-hub" element={<CommunityHub />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/compliance" element={<Compliance />} />
+          <Route path="/system-uploads" element={<SystemUploads />} />
           
           {/* Accounting routes */}
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
@@ -112,3 +113,4 @@ const App = () => {
 };
 
 export default App;
+

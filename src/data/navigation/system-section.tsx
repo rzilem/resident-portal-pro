@@ -1,13 +1,14 @@
 
 import React from 'react';
-import { Cog, Building, Shield, Puzzle, Sliders } from 'lucide-react';
+import { Cog, Building, Shield, Puzzle, Sliders, Upload } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getSystemSection = (currentPath: string): NavItem => ({
   label: "System",
   icon: <Cog className="h-4 w-4" />,
   active: currentPath.startsWith("/integrations") || 
-          currentPath.startsWith("/settings"),
+          currentPath.startsWith("/settings") ||
+          currentPath.startsWith("/system-uploads"),
   href: "/integrations", // Default href
   items: [
     {
@@ -21,6 +22,12 @@ export const getSystemSection = (currentPath: string): NavItem => ({
       icon: <Sliders className="h-4 w-4" />,
       href: "/settings",
       active: currentPath === "/settings"
+    },
+    {
+      label: "System Uploads",
+      icon: <Upload className="h-4 w-4" />,
+      href: "/system-uploads",
+      active: currentPath === "/system-uploads"
     },
     {
       label: "Associations",
