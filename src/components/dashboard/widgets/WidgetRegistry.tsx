@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { WidgetType } from '@/types/dashboard';
 import { Card } from '@/components/ui/card';
@@ -29,24 +28,24 @@ export const widgetComponents: Record<WidgetType, React.ComponentType<any>> = {
   'documents': DocumentsWidget,
   
   // Placeholder for other widget types
-  'properties': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Properties Widget" cardClass={cardClass} />,
-  'residents': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Residents Widget" cardClass={cardClass} />,
-  'events': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Events Widget" cardClass={cardClass} />,
-  'activity': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Activity Widget" cardClass={cardClass} />,
-  'notifications': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Notifications Widget" cardClass={cardClass} />,
-  'financials': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Financials Widget" cardClass={cardClass} />,
-  'calendar': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Calendar Widget" cardClass={cardClass} />,
-  'announcements': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Announcements Widget" cardClass={cardClass} />,
-  'directory': ({ cardClass }: { cardClass?: string }) => 
-    <PlaceholderWidget title="Directory Widget" cardClass={cardClass} />,
+  'properties': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Properties Widget" cardClass={cardClass} size={size} />,
+  'residents': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Residents Widget" cardClass={cardClass} size={size} />,
+  'events': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Events Widget" cardClass={cardClass} size={size} />,
+  'activity': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Activity Widget" cardClass={cardClass} size={size} />,
+  'notifications': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Notifications Widget" cardClass={cardClass} size={size} />,
+  'financials': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Financials Widget" cardClass={cardClass} size={size} />,
+  'calendar': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Calendar Widget" cardClass={cardClass} size={size} />,
+  'announcements': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Announcements Widget" cardClass={cardClass} size={size} />,
+  'directory': ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
+    <PlaceholderWidget title="Directory Widget" cardClass={cardClass} size={size} />,
 };
 
 interface DynamicWidgetProps {

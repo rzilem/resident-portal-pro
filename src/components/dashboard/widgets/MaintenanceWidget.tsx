@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tool, Plus, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { Wrench, Plus, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -34,7 +34,7 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
         };
       case 'in-progress':
         return { 
-          icon: <Tool className="h-4 w-4" />, 
+          icon: <Wrench className="h-4 w-4" />, 
           variant: 'default',
           label: 'In Progress'
         };
@@ -52,7 +52,7 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
         };
       default:
         return { 
-          icon: <Tool className="h-4 w-4" />, 
+          icon: <Wrench className="h-4 w-4" />, 
           variant: 'outline',
           label: status
         };
