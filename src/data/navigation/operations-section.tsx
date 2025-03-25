@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, ShieldCheck } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getOperationsSection = (currentPath: string): NavItem => ({
@@ -9,7 +9,8 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
   active: currentPath.startsWith("/calendar") || 
           currentPath.startsWith("/accounting") || 
           currentPath.startsWith("/communications") ||
-          currentPath.startsWith("/workflows"),
+          currentPath.startsWith("/workflows") ||
+          currentPath.startsWith("/compliance"),
   href: "/calendar", // Default href
   items: [
     {
@@ -26,6 +27,11 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
       label: "Communications",
       href: "/communications/messaging",
       active: currentPath.startsWith("/communications")
+    },
+    {
+      label: "Compliance",
+      href: "/compliance",
+      active: currentPath === "/compliance" || currentPath.startsWith("/compliance/")
     },
     {
       label: "Workflows",

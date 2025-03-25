@@ -16,6 +16,12 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
   content,
   format
 }) => {
+  const emptyContent = format === 'html' 
+    ? '<p>No content to preview</p>' 
+    : 'No content to preview';
+
+  const contentToDisplay = content || emptyContent;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px]">
@@ -24,9 +30,9 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
         </DialogHeader>
         <div className="border rounded-md p-4 max-h-[500px] overflow-auto">
           {format === 'html' ? (
-            <div dangerouslySetInnerHTML={{ __html: content || '<p>No content to preview</p>' }} />
+            <div dangerouslySetInnerHTML={{ __html: contentToDisplay }} />
           ) : (
-            <div className="whitespace-pre-wrap">{content || 'No content to preview'}</div>
+            <div className="whitespace-pre-wrap">{contentToDisplay}</div>
           )}
         </div>
         <DialogFooter>

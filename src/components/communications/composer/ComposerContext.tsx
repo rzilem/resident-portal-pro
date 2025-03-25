@@ -22,6 +22,8 @@ interface ComposerContextType {
   setScheduledDate: (date: Date | null) => void;
   showMergeTagPreview: boolean;
   setShowMergeTagPreview: (show: boolean) => void;
+  isScheduled: boolean;
+  setIsScheduled: (isScheduled: boolean) => void;
 }
 
 // Create the context with a default value
@@ -51,6 +53,7 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [scheduleLater, setScheduleLater] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
   const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
+  const [isScheduled, setIsScheduled] = useState(false);
 
   // The value that will be provided to consumers of the context
   const value = {
@@ -72,6 +75,8 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
     setScheduledDate,
     showMergeTagPreview,
     setShowMergeTagPreview,
+    isScheduled,
+    setIsScheduled,
   };
 
   return (

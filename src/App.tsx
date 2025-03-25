@@ -18,6 +18,7 @@ import Settings from '@/pages/Settings';
 import Workflows from '@/pages/Workflows';
 import CommunityHub from '@/pages/CommunityHub';
 import NotFound from '@/pages/NotFound';
+import Compliance from '@/pages/compliance/Compliance';
 
 // Accounting pages
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
@@ -82,6 +83,7 @@ const App = () => {
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/community-hub" element={<CommunityHub />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/compliance" element={<Compliance />} />
           
           {/* Accounting routes */}
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />

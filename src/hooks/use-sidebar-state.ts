@@ -14,6 +14,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/calendar': 'Operations',
       '/accounting': 'Operations',
       '/communications': 'Operations',
+      '/compliance': 'Operations',
       '/workflows': 'Operations',
       '/database': 'Records & Reports',
       '/documents': 'Records & Reports',
