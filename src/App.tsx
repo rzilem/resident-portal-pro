@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -13,6 +14,7 @@ import Calendar from '@/pages/Calendar';
 import Index from '@/pages/Index';
 import DashboardLayout from '@/components/DashboardLayout';
 import CalendarSettings from '@/components/settings/CalendarSettings';
+import Permissions from '@/pages/settings/Permissions';
 import Properties from '@/pages/Properties';
 import Residents from '@/pages/Residents';
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
@@ -73,7 +75,7 @@ function App() {
             {/* Settings routes */}
             <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
             <Route path="/settings/calendar" element={<DashboardLayout><CalendarSettings /></DashboardLayout>} />
-            <Route path="/settings/permissions" element={<DashboardLayout><NotFound /></DashboardLayout>} />
+            <Route path="/settings/permissions" element={<DashboardLayout><Permissions /></DashboardLayout>} />
             <Route path="/settings/integrations" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             
             {/* Fallback routes */}
