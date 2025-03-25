@@ -1,10 +1,10 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = "dark" | "light" | "system";
 
 type ThemeProviderProps = {
-  children: ReactNode;
+  children: React.ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
 };
@@ -27,11 +27,24 @@ export function ThemeProvider({
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
-
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [mounted, setMounted] = useState(false);
+  
+  // Initialize theme from localStorage only after component mounts
   useEffect(() => {
+    const savedTheme = localStorage.getItem(storageKey) as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      setTheme(defaultTheme);
+    }
+    setMounted(true);
+  }, [defaultTheme, storageKey]);
+
+  // Apply theme to document only after component mounts
+  useEffect(() => {
+    if (!mounted) return;
+    
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
 
@@ -44,15 +57,22 @@ export function ThemeProvider({
     } else {
       root.classList.add(theme);
     }
-  }, [theme]);
+  }, [theme, mounted]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
+      if (mounted) {
+        localStorage.setItem(storageKey, theme);
+      }
       setTheme(theme);
     },
   };
+
+  // Prevent hydration issues by not rendering until mounted
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
