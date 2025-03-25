@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -118,6 +118,7 @@ const CommunityMessaging = () => {
   const [activeTab, setActiveTab] = useState("compose");
   const [templates, setTemplates] = useState<MessageTemplate[]>(INITIAL_TEMPLATES);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
+  const [composeKey, setComposeKey] = useState<string>("initial");
 
   const handleSendMessage = (message: { subject: string; content: string; recipients: string[] }) => {
     console.log("Sending message:", message);
@@ -132,6 +133,8 @@ const CommunityMessaging = () => {
   const handleTemplateSelect = (template: MessageTemplate) => {
     console.log("Template selected:", template);
     setSelectedTemplate(template);
+    setComposeKey(template.id); // Force re-render of MessageComposer
+    
     // Immediately switch to the compose tab when a template is selected
     setActiveTab("compose");
   };
@@ -185,7 +188,7 @@ const CommunityMessaging = () => {
                     onSendMessage={handleSendMessage}
                     initialSubject={selectedTemplate?.subject || ''}
                     initialContent={selectedTemplate?.content || ''}
-                    key={selectedTemplate?.id || 'no-template'} 
+                    key={composeKey} // Use composeKey to force re-render when template changes
                   />
                 </TabsContent>
                 

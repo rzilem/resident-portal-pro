@@ -62,6 +62,8 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   initialSubject = '',
   initialContent = '',
 }) => {
+  console.log("MessageComposer rendered with:", { initialSubject, initialContent });
+  
   return (
     <ComposerProvider 
       initialSubject={initialSubject} 

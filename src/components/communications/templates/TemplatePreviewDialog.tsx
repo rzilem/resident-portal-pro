@@ -20,6 +20,7 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
   if (!template) return null;
 
   const handleUseTemplate = () => {
+    console.log("Using template with content:", template.content);
     onUseTemplate(template);
     onClose();
   };

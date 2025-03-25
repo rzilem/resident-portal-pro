@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MessageData } from './types';
 
 interface ComposerContextType {
@@ -44,6 +44,8 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   initialContent = '',
   initialCommunity = '',
 }) => {
+  console.log("ComposerProvider initializing with:", { initialSubject, initialContent });
+  
   const [subject, setSubject] = useState(initialSubject);
   const [content, setContent] = useState(initialContent);
   const [format, setFormat] = useState<'plain' | 'html'>('html');
@@ -52,6 +54,17 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [isScheduled, setIsScheduled] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<string>(initialCommunity);
   const [previewContent, setPreviewContent] = useState('');
+
+  // Effect to update state when initialSubject or initialContent change
+  useEffect(() => {
+    console.log("initialSubject changed:", initialSubject);
+    setSubject(initialSubject);
+  }, [initialSubject]);
+
+  useEffect(() => {
+    console.log("initialContent changed:", initialContent);
+    setContent(initialContent);
+  }, [initialContent]);
 
   const value = {
     subject,
