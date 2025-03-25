@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, FileEdit, Trash2, Tag as TagIcon } from 'lucide-react';
+import { Plus, FileEdit, Trash2, Tag as TagIcon, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import HtmlEditor from './HtmlEditor';
 import MergeTagsDialog from './MergeTagsDialog';
 import { MergeTag } from '@/types/mergeTags';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface MessageTemplate {
   id: string;
@@ -21,6 +23,7 @@ interface MessageTemplate {
   category: string;
   createdAt: string;
   updatedAt: string;
+  communities?: string[]; // Array of community IDs or 'all'
 }
 
 interface MessageTemplatesProps {
@@ -30,6 +33,15 @@ interface MessageTemplatesProps {
   onUpdateTemplate: (template: MessageTemplate) => void;
   onDeleteTemplate: (templateId: string) => void;
 }
+
+// Sample communities data
+const SAMPLE_COMMUNITIES = [
+  { id: 'all', name: 'All Communities' },
+  { id: 'comm1', name: 'Riverside HOA' },
+  { id: 'comm2', name: 'Oakwood Condos' },
+  { id: 'comm3', name: 'Mountain View Estates' },
+  { id: 'comm4', name: 'Harbor Point' },
+];
 
 const CategoryOptions = [
   { value: 'Welcome', label: 'Welcome' },
@@ -58,6 +70,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
   const [templateContent, setTemplateContent] = useState('');
   const [templateCategory, setTemplateCategory] = useState('General');
   const [isHtmlFormat, setIsHtmlFormat] = useState(true);
+  const [selectedCommunities, setSelectedCommunities] = useState<string[]>(['all']);
   
   const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
 
@@ -67,6 +80,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
     setTemplateSubject('');
     setTemplateContent('');
     setTemplateCategory('General');
+    setSelectedCommunities(['all']);
     setIsHtmlFormat(true);
   };
 
@@ -83,6 +97,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
       subject: templateSubject,
       content: templateContent,
       category: templateCategory,
+      communities: selectedCommunities,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -108,6 +123,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
       subject: templateSubject,
       content: templateContent,
       category: templateCategory,
+      communities: selectedCommunities,
       updatedAt: new Date().toISOString()
     };
 
@@ -131,6 +147,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
     setTemplateSubject(template.subject);
     setTemplateContent(template.content);
     setTemplateCategory(template.category);
+    setSelectedCommunities(template.communities || ['all']);
     setIsHtmlFormat(true);
     setIsEditDialogOpen(true);
   };
@@ -152,6 +169,28 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
       }
     }
     setIsMergeTagsDialogOpen(false);
+  };
+
+  const handleCommunityToggle = (communityId: string) => {
+    setSelectedCommunities(prev => {
+      // If selecting 'all', clear other selections
+      if (communityId === 'all') {
+        return ['all'];
+      }
+      
+      // If already has 'all' and selecting another community, remove 'all'
+      if (prev.includes('all') && communityId !== 'all') {
+        return [communityId];
+      }
+      
+      // Toggle selection
+      const newSelection = prev.includes(communityId)
+        ? prev.filter(id => id !== communityId)
+        : [...prev, communityId];
+        
+      // If nothing selected, default to 'all'
+      return newSelection.length === 0 ? ['all'] : newSelection;
+    });
   };
 
   const templateDialog = (
@@ -207,6 +246,24 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
               placeholder="Brief description of when to use this template"
               rows={2}
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Available Communities</Label>
+            <div className="border rounded-md p-3 space-y-2">
+              {SAMPLE_COMMUNITIES.map(community => (
+                <div className="flex items-center space-x-2" key={community.id}>
+                  <Checkbox 
+                    id={`community-${community.id}`} 
+                    checked={selectedCommunities.includes(community.id)}
+                    onCheckedChange={() => handleCommunityToggle(community.id)}
+                  />
+                  <Label htmlFor={`community-${community.id}`} className="cursor-pointer">
+                    {community.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -324,6 +381,15 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
                 <div className="text-sm line-clamp-3">
                   <span className="font-medium">Content:</span>{' '}
                   <span dangerouslySetInnerHTML={{ __html: template.content }} />
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Available for:</span>{' '}
+                  {template.communities?.includes('all') 
+                    ? 'All Communities' 
+                    : template.communities?.map(c => {
+                        const community = SAMPLE_COMMUNITIES.find(sc => sc.id === c);
+                        return community?.name;
+                      }).join(', ') || 'All Communities'}
                 </div>
               </div>
             </CardContent>

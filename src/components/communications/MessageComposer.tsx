@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,15 @@ import ScheduleOptions from './composer/ScheduleOptions';
 import MessagePreview from './composer/MessagePreview';
 import AiAssistant from './composer/AiAssistant';
 import TemplateSelector from './composer/TemplateSelector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Sample community data
+const SAMPLE_COMMUNITIES = [
+  { id: 'comm1', name: 'Riverside HOA' },
+  { id: 'comm2', name: 'Oakwood Condos' },
+  { id: 'comm3', name: 'Mountain View Estates' },
+  { id: 'comm4', name: 'Harbor Point' },
+];
 
 const SAMPLE_TEMPLATES = [
   {
@@ -24,6 +34,7 @@ const SAMPLE_TEMPLATES = [
     subject: 'Welcome to our Community!',
     content: '<p>Dear {{resident.first_name}},</p><p>On behalf of the {{association.name}}, we would like to welcome you to our community! We are excited to have you join us.</p><p>Please find attached our welcome packet with important information about our community rules, amenities, and contact information.</p><p>If you have any questions, feel free to reach out to us at {{association.email}} or {{association.phone}}.</p><p>Best regards,<br>{{board.president}}<br>Board President</p>',
     category: 'Welcome',
+    communities: ['all'],
     createdAt: '2023-07-15T10:00:00Z',
     updatedAt: '2023-07-15T10:00:00Z'
   },
@@ -34,6 +45,7 @@ const SAMPLE_TEMPLATES = [
     subject: 'Reminder: Monthly Board Meeting - {{meeting.date}}',
     content: '<p>Dear Homeowners,</p><p>This is a reminder that our monthly board meeting will be held on {{meeting.date}} at {{meeting.time}} in the {{meeting.location}}.</p><p>Agenda items include:</p><p>{{meeting.agenda}}</p><p>We hope to see you there!</p><p>Regards,<br>{{board.secretary}}<br>Board Secretary</p>',
     category: 'Meetings',
+    communities: ['comm1', 'comm3'],
     createdAt: '2023-07-16T10:00:00Z',
     updatedAt: '2023-07-16T10:00:00Z'
   },
@@ -44,6 +56,7 @@ const SAMPLE_TEMPLATES = [
     subject: 'Annual Assessment Notice for {{association.name}}',
     content: '<p>Dear {{resident.name}},</p><p>This letter serves as a notice that your annual assessment for your property at {{property.address}} is due on {{financial.due_date}}.</p><p>The annual assessment amount is {{financial.monthly_assessment}}.</p><p>Payment can be made via {{financial.payment_methods}}.</p><p>If you have any questions, please contact our office.</p><p>Thank you,<br>{{board.treasurer}}<br>Board Treasurer</p>',
     category: 'Financial',
+    communities: ['comm2', 'comm4'],
     createdAt: '2023-07-17T10:00:00Z',
     updatedAt: '2023-07-17T10:00:00Z'
   }
@@ -72,6 +85,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const [previewContent, setPreviewContent] = useState('');
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [templates, setTemplates] = useState(SAMPLE_TEMPLATES);
+  const [selectedCommunity, setSelectedCommunity] = useState<string>(SAMPLE_COMMUNITIES[0].id);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,10 +152,36 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     }
   };
 
+  // Filter templates based on the selected community
+  const communityTemplates = templates.filter(template => 
+    !template.communities || 
+    template.communities.includes('all') || 
+    template.communities.includes(selectedCommunity)
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="community">Community</Label>
+            <Select 
+              value={selectedCommunity} 
+              onValueChange={setSelectedCommunity}
+            >
+              <SelectTrigger id="community">
+                <SelectValue placeholder="Select a community" />
+              </SelectTrigger>
+              <SelectContent>
+                {SAMPLE_COMMUNITIES.map(community => (
+                  <SelectItem key={community.id} value={community.id}>
+                    {community.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <RecipientSelector 
             selectedRecipients={selectedRecipients}
             onRecipientsChange={setSelectedRecipients}
@@ -151,8 +191,9 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
             <div className="flex justify-between items-center">
               <Label htmlFor="subject">Subject</Label>
               <TemplateSelector 
-                templates={templates}
+                templates={communityTemplates}
                 onSelectTemplate={handleTemplateSelect}
+                currentCommunity={selectedCommunity}
               />
             </div>
             <Input

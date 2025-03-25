@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Template } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 // Using the existing MessageTemplate interface from MessageTemplates component
 interface MessageTemplate {
@@ -23,19 +23,31 @@ interface MessageTemplate {
   category: string;
   createdAt: string;
   updatedAt: string;
+  communities?: string[]; // Added communities field
 }
 
 interface TemplateSelectorProps {
   templates: MessageTemplate[];
   onSelectTemplate: (template: MessageTemplate) => void;
+  currentCommunity?: string;
 }
 
 const TemplateSelector: React.FC<TemplateSelectorProps> = ({ 
   templates, 
-  onSelectTemplate 
+  onSelectTemplate,
+  currentCommunity
 }) => {
+  // Filter templates based on current community
+  const filteredTemplates = currentCommunity 
+    ? templates.filter(template => 
+        !template.communities || 
+        template.communities.includes('all') || 
+        template.communities.includes(currentCommunity)
+      )
+    : templates;
+
   // Group templates by category
-  const templatesByCategory = templates.reduce((acc, template) => {
+  const templatesByCategory = filteredTemplates.reduce((acc, template) => {
     if (!acc[template.category]) {
       acc[template.category] = [];
     }
@@ -47,7 +59,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1">
-          <Template className="h-4 w-4" />
+          <FileText className="h-4 w-4" />
           Use Template
         </Button>
       </DropdownMenuTrigger>

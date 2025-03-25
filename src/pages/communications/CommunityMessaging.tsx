@@ -17,6 +17,7 @@ const INITIAL_TEMPLATES = [
     subject: 'Welcome to our Community!',
     content: '<p>Dear {{resident.first_name}},</p><p>On behalf of the {{association.name}}, we would like to welcome you to our community! We are excited to have you join us.</p><p>Please find attached our welcome packet with important information about our community rules, amenities, and contact information.</p><p>If you have any questions, feel free to reach out to us at {{association.email}} or {{association.phone}}.</p><p>Best regards,<br>{{board.president}}<br>Board President</p>',
     category: 'Welcome',
+    communities: ['all'],
     createdAt: '2023-07-15T10:00:00Z',
     updatedAt: '2023-07-15T10:00:00Z'
   },
@@ -27,6 +28,7 @@ const INITIAL_TEMPLATES = [
     subject: 'Reminder: Monthly Board Meeting - {{meeting.date}}',
     content: '<p>Dear Homeowners,</p><p>This is a reminder that our monthly board meeting will be held on {{meeting.date}} at {{meeting.time}} in the {{meeting.location}}.</p><p>Agenda items include:</p><p>{{meeting.agenda}}</p><p>We hope to see you there!</p><p>Regards,<br>{{board.secretary}}<br>Board Secretary</p>',
     category: 'Meetings',
+    communities: ['comm1', 'comm3'],
     createdAt: '2023-07-16T10:00:00Z',
     updatedAt: '2023-07-16T10:00:00Z'
   },
@@ -37,6 +39,7 @@ const INITIAL_TEMPLATES = [
     subject: 'Annual Assessment Notice for {{association.name}}',
     content: '<p>Dear {{resident.name}},</p><p>This letter serves as a notice that your annual assessment for your property at {{property.address}} is due on {{financial.due_date}}.</p><p>The annual assessment amount is {{financial.monthly_assessment}}.</p><p>Payment can be made via {{financial.payment_methods}}.</p><p>If you have any questions, please contact our office.</p><p>Thank you,<br>{{board.treasurer}}<br>Board Treasurer</p>',
     category: 'Financial',
+    communities: ['comm2', 'comm4'],
     createdAt: '2023-07-17T10:00:00Z',
     updatedAt: '2023-07-17T10:00:00Z'
   }
@@ -50,6 +53,7 @@ interface MessageTemplate {
   subject: string;
   content: string;
   category: string;
+  communities?: string[];
   createdAt: string;
   updatedAt: string;
 }
