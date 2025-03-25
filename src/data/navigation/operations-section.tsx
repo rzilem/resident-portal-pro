@@ -7,7 +7,6 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
   label: "Operations",
   icon: <ClipboardList className="h-4 w-4" />,
   active: currentPath.startsWith("/calendar") || 
-          currentPath.startsWith("/accounting") || 
           currentPath.startsWith("/communications") ||
           currentPath.startsWith("/workflows") ||
           currentPath.startsWith("/compliance"),
@@ -17,11 +16,6 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
       label: "Calendar",
       href: "/calendar",
       active: currentPath === "/calendar" || currentPath.startsWith("/calendar/")
-    },
-    {
-      label: "Accounting",
-      href: "/accounting/dashboard",
-      active: currentPath.startsWith("/accounting")
     },
     {
       label: "Communications",

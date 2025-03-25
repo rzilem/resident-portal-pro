@@ -12,10 +12,10 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
     // More precise route-to-group mapping
     const pathToGroupMap: Record<string, string> = {
       '/calendar': 'Operations',
-      '/accounting': 'Operations',
       '/communications': 'Operations',
       '/compliance': 'Operations',
       '/workflows': 'Operations',
+      '/accounting': 'Accounting', // New dedicated accounting section
       '/database': 'Records & Reports',
       '/documents': 'Records & Reports',
       '/reports': 'Records & Reports',
