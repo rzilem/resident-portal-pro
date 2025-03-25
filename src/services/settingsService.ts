@@ -1,6 +1,7 @@
 
 import { toast } from "sonner";
 import { UserPreferences } from "@/types/user";
+import { DashboardLayout, Widget } from "@/types/dashboard";
 
 // Mock storage for user settings
 let userSettings: Record<string, UserPreferences> = {};
@@ -14,7 +15,39 @@ const defaultPreferences: UserPreferences = {
     sms: false
   },
   calendarView: 'month',
-  dashboardLayout: 'default',
+  dashboardLayout: {
+    columns: 2,
+    widgets: [
+      {
+        id: 'widget-1',
+        type: 'tasks',
+        title: 'Tasks',
+        size: 'medium',
+        position: 0,
+      },
+      {
+        id: 'widget-2',
+        type: 'calendar',
+        title: 'Calendar',
+        size: 'medium',
+        position: 1,
+      },
+      {
+        id: 'widget-3',
+        type: 'notifications',
+        title: 'Notifications',
+        size: 'small',
+        position: 2,
+      },
+      {
+        id: 'widget-4',
+        type: 'weather',
+        title: 'Weather',
+        size: 'small',
+        position: 3,
+      },
+    ]
+  },
   dashboardWidgets: ['tasks', 'calendar', 'notices', 'weather']
 };
 
