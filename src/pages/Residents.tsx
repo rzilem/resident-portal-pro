@@ -1,23 +1,192 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserX, Search, ChevronRight } from 'lucide-react';
+import { Users, UserCheck, UserX, Search, ChevronRight, Settings2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useSettings } from '@/hooks/use-settings';
+
+// Column type definition for resident data
+export type ResidentColumn = {
+  id: string;
+  label: string;
+  checked: boolean;
+};
 
 const Residents = () => {
   const isMobile = useIsMobile();
+  const { preferences, updatePreference } = useSettings();
+  
+  // Define default columns
+  const defaultColumns: ResidentColumn[] = [
+    { id: 'name', label: 'Name', checked: true },
+    { id: 'unit', label: 'Unit', checked: true },
+    { id: 'property', label: 'Property', checked: true },
+    { id: 'email', label: 'Email', checked: true },
+    { id: 'phone', label: 'Phone', checked: false },
+    { id: 'status', label: 'Status', checked: true },
+    { id: 'moveInDate', label: 'Move-In Date', checked: false },
+    { id: 'moveOutDate', label: 'Move-Out Date', checked: false },
+    { id: 'mailingAddress', label: 'Mailing Address', checked: false },
+    { id: 'propertyAddress', label: 'Property Address', checked: false },
+    { id: 'balance', label: 'Balance', checked: false },
+    { id: 'lastPayment', label: 'Last Payment', checked: false },
+    { id: 'achStartDate', label: 'ACH Start Date', checked: false },
+    { id: 'closingDate', label: 'Closing Date', checked: false },
+    { id: 'commPreference', label: 'Communication Preference', checked: false },
+    { id: 'billingPreference', label: 'Billing Preference', checked: false },
+    { id: 'ownerType', label: 'Owner Type', checked: false },
+  ];
+
+  const [columns, setColumns] = useState<ResidentColumn[]>(
+    preferences?.residentTableColumns || defaultColumns
+  );
+
+  useEffect(() => {
+    if (preferences?.residentTableColumns) {
+      setColumns(preferences.residentTableColumns);
+    }
+  }, [preferences]);
+
+  const handleColumnToggle = (columnId: string) => {
+    const updatedColumns = columns.map(column => 
+      column.id === columnId ? { ...column, checked: !column.checked } : column
+    );
+    
+    const hasCheckedColumn = updatedColumns.some(col => col.checked);
+    
+    if (hasCheckedColumn) {
+      setColumns(updatedColumns);
+      updatePreference('residentTableColumns', updatedColumns);
+    }
+  };
   
   const residents = [
-    { id: 101, name: 'Alice Johnson', unit: '301', property: 'Oakwood Heights', email: 'alice.j@example.com', status: 'Active' },
-    { id: 102, name: 'Robert Smith', unit: '142', property: 'Willow Creek Estates', email: 'robert.s@example.com', status: 'Active' },
-    { id: 103, name: 'Emily Davis', unit: '506', property: 'Riverfront Towers', email: 'emily.d@example.com', status: 'Active' },
-    { id: 201, name: 'Michael Wilson', unit: '203', property: 'Sunset Gardens', email: 'michael.w@example.com', status: 'Pending' },
-    { id: 202, name: 'Sarah Brown', unit: '118', property: 'Pine Valley Community', email: 'sarah.b@example.com', status: 'Active' },
-    { id: 301, name: 'David Miller', unit: '224', property: 'Oakwood Heights', email: 'david.m@example.com', status: 'Inactive' },
+    { 
+      id: 101, 
+      name: 'Alice Johnson', 
+      unit: '301', 
+      property: 'Oakwood Heights', 
+      email: 'alice.j@example.com',
+      phone: '(555) 123-4567',
+      status: 'Active',
+      moveInDate: '05/15/2021',
+      moveOutDate: '',
+      mailingAddress: '123 Main St, Apt 301, Seattle, WA 98101',
+      propertyAddress: '123 Main St, Apt 301, Seattle, WA 98101',
+      balance: '$0.00',
+      lastPayment: '$350 on 06/01/2023',
+      achStartDate: '05/20/2021',
+      closingDate: '05/10/2021',
+      commPreference: 'Email',
+      billingPreference: 'Auto-draft',
+      ownerType: 'Owner-Occupied'
+    },
+    { 
+      id: 102, 
+      name: 'Robert Smith', 
+      unit: '142', 
+      property: 'Willow Creek Estates', 
+      email: 'robert.s@example.com',
+      phone: '(555) 234-5678',
+      status: 'Active',
+      moveInDate: '03/10/2022',
+      moveOutDate: '',
+      mailingAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
+      propertyAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
+      balance: '$75.00',
+      lastPayment: '$275 on 05/28/2023',
+      achStartDate: '03/15/2022',
+      closingDate: '03/05/2022',
+      commPreference: 'Text',
+      billingPreference: 'Check',
+      ownerType: 'Investor'
+    },
+    { 
+      id: 103, 
+      name: 'Emily Davis', 
+      unit: '506', 
+      property: 'Riverfront Towers', 
+      email: 'emily.d@example.com',
+      phone: '(555) 345-6789',
+      status: 'Active',
+      moveInDate: '11/20/2020',
+      moveOutDate: '',
+      mailingAddress: '789 River Rd, #506, Chicago, IL 60601',
+      propertyAddress: '789 River Rd, #506, Chicago, IL 60601',
+      balance: '$0.00',
+      lastPayment: '$425 on 06/01/2023',
+      achStartDate: '12/01/2020',
+      closingDate: '11/15/2020',
+      commPreference: 'Email',
+      billingPreference: 'Auto-draft',
+      ownerType: 'Owner-Occupied'
+    },
+    { 
+      id: 201, 
+      name: 'Michael Wilson', 
+      unit: '203', 
+      property: 'Sunset Gardens', 
+      email: 'michael.w@example.com',
+      phone: '(555) 456-7890',
+      status: 'Pending',
+      moveInDate: '07/01/2023',
+      moveOutDate: '',
+      mailingAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
+      propertyAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
+      balance: '$150.00',
+      lastPayment: '$0.00',
+      achStartDate: 'Pending',
+      closingDate: '06/25/2023',
+      commPreference: 'Phone',
+      billingPreference: 'Credit Card',
+      ownerType: 'Owner-Occupied'
+    },
+    { 
+      id: 202, 
+      name: 'Sarah Brown', 
+      unit: '118', 
+      property: 'Pine Valley Community', 
+      email: 'sarah.b@example.com',
+      phone: '(555) 567-8901',
+      status: 'Active',
+      moveInDate: '09/15/2021',
+      moveOutDate: '',
+      mailingAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
+      propertyAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
+      balance: '$25.00',
+      lastPayment: '$300 on 05/30/2023',
+      achStartDate: '10/01/2021',
+      closingDate: '09/10/2021',
+      commPreference: 'Email',
+      billingPreference: 'Auto-draft',
+      ownerType: 'Owner-Occupied'
+    },
+    { 
+      id: 301, 
+      name: 'David Miller', 
+      unit: '224', 
+      property: 'Oakwood Heights', 
+      email: 'david.m@example.com',
+      phone: '(555) 678-9012',
+      status: 'Inactive',
+      moveInDate: '02/10/2020',
+      moveOutDate: '04/30/2023',
+      mailingAddress: '987 Oak St, Denver, CO 80203',
+      propertyAddress: '123 Main St, Apt 224, Seattle, WA 98101',
+      balance: '$0.00',
+      lastPayment: '$275 on 04/15/2023',
+      achStartDate: '03/01/2020',
+      closingDate: '02/01/2020',
+      commPreference: 'Mail',
+      billingPreference: 'Check',
+      ownerType: 'Investor'
+    },
   ];
   
   return (
@@ -66,7 +235,43 @@ const Residents = () => {
                   className="pl-8"
                 />
               </div>
-              <Button>Add Resident</Button>
+              <div className="flex gap-2">
+                {/* Add Column Customization */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-10 gap-1">
+                      <Settings2 className="h-4 w-4" />
+                      <span className="hidden md:inline">Customize Columns</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64">
+                    <div className="space-y-2">
+                      <h4 className="font-medium mb-2">Display Columns</h4>
+                      <div className="max-h-[300px] overflow-y-auto pr-2">
+                        {columns.map((column) => (
+                          <div key={column.id} className="flex items-center space-x-2 mb-2">
+                            <Checkbox 
+                              id={`column-${column.id}`} 
+                              checked={column.checked} 
+                              onCheckedChange={() => handleColumnToggle(column.id)}
+                            />
+                            <label
+                              htmlFor={`column-${column.id}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {column.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="pt-2 text-xs text-muted-foreground">
+                        At least one column must be selected
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button>Add Resident</Button>
+              </div>
             </div>
             
             {/* Mobile view */}
@@ -90,28 +295,28 @@ const Residents = () => {
                       </span>
                     </div>
                     <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Unit:</span>
-                        <span>{resident.unit}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Property:</span>
-                        <Link 
-                          to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
-                          className="hover:underline hover:text-primary/80 transition-colors"
-                        >
-                          {resident.property}
-                        </Link>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Email:</span>
-                        <a 
-                          href={`mailto:${resident.email}`} 
-                          className="hover:underline hover:text-primary/80 transition-colors"
-                        >
-                          {resident.email}
-                        </a>
-                      </div>
+                      {columns.filter(col => col.checked && ['unit', 'property', 'email'].includes(col.id)).map((col) => (
+                        <div key={col.id} className="flex justify-between">
+                          <span className="text-muted-foreground">{col.label}:</span>
+                          {col.id === 'property' ? (
+                            <Link 
+                              to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
+                              className="hover:underline hover:text-primary/80 transition-colors"
+                            >
+                              {resident[col.id as keyof typeof resident]}
+                            </Link>
+                          ) : col.id === 'email' ? (
+                            <a 
+                              href={`mailto:${resident.email}`} 
+                              className="hover:underline hover:text-primary/80 transition-colors"
+                            >
+                              {resident.email}
+                            </a>
+                          ) : (
+                            <span>{resident[col.id as keyof typeof resident]}</span>
+                          )}
+                        </div>
+                      ))}
                     </div>
                     <Link to={`/residents/${resident.id}`}>
                       <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
@@ -128,49 +333,55 @@ const Residents = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Unit</TableHead>
-                    <TableHead>Property</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
+                    {columns.filter(col => col.checked).map((column) => (
+                      <TableHead key={column.id}>{column.label}</TableHead>
+                    ))}
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {residents.map((resident, i) => (
                     <TableRow key={i}>
-                      <TableCell className="font-medium">
-                        <Link 
-                          to={`/residents/${resident.id}`} 
-                          className="text-primary hover:underline hover:text-primary/80 transition-colors"
-                        >
-                          {resident.name}
+                      {columns.filter(col => col.checked).map((column) => (
+                        <TableCell key={column.id}>
+                          {column.id === 'name' ? (
+                            <Link 
+                              to={`/residents/${resident.id}`} 
+                              className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                            >
+                              {resident.name}
+                            </Link>
+                          ) : column.id === 'property' ? (
+                            <Link 
+                              to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
+                              className="hover:underline hover:text-primary/80 transition-colors"
+                            >
+                              {resident.property}
+                            </Link>
+                          ) : column.id === 'email' ? (
+                            <a 
+                              href={`mailto:${resident.email}`} 
+                              className="hover:underline hover:text-primary/80 transition-colors"
+                            >
+                              {resident.email}
+                            </a>
+                          ) : column.id === 'status' ? (
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              resident.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                              resident.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {resident.status}
+                            </span>
+                          ) : (
+                            resident[column.id as keyof typeof resident]
+                          )}
+                        </TableCell>
+                      ))}
+                      <TableCell>
+                        <Link to={`/residents/${resident.id}`}>
+                          <Button variant="ghost" size="sm">View</Button>
                         </Link>
-                      </TableCell>
-                      <TableCell>{resident.unit}</TableCell>
-                      <TableCell>
-                        <Link 
-                          to={`/properties?filter=${encodeURIComponent(resident.property)}`} 
-                          className="hover:underline hover:text-primary/80 transition-colors"
-                        >
-                          {resident.property}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <a 
-                          href={`mailto:${resident.email}`} 
-                          className="hover:underline hover:text-primary/80 transition-colors"
-                        >
-                          {resident.email}
-                        </a>
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          resident.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                          resident.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {resident.status}
-                        </span>
                       </TableCell>
                     </TableRow>
                   ))}

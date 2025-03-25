@@ -1,3 +1,4 @@
+
 /**
  * User type definitions for the application
  */
@@ -5,6 +6,7 @@
 import { DashboardLayout } from './dashboard';
 import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 import { DatabaseColumn } from '@/components/database/DatabaseColumnsSelector';
+import { ResidentColumn } from '@/pages/Residents';
 
 export interface User {
   id: string;
@@ -96,6 +98,7 @@ export interface UserPreferences {
   dashboardLayout?: DashboardLayout;
   dashboardWidgets?: string[];
   propertyTableColumns?: PropertyColumn[];
+  residentTableColumns?: ResidentColumn[];
   databasePropertyColumns?: DatabaseColumn[];
   databaseUnitColumns?: DatabaseColumn[];
   databaseHomeownerColumns?: DatabaseColumn[];

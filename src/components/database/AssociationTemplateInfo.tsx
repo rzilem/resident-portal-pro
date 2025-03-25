@@ -39,6 +39,13 @@ const AssociationTemplateInfo = () => {
     { field: "homeowner_last_payment_date", description: "Date of last payment (MM/DD/YYYY)", example: "05/01/2023", required: false },
     { field: "homeowner_last_payment_amount", description: "Amount of last payment ($)", example: "$350.00", required: false },
     { field: "homeowner_payment_method", description: "Preferred payment method", example: "Auto-draft", required: false },
+    // New fields
+    { field: "homeowner_ach_start_date", description: "Date ACH payments began (MM/DD/YYYY)", example: "01/15/2020", required: false },
+    { field: "homeowner_closing_date", description: "Property closing date (MM/DD/YYYY)", example: "01/10/2020", required: false },
+    { field: "homeowner_comm_preference", description: "Preferred communication method", example: "Email", required: false },
+    { field: "homeowner_billing_preference", description: "Preferred billing method", example: "Email", required: false },
+    { field: "homeowner_emergency_contact", description: "Emergency contact name and phone", example: "John Smith (555) 123-4567", required: false },
+    { field: "homeowner_board_member", description: "Is a board member (Yes/No)", example: "No", required: false },
     { field: "homeowner_notes", description: "Additional notes about homeowner", example: "Board member 2020-2022", required: false },
   ];
 
