@@ -48,14 +48,14 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           />
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-6 pt-1 space-y-1">
+      <CollapsibleContent className="pl-4 pt-1 space-y-1">
         {item.items?.map((subItem) => (
           <Button
             key={subItem.label}
-            variant="default"
+            variant="ghost"
             className={cn(
-              "w-full justify-start",
-              subItem.active ? "font-medium" : "font-normal"
+              "w-full justify-start text-sm px-2 py-1.5 h-8", // Made button smaller and more compact
+              subItem.active ? "bg-accent" : "hover:bg-accent/50"
             )}
             onClick={() => navigate(subItem.href)}
           >
