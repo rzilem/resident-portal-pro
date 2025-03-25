@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { WidgetType } from '@/types/dashboard';
 import { Card } from '@/components/ui/card';
@@ -57,7 +58,7 @@ interface DynamicWidgetProps {
 
 // A component that renders the appropriate widget based on the type
 export const DynamicWidget = ({ type, size = 'medium', config = {}, cardClass = '' }: DynamicWidgetProps) => {
-  const WidgetComponent = widgetComponents[type] || (({ cardClass }: { cardClass?: string }) => 
+  const WidgetComponent = widgetComponents[type] || (({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
     <Card className={`p-4 ${cardClass}`}>Widget not found</Card>);
   
   return <WidgetComponent size={size} cardClass={cardClass} {...config} />;
