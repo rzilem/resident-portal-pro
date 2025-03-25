@@ -13,6 +13,7 @@ import NotFound from '@/pages/NotFound';
 import Calendar from '@/pages/Calendar';
 import Index from '@/pages/Index';
 import DashboardLayout from '@/components/DashboardLayout';
+import CalendarSettings from '@/components/settings/CalendarSettings';
 
 // Configure react-query client
 const queryClient = new QueryClient({
@@ -38,6 +39,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
             <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
             <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
+            <Route path="/settings/calendar" element={<DashboardLayout><CalendarSettings /></DashboardLayout>} />
             
             {/* Fallback routes */}
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
