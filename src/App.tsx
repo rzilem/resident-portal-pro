@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/DashboardLayout";
 import Workflows from "./pages/Workflows";
+import Calendar from "./pages/Calendar";
 
 // Import settings subpages
 import CompanyInfo from "./components/settings/company/CompanyInfo";
@@ -33,7 +33,6 @@ const ProtectedRoute = ({ children, title }: { children: React.ReactNode, title?
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const location = useLocation();
   
-  // Log authentication state for debugging
   useEffect(() => {
     console.log("Auth state:", isAuthenticated, "at path:", location.pathname);
   }, [isAuthenticated, location]);
@@ -125,13 +124,18 @@ const App = () => (
             </ProtectedRoute>
           } />
           
+          <Route path="/calendar" element={
+            <ProtectedRoute title="Calendar">
+              <Calendar />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/settings" element={
             <ProtectedRoute title="Settings">
               <Settings />
             </ProtectedRoute>
           } />
           
-          {/* Settings subpages */}
           <Route path="/settings/associations/company-info" element={
             <ProtectedRoute title="Company Information">
               <CompanyInfo />
