@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
-import { calendarService } from '@/services/calendarService';
+import { calendarService } from '@/services/calendar';
 import { toast } from 'sonner';
 
 interface UseEventsProps {
