@@ -22,6 +22,8 @@ import Payments from '@/pages/accounting/Payments';
 import Announcements from '@/pages/communications/Announcements';
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
 import Workflows from '@/pages/Workflows';
+import CommunityHub from '@/pages/CommunityHub';
+import Reports from '@/pages/Reports';
 
 // Configure react-query client
 const queryClient = new QueryClient({
@@ -48,7 +50,7 @@ function App() {
             <Route path="/properties" element={<DashboardLayout><Properties /></DashboardLayout>} />
             <Route path="/residents" element={<DashboardLayout><Residents /></DashboardLayout>} />
             <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
-            <Route path="/reports" element={<DashboardLayout><NotFound /></DashboardLayout>} />
+            <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
             
             {/* Accounting routes */}
             <Route path="/accounting" element={<DashboardLayout><AccountingDashboard /></DashboardLayout>} />
@@ -67,7 +69,7 @@ function App() {
             
             {/* Other routes */}
             <Route path="/workflows" element={<DashboardLayout><Workflows /></DashboardLayout>} />
-            <Route path="/chatbot" element={<DashboardLayout><NotFound /></DashboardLayout>} />
+            <Route path="/chatbot" element={<DashboardLayout><CommunityHub /></DashboardLayout>} />
             
             {/* Settings routes */}
             <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
