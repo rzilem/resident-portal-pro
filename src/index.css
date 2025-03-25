@@ -1,7 +1,9 @@
+
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 @import './styles/theme.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -93,6 +95,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', sans-serif;
   }
 }
 
@@ -139,5 +142,14 @@
   
   .animate-delay-500 {
     animation-delay: 500ms;
+  }
+
+  /* HOA Management specific styles */
+  .hoa-button-primary {
+    @apply bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors;
+  }
+
+  .hoa-card {
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow;
   }
 }

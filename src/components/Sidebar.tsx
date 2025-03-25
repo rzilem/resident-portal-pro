@@ -13,12 +13,28 @@ import { NavSeparator } from "./sidebar/NavSeparator";
 import { getNavItems } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { Button } from "./ui/button";
+import { useState } from "react";
+import HoaSidebar from "./HoaSidebar";
 
 export function Sidebar({
   className,
 }: React.HTMLAttributes<HTMLDivElement>) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+  
+  // Check if we're on one of the HOA management pages
+  const isHoaPage = 
+    location.pathname === '/hoa/dashboard' || 
+    location.pathname === '/hoa/finances' || 
+    location.pathname === '/hoa/maintenance' || 
+    location.pathname === '/hoa/members' || 
+    location.pathname === '/hoa/events';
+
+  // Use HOA sidebar for HOA routes
+  if (isHoaPage) {
+    return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
+  }
   
   // Initialize sidebar groups with relevant sections expanded
   const { openGroups, toggleGroup } = useSidebarState({
