@@ -72,15 +72,19 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
     const subjectInput = document.getElementById('template-subject');
     
     if (activeElement === subjectInput) {
-      setTemplate.setSubject(prev => {
-        const cursorPosition = (activeElement as HTMLInputElement).selectionStart || 0;
-        return prev.substring(0, cursorPosition) + tag.tag + prev.substring(cursorPosition);
-      });
+      // Fix: Instead of passing a function, compute the new value and pass it directly
+      const cursorPosition = (activeElement as HTMLInputElement).selectionStart || 0;
+      const newSubject = template.subject.substring(0, cursorPosition) + 
+                          tag.tag + 
+                          template.subject.substring(cursorPosition);
+      setTemplate.setSubject(newSubject);
     } else {
       if (template.isHtmlFormat) {
-        setTemplate.setContent(prev => prev + ' ' + tag.tag + ' ');
+        // Fix: Pass the new string value directly instead of a function
+        setTemplate.setContent(template.content + ' ' + tag.tag + ' ');
       } else {
-        setTemplate.setContent(prev => prev + ' ' + tag.tag + ' ');
+        // Fix: Pass the new string value directly instead of a function
+        setTemplate.setContent(template.content + ' ' + tag.tag + ' ');
       }
     }
     setIsMergeTagsDialogOpen(false);
