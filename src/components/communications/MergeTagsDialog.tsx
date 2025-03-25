@@ -94,7 +94,7 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
           </div>
           
           <Tabs defaultValue="all" value={activeCategory} onValueChange={handleCategoryChange}>
-            <ScrollArea className="w-full" orientation="horizontal">
+            <ScrollArea className="w-full">
               <TabsList className="w-full justify-start border-b pb-px mb-4">
                 <TabsTrigger value="all">All Categories</TabsTrigger>
                 {tagGroups.map(group => (

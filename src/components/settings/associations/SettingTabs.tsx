@@ -8,8 +8,21 @@ import CommunicationSettings from './tabs/CommunicationSettings';
 import MeetingSettings from './tabs/MeetingSettings';
 import NotificationSettings from './tabs/NotificationSettings';
 import CustomMergeTagsSettings from './CustomMergeTagsSettings';
+import { Association } from '@/types/association';
 
-const SettingTabs = () => {
+interface SettingTabsProps {
+  activeAssociation: Association;
+  handleSettingChange: (key: string, value: any) => void;
+  getSetting: (key: string, defaultValue?: any) => any;
+  updateAssociation: (id: string, updates: Partial<Association>) => Promise<Association>;
+}
+
+const SettingTabs: React.FC<SettingTabsProps> = ({
+  activeAssociation,
+  handleSettingChange,
+  getSetting,
+  updateAssociation
+}) => {
   return (
     <Tabs defaultValue="basic" className="w-full">
       <TabsList className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 w-full">
@@ -23,27 +36,48 @@ const SettingTabs = () => {
       </TabsList>
       
       <TabsContent value="basic" className="py-6">
-        <BasicSettings />
+        <BasicSettings 
+          activeAssociation={activeAssociation}
+          handleSettingChange={handleSettingChange}
+          getSetting={getSetting}
+          updateAssociation={updateAssociation}
+        />
       </TabsContent>
       
       <TabsContent value="financial" className="py-6">
-        <FinancialSettings />
+        <FinancialSettings 
+          handleSettingChange={handleSettingChange}
+          getSetting={getSetting}
+        />
       </TabsContent>
       
       <TabsContent value="documents" className="py-6">
-        <DocumentSettings />
+        <DocumentSettings 
+          handleSettingChange={handleSettingChange}
+          getSetting={getSetting}
+        />
       </TabsContent>
       
       <TabsContent value="communications" className="py-6">
-        <CommunicationSettings />
+        <CommunicationSettings 
+          activeAssociation={activeAssociation}
+          handleSettingChange={handleSettingChange}
+          getSetting={getSetting}
+        />
       </TabsContent>
       
       <TabsContent value="meetings" className="py-6">
-        <MeetingSettings />
+        <MeetingSettings 
+          handleSettingChange={handleSettingChange}
+          getSetting={getSetting}
+        />
       </TabsContent>
       
       <TabsContent value="notifications" className="py-6">
-        <NotificationSettings />
+        <NotificationSettings 
+          handleSettingChange={handleSettingChange}
+          getSetting={getSetting}
+        />
       </TabsContent>
 
       <TabsContent value="merge-tags" className="py-6">

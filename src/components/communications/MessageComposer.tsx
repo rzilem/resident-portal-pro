@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import MergeTagsDialog from './MergeTagsDialog';
 import { MergeTag } from '@/types/mergeTags';
 import { mergeTagService } from '@/services/mergeTagService';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
