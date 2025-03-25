@@ -13,6 +13,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
     const newOpenGroups: SidebarGroupState = {};
     
     const pathToGroupMap: Record<string, string> = {
+      '/accounting/dashboard': 'Operations',
       '/accounting': 'Operations',
       '/calendar': 'Operations',
       '/communications': 'Operations',
