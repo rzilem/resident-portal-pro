@@ -17,6 +17,10 @@ export interface User {
   lastLogin?: string;
   preferences?: UserPreferences;
   status: 'active' | 'inactive' | 'pending';
+  type?: UserType;
+  permissions?: string[];
+  committees?: string[];
+  isInvoiceApprover?: boolean;
 }
 
 export type UserRole = 
@@ -26,6 +30,13 @@ export type UserRole =
   | 'committee'
   | 'resident'
   | 'guest';
+
+export type UserType =
+  | 'homeowner'
+  | 'tenant'
+  | 'vendor'
+  | 'staff'
+  | 'other';
 
 export interface UserPreferences {
   theme?: 'light' | 'dark' | 'system';

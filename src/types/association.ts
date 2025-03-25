@@ -24,6 +24,21 @@ export interface Association {
   managementCompanyId?: string;
   status: 'active' | 'inactive';
   settings?: AssociationSettings;
+  communicationTemplates?: CommunicationTemplate[];
+}
+
+export interface CommunicationTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  content: string;
+  type: 'email' | 'sms' | 'announcement' | 'letter';
+  category: 'general' | 'maintenance' | 'financial' | 'violations' | 'meetings' | 'other';
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  tags?: string[];
+  isDefault?: boolean;
 }
 
 export interface AssociationSettings {
@@ -41,6 +56,14 @@ export interface AssociationSettings {
     emailEnabled: boolean;
     smsEnabled: boolean;
     announcementsEnabled: boolean;
+    defaultEmailSender?: string;
+    defaultEmailReplyTo?: string;
+    emailFooter?: string;
+    emailHeader?: string;
+    requireApprovalForMassEmails?: boolean;
+    approvalWorkflow?: 'simple' | 'committee' | 'board' | 'manager';
+    restrictedRecipientGroups?: string[];
+    allowVendorCommunication?: boolean;
   };
   modules: {
     maintenance: boolean;
