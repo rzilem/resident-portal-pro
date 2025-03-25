@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { NavItem } from "@/data/navigation";
 import React from 'react';
@@ -48,20 +49,24 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           />
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="w-full max-w-full pl-4 pt-1 space-y-1">
-        {item.items?.map((subItem) => (
-          <Button
-            key={subItem.label}
-            variant="ghost"
-            className={cn(
-              "w-full justify-start text-sm px-2 py-1.5 h-8",
-              subItem.active ? "bg-accent" : "hover:bg-accent/50"
-            )}
-            onClick={() => navigate(subItem.href)}
-          >
-            {subItem.label}
-          </Button>
-        ))}
+      <CollapsibleContent className="w-full pl-4 pt-1 space-y-1">
+        <SidebarMenu>
+          {item.items?.map((subItem) => (
+            <SidebarMenuItem key={subItem.label}>
+              <SidebarMenuButton
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-sm px-2 py-1.5 h-8",
+                  subItem.active ? "bg-accent" : "hover:bg-accent/50"
+                )}
+                onClick={() => navigate(subItem.href)}
+              >
+                {subItem.icon && <span className="mr-2">{subItem.icon}</span>}
+                {subItem.label}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
       </CollapsibleContent>
     </Collapsible>
   );
