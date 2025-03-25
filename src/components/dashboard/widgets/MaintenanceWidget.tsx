@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wrench, Plus, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { Wrench, Plus, AlertTriangle, CheckCircle2, Clock, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -11,16 +11,18 @@ interface MaintenanceWidgetProps {
 }
 
 const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidgetProps) => {
-  // Sample maintenance requests
+  // Sample maintenance requests with real-world scenarios
   const requests = [
-    { id: 1, title: 'Broken irrigation system', property: 'Pine Gardens', status: 'urgent', date: '2023-10-02' },
-    { id: 2, title: 'Hallway light replacement', property: 'Maple Residences', status: 'in-progress', date: '2023-10-05' },
-    { id: 3, title: 'Pool maintenance', property: 'Ocean Views', status: 'scheduled', date: '2023-10-10' },
-    { id: 4, title: 'Parking lot restriping', property: 'The Palms', status: 'completed', date: '2023-09-28' },
+    { id: 1, title: 'Broken irrigation system', property: 'Pine Gardens', unit: '101', assignee: 'John Doe', status: 'urgent', date: '2023-10-02' },
+    { id: 2, title: 'Hallway light replacement', property: 'Maple Residences', unit: '203', assignee: 'Sarah Smith', status: 'in-progress', date: '2023-10-05' },
+    { id: 3, title: 'Pool pump maintenance', property: 'Ocean Views', unit: 'Common Area', assignee: 'Tech Team', status: 'scheduled', date: '2023-10-10' },
+    { id: 4, title: 'Parking lot restriping', property: 'The Palms', unit: 'Parking', assignee: 'External Vendor', status: 'completed', date: '2023-09-28' },
+    { id: 5, title: 'HVAC repair in unit 302', property: 'Birchwood', unit: '302', assignee: 'Tech Team', status: 'urgent', date: '2023-10-03' },
+    { id: 6, title: 'Roof leak inspection', property: 'Willow Heights', unit: '401', assignee: 'John Doe', status: 'in-progress', date: '2023-10-04' },
   ];
 
   // Decide how many requests to show based on size
-  const limit = size === 'small' ? 2 : size === 'medium' ? 3 : 4;
+  const limit = size === 'small' ? 2 : size === 'medium' ? 3 : 5;
   const displayedRequests = requests.slice(0, limit);
 
   // Status badge style and icon
@@ -40,7 +42,7 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
         };
       case 'scheduled':
         return { 
-          icon: <Clock className="h-4 w-4" />, 
+          icon: <Calendar className="h-4 w-4" />, 
           variant: 'outline',
           label: 'Scheduled'
         };
@@ -78,7 +80,7 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
                   <div>
                     <p className="font-medium">{request.title}</p>
                     {size !== 'small' && (
-                      <p className="text-xs text-muted-foreground">{request.property}</p>
+                      <p className="text-xs text-muted-foreground">{request.property} - Unit {request.unit}</p>
                     )}
                   </div>
                   <Badge variant={variant as any} className="flex items-center gap-1">
@@ -87,9 +89,16 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
                   </Badge>
                 </div>
                 {size === 'large' && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(request.date).toLocaleDateString()}
-                  </p>
+                  <div className="mt-2 flex justify-between items-center">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <User className="h-3 w-3" />
+                      <span>{request.assignee}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3 inline mr-1" />
+                      {new Date(request.date).toLocaleDateString()}
+                    </div>
+                  </div>
                 )}
               </li>
             );
