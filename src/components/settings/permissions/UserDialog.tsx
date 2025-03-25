@@ -6,30 +6,32 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User } from './UserManagement';
+import { User as UserManagementUser } from './UserManagement';
+import { UserRole } from '@/types/user';
 
 interface UserDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  editingUser: User | null;
-  users: User[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  editingUser: UserManagementUser | null;
+  users: UserManagementUser[];
+  setUsers: React.Dispatch<React.SetStateAction<UserManagementUser[]>>;
 }
 
-const roles = [
-  { value: "owner", label: "Owner" },
+// Get the role options from the UserRole type
+const roles: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Administrator" },
   { value: "manager", label: "Property Manager" },
   { value: "board", label: "Board Member" },
+  { value: "committee", label: "Committee Member" },
   { value: "resident", label: "Resident" },
-  { value: "vendor", label: "Vendor" },
+  { value: "guest", label: "Guest" }
 ];
 
 const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'resident'
+    role: 'resident' as UserRole
   });
 
   useEffect(() => {
@@ -37,13 +39,13 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
       setFormData({
         name: editingUser.name,
         email: editingUser.email,
-        role: editingUser.role
+        role: editingUser.role as UserRole
       });
     } else {
       setFormData({
         name: '',
         email: '',
-        role: 'resident'
+        role: 'resident' as UserRole
       });
     }
   }, [editingUser]);
@@ -53,7 +55,7 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleRoleChange = (value: string) => {
+  const handleRoleChange = (value: UserRole) => {
     setFormData(prev => ({ ...prev, role: value }));
   };
 
@@ -81,7 +83,7 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
       toast.success("User updated successfully");
     } else {
       // Add new user
-      const newUser: User = {
+      const newUser: UserManagementUser = {
         id: Date.now().toString(),
         name: formData.name,
         email: formData.email,

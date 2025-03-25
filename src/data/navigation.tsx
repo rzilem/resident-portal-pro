@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   ImageIcon,
@@ -16,6 +15,7 @@ import {
   Building2,
   ShieldCheck,
   BookOpen,
+  User
 } from "lucide-react";
 
 export type NavItem = {
@@ -175,6 +175,12 @@ export const mainNavItems = [
         description: "Manage user permissions",
       },
     ],
+  },
+  {
+    title: "My Profile",
+    href: "/profile",
+    icon: <User className="h-5 w-5" />,
+    activeIcon: <User className="h-5 w-5" />,
   },
 ];
 

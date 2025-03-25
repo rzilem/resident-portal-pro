@@ -21,6 +21,50 @@ export interface User {
   permissions?: PermissionSet;
   committees?: string[];
   isInvoiceApprover?: boolean;
+  // New fields for expanded user profile
+  phoneNumber?: string;
+  address?: string;
+  emergencyContacts?: EmergencyContact[];
+  customFields?: CustomField[];
+  profileImageUrl?: string;
+  bio?: string;
+  communicationPreferences?: CommunicationPreferences;
+  vehicleInfo?: VehicleInfo[];
+}
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phoneNumber: string;
+  email?: string;
+  isAuthorized?: boolean; // Can this person make decisions on behalf of the resident
+}
+
+export interface CustomField {
+  id: string;
+  label: string;
+  value: string;
+  type: 'text' | 'date' | 'boolean' | 'number' | 'select';
+  options?: string[]; // For select type fields
+}
+
+export interface VehicleInfo {
+  id: string;
+  make: string;
+  model: string;
+  year?: number;
+  color?: string;
+  licensePlate: string;
+  parkingSpot?: string;
+}
+
+export interface CommunicationPreferences {
+  allowEmailNotifications: boolean;
+  allowSmsNotifications: boolean;
+  allowPushNotifications: boolean;
+  emailFrequency: 'immediate' | 'daily' | 'weekly';
+  subscribedTopics?: string[]; // e.g., 'maintenance', 'events', 'announcements'
 }
 
 export type UserRole = 

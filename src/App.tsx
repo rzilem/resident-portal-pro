@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -39,6 +38,9 @@ import DocumentTemplates from '@/pages/documents/DocumentTemplates';
 // Settings pages
 import Permissions from '@/pages/settings/Permissions';
 
+// Add import for UserProfile component
+import UserProfile from "./pages/profile/UserProfile";
+
 const App = () => {
   return (
     <ThemeProvider>
@@ -76,6 +78,9 @@ const App = () => {
         
         {/* Settings routes */}
         <Route path="/settings/permissions" element={<Permissions />} />
+        
+        {/* UserProfile route */}
+        <Route path="/profile" element={<UserProfile />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
