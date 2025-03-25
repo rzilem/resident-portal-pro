@@ -54,7 +54,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           {item.items?.map((subItem) => (
             <SidebarMenuItem key={subItem.label}>
               <SidebarMenuButton
-                variant="ghost"
+                variant="default"
                 className={cn(
                   "w-full justify-start text-sm px-2 py-1.5 h-8",
                   subItem.active ? "bg-accent" : "hover:bg-accent/50"
