@@ -39,6 +39,7 @@ import DocumentTemplates from '@/pages/documents/DocumentTemplates';
 
 // Settings pages
 import Permissions from '@/pages/settings/Permissions';
+import CalendarSettings from '@/components/settings/CalendarSettings'; 
 
 // HOA pages
 import HoaDashboard from '@/pages/hoa/Dashboard';
@@ -75,6 +76,8 @@ const App = () => {
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/calendar" element={<CalendarSettings />} />
+          <Route path="/settings/permissions" element={<Permissions />} />
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/community-hub" element={<CommunityHub />} />
           <Route path="/profile" element={<UserProfile />} />
@@ -96,9 +99,6 @@ const App = () => {
           {/* Document routes */}
           <Route path="/documents/association" element={<AssociationDocuments />} />
           <Route path="/documents/templates" element={<DocumentTemplates />} />
-          
-          {/* Settings routes */}
-          <Route path="/settings/permissions" element={<Permissions />} />
         </Route>
         
         <Route path="*" element={<NotFound />} />
