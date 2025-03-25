@@ -55,7 +55,6 @@ const menuCategories: AssociationMenuCategory[] = [
     title: 'Administration',
     items: [
       { id: 'roles', title: 'Roles & Permissions', icon: Shield, route: '/settings/associations/roles', hasSubmenu: false },
-      { id: 'integrations', title: 'Integrations', icon: PanelLeft, route: '/settings/associations/integrations', hasSubmenu: false },
     ]
   },
 ];

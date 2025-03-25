@@ -12,7 +12,8 @@ import {
   Calendar,
   CreditCard,
   BarChart4,
-  Layers
+  Layers,
+  Link
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -145,6 +146,12 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
       isActive: pathname === '/reports',
     },
     {
+      label: "Integrations",
+      href: "/integrations",
+      icon: <Link className="h-5 w-5" />,
+      isActive: pathname === '/integrations',
+    },
+    {
       label: "Community Hub",
       href: "/chatbot",
       icon: <MessageCircle className="h-5 w-5" />,
@@ -172,11 +179,6 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
           label: "User Permissions",
           href: "/settings/permissions",
           isActive: pathname === '/settings/permissions',
-        },
-        {
-          label: "Integrations",
-          href: "/settings/integrations",
-          isActive: pathname === '/settings/integrations',
         }
       ]
     },

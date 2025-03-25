@@ -26,6 +26,7 @@ import CommunityMessaging from '@/pages/communications/CommunityMessaging';
 import Workflows from '@/pages/Workflows';
 import CommunityHub from '@/pages/CommunityHub';
 import Reports from '@/pages/Reports';
+import Integrations from '@/pages/Integrations';
 
 // Configure react-query client
 const queryClient = new QueryClient({
@@ -53,6 +54,7 @@ function App() {
             <Route path="/residents" element={<DashboardLayout><Residents /></DashboardLayout>} />
             <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
             <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
+            <Route path="/integrations" element={<DashboardLayout><Integrations /></DashboardLayout>} />
             
             {/* Accounting routes */}
             <Route path="/accounting" element={<DashboardLayout><AccountingDashboard /></DashboardLayout>} />
@@ -76,7 +78,6 @@ function App() {
             <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
             <Route path="/settings/calendar" element={<DashboardLayout><CalendarSettings /></DashboardLayout>} />
             <Route path="/settings/permissions" element={<DashboardLayout><Permissions /></DashboardLayout>} />
-            <Route path="/settings/integrations" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             
             {/* Fallback routes */}
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
