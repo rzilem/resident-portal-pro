@@ -28,6 +28,9 @@ export type UserRole =
 
 export interface UserPreferences {
   theme?: 'light' | 'dark' | 'system';
+  cardStyle?: 'default' | 'flat' | 'glass';
+  density?: 'comfortable' | 'compact';
+  animations?: boolean;
   notifications?: {
     email: boolean;
     push: boolean;

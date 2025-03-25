@@ -1,158 +1,78 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Properties from "./pages/Properties";
-import Residents from "./pages/Residents";
-import ResidentProfile from "./pages/ResidentProfile";
-import Transactions from "./pages/accounting/Transactions";
-import Reports from "./pages/accounting/Reports";
-import Payments from "./pages/accounting/Payments";
-import AccountingDashboard from "./pages/accounting/AccountingDashboard";
-import Announcements from "./pages/communications/Announcements";
-import CommunityMessaging from "./pages/communications/CommunityMessaging";
-import Records from "./pages/database/Records";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import DashboardLayout from "./components/DashboardLayout";
-import Workflows from "./pages/Workflows";
-import Calendar from "./pages/Calendar";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
-// Import settings subpages
-import CompanyInfo from "./components/settings/company/CompanyInfo";
-import GlAccounts from "./components/settings/financial/GlAccounts";
+// Import pages
+import Dashboard from '@/pages/Dashboard';
+import Settings from '@/pages/Settings';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import Profile from '@/pages/Profile';
+import Association from '@/pages/Association';
+import Directory from '@/pages/Directory';
+import Documents from '@/pages/Documents';
+import Financials from '@/pages/Financials';
+import Communications from '@/pages/Communications';
+import Notices from '@/pages/Notices';
+import Meetings from '@/pages/Meetings';
+import Tasks from '@/pages/Tasks';
+import Calendar from '@/pages/Calendar';
+import Chat from '@/pages/Chat';
+import Support from '@/pages/Support';
+import NotFound from '@/pages/NotFound';
+import Unauthorized from '@/pages/Unauthorized';
+import AssociationDashboard from '@/pages/AssociationDashboard';
+import PublicPage from '@/pages/PublicPage';
 
-const queryClient = new QueryClient();
+// Configure react-query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-const ProtectedRoute = ({ children, title }: { children: React.ReactNode, title?: string }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  const location = useLocation();
-  
-  useEffect(() => {
-    console.log("Auth state:", isAuthenticated, "at path:", location.pathname);
-  }, [isAuthenticated, location]);
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
+function App() {
   return (
-    <DashboardLayout title={title}>
-      {children}
-    </DashboardLayout>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/association" element={<Association />} />
+            <Route path="/association/:associationId" element={<AssociationDashboard />} />
+            <Route path="/directory" element={<Directory />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/financials" element={<Financials />} />
+            <Route path="/communications" element={<Communications />} />
+            <Route path="/notices" element={<Notices />} />
+            <Route path="/meetings" element={<Meetings />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/public" element={<PublicPage />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster position="top-right" />
+        </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          
-          <Route path="/dashboard" element={
-            <ProtectedRoute title="Dashboard">
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/properties" element={
-            <ProtectedRoute title="Properties">
-              <Properties />
-            </ProtectedRoute>
-          } />
-          <Route path="/residents" element={
-            <ProtectedRoute title="Residents">
-              <Residents />
-            </ProtectedRoute>
-          } />
-          <Route path="/residents/:id" element={
-            <ProtectedRoute title="Resident Profile">
-              <ResidentProfile />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/accounting" element={
-            <ProtectedRoute title="Accounting Dashboard">
-              <AccountingDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/accounting/transactions" element={
-            <ProtectedRoute title="Transactions">
-              <Transactions />
-            </ProtectedRoute>
-          } />
-          <Route path="/accounting/reports" element={
-            <ProtectedRoute title="Reports">
-              <Reports />
-            </ProtectedRoute>
-          } />
-          <Route path="/accounting/payments" element={
-            <ProtectedRoute title="Payments">
-              <Payments />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/communications/announcements" element={
-            <ProtectedRoute title="Announcements">
-              <Announcements />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/communications/messaging" element={
-            <ProtectedRoute title="Community Messaging">
-              <CommunityMessaging />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/database/records" element={
-            <ProtectedRoute title="Records">
-              <Records />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/workflows" element={
-            <ProtectedRoute title="Workflows">
-              <Workflows />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/calendar" element={
-            <ProtectedRoute title="Calendar">
-              <Calendar />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/settings" element={
-            <ProtectedRoute title="Settings">
-              <Settings />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/settings/associations/company-info" element={
-            <ProtectedRoute title="Company Information">
-              <CompanyInfo />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/settings/associations/gl-accounts" element={
-            <ProtectedRoute title="GL Accounts">
-              <GlAccounts />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+}
 
 export default App;

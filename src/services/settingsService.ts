@@ -9,6 +9,9 @@ let userSettings: Record<string, UserPreferences> = {};
 // Initialize with some default settings
 const defaultPreferences: UserPreferences = {
   theme: 'light',
+  cardStyle: 'default',
+  density: 'comfortable',
+  animations: true,
   notifications: {
     email: true,
     push: true,

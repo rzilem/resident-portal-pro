@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,24 +7,48 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Sun, Moon, SunMoon, Monitor } from "lucide-react";
-import { toast } from "sonner";
+import { useSettings } from '@/hooks/use-settings';
+import { useTheme } from '@/hooks/use-theme';
 
 const DisplaySettings = () => {
-  const [loading, setLoading] = useState(false);
-  const [theme, setTheme] = useState("light");
+  const { preferences, updatePreference, isLoading } = useSettings();
+  const { setTheme, theme } = useTheme();
+  
+  const [localTheme, setLocalTheme] = useState(theme || "light");
   const [cardStyle, setCardStyle] = useState("default");
   const [density, setDensity] = useState("comfortable");
   const [animations, setAnimations] = useState(true);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  // Initialize local state from preferences
+  useEffect(() => {
+    if (preferences) {
+      setLocalTheme(preferences.theme || "light");
+      setCardStyle(preferences.cardStyle || "default");
+      setDensity(preferences.density || "comfortable");
+      setAnimations(preferences.animations !== undefined ? preferences.animations : true);
+    }
+  }, [preferences]);
+
+  // Handle theme change
+  const handleThemeChange = (value: string) => {
+    if (!value) return;
     
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Display settings saved!");
-    }, 800);
+    const newTheme = value as "light" | "dark" | "system";
+    setLocalTheme(newTheme);
+    setTheme(newTheme);
+    updatePreference("theme", newTheme);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      await updatePreference("cardStyle", cardStyle);
+      await updatePreference("density", density);
+      await updatePreference("animations", animations);
+    } catch (error) {
+      console.error("Error saving display settings:", error);
+    }
   };
 
   return (
@@ -38,7 +62,12 @@ const DisplaySettings = () => {
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <Label>Theme Mode</Label>
-              <ToggleGroup type="single" value={theme} onValueChange={(value) => value && setTheme(value)} className="justify-start">
+              <ToggleGroup 
+                type="single" 
+                value={localTheme} 
+                onValueChange={handleThemeChange}
+                className="justify-start"
+              >
                 <ToggleGroupItem value="light" aria-label="Light Mode">
                   <Sun className="h-4 w-4 mr-2" />
                   Light
@@ -51,16 +80,16 @@ const DisplaySettings = () => {
                   <Monitor className="h-4 w-4 mr-2" />
                   System
                 </ToggleGroupItem>
-                <ToggleGroupItem value="auto" aria-label="Auto Mode">
-                  <SunMoon className="h-4 w-4 mr-2" />
-                  Auto
-                </ToggleGroupItem>
               </ToggleGroup>
             </div>
             
             <div className="space-y-4">
               <Label>Card Style</Label>
-              <RadioGroup value={cardStyle} onValueChange={setCardStyle} className="flex flex-col space-y-2">
+              <RadioGroup 
+                value={cardStyle} 
+                onValueChange={setCardStyle} 
+                className="flex flex-col space-y-2"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="default" id="card-default" />
                   <Label htmlFor="card-default" className="font-normal cursor-pointer">Default</Label>
@@ -78,7 +107,11 @@ const DisplaySettings = () => {
             
             <div className="space-y-4">
               <Label>Layout Density</Label>
-              <RadioGroup value={density} onValueChange={setDensity} className="flex flex-col space-y-2">
+              <RadioGroup 
+                value={density} 
+                onValueChange={setDensity} 
+                className="flex flex-col space-y-2"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="comfortable" id="density-comfortable" />
                   <Label htmlFor="density-comfortable" className="font-normal cursor-pointer">Comfortable</Label>
@@ -102,8 +135,8 @@ const DisplaySettings = () => {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Preferences"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Preferences"}
             </Button>
           </CardFooter>
         </Card>
