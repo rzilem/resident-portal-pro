@@ -9,9 +9,30 @@ import FinancialDocuments from '@/components/accounting/FinancialDocuments';
 import DashboardTabs from '@/components/accounting/dashboard/DashboardTabs';
 import OverviewTab from '@/components/accounting/dashboard/OverviewTab';
 import TransactionsTab from '@/components/accounting/dashboard/TransactionsTab';
+import { useAssociations } from '@/hooks/use-associations';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Building } from 'lucide-react';
 
 const AccountingDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const { associations, activeAssociation, selectAssociation } = useAssociations();
+  const [selectedAssociationId, setSelectedAssociationId] = useState<string>(
+    activeAssociation?.id || ''
+  );
+
+  const handleAssociationChange = (associationId: string) => {
+    setSelectedAssociationId(associationId);
+    const association = associations.find(a => a.id === associationId);
+    if (association) {
+      selectAssociation(association);
+    }
+  };
 
   return (
     <div className="flex-1">
@@ -22,6 +43,31 @@ const AccountingDashboard = () => {
             <p className="text-muted-foreground">
               Manage all financial aspects of your properties and associations
             </p>
+          </div>
+          
+          {/* Association Selector */}
+          <div className="md:w-72 mt-4 md:mt-0">
+            <Select 
+              value={selectedAssociationId} 
+              onValueChange={handleAssociationChange}
+            >
+              <SelectTrigger className="w-full">
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  <SelectValue placeholder="Select Association" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {associations.map((association) => (
+                  <SelectItem 
+                    key={association.id} 
+                    value={association.id}
+                  >
+                    {association.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
