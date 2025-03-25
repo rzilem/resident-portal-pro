@@ -23,12 +23,12 @@ const MainNav = () => {
     {
       title: 'Calendar',
       href: '/calendar',
-      active: location.pathname === '/calendar',
+      active: location.pathname.startsWith('/calendar'),
     },
     {
       title: 'Settings',
       href: '/settings',
-      active: location.pathname === '/settings',
+      active: location.pathname.startsWith('/settings'),
     },
   ];
 
