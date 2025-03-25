@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
-import DashboardLayout from '@/components/DashboardLayout';
 import { Widget } from '@/types/dashboard';
 import { useSettings } from '@/hooks/use-settings';
 import { toast } from 'sonner';
@@ -83,52 +82,48 @@ const Dashboard = () => {
 
   if (isLoading || !isInitialized) {
     return (
-      <DashboardLayout>
-        <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
-          <Card className={cardClass}>
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Loading your dashboard...</p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
+      <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
+        <Card className={cardClass}>
+          <CardContent className="p-6 flex flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Loading your dashboard...</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="flex-1 p-4 md:p-6 overflow-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Welcome Back</h2>
-            <p className="text-muted-foreground">Here's what's happening in your communities today</p>
-          </div>
-          <DashboardCustomizer 
-            widgets={dashboardWidgets} 
-            onSave={handleSaveDashboard}
-            columns={columns}
-          />
+    <div className="flex-1 p-4 md:p-6 overflow-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-bold">Welcome Back</h2>
+          <p className="text-muted-foreground">Here's what's happening in your communities today</p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {dashboardWidgets.filter(widget => !widget.hidden).map((widget) => (
-            <div
-              key={widget.id}
-              className={widget.size === 'large' ? 'col-span-2' : 'col-span-1'}
-            >
-              {/* Widget content would be rendered here */}
-              <Card className={cardClass}>
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-2">{widget.title}</h3>
-                  <p className="text-muted-foreground text-sm">Widget content for {widget.type}</p>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
-        </div>
+        <DashboardCustomizer 
+          widgets={dashboardWidgets} 
+          onSave={handleSaveDashboard}
+          columns={columns}
+        />
       </div>
-    </DashboardLayout>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {dashboardWidgets.filter(widget => !widget.hidden).map((widget) => (
+          <div
+            key={widget.id}
+            className={widget.size === 'large' ? 'col-span-2' : 'col-span-1'}
+          >
+            {/* Widget content would be rendered here */}
+            <Card className={cardClass}>
+              <CardContent className="p-4">
+                <h3 className="font-medium mb-2">{widget.title}</h3>
+                <p className="text-muted-foreground text-sm">Widget content for {widget.type}</p>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
