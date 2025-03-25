@@ -109,12 +109,7 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
           label: "Messaging",
           href: "/communications/messaging",
           isActive: pathname === '/communications/messaging',
-        },
-        {
-          label: "Email Templates",
-          href: "/communications/email-templates",
-          isActive: pathname === '/communications/email-templates',
-        },
+        }
       ],
     },
     // Database & Records section
