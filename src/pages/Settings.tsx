@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileSettings from '@/components/settings/ProfileSettings';
@@ -6,7 +7,6 @@ import DisplaySettings from '@/components/settings/DisplaySettings';
 import SecuritySettings from '@/components/settings/SecuritySettings';
 import AssociationSettings from '@/components/settings/AssociationSettings';
 import PermissionSettings from '@/components/settings/PermissionSettings';
-import IntegrationSettings from '@/components/settings/IntegrationSettings';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Settings = () => {
@@ -20,7 +20,7 @@ const Settings = () => {
       </div>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-7'} mb-4`}>
+        <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-6'} mb-4`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">
             {isMobile ? 'Notif.' : 'Notifications'}
@@ -32,9 +32,6 @@ const Settings = () => {
           </TabsTrigger>
           <TabsTrigger value="permissions">
             {isMobile ? 'Perms.' : 'Permissions'}
-          </TabsTrigger>
-          <TabsTrigger value="integrations">
-            {isMobile ? 'Integ.' : 'Integrations'}
           </TabsTrigger>
         </TabsList>
         
@@ -60,10 +57,6 @@ const Settings = () => {
         
         <TabsContent value="permissions">
           <PermissionSettings />
-        </TabsContent>
-        
-        <TabsContent value="integrations">
-          <IntegrationSettings />
         </TabsContent>
       </Tabs>
     </div>
