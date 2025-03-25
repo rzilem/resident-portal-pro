@@ -14,9 +14,12 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
     
     const pathToGroupMap: Record<string, string> = {
       '/accounting/dashboard': 'Operations',
-      '/accounting': 'Operations',
+      '/accounting/transactions': 'Operations',
+      '/accounting/payments': 'Operations',
+      '/accounting/reports': 'Operations',
       '/calendar': 'Operations',
-      '/communications': 'Operations',
+      '/communications/messaging': 'Operations',
+      '/communications/announcements': 'Operations',
       '/workflows': 'Operations',
       '/database': 'Records & Reports',
       '/documents': 'Records & Reports',
