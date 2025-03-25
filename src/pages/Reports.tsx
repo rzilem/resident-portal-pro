@@ -2,16 +2,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  BarChart,
+import { 
   BarChart as BarChartIcon,
-  Calendar,
   Building,
   Download,
   Filter,
   FileText,
+  Users
 } from 'lucide-react';
 import { useAssociations } from '@/hooks/use-associations';
 import { toast } from 'sonner';
@@ -26,6 +23,7 @@ const Reports = () => {
   const [reportType, setReportType] = useState<'financial' | 'property' | 'resident'>('financial');
   const [timeRange, setTimeRange] = useState('year');
   const [association, setAssociation] = useState('all');
+  const [selectedReport, setSelectedReport] = useState('income-expense');
   const { associations } = useAssociations();
   
   const properties = associations && associations.length > 0 
@@ -36,6 +34,16 @@ const Reports = () => {
   
   const handleExport = () => {
     toast.success(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported successfully`);
+  };
+  
+  // Reset selected report when report type changes
+  const handleReportTypeChange = (type: 'financial' | 'property' | 'resident') => {
+    setReportType(type);
+    
+    // Set default report for each type
+    if (type === 'financial') setSelectedReport('income-expense');
+    if (type === 'property') setSelectedReport('overview');
+    if (type === 'resident') setSelectedReport('resident-overview');
   };
   
   return (
@@ -60,7 +68,7 @@ const Reports = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card 
           className={`cursor-pointer hover:border-primary/50 transition-colors ${reportType === 'financial' ? 'border-primary' : ''}`}
-          onClick={() => setReportType('financial')}
+          onClick={() => handleReportTypeChange('financial')}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Financial Reports</CardTitle>
@@ -76,7 +84,7 @@ const Reports = () => {
         
         <Card 
           className={`cursor-pointer hover:border-primary/50 transition-colors ${reportType === 'property' ? 'border-primary' : ''}`}
-          onClick={() => setReportType('property')}
+          onClick={() => handleReportTypeChange('property')}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Property Reports</CardTitle>
@@ -92,12 +100,12 @@ const Reports = () => {
         
         <Card 
           className={`cursor-pointer hover:border-primary/50 transition-colors ${reportType === 'resident' ? 'border-primary' : ''}`}
-          onClick={() => setReportType('resident')}
+          onClick={() => handleReportTypeChange('resident')}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Resident Reports</CardTitle>
             <div className="bg-purple-50 text-purple-600 p-2 rounded-full">
-              <FileText className="h-4 w-4" />
+              <Users className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
@@ -113,6 +121,9 @@ const Reports = () => {
         association={association}
         setAssociation={setAssociation}
         associations={associations || []}
+        reportType={reportType}
+        selectedReport={selectedReport}
+        setSelectedReport={setSelectedReport}
       />
       
       <Card className="animate-fade-in">
@@ -130,7 +141,11 @@ const Reports = () => {
         </CardHeader>
         <CardContent>
           {reportType === 'financial' && (
-            <FinancialReports timeRange={timeRange} association={association} />
+            <FinancialReports 
+              timeRange={timeRange} 
+              association={association}
+              selectedReport={selectedReport}
+            />
           )}
           
           {reportType === 'property' && (
@@ -140,11 +155,16 @@ const Reports = () => {
               association={association} 
               onExport={handleVisibleColumnsExport}
               onTemplateDownload={handleTemplateDownload}
+              selectedReport={selectedReport}
             />
           )}
           
           {reportType === 'resident' && (
-            <ResidentReports timeRange={timeRange} association={association} />
+            <ResidentReports 
+              timeRange={timeRange} 
+              association={association}
+              selectedReport={selectedReport}
+            />
           )}
         </CardContent>
       </Card>
