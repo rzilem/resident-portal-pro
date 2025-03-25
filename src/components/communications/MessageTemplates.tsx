@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -25,40 +25,11 @@ interface MessageTemplate {
 
 interface MessageTemplatesProps {
   onSelectTemplate: (template: MessageTemplate) => void;
+  templates: MessageTemplate[];
+  onCreateTemplate: (template: MessageTemplate) => void;
+  onUpdateTemplate: (template: MessageTemplate) => void;
+  onDeleteTemplate: (templateId: string) => void;
 }
-
-const SAMPLE_TEMPLATES: MessageTemplate[] = [
-  {
-    id: '1',
-    name: 'Welcome New Resident',
-    description: 'Send to new residents to welcome them to the community',
-    subject: 'Welcome to our Community!',
-    content: '<p>Dear {{resident.first_name}},</p><p>On behalf of the {{association.name}}, we would like to welcome you to our community! We are excited to have you join us.</p><p>Please find attached our welcome packet with important information about our community rules, amenities, and contact information.</p><p>If you have any questions, feel free to reach out to us at {{association.email}} or {{association.phone}}.</p><p>Best regards,<br>{{board.president}}<br>Board President</p>',
-    category: 'Welcome',
-    createdAt: '2023-07-15T10:00:00Z',
-    updatedAt: '2023-07-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    name: 'Monthly Meeting Reminder',
-    description: 'Monthly reminder about upcoming board meeting',
-    subject: 'Reminder: Monthly Board Meeting - {{meeting.date}}',
-    content: '<p>Dear Homeowners,</p><p>This is a reminder that our monthly board meeting will be held on {{meeting.date}} at {{meeting.time}} in the {{meeting.location}}.</p><p>Agenda items include:</p><p>{{meeting.agenda}}</p><p>We hope to see you there!</p><p>Regards,<br>{{board.secretary}}<br>Board Secretary</p>',
-    category: 'Meetings',
-    createdAt: '2023-07-16T10:00:00Z',
-    updatedAt: '2023-07-16T10:00:00Z'
-  },
-  {
-    id: '3',
-    name: 'Annual Assessment Notice',
-    description: 'Annual notice about upcoming assessment dues',
-    subject: 'Annual Assessment Notice for {{association.name}}',
-    content: '<p>Dear {{resident.name}},</p><p>This letter serves as a notice that your annual assessment for your property at {{property.address}} is due on {{financial.due_date}}.</p><p>The annual assessment amount is {{financial.monthly_assessment}}.</p><p>Payment can be made via {{financial.payment_methods}}.</p><p>If you have any questions, please contact our office.</p><p>Thank you,<br>{{board.treasurer}}<br>Board Treasurer</p>',
-    category: 'Financial',
-    createdAt: '2023-07-17T10:00:00Z',
-    updatedAt: '2023-07-17T10:00:00Z'
-  }
-];
 
 const CategoryOptions = [
   { value: 'Welcome', label: 'Welcome' },
@@ -70,8 +41,13 @@ const CategoryOptions = [
   { value: 'General', label: 'General' },
 ];
 
-const MessageTemplates: React.FC<MessageTemplatesProps> = ({ onSelectTemplate }) => {
-  const [templates, setTemplates] = useState<MessageTemplate[]>(SAMPLE_TEMPLATES);
+const MessageTemplates: React.FC<MessageTemplatesProps> = ({ 
+  onSelectTemplate,
+  templates,
+  onCreateTemplate,
+  onUpdateTemplate,
+  onDeleteTemplate
+}) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
@@ -111,7 +87,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({ onSelectTemplate })
       updatedAt: new Date().toISOString()
     };
 
-    setTemplates([...templates, newTemplate]);
+    onCreateTemplate(newTemplate);
     setIsCreateDialogOpen(false);
     resetForm();
     toast.success('Template created successfully');
@@ -135,7 +111,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({ onSelectTemplate })
       updatedAt: new Date().toISOString()
     };
 
-    setTemplates(templates.map(t => t.id === selectedTemplate.id ? updatedTemplate : t));
+    onUpdateTemplate(updatedTemplate);
     setIsEditDialogOpen(false);
     resetForm();
     toast.success('Template updated successfully');
@@ -144,7 +120,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({ onSelectTemplate })
   const handleDeleteTemplate = (id: string) => {
     if (!confirm('Are you sure you want to delete this template?')) return;
     
-    setTemplates(templates.filter(t => t.id !== id));
+    onDeleteTemplate(id);
     toast.success('Template deleted');
   };
 
