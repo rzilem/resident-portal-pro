@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -37,6 +38,13 @@ import DocumentTemplates from '@/pages/documents/DocumentTemplates';
 
 // Settings pages
 import Permissions from '@/pages/settings/Permissions';
+
+// HOA pages
+import HoaDashboard from '@/pages/hoa/Dashboard';
+import HoaFinances from '@/pages/hoa/Finances';
+import HoaMaintenance from '@/pages/hoa/Maintenance';
+import HoaMembers from '@/pages/hoa/Members';
+import HoaEvents from '@/pages/hoa/Events';
 
 // Add import for UserProfile component
 import UserProfile from "./pages/profile/UserProfile";
@@ -81,6 +89,13 @@ const App = () => {
         
         {/* UserProfile route */}
         <Route path="/profile" element={<UserProfile />} />
+        
+        {/* HOA routes */}
+        <Route path="/hoa/dashboard" element={<HoaDashboard />} />
+        <Route path="/hoa/finances" element={<HoaFinances />} />
+        <Route path="/hoa/maintenance" element={<HoaMaintenance />} />
+        <Route path="/hoa/members" element={<HoaMembers />} />
+        <Route path="/hoa/events" element={<HoaEvents />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
