@@ -1,38 +1,27 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Users, Copy, Info, Tag as TagIcon, Bot, MessageSquareMore } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Send, Bot, Copy, TagIcon } from 'lucide-react';
 import HtmlEditor from './HtmlEditor';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import MergeTagsDialog from './MergeTagsDialog';
+import { Textarea } from '@/components/ui/textarea';
 import { MergeTag } from '@/types/mergeTags';
 import { mergeTagService } from '@/services/mergeTagService';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import MergeTagsDialog from './MergeTagsDialog';
+import { MessageData } from './composer/types';
+import RecipientSelector from './composer/RecipientSelector';
+import FormatSelector from './composer/FormatSelector';
+import ScheduleOptions from './composer/ScheduleOptions';
+import MessagePreview from './composer/MessagePreview';
+import AiAssistant from './composer/AiAssistant';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
   initialSubject?: string;
   initialContent?: string;
 }
-
-const RecipientGroups = [
-  { id: 'all', name: 'All Residents', description: 'All homeowners and tenants in the community' },
-  { id: 'property-owners', name: 'Property Owners', description: 'Only homeowners in the community' },
-  { id: 'tenants', name: 'Tenants', description: 'Only renters in the community' },
-  { id: 'board-members', name: 'Board Members', description: 'Members of the board of directors' },
-  { id: 'committee-members', name: 'Committee Members', description: 'All committee members' },
-  { id: 'vendors', name: 'Vendors', description: 'Service providers and contractors' },
-  { id: 'invoice-approvers', name: 'Invoice Approvers', description: 'Users with invoice approval permissions' },
-  { id: 'maintenance', name: 'Maintenance Committee', description: 'Members of the maintenance committee' },
-  { id: 'architectural', name: 'Architectural Committee', description: 'Members of the architectural review committee' },
-  { id: 'social', name: 'Social Committee', description: 'Members of the social committee' },
-]
 
 const MessageComposer: React.FC<MessageComposerProps> = ({ 
   onSendMessage,
@@ -49,11 +38,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
   const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
-  
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiResponse, setAiResponse] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,14 +71,6 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     }
   };
 
-  const toggleRecipientGroup = (groupId: string) => {
-    setSelectedRecipients(prev => 
-      prev.includes(groupId) 
-        ? prev.filter(id => id !== groupId) 
-        : [...prev, groupId]
-    );
-  };
-
   const handleInsertMergeTag = (tag: MergeTag) => {
     if (format === 'plain') {
       setContent(prev => prev + ' ' + tag.tag + ' ');
@@ -103,33 +80,12 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   };
 
   const handlePreviewWithMergeTags = async () => {
-    const processed = await mergeTagService.processMergeTags(content, {
-    });
-    
+    const processed = await mergeTagService.processMergeTags(content, {});
     setPreviewContent(processed);
     setShowMergeTagPreview(true);
   };
 
-  const handleGenerateContent = async () => {
-    if (!aiPrompt.trim()) return;
-    
-    setIsGenerating(true);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const generatedText = generateSampleResponse(aiPrompt);
-      setAiResponse(generatedText);
-    } catch (error) {
-      console.error("Error generating content:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const applyAiSuggestion = () => {
-    if (!aiResponse) return;
-    
+  const handleAiSuggestion = (aiResponse: string) => {
     if (format === 'plain') {
       setContent(prev => prev + (prev ? '\n\n' : '') + aiResponse);
     } else {
@@ -139,95 +95,16 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
       
       setContent(prev => prev + htmlContent);
     }
-    
-    setIsAiAssistantOpen(false);
-    setAiPrompt('');
-    setAiResponse('');
-  };
-
-  const generateSampleResponse = (prompt: string) => {
-    const promptLower = prompt.toLowerCase();
-    
-    if (promptLower.includes('welcome')) {
-      return "Welcome to our community! We're delighted to have you join us. This message is to provide you with some important information about our community resources and upcoming events.";
-    } else if (promptLower.includes('maintenance') || promptLower.includes('repair')) {
-      return "We want to inform you about upcoming maintenance work scheduled for next week. The maintenance team will be performing routine inspections and repairs throughout the community. Please ensure access to common areas during this time.";
-    } else if (promptLower.includes('meeting') || promptLower.includes('board')) {
-      return "The next board meeting is scheduled for Tuesday, July 15th at 7:00 PM in the community center. We'll be discussing the annual budget, upcoming renovations, and community events. All residents are welcome to attend.";
-    } else if (promptLower.includes('event') || promptLower.includes('social')) {
-      return "We're excited to announce our Summer Community Festival on Saturday, August 5th from 2:00 PM to 8:00 PM. There will be food, games, and entertainment for all ages. Don't miss this opportunity to meet your neighbors and enjoy a day of fun!";
-    } else {
-      return "Thank you for your message. We appreciate your communication and will address your concerns promptly. Our community thrives through active participation and open dialogue between residents and management.";
-    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-6">
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="recipients">Recipients</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 gap-1">
-                    <Users className="h-4 w-4" />
-                    Select Groups
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-4">
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-sm">Select recipient groups</h4>
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                      {RecipientGroups.map(group => (
-                        <div key={group.id} className="flex items-start space-x-2">
-                          <Checkbox 
-                            id={`group-${group.id}`} 
-                            checked={selectedRecipients.includes(group.id)} 
-                            onCheckedChange={() => toggleRecipientGroup(group.id)}
-                            className="mt-1"
-                          />
-                          <div className="flex flex-col">
-                            <Label htmlFor={`group-${group.id}`} className="flex items-center">
-                              {group.name}
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-3.5 w-3.5 ml-1 text-muted-foreground" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-xs">{group.description}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </Label>
-                            <p className="text-xs text-muted-foreground">{group.description}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
-              {selectedRecipients.map(groupId => {
-                const group = RecipientGroups.find(g => g.id === groupId);
-                return (
-                  <div key={groupId} className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm flex items-center gap-1">
-                    {group?.name}
-                    <button 
-                      type="button" 
-                      className="text-primary/70 hover:text-primary"
-                      onClick={() => toggleRecipientGroup(groupId)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <RecipientSelector 
+            selectedRecipients={selectedRecipients}
+            onRecipientsChange={setSelectedRecipients}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="subject">Subject</Label>
@@ -263,18 +140,10 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
                   <TagIcon className="mr-2 h-4 w-4" />
                   Insert Merge Tag
                 </Button>
-                <Select 
-                  value={format} 
-                  onValueChange={(value) => setFormat(value as 'plain' | 'html')}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Message Format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="plain">Plain Text</SelectItem>
-                    <SelectItem value="html">Rich HTML</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormatSelector 
+                  format={format}
+                  onFormatChange={setFormat}
+                />
               </div>
             </div>
 
@@ -308,29 +177,12 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
             </div>
           </div>
           
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="scheduled"
-                checked={isScheduled}
-                onCheckedChange={(checked) => setIsScheduled(checked === true)}
-              />
-              <Label htmlFor="scheduled">Schedule message for later</Label>
-            </div>
-            
-            {isScheduled && (
-              <div className="pl-6">
-                <Label htmlFor="scheduledDate">Date and time</Label>
-                <Input
-                  id="scheduledDate"
-                  type="datetime-local"
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-            )}
-          </div>
+          <ScheduleOptions 
+            isScheduled={isScheduled}
+            scheduledDate={scheduledDate}
+            onScheduledChange={setIsScheduled}
+            onDateChange={setScheduledDate}
+          />
         </div>
       </div>
 
@@ -357,93 +209,18 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
         onSelectTag={handleInsertMergeTag}
       />
 
-      <Dialog open={showMergeTagPreview} onOpenChange={setShowMergeTagPreview}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader>
-            <DialogTitle>Preview with Merge Tags</DialogTitle>
-          </DialogHeader>
-          <div className="border rounded-md p-4 max-h-[500px] overflow-auto">
-            {format === 'html' ? (
-              <div dangerouslySetInnerHTML={{ __html: previewContent }} />
-            ) : (
-              <div className="whitespace-pre-wrap">{previewContent}</div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowMergeTagPreview(false)}>Close Preview</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MessagePreview
+        open={showMergeTagPreview}
+        onOpenChange={setShowMergeTagPreview}
+        content={previewContent}
+        format={format}
+      />
 
-      <Dialog open={isAiAssistantOpen} onOpenChange={setIsAiAssistantOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>AI Message Assistant</DialogTitle>
-            <DialogDescription>
-              Describe what kind of message you need help with, and our AI will suggest content.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="ai-prompt">What kind of message do you need?</Label>
-              <Textarea
-                id="ai-prompt"
-                placeholder="e.g., Write a welcome message for new residents"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <div className="text-xs text-muted-foreground">
-                Try prompts like "maintenance announcement", "board meeting invitation", or "community event"
-              </div>
-            </div>
-            
-            <Button 
-              onClick={handleGenerateContent} 
-              disabled={isGenerating || !aiPrompt.trim()} 
-              className="w-full"
-            >
-              {isGenerating ? (
-                <>Generating content...</>
-              ) : (
-                <>
-                  <MessageSquareMore className="mr-2 h-4 w-4" />
-                  Generate Content
-                </>
-              )}
-            </Button>
-            
-            {aiResponse && (
-              <div className="space-y-2 mt-4">
-                <Label>Generated Content</Label>
-                <div className="border rounded-md p-3 bg-muted/30 whitespace-pre-wrap">
-                  {aiResponse}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter className="flex justify-between sm:justify-between">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsAiAssistantOpen(false);
-                setAiPrompt('');
-                setAiResponse('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={applyAiSuggestion} 
-              disabled={!aiResponse}
-            >
-              Use This Content
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AiAssistant
+        open={isAiAssistantOpen}
+        onOpenChange={setIsAiAssistantOpen}
+        onApplySuggestion={handleAiSuggestion}
+      />
     </form>
   );
 };
