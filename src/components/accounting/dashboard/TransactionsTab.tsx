@@ -5,13 +5,18 @@ import { Button } from "@/components/ui/button";
 import { FileBarChart } from "lucide-react";
 import { Link } from 'react-router-dom';
 
-const TransactionsTab = () => {
+interface TransactionsTabProps {
+  associationId?: string;
+}
+
+const TransactionsTab: React.FC<TransactionsTabProps> = ({ associationId }) => {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Transaction Management</CardTitle>
         <CardDescription>
           View and manage all financial transactions
+          {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -23,7 +28,9 @@ const TransactionsTab = () => {
               View transaction details in the Transactions page
             </p>
             <Button className="mt-2" asChild>
-              <Link to="/accounting/transactions">Go to Transactions</Link>
+              <Link to={`/accounting/transactions${associationId ? `?associationId=${associationId}` : ''}`}>
+                Go to Transactions
+              </Link>
             </Button>
           </div>
         </div>
