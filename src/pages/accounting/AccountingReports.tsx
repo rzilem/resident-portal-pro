@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { FinancialReports } from '@/components/reports/FinancialReports';
+import DashboardLayout from '@/components/DashboardLayout';
+import FinancialReports from '@/components/reports/FinancialReports';
 
 const AccountingReports = () => {
   return (

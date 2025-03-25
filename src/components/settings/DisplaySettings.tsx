@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useSettings } from '@/hooks/use-settings';
-import { useThemeContext } from '@/components/ThemeProvider';
+import { useThemeContext } from '@/components/theme-provider';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
@@ -19,7 +18,6 @@ const DisplaySettings = () => {
   const [density, setDensity] = useState("comfortable");
   const [animations, setAnimations] = useState(true);
   
-  // Initialize local state from preferences
   useEffect(() => {
     if (preferences) {
       setLocalTheme(preferences.theme || "light");
@@ -29,7 +27,6 @@ const DisplaySettings = () => {
     }
   }, [preferences]);
 
-  // Handle theme change
   const handleThemeChange = (value: string) => {
     if (!value) return;
     
@@ -39,7 +36,6 @@ const DisplaySettings = () => {
     updatePreference("theme", newTheme);
   };
 
-  // Apply card style and density classes to body
   useEffect(() => {
     document.body.classList.remove('card-style-default', 'card-style-flat', 'card-style-glass');
     document.body.classList.add(`card-style-${cardStyle}`);

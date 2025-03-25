@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 import { NavItem } from "@/data/navigation";
+import React from 'react';
 
 interface CollapsibleNavItemProps {
   item: NavItem;
@@ -22,11 +23,11 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           variant="default"
           className={cn(
             "w-full justify-between font-normal",
-            item.isActive ? "font-medium" : "font-normal"
+            item.active ? "font-medium" : "font-normal"
           )}
         >
           <span className="flex items-center">
-            {item.icon && <span className="mr-2">{item.icon}</span>}
+            {item.icon && <span className="mr-2">{React.createElement(item.icon)}</span>}
             {item.label}
           </span>
           <ChevronDown
@@ -44,7 +45,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
             variant="default"
             className={cn(
               "w-full justify-start",
-              subItem.isActive ? "font-medium" : "font-normal"
+              subItem.active ? "font-medium" : "font-normal"
             )}
             onClick={() => navigate(subItem.href)}
           >
