@@ -5,14 +5,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Check, Grid3X3, LayoutGrid, Plus, Settings } from 'lucide-react';
 import { Widget, WidgetType } from '@/types/dashboard';
-import { DynamicWidget } from './widgets/WidgetRegistry';
 import { cn } from '@/lib/utils';
 import { Toggle } from '@/components/ui/toggle';
 import { toast } from 'sonner';
+import { useCardStyle } from '@/hooks/use-card-style';
 
 interface DashboardCustomizerProps {
   widgets: Widget[];
-  onSave: (widgets: Widget[]) => void;
+  columns?: number;
+  onSave: (widgets: Widget[], columns?: number) => void;
 }
 
 const availableWidgets: Array<{
@@ -35,10 +36,11 @@ const availableWidgets: Array<{
   { type: 'directory', title: 'Directory', description: 'Community directory' },
 ];
 
-const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
+const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomizerProps) => {
   const [currentWidgets, setCurrentWidgets] = useState<Widget[]>(widgets);
-  const [columns, setColumns] = useState(2);
+  const [columnCount, setColumnCount] = useState(columns);
   const [open, setOpen] = useState(false);
+  const { cardClass } = useCardStyle();
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -89,8 +91,22 @@ const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
     );
   };
 
+  const toggleWidgetVisibility = (id: string) => {
+    setCurrentWidgets(
+      currentWidgets.map(widget => 
+        widget.id === id 
+          ? { ...widget, hidden: !widget.hidden } 
+          : widget
+      )
+    );
+  };
+
+  const setColumnLayout = (numColumns: number) => {
+    setColumnCount(numColumns);
+  };
+
   const saveChanges = () => {
-    onSave(currentWidgets);
+    onSave(currentWidgets, columnCount);
     setOpen(false);
     toast.success("Dashboard layout saved!");
   };
@@ -102,7 +118,7 @@ const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
           <Settings className="h-4 w-4 mr-2" /> Customize Dashboard
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+      <DialogContent className={`max-w-4xl max-h-[80vh] overflow-auto ${cardClass}`}>
         <DialogHeader>
           <DialogTitle>Customize Your Dashboard</DialogTitle>
           <DialogDescription>
@@ -114,15 +130,15 @@ const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
           <div className="flex items-center space-x-2 mb-4">
             <span className="text-sm font-medium">Columns:</span>
             <Toggle 
-              pressed={columns === 1} 
-              onPressedChange={() => setColumns(1)}
+              pressed={columnCount === 1} 
+              onPressedChange={() => setColumnLayout(1)}
               aria-label="1 Column"
             >
               <LayoutGrid className="h-4 w-4" />
             </Toggle>
             <Toggle 
-              pressed={columns === 2} 
-              onPressedChange={() => setColumns(2)}
+              pressed={columnCount === 2} 
+              onPressedChange={() => setColumnLayout(2)}
               aria-label="2 Columns"
             >
               <Grid3X3 className="h-4 w-4" />
@@ -144,14 +160,17 @@ const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="border rounded-lg p-4 bg-background flex items-center justify-between"
+                          className={cn(
+                            "border rounded-lg p-4 bg-background flex items-center justify-between",
+                            widget.hidden && "opacity-60"
+                          )}
                         >
                           <div className="flex items-center gap-2">
                             <div className={cn(
                               "w-8 h-8 flex items-center justify-center rounded-md",
-                              widget.size === 'small' ? "bg-blue-100" : 
-                              widget.size === 'medium' ? "bg-green-100" : 
-                              "bg-purple-100"
+                              widget.size === 'small' ? "bg-blue-100 dark:bg-blue-900" : 
+                              widget.size === 'medium' ? "bg-green-100 dark:bg-green-900" : 
+                              "bg-purple-100 dark:bg-purple-900"
                             )}>
                               {widget.size.charAt(0).toUpperCase()}
                             </div>
@@ -159,12 +178,19 @@ const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Button 
-                              variant="ghost" 
+                              variant="outline" 
                               size="sm" 
                               onClick={() => toggleWidgetSize(widget.id)}
                             >
                               {widget.size === 'small' ? 'Small' : 
                                widget.size === 'medium' ? 'Medium' : 'Large'}
+                            </Button>
+                            <Button 
+                              variant={widget.hidden ? "outline" : "ghost"}
+                              size="sm"
+                              onClick={() => toggleWidgetVisibility(widget.id)}
+                            >
+                              {widget.hidden ? 'Show' : 'Hide'}
                             </Button>
                             <Button 
                               variant="destructive" 
@@ -186,7 +212,7 @@ const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
 
           <div className="mt-6">
             <h3 className="text-sm font-medium mb-2">Add Widgets</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {availableWidgets.map((widget) => (
                 <Button
                   key={widget.type}

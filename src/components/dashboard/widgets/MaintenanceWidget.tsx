@@ -1,54 +1,106 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Wrench } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tool, Plus, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface MaintenanceWidgetProps {
   size?: 'small' | 'medium' | 'large';
+  cardClass?: string;
 }
 
-const MaintenanceWidget = ({ size = 'medium' }: MaintenanceWidgetProps) => {
-  // Mock maintenance requests
-  const maintenanceRequests = [
-    { id: '1', unit: '203', issue: 'Leaking faucet', priority: 'medium', status: 'pending' },
-    { id: '2', unit: '105', issue: 'HVAC not working', priority: 'high', status: 'in-progress' },
-    { id: '3', unit: '310', issue: 'Light fixture broken', priority: 'low', status: 'pending' },
+const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidgetProps) => {
+  // Sample maintenance requests
+  const requests = [
+    { id: 1, title: 'Broken irrigation system', property: 'Pine Gardens', status: 'urgent', date: '2023-10-02' },
+    { id: 2, title: 'Hallway light replacement', property: 'Maple Residences', status: 'in-progress', date: '2023-10-05' },
+    { id: 3, title: 'Pool maintenance', property: 'Ocean Views', status: 'scheduled', date: '2023-10-10' },
+    { id: 4, title: 'Parking lot restriping', property: 'The Palms', status: 'completed', date: '2023-09-28' },
   ];
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return <Badge variant="destructive">High</Badge>;
-      case 'medium':
-        return <Badge variant="default">Medium</Badge>;
-      case 'low':
-        return <Badge variant="outline">Low</Badge>;
+  // Decide how many requests to show based on size
+  const limit = size === 'small' ? 2 : size === 'medium' ? 3 : 4;
+  const displayedRequests = requests.slice(0, limit);
+
+  // Status badge style and icon
+  const getStatusDetails = (status: string) => {
+    switch (status) {
+      case 'urgent':
+        return { 
+          icon: <AlertTriangle className="h-4 w-4" />, 
+          variant: 'destructive',
+          label: 'Urgent'
+        };
+      case 'in-progress':
+        return { 
+          icon: <Tool className="h-4 w-4" />, 
+          variant: 'default',
+          label: 'In Progress'
+        };
+      case 'scheduled':
+        return { 
+          icon: <Clock className="h-4 w-4" />, 
+          variant: 'outline',
+          label: 'Scheduled'
+        };
+      case 'completed':
+        return { 
+          icon: <CheckCircle2 className="h-4 w-4" />, 
+          variant: 'outline',
+          label: 'Completed'
+        };
       default:
-        return <Badge variant="outline">Low</Badge>;
+        return { 
+          icon: <Tool className="h-4 w-4" />, 
+          variant: 'outline',
+          label: status
+        };
     }
   };
-
+  
   return (
-    <Card className="h-full">
+    <Card className={`${cardClass}`}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Wrench className="h-4 w-4" /> Maintenance Requests
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-md">Maintenance Requests</CardTitle>
+          <Badge variant="outline">{requests.filter(r => r.status !== 'completed').length} active</Badge>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {maintenanceRequests.map((request) => (
-            <div key={request.id} className="border-b pb-3 last:border-0 last:pb-0">
-              <div className="flex justify-between items-start mb-1">
-                <span className="font-medium">Unit {request.unit}</span>
-                {getPriorityBadge(request.priority)}
-              </div>
-              <p className="text-sm text-muted-foreground">{request.issue}</p>
-            </div>
-          ))}
-        </div>
+        <ul className="space-y-3">
+          {displayedRequests.map(request => {
+            const { icon, variant, label } = getStatusDetails(request.status);
+            
+            return (
+              <li key={request.id} className="p-2 border rounded-md">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <p className="font-medium">{request.title}</p>
+                    {size !== 'small' && (
+                      <p className="text-xs text-muted-foreground">{request.property}</p>
+                    )}
+                  </div>
+                  <Badge variant={variant as any} className="flex items-center gap-1">
+                    {icon}
+                    <span>{label}</span>
+                  </Badge>
+                </div>
+                {size === 'large' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(request.date).toLocaleDateString()}
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </CardContent>
+      <CardFooter className="pt-0">
+        <Button variant="outline" size="sm" className="w-full">
+          <Plus className="h-4 w-4 mr-2" /> New Request
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
