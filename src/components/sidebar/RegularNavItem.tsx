@@ -25,7 +25,7 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
             "w-full justify-start",
             item.active ? "font-medium" : "font-normal"
           )}
-          onClick={() => navigate(item.href)}
+          onClick={() => item.href && navigate(item.href)}
         >
           {item.icon && <span className="mr-2">{item.icon}</span>}
           {item.label}

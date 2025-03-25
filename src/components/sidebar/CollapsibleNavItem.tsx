@@ -25,6 +25,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
             "w-full justify-between font-normal",
             item.active ? "font-medium" : "font-normal"
           )}
+          onClick={() => item.href && navigate(item.href)}
         >
           <span className="flex items-center">
             {item.icon && <span className="mr-2">{item.icon}</span>}

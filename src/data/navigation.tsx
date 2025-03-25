@@ -19,12 +19,12 @@ import {
   LayoutGrid
 } from 'lucide-react';
 
-// Define the NavItem type to avoid TypeScript errors
+// Define the NavItem type with proper structure
 export type NavItem = {
   label: string;
   icon: React.ReactNode;
-  href: string;
   active: boolean;
+  href?: string; // Make href optional
   items?: {
     label: string;
     href: string;
@@ -73,6 +73,7 @@ export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
     label: "Accounting",
     icon: <CircleDollarSign className="h-4 w-4" />,
     active: currentPath.startsWith("/accounting"),
+    href: "/accounting/dashboard", // Add default href for parent item
     items: [
       {
         label: "Dashboard",
@@ -105,6 +106,7 @@ export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
     label: "Communications",
     icon: <MessageSquare className="h-4 w-4" />,
     active: currentPath.startsWith("/communications"),
+    href: "/communications/messaging", // Add default href for parent item
     items: [
       {
         label: "Community Messaging",
@@ -122,6 +124,7 @@ export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
     label: "Records",
     icon: <Database className="h-4 w-4" />,
     active: currentPath.startsWith("/database"),
+    href: "/database/records", // Add default href for parent item
     items: [
       {
         label: "Association Records",
@@ -135,6 +138,7 @@ export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
     label: "Documents",
     icon: <FolderClosed className="h-4 w-4" />,
     active: currentPath.startsWith("/documents"),
+    href: "/documents/association", // Add default href for parent item
     items: [
       {
         label: "Association Documents",
@@ -177,6 +181,7 @@ export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
     label: "Settings",
     icon: <Cog className="h-4 w-4" />,
     active: currentPath.startsWith("/settings"),
+    href: "/settings", // Add default href for parent item
     items: [
       {
         label: "General Settings",
