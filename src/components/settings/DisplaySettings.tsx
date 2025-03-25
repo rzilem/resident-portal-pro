@@ -6,13 +6,13 @@ import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Sun, Moon, SunMoon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor } from "lucide-react";
 import { useSettings } from '@/hooks/use-settings';
-import { useTheme } from '@/hooks/use-theme';
+import { useThemeContext } from '@/components/ThemeProvider';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
-  const { setTheme, theme } = useTheme();
+  const { theme, setTheme } = useThemeContext();
   
   const [localTheme, setLocalTheme] = useState(theme || "light");
   const [cardStyle, setCardStyle] = useState("default");
@@ -38,6 +38,21 @@ const DisplaySettings = () => {
     setTheme(newTheme);
     updatePreference("theme", newTheme);
   };
+
+  // Apply card style and density classes to body
+  useEffect(() => {
+    document.body.classList.remove('card-style-default', 'card-style-flat', 'card-style-glass');
+    document.body.classList.add(`card-style-${cardStyle}`);
+    
+    document.body.classList.remove('density-comfortable', 'density-compact');
+    document.body.classList.add(`density-${density}`);
+    
+    if (animations) {
+      document.body.classList.remove('animations-disabled');
+    } else {
+      document.body.classList.add('animations-disabled');
+    }
+  }, [cardStyle, density, animations]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

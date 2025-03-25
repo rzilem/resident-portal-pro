@@ -14,7 +14,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   
   return (
     <ThemeContext.Provider value={themeHook}>
-      {children}
+      <div className={themeHook.theme === 'dark' ? 'dark' : ''}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

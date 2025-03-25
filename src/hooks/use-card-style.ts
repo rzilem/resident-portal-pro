@@ -14,13 +14,13 @@ export function useCardStyle() {
   let additionalCardClass = "";
   switch (cardStyle) {
     case 'flat':
-      additionalCardClass = "border-0 shadow-none bg-background";
+      additionalCardClass = "card-style-flat border-0 shadow-none bg-background";
       break;
     case 'glass':
-      additionalCardClass = "backdrop-blur-sm bg-background/80 border border-muted/30";
+      additionalCardClass = "card-style-glass backdrop-blur-sm bg-background/80 border border-muted/30";
       break;
     default:
-      additionalCardClass = "";
+      additionalCardClass = "card-style-default";
   }
   
   return {
