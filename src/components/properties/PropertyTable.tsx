@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, X, CalendarClock, DollarSign, MapPin, MapPinned, Building2, FileText, Briefcase, ChevronUp, ChevronDown } from 'lucide-react';
@@ -40,10 +39,13 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
       return sortDirection === 'asc' 
         ? (valueA === valueB ? 0 : valueA ? -1 : 1)
         : (valueA === valueB ? 0 : valueA ? 1 : -1);
-    } else if (valueA instanceof Date && valueB instanceof Date) {
+    } else if (sortField === 'foundedDate') {
+      // Special handling for dates
+      const dateA = new Date(valueA as string);
+      const dateB = new Date(valueB as string);
       return sortDirection === 'asc' 
-        ? valueA.getTime() - valueB.getTime() 
-        : valueB.getTime() - valueA.getTime();
+        ? dateA.getTime() - dateB.getTime() 
+        : dateB.getTime() - dateA.getTime();
     } else {
       // Convert to string for comparison
       const strA = String(valueA).toLowerCase();
