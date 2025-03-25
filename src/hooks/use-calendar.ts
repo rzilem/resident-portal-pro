@@ -74,6 +74,23 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     }
   };
 
+  // Create a workflow event
+  const createWorkflowEvent = (workflowId: string, title: string, start: Date) => {
+    if (!associationId) {
+      console.error("Association ID is required to create a workflow event");
+      return null;
+    }
+    
+    try {
+      const newEvent = calendarService.createWorkflowEvent(workflowId, title, start, associationId);
+      setEvents(prev => [...prev, newEvent]);
+      return newEvent;
+    } catch (error) {
+      console.error("Error creating workflow event:", error);
+      throw error;
+    }
+  };
+
   return {
     events,
     selectedEvent,
@@ -81,6 +98,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     isLoading,
     createEvent,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    createWorkflowEvent  // Expose the createWorkflowEvent function
   };
 }

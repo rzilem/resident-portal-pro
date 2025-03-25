@@ -1,11 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import EditorToolbar from './editor/EditorToolbar';
 import VisualEditor from './editor/VisualEditor';
 import HtmlSourceEditor from './editor/HtmlSourceEditor';
 import EditorTabs from './editor/EditorTabs';
-import { useState } from 'react';
 
 interface HtmlEditorProps {
   value: string;
@@ -15,23 +14,41 @@ interface HtmlEditorProps {
 const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
   const [activeTab, setActiveTab] = useState<'visual' | 'source'>('visual');
 
+  // Convert useState setter to expected function signature
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as 'visual' | 'source');
+  };
+
+  // Execute command for the visual editor
+  const executeCommand = (command: string, value: string | null = null) => {
+    console.log('Execute command:', command, value);
+  };
+
+  const createLink = () => {
+    console.log('Create link');
+  };
+
+  const insertImage = () => {
+    console.log('Insert image');
+  };
+
   return (
     <Card className="border overflow-hidden">
-      <EditorTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <EditorTabs activeTab={activeTab} onTabChange={handleTabChange} />
       
       <div className="p-0">
-        <EditorToolbar 
-          onAction={(action) => {
-            // Handle editor actions like bold, italic, etc.
-            console.log('Editor action:', action);
-          }}
-          disabled={activeTab === 'source'}
-        />
+        {activeTab === 'visual' && (
+          <EditorToolbar 
+            executeCommand={executeCommand}
+            createLink={createLink}
+            insertImage={insertImage}
+          />
+        )}
         
         {activeTab === 'visual' ? (
           <VisualEditor 
             value={value} 
-            onChange={onChange} 
+            onUpdate={onChange} 
           />
         ) : (
           <HtmlSourceEditor 

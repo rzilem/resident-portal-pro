@@ -12,6 +12,7 @@ import { CalendarIcon, ClockIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCalendar } from '@/hooks/use-calendar';
 import { Workflow } from '@/types/workflow';
+import { toast } from 'sonner';
 
 interface WorkflowSchedulerProps {
   open: boolean;
@@ -44,16 +45,30 @@ const WorkflowScheduler = ({
   });
   
   const handleSchedule = () => {
-    if (!date) return;
+    if (!date) {
+      toast.error("Please select a date");
+      return;
+    }
+    
+    if (!createWorkflowEvent) {
+      toast.error("Failed to schedule workflow: createWorkflowEvent function not available");
+      return;
+    }
     
     // Combine date and time
     const scheduledDateTime = new Date(date);
     const [hours, minutes] = time.split(':').map(Number);
     scheduledDateTime.setHours(hours, minutes, 0, 0);
     
-    createWorkflowEvent(workflow.id, workflow.name, scheduledDateTime);
-    onScheduled?.();
-    onOpenChange(false);
+    try {
+      createWorkflowEvent(workflow.id, workflow.name, scheduledDateTime);
+      toast.success("Workflow scheduled successfully");
+      onScheduled?.();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error scheduling workflow:", error);
+      toast.error("Failed to schedule workflow");
+    }
   };
   
   return (
