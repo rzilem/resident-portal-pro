@@ -10,7 +10,7 @@ import {
 import { CollapsibleNavItem } from "./sidebar/CollapsibleNavItem";
 import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
-import { getNavItems, NavItem } from "@/data/navigation"; // Updated import
+import { getNavItems, NavItem } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useState } from "react";
 import HoaSidebar from "./HoaSidebar";
@@ -35,15 +35,12 @@ export function Sidebar({
     return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
   }
   
-  // Initialize sidebar groups with relevant sections expanded
+  // Initialize sidebar groups with more conservative expansion
   const { openGroups, toggleGroup } = useSidebarState({
     "Community Management": location.pathname.startsWith('/properties') || 
                    location.pathname.startsWith('/residents') ||
                    location.pathname.startsWith('/community-hub'),
-    "Operations": location.pathname.startsWith('/calendar') ||
-              location.pathname.startsWith('/accounting') ||
-              location.pathname.startsWith('/communications') ||
-              location.pathname.startsWith('/workflows'),
+    "Operations": false, // Always start closed
     "Records & Reports": location.pathname.startsWith('/database') ||
                   location.pathname.startsWith('/documents') ||
                   location.pathname.startsWith('/reports'),
