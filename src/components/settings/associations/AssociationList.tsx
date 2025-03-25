@@ -13,7 +13,7 @@ import {
   Star, X, ToggleLeft, ToggleRight 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Association } from '../types';
+import { Association } from '@/types/association';
 import { SimpleAssociation } from './types';
 
 interface AssociationListProps {
@@ -88,7 +88,7 @@ const AssociationList = ({
                           </Badge>
                         )}
                         <Badge 
-                          variant={association.status === 'active' ? "success" : "secondary"} 
+                          variant={association.status === 'active' ? "secondary" : "outline"} 
                           className="text-xs"
                         >
                           {association.status === 'active' ? 'Active' : 'Inactive'}

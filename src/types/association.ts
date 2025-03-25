@@ -116,4 +116,7 @@ export interface AssociationSettings {
   notifyPayments?: boolean;
   notifyViolations?: boolean;
   notifyBoardDecisions?: boolean;
+  
+  // Add isDefault property
+  isDefault?: boolean;
 }

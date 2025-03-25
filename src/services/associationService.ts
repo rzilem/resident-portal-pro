@@ -53,7 +53,8 @@ let associations: Association[] = [
       currencySymbol: '$',
       lateFeeAmount: '25',
       lateFeeType: 'fixed',
-      allowOnlinePayments: true
+      allowOnlinePayments: true,
+      isDefault: true
     }
   },
   { 
@@ -98,7 +99,8 @@ let associations: Association[] = [
         accounting: true,
         documents: true,
         calendar: true
-      }
+      },
+      isDefault: false
     }
   },
   { 
@@ -143,7 +145,8 @@ let associations: Association[] = [
         accounting: true,
         documents: true,
         calendar: false
-      }
+      },
+      isDefault: false
     }
   }
 ];
@@ -167,7 +170,7 @@ export const getAssociationById = (id: string): Promise<Association | undefined>
 export const createAssociation = (association: Omit<Association, 'id'>): Promise<Association> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const newAssociation = {
+      const newAssociation: Association = {
         ...association,
         id: Math.random().toString(36).substr(2, 9),
       };
@@ -266,10 +269,14 @@ export const toggleAssociationStatus = (id: string): Promise<Association> => {
     setTimeout(() => {
       const index = associations.findIndex(a => a.id === id);
       if (index !== -1) {
-        const updatedAssociation = {
+        const currentStatus = associations[index].status;
+        const newStatus: 'active' | 'inactive' = currentStatus === 'active' ? 'inactive' : 'active';
+        
+        const updatedAssociation: Association = {
           ...associations[index],
-          status: associations[index].status === 'active' ? 'inactive' : 'active'
+          status: newStatus
         };
+        
         associations = [
           ...associations.slice(0, index),
           updatedAssociation,
