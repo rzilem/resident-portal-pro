@@ -1,214 +1,85 @@
 
-import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { Settings, DollarSign, CreditCard, Landmark } from 'lucide-react';
+import GlAccounts from '@/components/settings/financial/GlAccounts';
+import PaymentMethods from '@/components/settings/financial/PaymentMethods';
+import InvoiceSettings from '@/components/settings/financial/InvoiceSettings';
+import { Association } from '../types';
 
 interface FinancialSettingsProps {
-  handleSettingChange: (settingName: string, value: any) => void;
-  getSetting: (key: string, fallback?: any) => any;
+  association: Association;
+  handleSettingChange: (key: string, value: any) => Promise<void>;
+  getSetting: (key: string, defaultValue: any) => any;
 }
 
-const FinancialSettings = ({ handleSettingChange, getSetting }: FinancialSettingsProps) => {
+const FinancialSettings: React.FC<FinancialSettingsProps> = ({ 
+  association, 
+  handleSettingChange,
+  getSetting
+}) => {
+  const [activeTab, setActiveTab] = useState('general');
+
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-4">
-        <h3 className="text-lg font-medium">Fiscal Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="fiscal-year-start">Fiscal Year Start (MM/DD)</Label>
-            <Input 
-              id="fiscal-year-start"
-              value={getSetting('fiscalYearStart', '01/01')}
-              onChange={(e) => handleSettingChange('fiscalYearStart', e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="currency">Currency</Label>
-            <Select
-              value={getSetting('currency', 'USD')}
-              onValueChange={(value) => handleSettingChange('currency', value)}
-            >
-              <SelectTrigger id="currency">
-                <SelectValue placeholder="Select currency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="CAD">CAD (C$)</SelectItem>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="GBP">GBP (£)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="currency-symbol">Currency Symbol</Label>
-            <Input 
-              id="currency-symbol"
-              value={getSetting('currencySymbol', '$')}
-              onChange={(e) => handleSettingChange('currencySymbol', e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="due-day">Monthly Due Day</Label>
-            <Select
-              value={getSetting('dueDay', '1')}
-              onValueChange={(value) => handleSettingChange('dueDay', value)}
-            >
-              <SelectTrigger id="due-day">
-                <SelectValue placeholder="Select due day" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({length: 31}, (_, i) => i + 1).map(day => (
-                  <SelectItem key={day} value={day.toString()}>{day}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <DollarSign className="h-6 w-6" />
+          Financial Settings
+        </h2>
+        <Button asChild variant="outline" className="gap-1">
+          <Link to="/accounting/gl-accounts">
+            <Landmark className="h-4 w-4 mr-1" />
+            Manage GL Accounts
+          </Link>
+        </Button>
       </div>
       
-      <Separator />
-      
-      <div className="grid gap-4">
-        <h3 className="text-lg font-medium">Payment Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="allow-online-payments">Allow Online Payments</Label>
-              <Switch 
-                id="allow-online-payments"
-                checked={getSetting('allowOnlinePayments', true)}
-                onCheckedChange={(checked) => handleSettingChange('allowOnlinePayments', checked)}
-              />
-            </div>
-          </div>
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger>
+          <TabsTrigger value="gl-accounts">GL Accounts</TabsTrigger>
+          <TabsTrigger value="invoices">Invoice Settings</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="general" className="space-y-4 pt-4">
+          <p className="text-muted-foreground">
+            Configure general financial settings for this association.
+          </p>
           
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="allow-autopay">Allow AutoPay Enrollment</Label>
-              <Switch 
-                id="allow-autopay"
-                checked={getSetting('allowAutopay', true)}
-                onCheckedChange={(checked) => handleSettingChange('allowAutopay', checked)}
-              />
-            </div>
+          {/* We'll add general financial settings here later */}
+          <div className="border rounded-md p-6 flex justify-center items-center min-h-[200px]">
+            <p className="text-muted-foreground">General financial settings will be added here</p>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="charge-convenience-fee">Charge Convenience Fee</Label>
-              <Switch 
-                id="charge-convenience-fee"
-                checked={getSetting('chargeConvenienceFee', false)}
-                onCheckedChange={(checked) => handleSettingChange('chargeConvenienceFee', checked)}
-              />
-            </div>
-          </div>
-          
-          {getSetting('chargeConvenienceFee', false) && (
-            <div className="space-y-2">
-              <Label htmlFor="convenience-fee">Convenience Fee (%)</Label>
-              <Input 
-                id="convenience-fee"
-                type="number"
-                value={getSetting('convenienceFee', '3.0')}
-                onChange={(e) => handleSettingChange('convenienceFee', e.target.value)}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <Separator />
-      
-      <div className="grid gap-4">
-        <h3 className="text-lg font-medium">Late Fee Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="enable-late-fees">Enable Late Fees</Label>
-              <Switch 
-                id="enable-late-fees"
-                checked={getSetting('enableLateFees', true)}
-                onCheckedChange={(checked) => handleSettingChange('enableLateFees', checked)}
-              />
-            </div>
-          </div>
-          
-          {getSetting('enableLateFees', true) && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="late-fee-type">Late Fee Type</Label>
-                <Select
-                  value={getSetting('lateFeeType', 'fixed')}
-                  onValueChange={(value) => handleSettingChange('lateFeeType', value)}
-                >
-                  <SelectTrigger id="late-fee-type">
-                    <SelectValue placeholder="Select late fee type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">Fixed Amount</SelectItem>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="late-fee-amount">
-                  {getSetting('lateFeeType', 'fixed') === 'fixed' 
-                    ? 'Late Fee Amount' 
-                    : 'Late Fee Percentage'}
-                </Label>
-                <div className="flex">
-                  {getSetting('lateFeeType', 'fixed') === 'fixed' && (
-                    <span className="flex items-center bg-muted px-3 rounded-l-md border-y border-l border-input">
-                      {getSetting('currencySymbol', '$')}
-                    </span>
-                  )}
-                  <Input 
-                    id="late-fee-amount"
-                    type="number"
-                    className={getSetting('lateFeeType', 'fixed') === 'fixed' ? "rounded-l-none" : ""}
-                    value={getSetting('lateFeeAmount', '25')}
-                    onChange={(e) => handleSettingChange('lateFeeAmount', e.target.value)}
-                  />
-                  {getSetting('lateFeeType', 'fixed') === 'percentage' && (
-                    <span className="flex items-center bg-muted px-3 rounded-r-md border-y border-r border-input">
-                      %
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="late-fee-grace-days">Grace Period (Days)</Label>
-                <Input 
-                  id="late-fee-grace-days"
-                  type="number"
-                  value={getSetting('lateFeeGraceDays', '10')}
-                  onChange={(e) => handleSettingChange('lateFeeGraceDays', e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="compound-late-fees">Compound Late Fees Monthly</Label>
-                  <Switch 
-                    id="compound-late-fees"
-                    checked={getSetting('compoundLateFees', false)}
-                    onCheckedChange={(checked) => handleSettingChange('compoundLateFees', checked)}
-                  />
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="payment-methods" className="space-y-4 pt-4">
+          <PaymentMethods
+            association={association}
+            handleSettingChange={handleSettingChange}
+            getSetting={getSetting}
+          />
+        </TabsContent>
+        
+        <TabsContent value="gl-accounts" className="space-y-4 pt-4">
+          <GlAccounts
+            association={association}
+            handleSettingChange={handleSettingChange}
+            getSetting={getSetting}
+          />
+        </TabsContent>
+        
+        <TabsContent value="invoices" className="space-y-4 pt-4">
+          <InvoiceSettings
+            association={association}
+            handleSettingChange={handleSettingChange}
+            getSetting={getSetting}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

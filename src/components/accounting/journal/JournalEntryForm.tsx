@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { JournalEntry, JournalEntryLine, GLAccount } from '@/types/accounting';
+import { JournalEntry, JournalEntryLine } from '@/types/accounting';
 import { useToast } from '@/components/ui/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { predefinedGlAccounts } from '../gl-accounts/predefined-accounts';
 
 interface JournalEntryFormProps {
   entry?: JournalEntry | null;
@@ -43,17 +43,8 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
   const [totalDebit, setTotalDebit] = useState(0);
   const [totalCredit, setTotalCredit] = useState(0);
 
-  // Mock data for chart of accounts
-  const [accounts] = useState<GLAccount[]>([
-    { id: '1', code: '1000', name: 'Cash', category: 'Assets', type: 'Asset', isActive: true },
-    { id: '2', code: '1100', name: 'Accounts Receivable', category: 'Assets', type: 'Asset', isActive: true },
-    { id: '3', code: '4000', name: 'Assessment Income', category: 'Income', type: 'Income', isActive: true },
-    { id: '4', code: '5000', name: 'Office Supplies', category: 'Expenses', type: 'Expense', isActive: true },
-    { id: '5', code: '2000', name: 'Accounts Payable', category: 'Liabilities', type: 'Liability', isActive: true },
-    { id: '6', code: '3000', name: 'Retained Earnings', category: 'Equity', type: 'Equity', isActive: true },
-  ]);
+  const accounts = predefinedGlAccounts;
 
-  // Initialize form if editing an existing entry
   useEffect(() => {
     if (entry) {
       setFormData({
@@ -63,7 +54,6 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
     }
   }, [entry]);
 
-  // Calculate totals and check balance
   useEffect(() => {
     const debitTotal = formData.lines.reduce((sum, line) => sum + line.debit, 0);
     const creditTotal = formData.lines.reduce((sum, line) => sum + line.credit, 0);
@@ -120,7 +110,6 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
         [field]: value
       };
       
-      // If this is an account change, update the account name
       if (field === 'accountId') {
         const account = accounts.find(a => a.id === value);
         if (account) {
@@ -156,14 +145,12 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
       return;
     }
 
-    // Prepare data for saving
     const journalEntry: JournalEntry = {
       ...formData,
       id: formData.id || `JE-${new Date().getTime()}`,
       updatedAt: new Date().toISOString()
     };
 
-    // Here you would typically save the journal entry to your database
     console.log('Saving journal entry:', journalEntry);
     
     toast({
@@ -171,7 +158,6 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
       description: `Journal entry ${journalEntry.reference} has been ${entry ? 'updated' : 'created'} successfully`
     });
     
-    // Call the onComplete callback to return to the list view
     onComplete();
   };
 
@@ -199,6 +185,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
                 required
               />
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="reference">Reference #</Label>
               <Input
@@ -277,7 +264,36 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
                         <SelectValue placeholder="Select an account" />
                       </SelectTrigger>
                       <SelectContent>
-                        {accounts.map(account => (
+                        <SelectItem value="" disabled>-- Assets --</SelectItem>
+                        {accounts.filter(a => a.type === 'Asset').map(account => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.code} - {account.name}
+                          </SelectItem>
+                        ))}
+                        
+                        <SelectItem value="" disabled>-- Liabilities --</SelectItem>
+                        {accounts.filter(a => a.type === 'Liability').map(account => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.code} - {account.name}
+                          </SelectItem>
+                        ))}
+                        
+                        <SelectItem value="" disabled>-- Equity --</SelectItem>
+                        {accounts.filter(a => a.type === 'Equity').map(account => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.code} - {account.name}
+                          </SelectItem>
+                        ))}
+                        
+                        <SelectItem value="" disabled>-- Income --</SelectItem>
+                        {accounts.filter(a => a.type === 'Income').map(account => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.code} - {account.name}
+                          </SelectItem>
+                        ))}
+                        
+                        <SelectItem value="" disabled>-- Expenses --</SelectItem>
+                        {accounts.filter(a => a.type === 'Expense').map(account => (
                           <SelectItem key={account.id} value={account.id}>
                             {account.code} - {account.name}
                           </SelectItem>
@@ -326,7 +342,6 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
                 </TableRow>
               ))}
               
-              {/* Totals row */}
               <TableRow className="border-t-2">
                 <TableCell colSpan={2} className="text-right font-medium">
                   Totals
@@ -340,7 +355,6 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }
                 <TableCell></TableCell>
               </TableRow>
               
-              {/* Difference row */}
               <TableRow className={!isBalanced ? "bg-red-50" : ""}>
                 <TableCell colSpan={2} className="text-right font-medium">
                   Difference

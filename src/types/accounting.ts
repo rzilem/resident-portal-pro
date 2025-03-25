@@ -26,4 +26,12 @@ export interface GLAccount {
   category: string;
   type: string;
   isActive: boolean;
+  associationId?: string; // Optional for association-specific accounts
+  isMaster?: boolean;     // Indicates if this is a master account
+  description?: string;   // Optional detailed description
 }
+
+// Types for account categories
+export type GLAccountType = 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense';
+
+export type GLAccountCategory = 'Assets' | 'Liabilities' | 'Equity' | 'Revenue' | 'Expenses' | 'Other';
