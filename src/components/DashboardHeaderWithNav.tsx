@@ -17,9 +17,16 @@ import {
 interface DashboardHeaderWithNavProps {
   toggleSidebar?: () => void;
   title?: string;
+  description?: string;
+  icon?: React.ReactNode;
 }
 
-const DashboardHeaderWithNav = ({ toggleSidebar, title = "Dashboard" }: DashboardHeaderWithNavProps) => {
+const DashboardHeaderWithNav = ({ 
+  toggleSidebar, 
+  title = "Dashboard",
+  description,
+  icon
+}: DashboardHeaderWithNavProps) => {
   const isMobile = useIsMobile();
 
   return (
@@ -37,7 +44,15 @@ const DashboardHeaderWithNav = ({ toggleSidebar, title = "Dashboard" }: Dashboar
           </Button>
         )}
         
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <div className="flex items-center gap-2">
+          {icon && <div className="text-muted-foreground">{icon}</div>}
+          <div>
+            <h1 className="text-xl font-semibold">{title}</h1>
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            )}
+          </div>
+        </div>
         
         <MainNav />
       </div>
