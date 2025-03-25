@@ -1,20 +1,30 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, Users, Home, ChevronRight, CalendarClock, DollarSign, MapPin } from 'lucide-react';
+import { Building, Users, Home, ChevronRight, CalendarClock, DollarSign, MapPin, Download, Check, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import PropertyColumnsSelector, { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
+import { useSettings } from '@/hooks/use-settings';
+import { exportToExcel } from '@/utils/exportToExcel';
 
 const Properties = () => {
   const isMobile = useIsMobile();
+  const { preferences, updatePreference } = useSettings();
   
+  // Enhanced property data with additional fields
   const properties = [
     { 
       name: 'Oakwood Heights', 
       type: 'Condominium', 
       units: '48', 
-      location: 'Seattle, WA', 
+      location: 'Seattle, WA',
+      county: 'King',
+      taxId: 'TX-12345',
+      hasPool: true,
+      hasGate: true,
+      hasPedestrianGate: false,
       status: 'Active',
       foundedDate: '2010-05-14',
       annualFees: '$125,000',
@@ -27,7 +37,12 @@ const Properties = () => {
       name: 'Willow Creek Estates', 
       type: 'HOA', 
       units: '86', 
-      location: 'Portland, OR', 
+      location: 'Portland, OR',
+      county: 'Multnomah',
+      taxId: 'TX-23456',
+      hasPool: true,
+      hasGate: false,
+      hasPedestrianGate: true,
       status: 'Active',
       foundedDate: '2008-09-22',
       annualFees: '$215,000',
@@ -40,7 +55,12 @@ const Properties = () => {
       name: 'Riverfront Towers', 
       type: 'Condominium', 
       units: '64', 
-      location: 'Denver, CO', 
+      location: 'Denver, CO',
+      county: 'Denver',
+      taxId: 'TX-34567',
+      hasPool: true,
+      hasGate: true,
+      hasPedestrianGate: true,
       status: 'Active',
       foundedDate: '2015-03-15',
       annualFees: '$176,000',
@@ -53,7 +73,12 @@ const Properties = () => {
       name: 'Sunset Gardens', 
       type: 'HOA', 
       units: '32', 
-      location: 'San Diego, CA', 
+      location: 'San Diego, CA',
+      county: 'San Diego',
+      taxId: 'TX-45678',
+      hasPool: false,
+      hasGate: false,
+      hasPedestrianGate: false,
       status: 'Maintenance',
       foundedDate: '2012-07-08',
       annualFees: '$78,000',
@@ -66,7 +91,12 @@ const Properties = () => {
       name: 'Pine Valley Community', 
       type: 'HOA', 
       units: '26', 
-      location: 'Austin, TX', 
+      location: 'Austin, TX',
+      county: 'Travis',
+      taxId: 'TX-56789',
+      hasPool: false,
+      hasGate: true,
+      hasPedestrianGate: false,
       status: 'Active',
       foundedDate: '2018-11-29',
       annualFees: '$62,000',
@@ -76,6 +106,82 @@ const Properties = () => {
       residents: '58'
     },
   ];
+  
+  // Define all available columns
+  const defaultColumns: PropertyColumn[] = [
+    { id: 'name', label: 'Property Name', checked: true },
+    { id: 'type', label: 'Type', checked: true },
+    { id: 'units', label: 'Units', checked: true },
+    { id: 'residents', label: 'Residents', checked: true },
+    { id: 'location', label: 'Location', checked: true },
+    { id: 'county', label: 'County', checked: false },
+    { id: 'taxId', label: 'Tax ID', checked: false },
+    { id: 'foundedDate', label: 'Founded Date', checked: true },
+    { id: 'annualFees', label: 'Annual Fees', checked: true },
+    { id: 'manager', label: 'Manager', checked: true },
+    { id: 'hasPool', label: 'Has Pool', checked: false },
+    { id: 'hasGate', label: 'Has Gate', checked: false },
+    { id: 'hasPedestrianGate', label: 'Has Pedestrian Gate', checked: false },
+    { id: 'status', label: 'Status', checked: true }
+  ];
+  
+  // State for selected columns
+  const [columns, setColumns] = useState<PropertyColumn[]>(
+    preferences?.propertyTableColumns || defaultColumns
+  );
+  
+  // Update columns when preferences change
+  useEffect(() => {
+    if (preferences?.propertyTableColumns) {
+      setColumns(preferences.propertyTableColumns);
+    }
+  }, [preferences]);
+  
+  // Handle column selection changes
+  const handleColumnsChange = (newColumns: PropertyColumn[]) => {
+    // Make sure at least one column is selected
+    const hasCheckedColumn = newColumns.some(col => col.checked);
+    
+    if (hasCheckedColumn) {
+      setColumns(newColumns);
+    }
+  };
+  
+  // Handle export to Excel
+  const handleExport = () => {
+    // Only include visible columns and format data for export
+    const visibleColumns = columns.filter(col => col.checked);
+    const exportData = properties.map(property => {
+      const exportObj: Record<string, any> = {};
+      
+      visibleColumns.forEach(col => {
+        let value = property[col.id as keyof typeof property];
+        
+        // Format boolean values
+        if (typeof value === 'boolean') {
+          value = value ? 'Yes' : 'No';
+        }
+        
+        exportObj[col.label] = value;
+      });
+      
+      return exportObj;
+    });
+    
+    exportToExcel(exportData, 'Property_Report');
+  };
+  
+  // Render Yes/No for boolean values
+  const renderBooleanValue = (value: boolean) => (
+    <span className="flex items-center">
+      {value ? (
+        <Check className="h-4 w-4 text-green-600 mr-1" />
+      ) : (
+        <X className="h-4 w-4 text-red-600 mr-1" />
+      )}
+      {value ? 'Yes' : 'No'}
+    </span>
+  );
   
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
@@ -107,11 +213,28 @@ const Properties = () => {
         </section>
         
         <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>Property List</CardTitle>
-            <CardDescription>
-              Complete list of properties in your portfolio
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Property List</CardTitle>
+              <CardDescription>
+                Complete list of properties in your portfolio
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <PropertyColumnsSelector 
+                columns={columns} 
+                onChange={handleColumnsChange} 
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 gap-1"
+                onClick={handleExport}
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden md:inline">Export</span>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {/* Mobile view */}
@@ -128,34 +251,16 @@ const Properties = () => {
                       </span>
                     </div>
                     <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Type:</span>
-                        <span>{property.type}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Units:</span>
-                        <span>{property.units}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Location:</span>
-                        <span>{property.location}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Founded:</span>
-                        <span>{new Date(property.foundedDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Manager:</span>
-                        <span>{property.manager}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Residents:</span>
-                        <span>{property.residents}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Annual Fees:</span>
-                        <span>{property.annualFees}</span>
-                      </div>
+                      {columns.filter(col => col.checked && col.id !== 'name' && col.id !== 'status').map(col => (
+                        <div key={col.id} className="flex justify-between">
+                          <span className="text-muted-foreground">{col.label}:</span>
+                          <span>
+                            {typeof property[col.id as keyof typeof property] === 'boolean' 
+                              ? (property[col.id as keyof typeof property] ? 'Yes' : 'No')
+                              : property[col.id as keyof typeof property]}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                     <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
                       View Details <ChevronRight className="h-4 w-4" />
@@ -170,50 +275,50 @@ const Properties = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Property Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Units</TableHead>
-                    <TableHead>Residents</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        <CalendarClock className="h-4 w-4 mr-2" />
-                        Founded
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Annual Fees
-                      </div>
-                    </TableHead>
-                    <TableHead>Manager</TableHead>
-                    <TableHead>Status</TableHead>
+                    {columns.map(col => col.checked && (
+                      <TableHead key={col.id}>
+                        {col.id === 'foundedDate' ? (
+                          <div className="flex items-center">
+                            <CalendarClock className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.id === 'annualFees' ? (
+                          <div className="flex items-center">
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.id === 'location' ? (
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.label}
+                      </TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {properties.map((property, i) => (
                     <TableRow key={i} className="cursor-pointer hover:bg-muted">
-                      <TableCell className="font-medium">{property.name}</TableCell>
-                      <TableCell>{property.type}</TableCell>
-                      <TableCell>{property.units}</TableCell>
-                      <TableCell>{property.residents}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                          {property.location}
-                        </div>
-                      </TableCell>
-                      <TableCell>{new Date(property.foundedDate).toLocaleDateString()}</TableCell>
-                      <TableCell>{property.annualFees}</TableCell>
-                      <TableCell>{property.manager}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {property.status}
-                        </span>
-                      </TableCell>
+                      {columns.map(col => col.checked && (
+                        <TableCell key={col.id}>
+                          {col.id === 'name' ? (
+                            <span className="font-medium">{property.name}</span>
+                          ) : col.id === 'status' ? (
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {property.status}
+                            </span>
+                          ) : col.id === 'foundedDate' ? (
+                            new Date(property.foundedDate).toLocaleDateString()
+                          ) : typeof property[col.id as keyof typeof property] === 'boolean' ? (
+                            renderBooleanValue(property[col.id as keyof typeof property] as boolean)
+                          ) : (
+                            property[col.id as keyof typeof property]
+                          )}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))}
                 </TableBody>

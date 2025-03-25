@@ -4,6 +4,7 @@
  */
 
 import { DashboardLayout } from './dashboard';
+import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 
 export interface User {
   id: string;
@@ -39,4 +40,5 @@ export interface UserPreferences {
   calendarView?: 'day' | 'week' | 'month' | 'agenda';
   dashboardLayout?: DashboardLayout;
   dashboardWidgets?: string[];
+  propertyTableColumns?: PropertyColumn[];
 }
