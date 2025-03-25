@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar, calendarStyles } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { format, isSameDay, parseISO } from 'date-fns';
-import { CalendarEvent, CalendarAccessLevel } from '@/types/calendar';
+import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
 import { useCalendar } from '@/hooks/use-calendar';
 import CalendarEventDialog from './CalendarEventDialog';
 import CalendarFilters from './CalendarFilters';
@@ -54,6 +54,37 @@ const CalendarView = ({
     const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
     return isSameDay(eventStart, selectedDate);
   });
+  
+  const getEventTypeForDay = (date: Date): CalendarEventType | undefined => {
+    const dayEvents = events.filter(event => {
+      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
+      return isSameDay(eventStart, date);
+    });
+    
+    if (dayEvents.length === 0) return undefined;
+    
+    const typeCounts = dayEvents.reduce((counts, event) => {
+      counts[event.type] = (counts[event.type] || 0) + 1;
+      return counts;
+    }, {} as Record<CalendarEventType, number>);
+    
+    let maxCount = 0;
+    let predominantType: CalendarEventType | undefined;
+    
+    Object.entries(typeCounts).forEach(([type, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        predominantType = type as CalendarEventType;
+      }
+    });
+    
+    return predominantType;
+  };
+  
+  const getDayClass = (date: Date): string => {
+    const eventType = getEventTypeForDay(date);
+    return eventType ? calendarStyles.eventColors[eventType] : calendarStyles.eventColors.default;
+  };
   
   const handlePrevious = () => {
     setCurrentDate(prev => {
@@ -145,7 +176,7 @@ const CalendarView = ({
                     })
                 }}
                 modifiersClassNames={{
-                  hasEvent: "relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:bg-primary/10 before:rounded-full"
+                  hasEvent: (date) => `relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:${getDayClass(date)} before:rounded-full`
                 }}
                 styles={{
                   day: { width: '2.25rem', height: '2.25rem' }

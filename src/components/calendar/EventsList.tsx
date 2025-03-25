@@ -3,7 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
-import { CalendarEvent } from '@/types/calendar';
+import { CalendarEvent, CalendarEventType } from '@/types/calendar';
 
 interface EventsListProps {
   selectedDate: Date;
@@ -11,6 +11,28 @@ interface EventsListProps {
   isLoading: boolean;
   onSelectEvent: (event: CalendarEvent) => void;
 }
+
+// Event type color mapping
+const eventTypeColors: Record<CalendarEventType, string> = {
+  meeting: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+  maintenance: 'bg-amber-100 text-amber-800 hover:bg-amber-200',
+  holiday: 'bg-red-100 text-red-800 hover:bg-red-200',
+  deadline: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+  workflow: 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200',
+  community: 'bg-green-100 text-green-800 hover:bg-green-200',
+  custom: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+};
+
+// Badge variant mapping
+const badgeVariants: Record<CalendarEventType, string> = {
+  meeting: 'blue',
+  maintenance: 'amber',
+  holiday: 'destructive',
+  deadline: 'purple',
+  workflow: 'indigo',
+  community: 'green',
+  custom: 'default'
+};
 
 const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsListProps) => {
   return (
@@ -29,7 +51,7 @@ const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsLi
             {events.map((event) => (
               <div 
                 key={event.id} 
-                className="p-3 rounded-md border hover:bg-accent cursor-pointer transition-colors"
+                className={`p-3 rounded-md border cursor-pointer transition-colors ${eventTypeColors[event.type]}`}
                 onClick={() => onSelectEvent(event)}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -49,7 +71,8 @@ const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsLi
                       <p className="text-sm text-muted-foreground truncate">{event.location}</p>
                     )}
                   </div>
-                  <Badge variant={event.type === 'holiday' ? 'destructive' : 'default'}>
+                  <Badge variant={event.type === 'holiday' ? 'destructive' : 'default'} 
+                         className={`${event.type !== 'holiday' ? 'bg-opacity-90' : ''}`}>
                     {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                   </Badge>
                 </div>

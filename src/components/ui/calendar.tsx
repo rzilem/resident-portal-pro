@@ -8,6 +8,21 @@ import { buttonVariants } from "@/components/ui/button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
+// Custom styles for the calendar
+const calendarStyles = {
+  // Event type colors with opacity for day markers
+  eventColors: {
+    meeting: "bg-blue-500/30",
+    maintenance: "bg-amber-500/30",
+    holiday: "bg-red-500/30",
+    deadline: "bg-purple-500/30",
+    workflow: "bg-indigo-500/30",
+    community: "bg-green-500/30",
+    custom: "bg-gray-500/30",
+    default: "bg-primary/10"
+  }
+};
+
 function Calendar({
   className,
   classNames,
@@ -62,4 +77,4 @@ function Calendar({
 }
 Calendar.displayName = "Calendar";
 
-export { Calendar };
+export { Calendar, calendarStyles };
