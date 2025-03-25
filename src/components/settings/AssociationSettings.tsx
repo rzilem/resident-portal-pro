@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil } from "lucide-react";
+import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 // Import components
@@ -9,6 +9,55 @@ import AssociationDialog from './associations/AssociationDialog';
 import SettingTabs from './associations/SettingTabs';
 import { Association, SettingSection, AssociationMenuCategory } from './associations/types';
 import { useAssociations } from '@/hooks/use-associations';
+
+// Define setting sections and menu categories
+const settingSections: SettingSection[] = [
+  { id: 'basic', title: 'Basic', icon: Building, description: 'Basic association information' },
+  { id: 'financial', title: 'Financial', icon: DollarSign, description: 'Financial settings' },
+  { id: 'documents', title: 'Documents', icon: FileText, description: 'Document management settings' },
+  { id: 'communications', title: 'Communications', icon: Mail, description: 'Communication settings' },
+  { id: 'meetings', title: 'Meetings', icon: Calendar, description: 'Meeting settings' },
+  { id: 'notifications', title: 'Notifications', icon: Bell, description: 'Notification preferences' },
+];
+
+const menuCategories: AssociationMenuCategory[] = [
+  {
+    id: 'general',
+    title: 'General',
+    items: [
+      { id: 'overview', title: 'Overview', icon: Home, route: '/settings/associations/overview', hasSubmenu: false },
+      { id: 'properties', title: 'Properties', icon: Building, route: '/settings/associations/properties', hasSubmenu: true },
+      { id: 'residents', title: 'Residents', icon: Users, route: '/settings/associations/residents', hasSubmenu: true },
+      { id: 'company-info', title: 'Company Info', icon: Briefcase, route: '/settings/associations/company-info', hasSubmenu: false },
+    ]
+  },
+  {
+    id: 'finance',
+    title: 'Finance',
+    items: [
+      { id: 'fees', title: 'Fees & Assessments', icon: DollarSign, route: '/settings/associations/fees', hasSubmenu: false },
+      { id: 'accounts', title: 'Bank Accounts', icon: BanknoteIcon, route: '/settings/associations/accounts', hasSubmenu: false },
+      { id: 'gl-accounts', title: 'GL Accounts', icon: Landmark, route: '/settings/associations/gl-accounts', hasSubmenu: false },
+      { id: 'payment-methods', title: 'Payment Methods', icon: CreditCard, route: '/settings/associations/payment-methods', hasSubmenu: false },
+    ]
+  },
+  {
+    id: 'documents',
+    title: 'Documents',
+    items: [
+      { id: 'templates', title: 'Templates', icon: FileCheck, route: '/settings/associations/templates', hasSubmenu: false },
+      { id: 'categories', title: 'Categories', icon: Folder, route: '/settings/associations/document-categories', hasSubmenu: false },
+    ]
+  },
+  {
+    id: 'admin',
+    title: 'Administration',
+    items: [
+      { id: 'roles', title: 'Roles & Permissions', icon: Shield, route: '/settings/associations/roles', hasSubmenu: false },
+      { id: 'integrations', title: 'Integrations', icon: PanelLeft, route: '/settings/associations/integrations', hasSubmenu: false },
+    ]
+  },
+];
 
 const AssociationSettings = () => {
   const {
@@ -29,6 +78,7 @@ const AssociationSettings = () => {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [associationToEdit, setAssociationToEdit] = useState<Association | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState('basic');
 
   useEffect(() => {
     fetchAssociations();
@@ -109,7 +159,14 @@ const AssociationSettings = () => {
       {activeAssociation && (
         <SettingTabs 
           activeAssociation={activeAssociation}
+          associations={associations}
+          activeSettingsTab={activeSettingsTab}
+          setActiveSettingsTab={setActiveSettingsTab}
+          settingSections={settingSections}
+          menuCategories={menuCategories}
+          selectAssociation={selectAssociation}
           handleSettingChange={handleSettingChange}
+          updateAssociation={updateAssociation}
         />
       )}
 
