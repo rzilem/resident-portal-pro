@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar, calendarStyles } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { format, isSameDay, parseISO } from 'date-fns';
@@ -81,9 +81,25 @@ const CalendarView = ({
     return predominantType;
   };
   
+  const eventDayClasses = React.useMemo(() => {
+    const classMap: Record<string, string> = {};
+    
+    events.forEach(event => {
+      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
+      const dateKey = format(eventStart, 'yyyy-MM-dd');
+      const eventType = event.type;
+      
+      if (eventType) {
+        classMap[dateKey] = `relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:${calendarStyles.eventColors[eventType]} before:rounded-full`;
+      }
+    });
+    
+    return classMap;
+  }, [events]);
+  
   const getDayClass = (date: Date): string => {
-    const eventType = getEventTypeForDay(date);
-    return eventType ? calendarStyles.eventColors[eventType] : calendarStyles.eventColors.default;
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return eventDayClasses[dateKey] || '';
   };
   
   const handlePrevious = () => {
@@ -176,10 +192,33 @@ const CalendarView = ({
                     })
                 }}
                 modifiersClassNames={{
-                  hasEvent: (date) => `relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:${getDayClass(date)} before:rounded-full`
+                  hasEvent: "has-event"
                 }}
                 styles={{
                   day: { width: '2.25rem', height: '2.25rem' }
+                }}
+                components={{
+                  DayContent: (props) => {
+                    const { date } = props;
+                    const hasEvents = events.some(event => {
+                      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
+                      return isSameDay(eventStart, date);
+                    });
+                    
+                    if (hasEvents) {
+                      const eventType = getEventTypeForDay(date);
+                      const eventClass = eventType ? calendarStyles.eventColors[eventType] : calendarStyles.eventColors.default;
+                      
+                      return (
+                        <div className="relative flex h-full w-full items-center justify-center">
+                          {props.children}
+                          <div className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${eventClass}`} />
+                        </div>
+                      );
+                    }
+                    
+                    return props.children;
+                  }
                 }}
               />
             </CardContent>
