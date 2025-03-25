@@ -31,9 +31,10 @@ const RolesPermissionManagement = () => {
     toast.success(`Security level for ${role} updated to ${level}`);
   };
   
+  // Updated to call the function to get the ReactNode
   const renderSecurityLevel = (level: SecurityLevel) => (
     <div className="flex items-center gap-2">
-      {securityLevelIcons[level]}
+      {securityLevelIcons[level]()}
       <span className="capitalize">{level}</span>
     </div>
   );
