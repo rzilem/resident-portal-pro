@@ -56,3 +56,41 @@ export function exportToExcel(data: any[], fileName: string = 'export') {
   // Clean up
   document.body.removeChild(link);
 }
+
+// Add a template generator for onboarding CSV
+export function generateOnboardingTemplate() {
+  // Define all fields needed for onboarding
+  const templateFields = [
+    "name",
+    "type",
+    "units",
+    "location",
+    "city",
+    "county",
+    "taxId",
+    "hasPool",
+    "hasGate",
+    "hasPedestrianGate",
+    "status",
+    "foundedDate",
+    "annualFees",
+    "manager",
+    "contactEmail",
+    "contactPhone",
+    "residents",
+    "offsiteAddresses",
+    "leases",
+    "serviceType"
+  ];
+  
+  // Create an empty row with headers only
+  const templateData = [
+    templateFields.reduce((acc, field) => {
+      acc[field] = '';
+      return acc;
+    }, {} as Record<string, string>)
+  ];
+  
+  // Export the template
+  exportToExcel(templateData, 'Association_Onboarding_Template');
+}

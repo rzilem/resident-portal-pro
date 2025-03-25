@@ -117,6 +117,19 @@ export interface AssociationSettings {
   notifyViolations?: boolean;
   notifyBoardDecisions?: boolean;
   
+  // Property-specific settings (for custom columns)
+  county?: string;
+  taxId?: string;
+  hasPool?: boolean;
+  hasGate?: boolean;
+  hasPedestrianGate?: boolean;
+  annualFees?: string;
+  manager?: string;
+  residents?: string;
+  offsiteAddresses?: string;
+  leases?: string;
+  serviceType?: string;
+  
   // Add isDefault property
   isDefault?: boolean;
 }

@@ -6,124 +6,158 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import PropertyColumnsSelector, { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 import { useSettings } from '@/hooks/use-settings';
-import { exportToExcel } from '@/utils/exportToExcel';
+import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
+import { useAssociations } from '@/hooks/use-associations';
+import { toast } from 'sonner';
 
 const Properties = () => {
   const isMobile = useIsMobile();
   const { preferences, updatePreference } = useSettings();
+  const { associations } = useAssociations();
   
-  const properties = [
-    { 
-      name: 'Oakwood Heights', 
-      type: 'Condominium', 
-      units: '48', 
-      location: 'Seattle, WA',
-      city: 'Seattle',
-      county: 'King',
-      taxId: 'TX-12345',
-      hasPool: true,
-      hasGate: true,
-      hasPedestrianGate: false,
-      status: 'Active',
-      foundedDate: '2010-05-14',
-      annualFees: '$125,000',
-      manager: 'John Smith',
-      contactEmail: 'info@oakwoodheights.com',
-      contactPhone: '(206) 555-1234',
-      residents: '112',
-      offsiteAddresses: '6',
-      leases: '12',
-      serviceType: 'Full-Service'
-    },
-    { 
-      name: 'Willow Creek Estates', 
-      type: 'HOA', 
-      units: '86', 
-      location: 'Portland, OR',
-      city: 'Portland',
-      county: 'Multnomah',
-      taxId: 'TX-23456',
-      hasPool: true,
-      hasGate: false,
-      hasPedestrianGate: true,
-      status: 'Active',
-      foundedDate: '2008-09-22',
-      annualFees: '$215,000',
-      manager: 'Sarah Johnson',
-      contactEmail: 'info@willowcreek.org',
-      contactPhone: '(503) 555-6789',
-      residents: '192',
-      offsiteAddresses: '14',
-      leases: '25',
-      serviceType: 'Self-Managed'
-    },
-    { 
-      name: 'Riverfront Towers', 
-      type: 'Condominium', 
-      units: '64', 
-      location: 'Denver, CO',
-      city: 'Denver',
-      county: 'Denver',
-      taxId: 'TX-34567',
-      hasPool: true,
-      hasGate: true,
-      hasPedestrianGate: true,
-      status: 'Active',
-      foundedDate: '2015-03-15',
-      annualFees: '$176,000',
-      manager: 'Michael Brown',
-      contactEmail: 'info@riverfronttowers.com',
-      contactPhone: '(303) 555-4321',
-      residents: '143',
-      offsiteAddresses: '8',
-      leases: '17',
-      serviceType: 'Full-Service'
-    },
-    { 
-      name: 'Sunset Gardens', 
-      type: 'HOA', 
-      units: '32', 
-      location: 'San Diego, CA',
-      city: 'San Diego',
-      county: 'San Diego',
-      taxId: 'TX-45678',
-      hasPool: false,
-      hasGate: false,
-      hasPedestrianGate: false,
-      status: 'Maintenance',
-      foundedDate: '2012-07-08',
-      annualFees: '$78,000',
-      manager: 'Emily Wilson',
-      contactEmail: 'info@sunsetgardens.org',
-      contactPhone: '(619) 555-8765',
-      residents: '76',
-      offsiteAddresses: '3',
-      leases: '7',
-      serviceType: 'Partial'
-    },
-    { 
-      name: 'Pine Valley Community', 
-      type: 'HOA', 
-      units: '26', 
-      location: 'Austin, TX',
-      city: 'Austin',
-      county: 'Travis',
-      taxId: 'TX-56789',
-      hasPool: false,
-      hasGate: true,
-      hasPedestrianGate: false,
-      status: 'Active',
-      foundedDate: '2018-11-29',
-      annualFees: '$62,000',
-      manager: 'Robert Lee',
-      contactEmail: 'info@pinevalley.org',
-      contactPhone: '(512) 555-3456',
-      residents: '58',
-      offsiteAddresses: '2',
-      leases: '5',
-      serviceType: 'Self-Managed'
-    },
-  ];
+  const getPropertiesFromAssociations = () => {
+    if (!associations || associations.length === 0) {
+      return [];
+    }
+    
+    return associations.map(association => ({
+      name: association.name,
+      type: association.type,
+      units: association.units.toString(),
+      location: `${association.address.city}, ${association.address.state}`,
+      city: association.address.city,
+      county: association.settings?.county || '',
+      taxId: association.settings?.taxId || '',
+      hasPool: association.settings?.hasPool || false,
+      hasGate: association.settings?.hasGate || false,
+      hasPedestrianGate: association.settings?.hasPedestrianGate || false,
+      status: association.status,
+      foundedDate: association.foundedDate,
+      annualFees: association.settings?.annualFees || '',
+      manager: association.settings?.manager || '',
+      contactEmail: association.contactInfo.email,
+      contactPhone: association.contactInfo.phone,
+      residents: association.settings?.residents || '',
+      offsiteAddresses: association.settings?.offsiteAddresses || '',
+      leases: association.settings?.leases || '',
+      serviceType: association.settings?.serviceType || ''
+    }));
+  };
+  
+  const properties = associations && associations.length > 0 
+    ? getPropertiesFromAssociations() 
+    : [
+        { 
+          name: 'Oakwood Heights', 
+          type: 'Condominium', 
+          units: '48', 
+          location: 'Seattle, WA',
+          city: 'Seattle',
+          county: 'King',
+          taxId: 'TX-12345',
+          hasPool: true,
+          hasGate: true,
+          hasPedestrianGate: false,
+          status: 'Active',
+          foundedDate: '2010-05-14',
+          annualFees: '$125,000',
+          manager: 'John Smith',
+          contactEmail: 'info@oakwoodheights.com',
+          contactPhone: '(206) 555-1234',
+          residents: '112',
+          offsiteAddresses: '6',
+          leases: '12',
+          serviceType: 'Full-Service'
+        },
+        { 
+          name: 'Willow Creek Estates', 
+          type: 'HOA', 
+          units: '86', 
+          location: 'Portland, OR',
+          city: 'Portland',
+          county: 'Multnomah',
+          taxId: 'TX-23456',
+          hasPool: true,
+          hasGate: false,
+          hasPedestrianGate: true,
+          status: 'Active',
+          foundedDate: '2008-09-22',
+          annualFees: '$215,000',
+          manager: 'Sarah Johnson',
+          contactEmail: 'info@willowcreek.org',
+          contactPhone: '(503) 555-6789',
+          residents: '192',
+          offsiteAddresses: '14',
+          leases: '25',
+          serviceType: 'Self-Managed'
+        },
+        { 
+          name: 'Riverfront Towers', 
+          type: 'Condominium', 
+          units: '64', 
+          location: 'Denver, CO',
+          city: 'Denver',
+          county: 'Denver',
+          taxId: 'TX-34567',
+          hasPool: true,
+          hasGate: true,
+          hasPedestrianGate: true,
+          status: 'Active',
+          foundedDate: '2015-03-15',
+          annualFees: '$176,000',
+          manager: 'Michael Brown',
+          contactEmail: 'info@riverfronttowers.com',
+          contactPhone: '(303) 555-4321',
+          residents: '143',
+          offsiteAddresses: '8',
+          leases: '17',
+          serviceType: 'Full-Service'
+        },
+        { 
+          name: 'Sunset Gardens', 
+          type: 'HOA', 
+          units: '32', 
+          location: 'San Diego, CA',
+          city: 'San Diego',
+          county: 'San Diego',
+          taxId: 'TX-45678',
+          hasPool: false,
+          hasGate: false,
+          hasPedestrianGate: false,
+          status: 'Maintenance',
+          foundedDate: '2012-07-08',
+          annualFees: '$78,000',
+          manager: 'Emily Wilson',
+          contactEmail: 'info@sunsetgardens.org',
+          contactPhone: '(619) 555-8765',
+          residents: '76',
+          offsiteAddresses: '3',
+          leases: '7',
+          serviceType: 'Partial'
+        },
+        { 
+          name: 'Pine Valley Community', 
+          type: 'HOA', 
+          units: '26', 
+          location: 'Austin, TX',
+          city: 'Austin',
+          county: 'Travis',
+          taxId: 'TX-56789',
+          hasPool: false,
+          hasGate: true,
+          hasPedestrianGate: false,
+          status: 'Active',
+          foundedDate: '2018-11-29',
+          annualFees: '$62,000',
+          manager: 'Robert Lee',
+          contactEmail: 'info@pinevalley.org',
+          contactPhone: '(512) 555-3456',
+          residents: '58',
+          offsiteAddresses: '2',
+          leases: '5',
+          serviceType: 'Self-Managed'
+        },
+      ];
   
   const defaultColumns: PropertyColumn[] = [
     { id: 'name', label: 'Property Name', checked: true },
@@ -183,6 +217,12 @@ const Properties = () => {
     });
     
     exportToExcel(exportData, 'Property_Report');
+    toast.success('Property report exported successfully');
+  };
+  
+  const handleTemplateDownload = () => {
+    generateOnboardingTemplate();
+    toast.success('Onboarding template downloaded');
   };
   
   const renderBooleanValue = (value: boolean) => (
@@ -238,6 +278,15 @@ const Properties = () => {
                 columns={columns} 
                 onChange={handleColumnsChange} 
               />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 gap-1"
+                onClick={handleTemplateDownload}
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden md:inline">Template</span>
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
