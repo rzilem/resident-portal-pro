@@ -1,23 +1,25 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { 
-  RefreshCw, 
-  Download, 
-  PlusCircle
-} from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Plus, FileText, Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const InvoiceActionButtons: React.FC = () => {
+const InvoiceActionButtons = () => {
   return (
-    <div className="flex gap-2">
-      <Button variant="outline" size="sm" className="flex items-center gap-1">
-        <RefreshCw size={16} /> Refresh
+    <div className="flex flex-wrap gap-2">
+      <Button asChild variant="default" size="sm" className="gap-1">
+        <Link to="/accounting/invoice-coding">
+          <Plus className="h-4 w-4" />
+          Code New Invoice
+        </Link>
       </Button>
-      <Button variant="outline" size="sm" className="flex items-center gap-1">
-        <Download size={16} /> Export
+      <Button variant="outline" size="sm" className="gap-1">
+        <FileText className="h-4 w-4" />
+        Export
       </Button>
-      <Button size="sm" className="flex items-center gap-1">
-        <PlusCircle size={16} /> New Invoice
+      <Button variant="outline" size="sm" className="gap-1">
+        <Download className="h-4 w-4" />
+        Download
       </Button>
     </div>
   );
