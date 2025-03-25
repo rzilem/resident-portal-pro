@@ -1,5 +1,9 @@
 
-export interface Association {
+import { Association, AssociationSettings } from '@/types/association';
+
+export type { Association };
+
+export interface SimpleAssociation {
   id: string;
   name: string;
   units: number;

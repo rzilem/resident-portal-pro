@@ -5,22 +5,59 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Association } from '../types';
+import { toast } from 'sonner';
 
 interface BasicSettingsProps {
   activeAssociation: Association;
-  setAssociations: React.Dispatch<React.SetStateAction<Association[]>>;
-  setActiveAssociation: React.Dispatch<React.SetStateAction<Association>>;
-  handleSettingChange: (settingName: string, value: any) => void;
+  handleSettingChange: (settingName: string, value: any) => Promise<void>;
   getSetting: (key: string, fallback?: any) => any;
+  updateAssociation: (id: string, updates: Partial<Association>) => Promise<Association>;
 }
 
 const BasicSettings = ({ 
   activeAssociation, 
-  setAssociations,
-  setActiveAssociation,
   handleSettingChange, 
-  getSetting 
+  getSetting,
+  updateAssociation
 }: BasicSettingsProps) => {
+  
+  const handleAssociationFieldChange = async (field: string, value: any) => {
+    try {
+      await updateAssociation(activeAssociation.id, { [field]: value });
+      toast.success(`${field} updated successfully`);
+    } catch (error) {
+      toast.error(`Failed to update ${field}`);
+    }
+  };
+  
+  const handleAddressChange = async (field: keyof Association['address'], value: string) => {
+    try {
+      await updateAssociation(activeAssociation.id, { 
+        address: { 
+          ...activeAssociation.address, 
+          [field]: value 
+        } 
+      });
+      toast.success(`Address ${field} updated successfully`);
+    } catch (error) {
+      toast.error(`Failed to update address ${field}`);
+    }
+  };
+  
+  const handleContactInfoChange = async (field: keyof Association['contactInfo'], value: string) => {
+    try {
+      await updateAssociation(activeAssociation.id, { 
+        contactInfo: { 
+          ...activeAssociation.contactInfo, 
+          [field]: value 
+        } 
+      });
+      toast.success(`Contact ${field} updated successfully`);
+    } catch (error) {
+      toast.error(`Failed to update contact ${field}`);
+    }
+  };
+  
   return (
     <div className="grid gap-6">
       <div className="grid gap-4">
@@ -31,14 +68,7 @@ const BasicSettings = ({
             <Input 
               id="association-name" 
               value={activeAssociation.name}
-              onChange={(e) => {
-                const updatedAssociations = setAssociations(prev => 
-                  prev.map(a => 
-                    a.id === activeAssociation.id ? { ...a, name: e.target.value } : a
-                  )
-                );
-                setActiveAssociation({...activeAssociation, name: e.target.value});
-              }}
+              onChange={(e) => handleAssociationFieldChange('name', e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -95,41 +125,50 @@ const BasicSettings = ({
         <h3 className="text-lg font-medium">Location Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Street Address</Label>
             <Input 
               id="address" 
-              value={activeAssociation.address}
-              onChange={(e) => {
-                setAssociations(prev => 
-                  prev.map(a => 
-                    a.id === activeAssociation.id ? { ...a, address: e.target.value } : a
-                  )
-                );
-                setActiveAssociation({...activeAssociation, address: e.target.value});
-              }}
+              value={activeAssociation.address.street}
+              onChange={(e) => handleAddressChange('street', e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="city-state-zip">City, State, ZIP</Label>
+            <Label htmlFor="city">City</Label>
             <Input 
-              id="city-state-zip" 
-              value={getSetting('cityStateZip', 'Los Angeles, CA 90001')}
-              onChange={(e) => handleSettingChange('cityStateZip', e.target.value)}
+              id="city" 
+              value={activeAssociation.address.city}
+              onChange={(e) => handleAddressChange('city', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="state">State</Label>
+            <Input 
+              id="state" 
+              value={activeAssociation.address.state}
+              onChange={(e) => handleAddressChange('state', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="zipCode">ZIP Code</Label>
+            <Input 
+              id="zipCode" 
+              value={activeAssociation.address.zipCode}
+              onChange={(e) => handleAddressChange('zipCode', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="country">Country</Label>
             <Select
-              value={getSetting('country', 'US')}
-              onValueChange={(value) => handleSettingChange('country', value)}
+              value={activeAssociation.address.country}
+              onValueChange={(value) => handleAddressChange('country', value)}
             >
               <SelectTrigger id="country">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="US">United States</SelectItem>
-                <SelectItem value="CA">Canada</SelectItem>
-                <SelectItem value="MX">Mexico</SelectItem>
+                <SelectItem value="USA">United States</SelectItem>
+                <SelectItem value="Canada">Canada</SelectItem>
+                <SelectItem value="Mexico">Mexico</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -146,24 +185,24 @@ const BasicSettings = ({
             <Input 
               id="contact-email" 
               type="email"
-              value={getSetting('contactEmail', 'info@sunsetheights.org')}
-              onChange={(e) => handleSettingChange('contactEmail', e.target.value)}
+              value={activeAssociation.contactInfo.email}
+              onChange={(e) => handleContactInfoChange('email', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contact-phone">Contact Phone</Label>
             <Input 
               id="contact-phone" 
-              value={getSetting('contactPhone', '(555) 123-4567')}
-              onChange={(e) => handleSettingChange('contactPhone', e.target.value)}
+              value={activeAssociation.contactInfo.phone}
+              onChange={(e) => handleContactInfoChange('phone', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="website">Website</Label>
             <Input 
               id="website" 
-              value={getSetting('website', 'https://www.sunsetheights.org')}
-              onChange={(e) => handleSettingChange('website', e.target.value)}
+              value={activeAssociation.contactInfo.website || ''}
+              onChange={(e) => handleContactInfoChange('website', e.target.value)}
             />
           </div>
         </div>

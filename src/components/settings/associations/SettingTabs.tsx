@@ -19,60 +19,49 @@ import NotificationSettings from './tabs/NotificationSettings';
 
 interface SettingTabsProps {
   activeAssociation: Association;
-  setActiveAssociation: React.Dispatch<React.SetStateAction<Association>>;
   associations: Association[];
-  setAssociations: React.Dispatch<React.SetStateAction<Association[]>>;
   activeSettingsTab: string;
   setActiveSettingsTab: React.Dispatch<React.SetStateAction<string>>;
   settingSections: SettingSection[];
   menuCategories: AssociationMenuCategory[];
   selectAssociation: (association: Association) => void;
+  handleSettingChange: (settingName: string, value: any) => Promise<void>;
+  updateAssociation: (id: string, updates: Partial<Association>) => Promise<Association>;
 }
 
 const SettingTabs = ({
   activeAssociation,
-  setActiveAssociation,
   associations,
-  setAssociations,
   activeSettingsTab,
   setActiveSettingsTab,
   settingSections,
   menuCategories,
-  selectAssociation
+  selectAssociation,
+  handleSettingChange,
+  updateAssociation
 }: SettingTabsProps) => {
   
   const [activeSubMenu, setActiveSubMenu] = useState<string | null>(null);
   const [activeAccordion, setActiveAccordion] = useState<string | null>("general");
+  const [isSaving, setIsSaving] = useState(false);
   
-  const handleSettingChange = (settingName: string, value: any) => {
-    if (!activeAssociation) return;
-    
-    const updatedAssociations = associations.map(assoc => 
-      assoc.id === activeAssociation.id 
-        ? { 
-            ...assoc, 
-            settings: { 
-              ...(assoc.settings || {}), 
-              [settingName]: value 
-            } 
-          } 
-        : assoc
-    );
-    
-    setAssociations(updatedAssociations);
-    
-    // Update activeAssociation
-    const updatedActiveAssociation = updatedAssociations.find(a => a.id === activeAssociation.id);
-    if (updatedActiveAssociation) {
-      setActiveAssociation(updatedActiveAssociation);
-    }
-    
-    toast.success(`Setting updated successfully`);
-  };
-
   // Helper function to get setting value with fallback
   const getSetting = (key: string, fallback: any = '') => {
     return activeAssociation?.settings?.[key] ?? fallback;
+  };
+
+  const handleSaveSettings = async () => {
+    if (!activeAssociation) return;
+    
+    setIsSaving(true);
+    try {
+      await updateAssociation(activeAssociation.id, activeAssociation);
+      toast.success("Settings saved successfully");
+    } catch (error) {
+      toast.error("Failed to save settings");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -156,10 +145,9 @@ const SettingTabs = ({
               <TabsContent value="basic">
                 <BasicSettings 
                   activeAssociation={activeAssociation} 
-                  setAssociations={setAssociations}
-                  setActiveAssociation={setActiveAssociation}
                   handleSettingChange={handleSettingChange}
                   getSetting={getSetting}
+                  updateAssociation={updateAssociation}
                 />
               </TabsContent>
               
@@ -219,22 +207,21 @@ const SettingTabs = ({
         <Button 
           variant="outline" 
           onClick={() => {
-            // Reset to original settings
+            // Reset to original settings by refetching the association
             const original = associations.find(a => a.id === activeAssociation.id);
             if (original) {
               selectAssociation(original);
+              toast.info("Changes reset");
             }
           }}
         >
           Reset Changes
         </Button>
         <Button 
-          onClick={() => {
-            // Save settings happens automatically with handleSettingChange
-            toast.success("Settings saved successfully");
-          }}
+          onClick={handleSaveSettings}
+          disabled={isSaving}
         >
-          Save Settings
+          {isSaving ? 'Saving...' : 'Save Settings'}
         </Button>
       </CardFooter>
     </Card>
