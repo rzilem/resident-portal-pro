@@ -37,7 +37,11 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
       )}
       
       {selectedReport === 'billing' && (
-        <BillingReport timeRange={timeRange} association={association} />
+        <BillingReport 
+          timeRange={timeRange} 
+          association={association} 
+          reportType="billing-report" 
+        />
       )}
       
       {/* Default fallback if no report is selected */}
