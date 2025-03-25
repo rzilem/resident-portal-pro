@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import {
   Clock, 
   Plus, 
   Search, 
-  Tool 
+  Wrench 
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
@@ -35,7 +34,6 @@ const Maintenance = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
-  // Sample maintenance request data
   const [requests, setRequests] = useState<MaintenanceRequest[]>([
     { 
       id: 1, 
@@ -84,15 +82,12 @@ const Maintenance = () => {
     },
   ]);
 
-  // Filter requests based on search term and status filter
   const filteredRequests = requests.filter(request => {
-    // Search filter
     const matchesSearch = 
       request.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
       request.unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Status filter
     const matchesStatus = statusFilter === 'all' || request.status.replace(' ', '').toLowerCase() === statusFilter;
     
     return matchesSearch && matchesStatus;
@@ -124,7 +119,6 @@ const Maintenance = () => {
     <div className="p-6">
       <h1 className="text-3xl font-semibold text-gray-800 mb-6">Maintenance</h1>
       
-      {/* Maintenance Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
@@ -145,7 +139,7 @@ const Maintenance = () => {
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-gray-600">In Progress</p>
               <div className="p-2 bg-yellow-50 rounded-full">
-                <Tool className="h-5 w-5 text-yellow-500" />
+                <Wrench className="h-5 w-5 text-yellow-500" />
               </div>
             </div>
             <p className="text-2xl font-bold text-yellow-600">
@@ -183,7 +177,6 @@ const Maintenance = () => {
         </Card>
       </div>
       
-      {/* Maintenance Requests */}
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <CardTitle>Maintenance Requests</CardTitle>

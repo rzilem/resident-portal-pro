@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -9,7 +8,7 @@ import {
   Home, 
   Menu, 
   Settings, 
-  Tool, 
+  Wrench, 
   Users, 
   Calendar, 
   ChevronLeft
@@ -32,7 +31,7 @@ export const HoaSidebar = ({
   const navItems = [
     { name: 'Dashboard', path: '/hoa/dashboard', icon: <Home size={20} /> },
     { name: 'Finances', path: '/hoa/finances', icon: <CreditCard size={20} /> },
-    { name: 'Maintenance', path: '/hoa/maintenance', icon: <Tool size={20} /> },
+    { name: 'Maintenance', path: '/hoa/maintenance', icon: <Wrench size={20} /> },
     { name: 'Members', path: '/hoa/members', icon: <Users size={20} /> },
     { name: 'Events', path: '/hoa/events', icon: <Calendar size={20} /> },
   ];
