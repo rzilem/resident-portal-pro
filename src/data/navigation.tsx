@@ -9,7 +9,10 @@ import {
   MessageCircle,
   Zap,
   Bell,
-  Calendar
+  Calendar,
+  CreditCard,
+  BarChart4,
+  Layers
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -23,6 +26,7 @@ export type NavItem = {
 
 export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
   return [
+    // Main navigation
     {
       label: "Dashboard",
       href: "/dashboard",
@@ -41,11 +45,30 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
       icon: <Users className="h-5 w-5" />,
       isActive: pathname.startsWith('/residents'),
     },
+    {
+      label: "Calendar",
+      href: "/calendar",
+      icon: <Calendar className="h-5 w-5" />,
+      isActive: pathname === '/calendar' || pathname === '/settings/calendar',
+      items: [
+        {
+          label: "View Calendar",
+          href: "/calendar",
+          isActive: pathname === '/calendar',
+        },
+        {
+          label: "Calendar Settings",
+          href: "/settings/calendar",
+          isActive: pathname === '/settings/calendar',
+        }
+      ]
+    },
     'separator',
+    // Financial section
     {
       label: "Accounting",
       href: "#",
-      icon: <FileText className="h-5 w-5" />,
+      icon: <CreditCard className="h-5 w-5" />,
       isActive: pathname.startsWith('/accounting'),
       items: [
         {
@@ -70,6 +93,7 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
         },
       ],
     },
+    // Communications section
     {
       label: "Communications",
       href: "#",
@@ -82,7 +106,7 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
           isActive: pathname === '/communications/announcements',
         },
         {
-          label: "Messages",
+          label: "Messaging",
           href: "/communications/messaging",
           isActive: pathname === '/communications/messaging',
         },
@@ -93,24 +117,26 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
         },
       ],
     },
+    // Database & Records section
     {
-      label: "Database",
+      label: "Records",
       href: "#",
       icon: <Database className="h-5 w-5" />,
       isActive: pathname.startsWith('/database'),
       items: [
         {
-          label: "Records",
+          label: "Association Records",
           href: "/database/records",
           isActive: pathname === '/database/records',
         },
         {
-          label: "Templates",
+          label: "Document Templates",
           href: "/database/templates",
           isActive: pathname === '/database/templates',
         },
       ],
     },
+    // Advanced features
     {
       label: "Workflows",
       href: "/workflows",
@@ -118,23 +144,46 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
       isActive: pathname === '/workflows',
     },
     {
-      label: "Calendar",
-      href: "/calendar",
-      icon: <Calendar className="h-5 w-5" />,
-      isActive: pathname === '/calendar',
+      label: "Reports",
+      href: "/reports",
+      icon: <BarChart4 className="h-5 w-5" />,
+      isActive: pathname === '/reports',
     },
     {
-      label: "Chatbot",
+      label: "Community Hub",
       href: "/chatbot",
       icon: <MessageCircle className="h-5 w-5" />,
       isActive: pathname === '/chatbot',
     },
     'separator',
+    // Settings and configuration
     {
       label: "Settings",
       href: "/settings",
       icon: <Settings className="h-5 w-5" />,
-      isActive: pathname === '/settings',
+      isActive: pathname === '/settings' || pathname.startsWith('/settings/'),
+      items: [
+        {
+          label: "General Settings",
+          href: "/settings",
+          isActive: pathname === '/settings',
+        },
+        {
+          label: "Calendar Settings",
+          href: "/settings/calendar",
+          isActive: pathname === '/settings/calendar',
+        },
+        {
+          label: "User Permissions",
+          href: "/settings/permissions",
+          isActive: pathname === '/settings/permissions',
+        },
+        {
+          label: "Integrations",
+          href: "/settings/integrations",
+          isActive: pathname === '/settings/integrations',
+        }
+      ]
     },
   ];
 };

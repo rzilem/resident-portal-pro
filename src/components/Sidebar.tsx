@@ -1,7 +1,7 @@
 
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   SidebarContent,
   SidebarHeader,
@@ -12,15 +12,21 @@ import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
 import { getNavItems } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
+import { Button } from "./ui/button";
 
 export function Sidebar({
   className,
 }: React.HTMLAttributes<HTMLDivElement>) {
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Initialize sidebar groups with relevant sections expanded
   const { openGroups, toggleGroup } = useSidebarState({
-    "Accounting": true,
-    "Communications": false,
-    "Database": false
+    "Calendar": location.pathname.startsWith('/calendar') || location.pathname === '/settings/calendar',
+    "Accounting": location.pathname.startsWith('/accounting'),
+    "Communications": location.pathname.startsWith('/communications'),
+    "Records": location.pathname.startsWith('/database'),
+    "Settings": location.pathname.startsWith('/settings')
   });
 
   const NAV_ITEMS = getNavItems(location.pathname);
@@ -33,6 +39,14 @@ export function Sidebar({
             <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
               HOA Management
             </h2>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full justify-start" 
+              onClick={() => navigate('/')}
+            >
+              Back to Home
+            </Button>
           </SidebarHeader>
           <ScrollArea className="h-[calc(100vh-8rem)] px-3">
             <div className="space-y-1">

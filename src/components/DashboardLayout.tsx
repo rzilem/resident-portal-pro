@@ -3,19 +3,58 @@ import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
 import ChatbotButton from './ChatbotButton';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { useLocation } from 'react-router-dom';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
 
-const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
+  
+  // Dynamically set title based on the current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    
+    if (propTitle) return propTitle;
+    
+    if (path === '/dashboard') return 'Dashboard';
+    if (path === '/properties') return 'Properties';
+    if (path === '/residents') return 'Residents';
+    if (path === '/calendar') return 'Calendar';
+    if (path === '/settings/calendar') return 'Calendar Settings';
+    if (path === '/settings') return 'Settings';
+    if (path === '/workflows') return 'Workflows';
+    if (path === '/chatbot') return 'Community Hub';
+    if (path === '/reports') return 'Reports';
+    
+    if (path.startsWith('/accounting')) {
+      if (path === '/accounting') return 'Accounting Dashboard';
+      if (path === '/accounting/transactions') return 'Transactions';
+      if (path === '/accounting/reports') return 'Financial Reports';
+      if (path === '/accounting/payments') return 'Payments';
+      return 'Accounting';
+    }
+    
+    if (path.startsWith('/communications')) {
+      if (path === '/communications/announcements') return 'Announcements';
+      if (path === '/communications/messaging') return 'Messaging';
+      if (path === '/communications/email-templates') return 'Email Templates';
+      return 'Communications';
+    }
+    
+    if (path.startsWith('/database')) {
+      if (path === '/database/records') return 'Association Records';
+      if (path === '/database/templates') return 'Document Templates';
+      return 'Records';
+    }
+    
+    return 'HOA Management';
+  };
   
   // Automatically close sidebar on mobile and resize events
   useEffect(() => {
@@ -57,7 +96,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
         {/* Header */}
         <DashboardHeaderWithNav 
           toggleSidebar={toggleSidebar} 
-          title={title} 
+          title={getPageTitle()} 
         />
         
         {/* Main Content */}

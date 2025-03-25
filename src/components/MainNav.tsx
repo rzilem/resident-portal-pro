@@ -14,28 +14,34 @@ const MainNav = () => {
     return null;
   }
   
-  const navItems = [
+  // Simplified top nav that focuses on main sections only
+  const mainNavItems = [
     {
       title: 'Dashboard',
       href: '/dashboard',
       active: location.pathname === '/dashboard',
     },
     {
-      title: 'Calendar',
-      href: '/calendar',
-      active: location.pathname.startsWith('/calendar'),
+      title: 'Properties',
+      href: '/properties',
+      active: location.pathname === '/properties',
     },
     {
-      title: 'Settings',
-      href: '/settings',
-      active: location.pathname.startsWith('/settings'),
+      title: 'Residents',
+      href: '/residents',
+      active: location.pathname === '/residents',
+    },
+    {
+      title: 'Calendar',
+      href: '/calendar',
+      active: location.pathname === '/calendar',
     },
   ];
 
   return (
     <NavigationMenu className="hidden md:flex">
       <NavigationMenuList>
-        {navItems.map((item) => (
+        {mainNavItems.map((item) => (
           <NavigationMenuItem key={item.title}>
             <Link to={item.href} className="no-underline">
               <NavigationMenuLink 

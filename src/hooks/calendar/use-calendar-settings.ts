@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AssociationCalendarSettings } from '@/types/calendar';
 import { calendarService } from '@/services/calendar';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ interface UseCalendarSettingsProps {
 export function useCalendarSettings({ associationId }: UseCalendarSettingsProps) {
   const [calendarSettings, setCalendarSettings] = useState<AssociationCalendarSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Fetch calendar settings
   const fetchCalendarSettings = useCallback(() => {
@@ -19,6 +20,8 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
       return;
     }
     
+    setIsLoading(true);
+    
     try {
       const settings = calendarService.getCalendarSettingsByAssociationId(associationId);
       setCalendarSettings(settings);
@@ -26,8 +29,17 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
     } catch (err) {
       console.error('Error fetching calendar settings:', err);
       setError('Failed to load calendar settings');
+    } finally {
+      setIsLoading(false);
     }
   }, [associationId]);
+  
+  // Load settings automatically when associationId changes
+  useEffect(() => {
+    if (associationId) {
+      fetchCalendarSettings();
+    }
+  }, [associationId, fetchCalendarSettings]);
   
   // Update calendar settings
   const updateCalendarSettings = useCallback((updates: Partial<AssociationCalendarSettings>) => {
@@ -35,6 +47,8 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
       toast.error('No association selected');
       return null;
     }
+    
+    setIsLoading(true);
     
     try {
       const updatedSettings = calendarService.updateCalendarSettings(associationId, updates);
@@ -45,12 +59,15 @@ export function useCalendarSettings({ associationId }: UseCalendarSettingsProps)
       console.error('Error updating calendar settings:', err);
       toast.error('Failed to update calendar settings');
       throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, [associationId]);
   
   return {
     calendarSettings,
     error,
+    isLoading,
     fetchCalendarSettings,
     updateCalendarSettings
   };

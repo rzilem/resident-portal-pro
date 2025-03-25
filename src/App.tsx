@@ -39,14 +39,16 @@ function App() {
       <ThemeProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public route */}
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Dashboard routes with layout */}
+            {/* Main navigation routes */}
             <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
             <Route path="/properties" element={<DashboardLayout><Properties /></DashboardLayout>} />
             <Route path="/residents" element={<DashboardLayout><Residents /></DashboardLayout>} />
+            <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
+            <Route path="/reports" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             
             {/* Accounting routes */}
             <Route path="/accounting" element={<DashboardLayout><AccountingDashboard /></DashboardLayout>} />
@@ -59,16 +61,19 @@ function App() {
             <Route path="/communications/messaging" element={<DashboardLayout><CommunityMessaging /></DashboardLayout>} />
             <Route path="/communications/email-templates" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             
-            {/* Database routes */}
+            {/* Database/Records routes */}
             <Route path="/database/records" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             <Route path="/database/templates" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             
-            {/* Other top-level routes */}
+            {/* Other routes */}
             <Route path="/workflows" element={<DashboardLayout><Workflows /></DashboardLayout>} />
-            <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
-            <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
-            <Route path="/settings/calendar" element={<DashboardLayout><CalendarSettings /></DashboardLayout>} />
             <Route path="/chatbot" element={<DashboardLayout><NotFound /></DashboardLayout>} />
+            
+            {/* Settings routes */}
+            <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
+            <Route path="/settings/calendar" element={<DashboardLayout><CalendarSettings /></DashboardLayout>} />
+            <Route path="/settings/permissions" element={<DashboardLayout><NotFound /></DashboardLayout>} />
+            <Route path="/settings/integrations" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             
             {/* Fallback routes */}
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />

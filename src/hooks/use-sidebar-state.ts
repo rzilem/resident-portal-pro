@@ -12,16 +12,24 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
     // Auto-open groups based on current path
     const newOpenGroups = { ...openGroups };
     
-    if (location.pathname.includes('/accounting')) {
+    if (location.pathname.startsWith('/accounting')) {
       newOpenGroups["Accounting"] = true;
     }
     
-    if (location.pathname.includes('/communications')) {
+    if (location.pathname.startsWith('/communications')) {
       newOpenGroups["Communications"] = true;
     }
     
-    if (location.pathname.includes('/database')) {
-      newOpenGroups["Database"] = true;
+    if (location.pathname.startsWith('/database')) {
+      newOpenGroups["Records"] = true;
+    }
+    
+    if (location.pathname.startsWith('/settings')) {
+      newOpenGroups["Settings"] = true;
+    }
+    
+    if (location.pathname.startsWith('/calendar') || location.pathname === '/settings/calendar') {
+      newOpenGroups["Calendar"] = true;
     }
     
     setOpenGroups(newOpenGroups);
