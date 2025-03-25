@@ -9,7 +9,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
   const [openGroups, setOpenGroups] = useState<SidebarGroupState>(initialGroups);
 
   useEffect(() => {
-    // Auto-open groups based on current path with more consistent logic
+    // More precise route-to-group mapping with tighter control
     const newOpenGroups: SidebarGroupState = {};
     
     const pathToGroupMap: Record<string, string> = {
@@ -28,9 +28,10 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/integrations': 'System'
     };
 
-    // Check for exact matches and starts-with matches
+    // Stricter matching to prevent unnecessary expansion
     Object.entries(pathToGroupMap).forEach(([path, group]) => {
       if (location.pathname === path || location.pathname.startsWith(path)) {
+        // Only open if it's an exact match or a direct subpath
         newOpenGroups[group] = true;
       }
     });
