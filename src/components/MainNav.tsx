@@ -37,7 +37,7 @@ const MainNav = () => {
   ];
 
   return (
-    <NavigationMenu className="flex">
+    <NavigationMenu className="hidden md:flex">
       <NavigationMenuList>
         {mainNavItems.map((item) => (
           <NavigationMenuItem key={item.title}>

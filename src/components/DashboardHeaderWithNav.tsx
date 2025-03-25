@@ -43,7 +43,7 @@ const DashboardHeaderWithNav = ({
         
         <div className="flex items-center gap-2">
           {icon && <div className="text-muted-foreground">{icon}</div>}
-          <div className="hidden sm:block">
+          <div>
             <h1 className="text-xl font-semibold">{title}</h1>
             {description && (
               <p className="text-sm text-muted-foreground">{description}</p>
@@ -52,7 +52,7 @@ const DashboardHeaderWithNav = ({
         </div>
       </div>
       
-      <div className="flex-1 mx-4">
+      <div className="flex-1 mx-4 justify-center hidden md:flex">
         <MainNav />
       </div>
       
