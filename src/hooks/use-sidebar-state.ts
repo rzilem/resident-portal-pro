@@ -9,34 +9,33 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
   const [openGroups, setOpenGroups] = useState<SidebarGroupState>(initialGroups);
 
   useEffect(() => {
-    // More precise route-to-group mapping with tighter control
-    const newOpenGroups: SidebarGroupState = {};
-    
+    // More precise route-to-group mapping
     const pathToGroupMap: Record<string, string> = {
-      '/accounting/dashboard': 'Operations',
-      '/accounting/transactions': 'Operations',
-      '/accounting/payments': 'Operations',
-      '/accounting/reports': 'Operations',
       '/calendar': 'Operations',
-      '/communications/messaging': 'Operations',
-      '/communications/announcements': 'Operations',
+      '/accounting': 'Operations',
+      '/communications': 'Operations',
       '/workflows': 'Operations',
       '/database': 'Records & Reports',
       '/documents': 'Records & Reports',
       '/reports': 'Records & Reports',
       '/settings': 'System',
-      '/integrations': 'System'
+      '/integrations': 'System',
+      '/properties': 'Community Management',
+      '/residents': 'Community Management',
+      '/community-hub': 'Community Management'
     };
 
-    // Stricter matching to prevent unnecessary expansion
+    // Check current path against map
+    const newOpenGroups: SidebarGroupState = {};
+    
+    // Determine which section should be open based on current path
     Object.entries(pathToGroupMap).forEach(([path, group]) => {
-      if (location.pathname === path || location.pathname.startsWith(path)) {
-        // Only open if it's an exact match or a direct subpath
+      if (location.pathname === path || location.pathname.startsWith(path + '/')) {
         newOpenGroups[group] = true;
       }
     });
 
-    // Merge with existing state to preserve user interactions
+    // Update state
     setOpenGroups(prev => ({
       ...prev,
       ...newOpenGroups

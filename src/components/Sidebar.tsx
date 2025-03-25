@@ -35,18 +35,9 @@ export function Sidebar({
     return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
   }
   
-  // Initialize sidebar groups with more conservative expansion
-  const { openGroups, toggleGroup } = useSidebarState({
-    "Community Management": location.pathname.startsWith('/properties') || 
-                   location.pathname.startsWith('/residents') ||
-                   location.pathname.startsWith('/community-hub'),
-    "Operations": false, // Always start closed
-    "Records & Reports": location.pathname.startsWith('/database') ||
-                  location.pathname.startsWith('/documents') ||
-                  location.pathname.startsWith('/reports'),
-    "System": location.pathname.startsWith('/settings') || 
-           location.pathname.startsWith('/integrations')
-  });
+  // Initialize sidebar groups - don't set initial states here
+  // Let the useEffect in useSidebarState handle opening the correct section
+  const { openGroups, toggleGroup } = useSidebarState({});
 
   const NAV_ITEMS = getNavItems(location.pathname);
 
