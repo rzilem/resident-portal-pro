@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { settingsService } from '@/services/settingsService';
+import { userPreferencesService } from '@/services/userPreferencesService';
 import { UserPreferences } from '@/types/user';
 
 export function useSettings(userId: string = 'current-user') {
@@ -14,7 +14,7 @@ export function useSettings(userId: string = 'current-user') {
     setIsLoading(true);
     setError(null);
     try {
-      const data = settingsService.getUserPreferences(userId);
+      const data = userPreferencesService.getUserPreferences(userId);
       setPreferences(data);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch preferences'));
@@ -27,7 +27,7 @@ export function useSettings(userId: string = 'current-user') {
   // Update user preferences
   const updatePreferences = useCallback(async (updates: Partial<UserPreferences>) => {
     try {
-      const updatedPreferences = settingsService.updateUserPreferences(userId, updates);
+      const updatedPreferences = userPreferencesService.updateUserPreferences(userId, updates);
       setPreferences(updatedPreferences);
       toast.success('Settings updated successfully');
       return updatedPreferences;
@@ -40,7 +40,7 @@ export function useSettings(userId: string = 'current-user') {
   // Update a specific preference
   const updatePreference = useCallback(async (key: keyof UserPreferences, value: any) => {
     try {
-      const updatedPreferences = settingsService.updatePreference(userId, key, value);
+      const updatedPreferences = userPreferencesService.updatePreference(userId, key, value);
       setPreferences(updatedPreferences);
       toast.success(`${key} updated successfully`);
       return updatedPreferences;
@@ -53,7 +53,7 @@ export function useSettings(userId: string = 'current-user') {
   // Reset preferences to default
   const resetPreferences = useCallback(async () => {
     try {
-      const defaultPreferences = settingsService.resetPreferences(userId);
+      const defaultPreferences = userPreferencesService.resetPreferences(userId);
       setPreferences(defaultPreferences);
       toast.success('Settings reset to default');
       return defaultPreferences;

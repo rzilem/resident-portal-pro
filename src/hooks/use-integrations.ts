@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { integrationService } from '@/services/settingsService';
+import { integrationService } from '@/services/integrationService';
 
 interface IntegrationSettings {
   enabled: boolean;

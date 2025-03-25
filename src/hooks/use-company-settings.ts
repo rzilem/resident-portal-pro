@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { companySettingsService } from '@/services/settingsService';
+import { companySettingsService } from '@/services/companySettingsService';
 
 export function useCompanySettings() {
   const [settings, setSettings] = useState<Record<string, any>>({});
