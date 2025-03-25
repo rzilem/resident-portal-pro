@@ -20,9 +20,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface FinancialStatementsProps {
   className?: string;
+  associationId?: string;
 }
 
-const FinancialStatements: React.FC<FinancialStatementsProps> = ({ className }) => {
+const FinancialStatements: React.FC<FinancialStatementsProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('balanceSheet');
   
   // Sample balance sheet data
@@ -85,6 +86,7 @@ const FinancialStatements: React.FC<FinancialStatementsProps> = ({ className }) 
         </CardTitle>
         <CardDescription>
           View and generate financial reports
+          {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>

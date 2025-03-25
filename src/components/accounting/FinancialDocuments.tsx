@@ -12,9 +12,10 @@ import DocumentTabs from './documents/DocumentTabs';
 
 interface FinancialDocumentsProps {
   className?: string;
+  associationId?: string;
 }
 
-const FinancialDocuments: React.FC<FinancialDocumentsProps> = ({ className }) => {
+const FinancialDocuments: React.FC<FinancialDocumentsProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('all');
   
   const [documents, setDocuments] = useState<FinancialDocument[]>([
@@ -92,6 +93,7 @@ const FinancialDocuments: React.FC<FinancialDocumentsProps> = ({ className }) =>
         </CardTitle>
         <CardDescription>
           Store and manage financial records and documents
+          {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>

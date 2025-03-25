@@ -25,9 +25,10 @@ import { BudgetItem } from '@/components/settings/associations/types';
 
 interface BudgetManagementProps {
   className?: string;
+  associationId?: string;
 }
 
-const BudgetManagement: React.FC<BudgetManagementProps> = ({ className }) => {
+const BudgetManagement: React.FC<BudgetManagementProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('current');
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
     {
@@ -105,6 +106,7 @@ const BudgetManagement: React.FC<BudgetManagementProps> = ({ className }) => {
         </CardTitle>
         <CardDescription>
           Track and manage budget vs. actual expenses
+          {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>

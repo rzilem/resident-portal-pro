@@ -26,9 +26,10 @@ import { VendorPayment } from '@/components/settings/associations/types';
 
 interface VendorPaymentsProps {
   className?: string;
+  associationId?: string;
 }
 
-const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
+const VendorPayments: React.FC<VendorPaymentsProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('all');
   
   const [payments, setPayments] = useState<VendorPayment[]>([
@@ -119,6 +120,7 @@ const VendorPayments: React.FC<VendorPaymentsProps> = ({ className }) => {
         </CardTitle>
         <CardDescription>
           Manage and track payments to vendors
+          {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -11,9 +10,10 @@ import InvoiceTabContent from './invoices/InvoiceTabContent';
 
 interface InvoiceQueueProps {
   className?: string;
+  associationId?: string;
 }
 
-const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className }) => {
+const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('all');
   
   const [invoices, setInvoices] = useState<Invoice[]>([
@@ -132,6 +132,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className }) => {
         </CardTitle>
         <CardDescription>
           Manage and track all invoices in the system
+          {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>
