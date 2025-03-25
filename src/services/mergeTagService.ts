@@ -166,8 +166,14 @@ class MergeTagService {
     return group ? group.tags : [];
   }
 
-  // Add a custom merge tag
-  addCustomMergeTag = async (tag: CustomMergeTagDefinition): Promise<MergeTag> => {
+  // Get custom merge tags for a specific association
+  getCustomMergeTagsForAssociation = async (associationId: string): Promise<MergeTag[]> => {
+    // In a real implementation, this would fetch from an API
+    return customTags.filter(tag => tag.associationId === associationId);
+  }
+
+  // Create a custom merge tag
+  createCustomMergeTag = async (tag: CustomMergeTagDefinition): Promise<MergeTag> => {
     // In a real implementation, this would post to an API
     const newTag: MergeTag = {
       id: `custom-${Date.now()}`,
@@ -186,6 +192,22 @@ class MergeTagService {
     console.log('Added custom merge tag:', newTag);
     
     return newTag;
+  }
+
+  // Update a custom merge tag
+  updateCustomMergeTag = async (tagId: string, updates: Partial<MergeTag>): Promise<MergeTag> => {
+    // In a real implementation, this would update via an API
+    console.log('Updating custom merge tag:', tagId, updates);
+    
+    // Mock implementation
+    const existingTag = customTags.find(tag => tag.id === tagId);
+    if (!existingTag) {
+      throw new Error('Tag not found');
+    }
+    
+    const updatedTag = { ...existingTag, ...updates, updatedAt: new Date().toISOString() };
+    
+    return updatedTag;
   }
 
   // Delete a custom merge tag

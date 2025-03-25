@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAssociations } from '@/hooks/use-associations';
 import { mergeTagService } from '@/services/mergeTagService';
@@ -118,7 +117,6 @@ const CustomMergeTagsSettings = () => {
 
     try {
       if (isEditMode && selectedTagId) {
-        // Update existing tag
         const updatedTag = await mergeTagService.updateCustomMergeTag(selectedTagId, {
           name: data.name,
           description: data.description,
@@ -133,7 +131,6 @@ const CustomMergeTagsSettings = () => {
 
         toast.success('Custom merge tag updated');
       } else {
-        // Create new tag
         const tagDefinition: CustomMergeTagDefinition = {
           name: data.name,
           tag: data.tag,
@@ -155,7 +152,6 @@ const CustomMergeTagsSettings = () => {
     }
   };
 
-  // Helper to format tag for display
   const formatTag = (tag: string) => {
     if (!tag.startsWith('{{')) {
       return `{{${tag}}}`;
@@ -163,14 +159,12 @@ const CustomMergeTagsSettings = () => {
     return tag;
   };
 
-  // Auto-generate tag from name
   const generateTagFromName = (name: string) => {
     const category = form.getValues().category;
     const formattedName = name.toLowerCase().replace(/\s+/g, '_');
     return `{{custom.${category}.${formattedName}}}`;
   };
 
-  // Update tag when name or category changes
   const updateTagFromName = (name: string) => {
     if (!isEditMode || form.getValues().tag === '') {
       form.setValue('tag', generateTagFromName(name));
@@ -185,207 +179,7 @@ const CustomMergeTagsSettings = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Tag className="mr-2 h-5 w-5" />
-          Custom Merge Tags
-        </CardTitle>
-        <CardDescription>
-          Create custom merge tags for dynamic content in communications and workflows
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {!activeAssociation ? (
-          <div className="text-center py-6 text-muted-foreground">
-            Please select an association to manage custom merge tags
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <Button onClick={handleAddTag} className="mb-4">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Custom Merge Tag
-            </Button>
-
-            {customTags.length === 0 ? (
-              <div className="text-center py-6 border rounded-md bg-muted/20">
-                <Tag className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-muted-foreground">No custom merge tags created yet</p>
-                <p className="text-sm text-muted-foreground">
-                  Create custom merge tags to use in your communications and workflows
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {customTags.map(tag => (
-                  <div 
-                    key={tag.id} 
-                    className="p-4 border rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="flex-grow">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <h4 className="font-medium">{tag.name}</h4>
-                        <span className="text-sm text-muted-foreground">({tag.category})</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">{tag.description}</p>
-                      <code className="text-xs bg-muted px-1.5 py-0.5 rounded mt-2">{tag.tag}</code>
-                    </div>
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => handleEditTag(tag)}
-                        title="Edit tag"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => handleDeleteTag(tag.id)}
-                        title="Delete tag"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {isEditMode ? 'Edit Custom Merge Tag' : 'Create Custom Merge Tag'}
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="e.g. Building Manager Name" 
-                              onChange={(e) => {
-                                field.onChange(e);
-                                updateTagFromName(e.target.value);
-                              }}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Descriptive name for this merge tag
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <Select 
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              updateTagFromCategory(value);
-                            }} 
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categoryOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Group similar merge tags together
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="tag"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tag</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="e.g. {{custom.association.building_manager}}"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Tag used in templates (auto-generated, can be customized)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="Describe what this merge tag is used for"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="defaultValue"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Default Value (Optional)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="Default value when no data is available"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Used as fallback when no data is available
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <Button type="submit">
-                        {isEditMode ? 'Update Merge Tag' : 'Create Merge Tag'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <></>
   );
 };
 

@@ -109,7 +109,7 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
               <div className="space-y-6 pr-4">
                 {filteredGroups.length > 0 ? (
                   filteredGroups.map(group => (
-                    <TabsContent key={group.category} value="all" className="m-0" forceMount={activeCategory === 'all'}>
+                    <TabsContent key={group.category} value="all" className="m-0" forceMount={activeCategory === 'all' ? true : undefined}>
                       <div className="space-y-4">
                         <h3 className="text-sm font-medium">{group.name}</h3>
                         <div className="grid grid-cols-1 gap-2">

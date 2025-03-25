@@ -12,7 +12,7 @@ import { Association } from '@/types/association';
 
 interface SettingTabsProps {
   activeAssociation: Association;
-  handleSettingChange: (key: string, value: any) => void;
+  handleSettingChange: (key: string, value: any) => Promise<void>;
   getSetting: (key: string, defaultValue?: any) => any;
   updateAssociation: (id: string, updates: Partial<Association>) => Promise<Association>;
 }

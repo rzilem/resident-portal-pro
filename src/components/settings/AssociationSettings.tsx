@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil, CreditCard } from "lucide-react";
 import { toast } from "sonner";
@@ -120,6 +119,7 @@ const AssociationSettings = () => {
       await updateSetting(activeAssociation.id, settingName, value);
       toast.success(`${settingName} updated`);
     }
+    return Promise.resolve();
   };
 
   if (isLoading) {
@@ -171,13 +171,8 @@ const AssociationSettings = () => {
       {activeAssociation && (
         <SettingTabs 
           activeAssociation={activeAssociation}
-          associations={associations}
-          activeSettingsTab={activeSettingsTab}
-          setActiveSettingsTab={setActiveSettingsTab}
-          settingSections={settingSections}
-          menuCategories={menuCategories}
-          selectAssociation={selectAssociation}
           handleSettingChange={handleSettingChange}
+          getSetting={(key, defaultValue) => activeAssociation.settings?.[key] ?? defaultValue}
           updateAssociation={updateAssociation}
         />
       )}
