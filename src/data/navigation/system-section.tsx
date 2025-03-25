@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Cog, Building, Shield } from 'lucide-react';
+import { Cog, Building, Shield, Puzzle, Sliders } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getSystemSection = (currentPath: string): NavItem => ({
@@ -12,11 +12,13 @@ export const getSystemSection = (currentPath: string): NavItem => ({
   items: [
     {
       label: "Integrations",
+      icon: <Puzzle className="h-4 w-4" />,
       href: "/integrations",
       active: currentPath === "/integrations"
     },
     {
       label: "Settings",
+      icon: <Sliders className="h-4 w-4" />,
       href: "/settings",
       active: currentPath === "/settings"
     },
