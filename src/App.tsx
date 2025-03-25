@@ -56,7 +56,7 @@ import HoaEvents from '@/pages/hoa/Events';
 import UserProfile from "./pages/profile/UserProfile";
 
 // Add import for EmailWorkflows component
-import EmailWorkflows from "./pages/EmailWorkflows";
+import EmailWorkflows from "./pages/settings/EmailWorkflows";
 
 const App = () => {
   return (
@@ -78,7 +78,6 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/residents" element={<Residents />} />
-          {/* Update the route path to match the links in Residents.tsx */}
           <Route path="/residents/:id" element={<ResidentProfile />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/integrations" element={<Integrations />} />
