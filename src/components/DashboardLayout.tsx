@@ -114,7 +114,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
         />
         
         {/* Main Content - use Outlet for nested routes or fallback to children */}
-        <main className="flex-1 animate-fade-in">
+        <main className="flex-1 animate-fade-in p-4">
           {children || <Outlet />}
         </main>
       </div>

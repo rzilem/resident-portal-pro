@@ -58,6 +58,13 @@ const App = () => {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         
+        {/* HOA routes with their own layout */}
+        <Route path="/hoa/dashboard" element={<HoaDashboard />} />
+        <Route path="/hoa/finances" element={<HoaFinances />} />
+        <Route path="/hoa/maintenance" element={<HoaMaintenance />} />
+        <Route path="/hoa/members" element={<HoaMembers />} />
+        <Route path="/hoa/events" element={<HoaEvents />} />
+        
         {/* Dashboard layout for authenticated pages */}
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -93,13 +100,6 @@ const App = () => {
           {/* Settings routes */}
           <Route path="/settings/permissions" element={<Permissions />} />
         </Route>
-        
-        {/* HOA routes with their own layout */}
-        <Route path="/hoa/dashboard" element={<HoaDashboard />} />
-        <Route path="/hoa/finances" element={<HoaFinances />} />
-        <Route path="/hoa/maintenance" element={<HoaMaintenance />} />
-        <Route path="/hoa/members" element={<HoaMembers />} />
-        <Route path="/hoa/events" element={<HoaEvents />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

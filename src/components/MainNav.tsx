@@ -3,16 +3,9 @@ import React from 'react';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const MainNav = () => {
   const location = useLocation();
-  const isMobile = useIsMobile();
-  
-  // Don't render on mobile
-  if (isMobile) {
-    return null;
-  }
   
   // Top level navigation items - these should be consistent across all dashboard pages
   const mainNavItems = [
@@ -44,7 +37,7 @@ const MainNav = () => {
   ];
 
   return (
-    <NavigationMenu className="hidden md:flex">
+    <NavigationMenu className="flex">
       <NavigationMenuList>
         {mainNavItems.map((item) => (
           <NavigationMenuItem key={item.title}>

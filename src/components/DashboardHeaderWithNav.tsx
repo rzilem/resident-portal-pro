@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Bell, Menu, User, Settings, HelpCircle } from 'lucide-react';
 import MainNav from './MainNav';
-import { useIsMobile } from '@/hooks/use-mobile';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,8 +26,6 @@ const DashboardHeaderWithNav = ({
   description,
   icon
 }: DashboardHeaderWithNavProps) => {
-  const isMobile = useIsMobile();
-
   return (
     <header className="h-16 border-b border-border bg-card sticky top-0 z-10 flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
@@ -36,7 +33,7 @@ const DashboardHeaderWithNav = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="inline-flex"
+            className="inline-flex md:hidden"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
           >
@@ -46,14 +43,16 @@ const DashboardHeaderWithNav = ({
         
         <div className="flex items-center gap-2">
           {icon && <div className="text-muted-foreground">{icon}</div>}
-          <div>
+          <div className="hidden sm:block">
             <h1 className="text-xl font-semibold">{title}</h1>
             {description && (
               <p className="text-sm text-muted-foreground">{description}</p>
             )}
           </div>
         </div>
-        
+      </div>
+      
+      <div className="flex-1 mx-4">
         <MainNav />
       </div>
       
