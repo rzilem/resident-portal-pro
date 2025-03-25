@@ -15,6 +15,7 @@ import {
   Wallet,
   Building2,
   ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 
 export type NavItem = {
@@ -90,6 +91,11 @@ export const mainNavItems = [
         title: "Transactions",
         href: "/accounting/transactions",
         description: "Manage transactions",
+      },
+      {
+        title: "Journal Entries",
+        href: "/accounting/journal-entries",
+        description: "Create and manage journal entries",
       },
       {
         title: "Payments",

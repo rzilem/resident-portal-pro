@@ -23,6 +23,7 @@ import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import Transactions from '@/pages/accounting/Transactions';
 import Payments from '@/pages/accounting/Payments';
 import AccountingReports from '@/pages/accounting/AccountingReports';
+import JournalEntries from '@/pages/accounting/JournalEntries';
 
 // Communications pages
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
@@ -60,6 +61,7 @@ const App = () => {
         <Route path="/accounting/transactions" element={<Transactions />} />
         <Route path="/accounting/payments" element={<Payments />} />
         <Route path="/accounting/reports" element={<AccountingReports />} />
+        <Route path="/accounting/journal-entries" element={<JournalEntries />} />
         
         {/* Communications routes */}
         <Route path="/communications/messaging" element={<CommunityMessaging />} />
