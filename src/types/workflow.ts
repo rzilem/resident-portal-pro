@@ -9,6 +9,7 @@ export interface Workflow {
   createdAt: string;
   lastEditedAt?: string;
   createdBy?: string;
+  supportedMergeTags?: string[]; // List of merge tag IDs supported by this workflow
 }
 
 export type WorkflowStepType = 'trigger' | 'action' | 'condition';
@@ -29,6 +30,7 @@ export interface ActionStep extends BaseWorkflowStep {
   type: 'action';
   actionType: string;
   config: Record<string, any>;
+  useMergeTags?: boolean; // Whether this action supports merge tags
 }
 
 export interface ConditionStep extends BaseWorkflowStep {
@@ -52,6 +54,7 @@ export interface WorkflowTemplate {
   steps: number;
   icon?: React.ReactNode;
   popular?: boolean;
+  supportedMergeTags?: string[]; // List of merge tag IDs supported by this template
 }
 
 export interface WorkflowExecutionLog {

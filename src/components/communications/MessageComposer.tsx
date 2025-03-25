@@ -6,11 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Users, Copy, Info } from 'lucide-react';
+import { Send, Users, Copy, Info, Tag as TagIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import HtmlEditor from './HtmlEditor';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import MergeTagsDialog from './MergeTagsDialog';
+import { MergeTag } from '@/types/mergeTags';
+import { mergeTagService } from '@/services/mergeTagService';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -43,6 +46,9 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<string>('');
   const [isScheduled, setIsScheduled] = useState(false);
+  const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
+  const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
+  const [previewContent, setPreviewContent] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +88,27 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
         ? prev.filter(id => id !== groupId) 
         : [...prev, groupId]
     );
+  };
+
+  const handleInsertMergeTag = (tag: MergeTag) => {
+    // Handle differently based on plain text vs HTML
+    if (format === 'plain') {
+      setContent(prev => prev + ' ' + tag.tag + ' ');
+    } else {
+      // For HTML editor, we'll need to have the editor provide a method to insert at cursor
+      // For now, we'll just append it
+      setContent(prev => prev + ' ' + tag.tag + ' ');
+    }
+  };
+
+  const handlePreviewWithMergeTags = async () => {
+    // Process the content with merge tags
+    const processed = await mergeTagService.processMergeTags(content, {
+      // In a real app, you'd pass the actual context data here
+    });
+    
+    setPreviewContent(processed);
+    setShowMergeTagPreview(true);
   };
 
   return (
@@ -166,18 +193,29 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label htmlFor="content">Message Content</Label>
-              <Select 
-                value={format} 
-                onValueChange={(value) => setFormat(value as 'plain' | 'html')}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Message Format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="plain">Plain Text</SelectItem>
-                  <SelectItem value="html">Rich HTML</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsMergeTagsDialogOpen(true)}
+                >
+                  <TagIcon className="mr-2 h-4 w-4" />
+                  Insert Merge Tag
+                </Button>
+                <Select 
+                  value={format} 
+                  onValueChange={(value) => setFormat(value as 'plain' | 'html')}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Message Format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="plain">Plain Text</SelectItem>
+                    <SelectItem value="html">Rich HTML</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {format === 'plain' ? (
@@ -197,6 +235,17 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
                 />
               </Card>
             )}
+
+            <div className="flex justify-end">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={handlePreviewWithMergeTags}
+              >
+                Preview with Merge Tags
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -242,6 +291,32 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
           {isSubmitting ? 'Sending...' : isScheduled ? 'Schedule Message' : 'Send Message'}
         </Button>
       </div>
+
+      {/* Merge Tags Dialog */}
+      <MergeTagsDialog
+        open={isMergeTagsDialogOpen}
+        onOpenChange={setIsMergeTagsDialogOpen}
+        onSelectTag={handleInsertMergeTag}
+      />
+
+      {/* Preview Dialog */}
+      <Dialog open={showMergeTagPreview} onOpenChange={setShowMergeTagPreview}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Preview with Merge Tags</DialogTitle>
+          </DialogHeader>
+          <div className="border rounded-md p-4 max-h-[500px] overflow-auto">
+            {format === 'html' ? (
+              <div dangerouslySetInnerHTML={{ __html: previewContent }} />
+            ) : (
+              <div className="whitespace-pre-wrap">{previewContent}</div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowMergeTagPreview(false)}>Close Preview</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 };

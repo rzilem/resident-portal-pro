@@ -25,6 +25,18 @@ export interface Association {
   status: 'active' | 'inactive';
   settings?: AssociationSettings;
   communicationTemplates?: CommunicationTemplate[];
+  customMergeTags?: CustomMergeTag[];
+}
+
+export interface CustomMergeTag {
+  id: string;
+  name: string;
+  tag: string;
+  description: string;
+  category: string;
+  defaultValue?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CommunicationTemplate {
