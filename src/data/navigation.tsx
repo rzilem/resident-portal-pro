@@ -13,7 +13,8 @@ import {
   CreditCard,
   BarChart4,
   Layers,
-  Link
+  Link,
+  File
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -112,6 +113,13 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
           isActive: pathname === '/communications/messaging',
         }
       ],
+    },
+    // Documents section
+    {
+      label: "Documents",
+      href: "/documents",
+      icon: <File className="h-5 w-5" />,
+      isActive: pathname.startsWith('/documents'),
     },
     // Database & Records section
     {

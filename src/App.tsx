@@ -27,6 +27,7 @@ import Workflows from '@/pages/Workflows';
 import CommunityHub from '@/pages/CommunityHub';
 import Reports from '@/pages/Reports';
 import Integrations from '@/pages/Integrations';
+import AssociationDocuments from '@/pages/documents/AssociationDocuments';
 
 // Configure react-query client
 const queryClient = new QueryClient({
@@ -65,6 +66,9 @@ function App() {
             {/* Communications routes */}
             <Route path="/communications/announcements" element={<DashboardLayout><Announcements /></DashboardLayout>} />
             <Route path="/communications/messaging" element={<DashboardLayout><CommunityMessaging /></DashboardLayout>} />
+            
+            {/* Documents routes */}
+            <Route path="/documents" element={<DashboardLayout><AssociationDocuments /></DashboardLayout>} />
             
             {/* Database/Records routes */}
             <Route path="/database/records" element={<DashboardLayout><NotFound /></DashboardLayout>} />
