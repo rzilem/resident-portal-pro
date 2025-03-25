@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAssociations } from '@/hooks/use-associations';
 import { mergeTagService } from '@/services/mergeTagService';
@@ -179,7 +180,194 @@ const CustomMergeTagsSettings = () => {
   };
 
   return (
-    <></>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Custom Merge Tags</h2>
+        <Button onClick={handleAddTag}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Custom Tag
+        </Button>
+      </div>
+
+      {customTags.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Tag className="mx-auto h-12 w-12 text-muted-foreground/50" />
+            <p className="mt-3 text-muted-foreground">
+              No custom merge tags created yet. Custom merge tags allow you to insert personalized data in your communications.
+            </p>
+            <Button className="mt-4" onClick={handleAddTag}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Your First Custom Tag
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {customTags.map((tag) => (
+            <Card key={tag.id}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">{tag.name}</CardTitle>
+                <CardDescription className="text-xs">{tag.category}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <code className="text-xs bg-muted rounded-md px-2 py-1 block overflow-x-auto">{tag.tag}</code>
+                <p className="text-sm">{tag.description}</p>
+                {tag.example && (
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium">Example:</span> {tag.example}
+                  </div>
+                )}
+                <div className="flex justify-end space-x-2 pt-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEditTag(tag)}>
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteTag(tag.id)}>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? 'Edit Custom Merge Tag' : 'Create Custom Merge Tag'}</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., Pool Access Code" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          updateTagFromName(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      A descriptive name for the custom tag
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select 
+                      value={field.value} 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        updateTagFromCategory(value);
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categoryOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Group related tags together
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="tag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tag Code</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., {{custom.pool_code}}" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The actual code that will be used in templates
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Describe what this tag represents" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Explain what this merge tag represents
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="defaultValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Value (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., 1234" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      A default value to use when previewing templates
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="submit">{isEditMode ? 'Update' : 'Create'}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
