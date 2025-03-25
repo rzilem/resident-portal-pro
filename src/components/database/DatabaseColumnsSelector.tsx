@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Settings2 } from 'lucide-react';
 import { useSettings } from '@/hooks/use-settings';
+import { UserPreferences } from '@/types/user';
 
 export type DatabaseColumn = {
   id: string;
@@ -33,8 +34,11 @@ export const DatabaseColumnsSelector = ({ columns, onChange, type }: DatabaseCol
       setSelectedColumns(updatedColumns);
       onChange(updatedColumns);
       
+      // Create a properly typed key for user preferences
+      const preferenceKey = `database${type.charAt(0).toUpperCase() + type.slice(1)}Columns` as keyof UserPreferences;
+      
       // Save to user preferences based on type
-      updatePreference(`database${type.charAt(0).toUpperCase() + type.slice(1)}Columns`, updatedColumns);
+      updatePreference(preferenceKey, updatedColumns);
     }
   };
 
