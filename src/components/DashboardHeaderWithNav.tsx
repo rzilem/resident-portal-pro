@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Bell, Menu, User, Settings } from 'lucide-react';
+import { Bell, Menu, User, Settings, HelpCircle } from 'lucide-react';
 import MainNav from './MainNav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -43,6 +43,10 @@ const DashboardHeaderWithNav = ({ toggleSidebar, title = "Dashboard" }: Dashboar
       </div>
       
       <div className="flex items-center space-x-2">
+        <Button variant="ghost" size="icon" aria-label="Help">
+          <HelpCircle className="h-5 w-5" />
+        </Button>
+        
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell className="h-5 w-5" />
         </Button>

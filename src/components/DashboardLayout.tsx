@@ -18,20 +18,26 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
   
   // Dynamically set title based on the current route
   const getPageTitle = () => {
-    const path = location.pathname;
-    
     if (propTitle) return propTitle;
     
+    const path = location.pathname;
+    
+    // Main sections
     if (path === '/dashboard') return 'Dashboard';
     if (path === '/properties') return 'Properties';
     if (path === '/residents') return 'Residents';
     if (path === '/calendar') return 'Calendar';
-    if (path === '/settings/calendar') return 'Calendar Settings';
-    if (path === '/settings') return 'Settings';
+    if (path === '/reports') return 'Reports';
+    if (path === '/integrations') return 'Integrations';
     if (path === '/workflows') return 'Workflows';
     if (path === '/chatbot') return 'Community Hub';
-    if (path === '/reports') return 'Reports';
     
+    // Settings section
+    if (path === '/settings') return 'Settings';
+    if (path === '/settings/calendar') return 'Calendar Settings';
+    if (path === '/settings/permissions') return 'User Permissions';
+    
+    // Accounting section
     if (path.startsWith('/accounting')) {
       if (path === '/accounting') return 'Accounting Dashboard';
       if (path === '/accounting/transactions') return 'Transactions';
@@ -40,13 +46,14 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
       return 'Accounting';
     }
     
+    // Communications section
     if (path.startsWith('/communications')) {
       if (path === '/communications/announcements') return 'Announcements';
-      if (path === '/communications/messaging') return 'Messaging';
-      if (path === '/communications/email-templates') return 'Email Templates';
+      if (path === '/communications/messaging') return 'Community Messaging';
       return 'Communications';
     }
     
+    // Database section
     if (path.startsWith('/database')) {
       if (path === '/database/records') return 'Association Records';
       if (path === '/database/templates') return 'Document Templates';
@@ -56,7 +63,14 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     return 'HOA Management';
   };
   
-  // Automatically close sidebar on mobile and resize events
+  // Auto close sidebar on mobile when navigating
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
+  
+  // Initialize sidebar state based on screen size
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -82,7 +96,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
 
   return (
     <div className="min-h-screen bg-background flex w-full">
-      {/* Sidebar - improved animations */}
+      {/* Sidebar - with smooth transition */}
       <div 
         className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
@@ -93,7 +107,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen w-full">
-        {/* Header */}
+        {/* Header - using the consistent DashboardHeaderWithNav component */}
         <DashboardHeaderWithNav 
           toggleSidebar={toggleSidebar} 
           title={getPageTitle()} 
@@ -105,7 +119,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
         </main>
       </div>
       
-      {/* Chatbot Button - positioned better for mobile */}
+      {/* Chatbot Button */}
       <div className="fixed bottom-4 right-4 z-40">
         <ChatbotButton />
       </div>

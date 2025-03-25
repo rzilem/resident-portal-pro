@@ -14,7 +14,7 @@ const MainNav = () => {
     return null;
   }
   
-  // Simplified top nav that focuses on main sections only
+  // Top level navigation items - these should be consistent across all dashboard pages
   const mainNavItems = [
     {
       title: 'Dashboard',
@@ -35,6 +35,11 @@ const MainNav = () => {
       title: 'Calendar',
       href: '/calendar',
       active: location.pathname === '/calendar',
+    },
+    {
+      title: 'Reports',
+      href: '/reports',
+      active: location.pathname === '/reports',
     },
   ];
 
