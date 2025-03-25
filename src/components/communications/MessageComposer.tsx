@@ -10,7 +10,7 @@ import ComposerActions from './composer/ComposerActions';
 import MergeTagsDialog from './MergeTagsDialog';
 import MessagePreview from './composer/MessagePreview';
 import AiAssistant from './composer/AiAssistant';
-import { useDialogState } from './composer/ComposerUtils';
+import { useDialogState, appendToContent } from './composer/ComposerUtils';
 import { useComposer } from './composer/ComposerContext';
 
 // Sample template data
@@ -93,23 +93,25 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
   } = useDialogState();
 
   const handleInsertMergeTag = (tag: any) => {
-    if (format === 'plain') {
-      setContent(prev => prev + ' ' + tag.tag + ' ');
-    } else {
-      setContent(prev => prev + ' ' + tag.tag + ' ');
-    }
+    // Use the appendToContent utility function instead of a function passed to setContent
+    setContent(appendToContent(content, ' ' + tag.tag + ' '));
+    setIsMergeTagsDialogOpen(false);
   };
 
   const handleAiSuggestion = (aiResponse: string) => {
+    let newContent = content;
+    
     if (format === 'plain') {
-      setContent(prev => prev + (prev ? '\n\n' : '') + aiResponse);
+      newContent = content + (content ? '\n\n' : '') + aiResponse;
     } else {
       const htmlContent = aiResponse.startsWith('<') 
         ? aiResponse 
         : `<p>${aiResponse.replace(/\n/g, '</p><p>')}</p>`;
       
-      setContent(prev => prev + htmlContent);
+      newContent = content + htmlContent;
     }
+    
+    setContent(newContent);
   };
 
   return (

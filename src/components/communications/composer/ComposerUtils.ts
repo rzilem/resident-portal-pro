@@ -25,3 +25,12 @@ export const filterTemplatesByCommunity = (templates: any[], communityId: string
     template.communities.includes(communityId)
   );
 };
+
+// String content manipulation helpers
+export const appendToContent = (content: string, textToAdd: string): string => {
+  return content + textToAdd;
+};
+
+export const insertAtCursor = (content: string, textToInsert: string, cursorPosition: number): string => {
+  return content.substring(0, cursorPosition) + textToInsert + content.substring(cursorPosition);
+};

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, FileEdit, Trash2, Tag as TagIcon, Check, X } from 'lucide-react';
+import { Plus, FileEdit, Trash2, Tag as TagIcon, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import HtmlEditor from './HtmlEditor';
 import MergeTagsDialog from './MergeTagsDialog';
@@ -63,6 +63,8 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<MessageTemplate | null>(null);
   
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
@@ -150,6 +152,11 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
     setSelectedCommunities(template.communities || ['all']);
     setIsHtmlFormat(true);
     setIsEditDialogOpen(true);
+  };
+
+  const openPreviewDialog = (template: MessageTemplate) => {
+    setPreviewTemplate(template);
+    setIsPreviewDialogOpen(true);
   };
 
   const handleInsertMergeTag = (tag: MergeTag) => {
@@ -350,6 +357,35 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
     </Dialog>
   );
 
+  const previewDialog = (
+    <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+        <DialogHeader>
+          <DialogTitle>{previewTemplate?.name} - Preview</DialogTitle>
+          <DialogDescription>
+            Subject: {previewTemplate?.subject}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="border rounded-md p-4 my-4 bg-white">
+          <div dangerouslySetInnerHTML={{ __html: previewTemplate?.content || '' }} />
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsPreviewDialogOpen(false)}>Close</Button>
+          {previewTemplate && (
+            <Button onClick={() => {
+              onSelectTemplate(previewTemplate);
+              setIsPreviewDialogOpen(false);
+            }}>
+              Use Template
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -363,27 +399,18 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {templates.map(template => (
           <Card key={template.id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle>{template.name}</CardTitle>
-              <CardDescription>{template.description}</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg truncate">{template.name}</CardTitle>
+              <CardDescription className="truncate">{template.description}</CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <span className="font-medium">Category:</span> {template.category}
-                </div>
-                <div className="text-sm">
-                  <span className="font-medium">Subject:</span> {template.subject}
-                </div>
-                <div className="text-sm line-clamp-3">
-                  <span className="font-medium">Content:</span>{' '}
-                  <span dangerouslySetInnerHTML={{ __html: template.content }} />
-                </div>
-                <div className="text-sm">
-                  <span className="font-medium">Available for:</span>{' '}
+            <CardContent className="flex-grow pb-2">
+              <div className="space-y-1 text-sm">
+                <div className="font-medium">Category: {template.category}</div>
+                <div className="truncate">Subject: {template.subject}</div>
+                <div>
                   {template.communities?.includes('all') 
                     ? 'All Communities' 
                     : template.communities?.map(c => {
@@ -393,26 +420,43 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" size="sm" onClick={() => openEditDialog(template)}>
-                <FileEdit className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-              <div className="flex gap-2">
+            <CardFooter className="pt-0 flex-col gap-2">
+              <div className="flex gap-2 w-full">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handleDeleteTemplate(template.id)}
-                  className="text-destructive hover:bg-destructive/10"
+                  className="flex-1"
+                  onClick={() => openPreviewDialog(template)}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  <Eye className="mr-1 h-4 w-4" />
+                  Preview
                 </Button>
                 <Button 
                   size="sm" 
+                  className="flex-1"
                   onClick={() => onSelectTemplate(template)}
                 >
-                  Use Template
+                  Use
+                </Button>
+              </div>
+              <div className="flex gap-2 w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => openEditDialog(template)}
+                >
+                  <FileEdit className="mr-1 h-4 w-4" />
+                  Edit
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDeleteTemplate(template.id)}
+                >
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  Delete
                 </Button>
               </div>
             </CardFooter>
@@ -422,6 +466,13 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
       
       {templateDialog('create', isCreateDialogOpen, () => setIsCreateDialogOpen(false), handleCreateTemplate)}
       {templateDialog('edit', isEditDialogOpen, () => setIsEditDialogOpen(false), handleEditTemplate)}
+      {previewDialog}
+      
+      <MergeTagsDialog
+        open={isMergeTagsDialogOpen}
+        onOpenChange={setIsMergeTagsDialogOpen}
+        onSelectTag={handleInsertMergeTag}
+      />
     </div>
   );
 };

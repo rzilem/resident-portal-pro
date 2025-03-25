@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useComposer } from './ComposerContext';
 import TemplateSelector from './TemplateSelector';
+import { filterTemplatesByCommunity } from './ComposerUtils';
 
 interface SubjectFieldProps {
   templates: any[];
@@ -11,13 +12,16 @@ interface SubjectFieldProps {
 
 const SubjectField: React.FC<SubjectFieldProps> = ({ templates }) => {
   const { subject, setSubject, selectedCommunity } = useComposer();
+  
+  // Filter templates based on the selected community
+  const filteredTemplates = filterTemplatesByCommunity(templates, selectedCommunity);
 
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
         <Label htmlFor="subject">Subject</Label>
         <TemplateSelector 
-          templates={templates}
+          templates={filteredTemplates}
           onSelectTemplate={(template) => {
             setSubject(template.subject);
           }}
