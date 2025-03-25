@@ -1,88 +1,77 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MessageData } from './types';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+type MessageFormat = 'plain' | 'html';
 
 interface ComposerContextType {
   subject: string;
   setSubject: (subject: string) => void;
   content: string;
   setContent: (content: string) => void;
-  format: 'plain' | 'html';
-  setFormat: (format: 'plain' | 'html') => void;
-  selectedRecipients: string[];
-  setSelectedRecipients: (recipients: string[]) => void;
-  scheduledDate: string;
-  setScheduledDate: (date: string) => void;
-  isScheduled: boolean;
-  setIsScheduled: (isScheduled: boolean) => void;
-  selectedCommunity: string;
-  setSelectedCommunity: (community: string) => void;
   previewContent: string;
   setPreviewContent: (content: string) => void;
+  format: MessageFormat;
+  setFormat: (format: MessageFormat) => void;
+  selectedCommunity: string;
+  setSelectedCommunity: (communityId: string) => void;
+  selectedRecipients: string[];
+  setSelectedRecipients: (recipients: string[]) => void;
+  scheduleLater: boolean;
+  setScheduleLater: (schedule: boolean) => void;
+  scheduledDate: Date | null;
+  setScheduledDate: (date: Date | null) => void;
+  showMergeTagPreview: boolean;
+  setShowMergeTagPreview: (show: boolean) => void;
 }
 
+// Create the context with a default value
 const ComposerContext = createContext<ComposerContextType | undefined>(undefined);
 
-export const useComposer = () => {
-  const context = useContext(ComposerContext);
-  if (!context) {
-    throw new Error('useComposer must be used within a ComposerProvider');
-  }
-  return context;
-};
-
+// Props for the provider component
 interface ComposerProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
   initialSubject?: string;
   initialContent?: string;
   initialCommunity?: string;
 }
 
+// Provider component that wraps the components that need access to the context
 export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   children,
   initialSubject = '',
   initialContent = '',
   initialCommunity = '',
 }) => {
-  console.log("ComposerProvider initializing with:", { initialSubject, initialContent });
-  
   const [subject, setSubject] = useState(initialSubject);
   const [content, setContent] = useState(initialContent);
-  const [format, setFormat] = useState<'plain' | 'html'>('html');
-  const [selectedRecipients, setSelectedRecipients] = useState<string[]>(['all']);
-  const [scheduledDate, setScheduledDate] = useState<string>('');
-  const [isScheduled, setIsScheduled] = useState(false);
-  const [selectedCommunity, setSelectedCommunity] = useState<string>(initialCommunity);
   const [previewContent, setPreviewContent] = useState('');
+  const [format, setFormat] = useState<MessageFormat>('html');
+  const [selectedCommunity, setSelectedCommunity] = useState(initialCommunity);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [scheduleLater, setScheduleLater] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+  const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
 
-  // Effect to update state when initialSubject or initialContent change
-  useEffect(() => {
-    console.log("initialSubject changed:", initialSubject);
-    setSubject(initialSubject);
-  }, [initialSubject]);
-
-  useEffect(() => {
-    console.log("initialContent changed:", initialContent);
-    setContent(initialContent);
-  }, [initialContent]);
-
+  // The value that will be provided to consumers of the context
   const value = {
     subject,
     setSubject,
     content,
     setContent,
-    format,
-    setFormat,
-    selectedRecipients,
-    setSelectedRecipients,
-    scheduledDate,
-    setScheduledDate,
-    isScheduled,
-    setIsScheduled,
-    selectedCommunity,
-    setSelectedCommunity,
     previewContent,
     setPreviewContent,
+    format,
+    setFormat,
+    selectedCommunity,
+    setSelectedCommunity,
+    selectedRecipients,
+    setSelectedRecipients,
+    scheduleLater,
+    setScheduleLater,
+    scheduledDate,
+    setScheduledDate,
+    showMergeTagPreview,
+    setShowMergeTagPreview,
   };
 
   return (
@@ -90,4 +79,13 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
       {children}
     </ComposerContext.Provider>
   );
+};
+
+// Custom hook to use the composer context
+export const useComposer = () => {
+  const context = useContext(ComposerContext);
+  if (context === undefined) {
+    throw new Error('useComposer must be used within a ComposerProvider');
+  }
+  return context;
 };

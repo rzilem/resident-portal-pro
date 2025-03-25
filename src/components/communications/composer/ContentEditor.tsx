@@ -19,11 +19,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   onOpenAiAssistant,
   onOpenMergeTagsDialog,
 }) => {
-  const { content, setContent, format, setPreviewContent } = useComposer();
+  const { content, setContent, format, setPreviewContent, setShowMergeTagPreview } = useComposer();
 
   const handlePreviewWithMergeTags = async () => {
     const processed = await mergeTagService.processMergeTags(content, {});
     setPreviewContent(processed);
+    setShowMergeTagPreview(true); // Open the preview dialog after setting the content
   };
 
   return (

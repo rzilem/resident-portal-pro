@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ComposerProvider } from './composer/ComposerContext';
 import CommunitySelector, { SAMPLE_COMMUNITIES } from './composer/CommunitySelector';
 import RecipientSelector from './composer/RecipientSelector';
@@ -10,7 +10,7 @@ import ComposerActions from './composer/ComposerActions';
 import MergeTagsDialog from './MergeTagsDialog';
 import MessagePreview from './composer/MessagePreview';
 import AiAssistant from './composer/AiAssistant';
-import { useDialogState, appendToContent } from './composer/ComposerUtils';
+import { appendToContent } from './composer/ComposerUtils';
 import { useComposer } from './composer/ComposerContext';
 import { INITIAL_TEMPLATES } from '@/pages/communications/useCommunityMessaging';
 
@@ -46,17 +46,12 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
     content, 
     format, 
     setContent,
-    selectedCommunity
-  } = useComposer();
-  
-  const {
-    isAiAssistantOpen,
-    setIsAiAssistantOpen,
-    isMergeTagsDialogOpen,
-    setIsMergeTagsDialogOpen,
     showMergeTagPreview,
     setShowMergeTagPreview
-  } = useDialogState();
+  } = useComposer();
+  
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
+  const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
 
   const handleInsertMergeTag = (tag: any) => {
     // Use the appendToContent utility function instead of a function passed to setContent
