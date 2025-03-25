@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BasicSettings from './tabs/BasicSettings';
@@ -46,6 +45,7 @@ const SettingTabs: React.FC<SettingTabsProps> = ({
       
       <TabsContent value="financial" className="py-6">
         <FinancialSettings 
+          association={activeAssociation}
           handleSettingChange={handleSettingChange}
           getSetting={getSetting}
         />

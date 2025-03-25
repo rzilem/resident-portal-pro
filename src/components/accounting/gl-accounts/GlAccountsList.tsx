@@ -1,16 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Edit, Trash2, Download, Upload, Filter, Search } from "lucide-react";
 import { toast } from "sonner";
 import { GLAccount } from '@/types/accounting';
-import GlAccountForm from './GlAccountForm';
 import { predefinedGlAccounts } from './predefined-accounts';
+import GlAccountsSearch from './GlAccountsSearch';
+import GlAccountsActions from './GlAccountsActions';
+import GlAccountsTable from './GlAccountsTable';
+import GlAccountDialog from './GlAccountDialog';
 
 interface GlAccountsListProps {
   isMaster: boolean;
@@ -66,11 +62,9 @@ const GlAccountsList: React.FC<GlAccountsListProps> = ({ isMaster, associationId
     setTypeFilter(value);
   };
 
-  const handleAddAccount = (account: GLAccount) => {
-    // In a real app, this would be an API call
-    setAccounts([...accounts, { ...account, id: (accounts.length + 1).toString() }]);
-    setShowAddDialog(false);
-    toast.success("GL account added successfully");
+  const handleAddAccount = () => {
+    setAccountToEdit(null);
+    setShowAddDialog(true);
   };
 
   const handleEditAccount = (account: GLAccount) => {
@@ -78,16 +72,22 @@ const GlAccountsList: React.FC<GlAccountsListProps> = ({ isMaster, associationId
     setShowAddDialog(true);
   };
 
-  const handleUpdateAccount = (updatedAccount: GLAccount) => {
-    // In a real app, this would be an API call
-    setAccounts(accounts.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
+  const handleSaveAccount = (account: GLAccount) => {
+    if (accountToEdit) {
+      // Update existing account
+      setAccounts(accounts.map(acc => acc.id === account.id ? account : acc));
+      toast.success("GL account updated successfully");
+    } else {
+      // Add new account
+      const newAccount = { ...account, id: (accounts.length + 1).toString() };
+      setAccounts([...accounts, newAccount]);
+      toast.success("GL account added successfully");
+    }
     setShowAddDialog(false);
     setAccountToEdit(null);
-    toast.success("GL account updated successfully");
   };
 
   const handleDeleteAccount = (id: string) => {
-    // In a real app, this would be an API call
     setAccounts(accounts.filter(acc => acc.id !== id));
     toast.success("GL account deleted successfully");
   };
@@ -102,117 +102,42 @@ const GlAccountsList: React.FC<GlAccountsListProps> = ({ isMaster, associationId
     toast.success("Accounts exported to CSV");
   };
 
+  const handleCancelDialog = () => {
+    setShowAddDialog(false);
+    setAccountToEdit(null);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div className="flex-1 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search accounts..." 
-              className="pl-8" 
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-          </div>
-          <Select defaultValue="all" onValueChange={handleTypeFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="asset">Asset</SelectItem>
-              <SelectItem value="liability">Liability</SelectItem>
-              <SelectItem value="equity">Equity</SelectItem>
-              <SelectItem value="income">Income</SelectItem>
-              <SelectItem value="expense">Expense</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <GlAccountsSearch 
+          searchTerm={searchTerm}
+          onSearchChange={handleSearch}
+          typeFilter={typeFilter}
+          onTypeFilterChange={handleTypeFilter}
+        />
         
-        <div className="flex gap-2">
-          {!isMaster && (
-            <Button variant="outline" className="flex items-center gap-1" onClick={handleImportFromMaster}>
-              <Upload size={16} />
-              <span className="hidden md:inline">Import from Master</span>
-            </Button>
-          )}
-          <Button variant="outline" className="flex items-center gap-1" onClick={handleExportToCSV}>
-            <Download size={16} />
-            <span className="hidden md:inline">Export</span>
-          </Button>
-          <Button className="flex items-center gap-1" onClick={() => { setAccountToEdit(null); setShowAddDialog(true); }}>
-            <PlusCircle size={16} />
-            <span>Add Account</span>
-          </Button>
-        </div>
+        <GlAccountsActions 
+          isMaster={isMaster}
+          onAddAccount={handleAddAccount}
+          onImportFromMaster={handleImportFromMaster}
+          onExportToCSV={handleExportToCSV}
+        />
       </div>
       
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>GL Type</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAccounts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-10">
-                  {searchTerm || typeFilter !== 'all' ? 
-                    "No accounts match your search criteria" : 
-                    "No accounts found. Add your first GL account."}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredAccounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.code}</TableCell>
-                  <TableCell>{account.name}</TableCell>
-                  <TableCell>{account.type}</TableCell>
-                  <TableCell>{account.category}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditAccount(account)}>
-                        <Edit size={16} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteAccount(account.id)}>
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <GlAccountsTable 
+        accounts={filteredAccounts}
+        onEditAccount={handleEditAccount}
+        onDeleteAccount={handleDeleteAccount}
+      />
 
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{accountToEdit ? 'Edit GL Account' : 'Add GL Account'}</DialogTitle>
-            <DialogDescription>
-              {accountToEdit 
-                ? 'Update the details for this GL account.' 
-                : 'Create a new general ledger account.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <GlAccountForm 
-            account={accountToEdit}
-            onSave={accountToEdit ? handleUpdateAccount : handleAddAccount}
-            onCancel={() => {
-              setShowAddDialog(false);
-              setAccountToEdit(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      <GlAccountDialog 
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        account={accountToEdit}
+        onSave={handleSaveAccount}
+        onCancel={handleCancelDialog}
+      />
     </div>
   );
 };
