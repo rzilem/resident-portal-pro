@@ -10,7 +10,7 @@ import {
 import { CollapsibleNavItem } from "./sidebar/CollapsibleNavItem";
 import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
-import { getNavItems, NavItem } from "@/data/navigation";
+import { getNavItems, NavItem } from "@/data/navigation"; // Updated import
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useState } from "react";
 import HoaSidebar from "./HoaSidebar";
