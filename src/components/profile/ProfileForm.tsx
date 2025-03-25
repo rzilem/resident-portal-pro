@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -51,10 +50,14 @@ const ProfileForm = ({ user, updateUser }: ProfileFormProps) => {
   const [customFields, setCustomFields] = useState<CustomField[]>(
     user.customFields || []
   );
-  const [newCustomField, setNewCustomField] = useState({
+  const [newCustomField, setNewCustomField] = useState<{
+    label: string;
+    value: string;
+    type: 'text' | 'date' | 'boolean' | 'number' | 'select';
+  }>({
     label: '',
     value: '',
-    type: 'text' as const
+    type: 'text'
   });
 
   const form = useForm<ProfileFormValues>({
@@ -244,10 +247,8 @@ const ProfileForm = ({ user, updateUser }: ProfileFormProps) => {
                       />
                       <Select
                         value={field.type}
-                        onValueChange={(value) => 
-                          updateCustomField(field.id, { 
-                            type: value as 'text' | 'date' | 'boolean' | 'number' | 'select' 
-                          })
+                        onValueChange={(value: 'text' | 'date' | 'boolean' | 'number' | 'select') => 
+                          updateCustomField(field.id, { type: value })
                         }
                       >
                         <SelectTrigger className="w-[120px]">
@@ -307,11 +308,8 @@ const ProfileForm = ({ user, updateUser }: ProfileFormProps) => {
                   <FormLabel className="text-xs">Type</FormLabel>
                   <Select
                     value={newCustomField.type}
-                    onValueChange={(value) => 
-                      setNewCustomField({ 
-                        ...newCustomField, 
-                        type: value as 'text' | 'date' | 'boolean' | 'number' | 'select' 
-                      })
+                    onValueChange={(value: 'text' | 'date' | 'boolean' | 'number' | 'select') => 
+                      setNewCustomField({ ...newCustomField, type: value })
                     }
                   >
                     <SelectTrigger className="w-[120px]">

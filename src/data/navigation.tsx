@@ -179,8 +179,8 @@ export const mainNavItems = [
   {
     title: "My Profile",
     href: "/profile",
-    icon: <User className="h-5 w-5" />,
-    activeIcon: <User className="h-5 w-5" />,
+    icon: User,
+    activeIcon: User,
   },
 ];
 

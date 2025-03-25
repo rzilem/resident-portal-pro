@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -60,7 +59,10 @@ const CommunicationPreferencesForm = ({
 
   function onSubmit(data: FormValues) {
     updatePreferences({
-      ...data,
+      allowEmailNotifications: data.allowEmailNotifications,
+      allowSmsNotifications: data.allowSmsNotifications,
+      allowPushNotifications: data.allowPushNotifications,
+      emailFrequency: data.emailFrequency,
       subscribedTopics: data.subscribedTopics || [],
     });
   }
