@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Send, Mic, Search, Book, FilePlus, HelpCircle, Bookmark, PlusCircle, MessageSquare } from 'lucide-react';
+import { Bot, Send, Mic, Search, Book, FilePlus, HelpCircle, Bookmark, PlusCircle, MessageSquare, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssociations } from '@/hooks/use-associations';
 
@@ -470,7 +470,7 @@ const CommunityHub = () => {
               <div className="space-y-2">
                 {[
                   { title: 'Community Rules', icon: <Book className="h-4 w-4" /> },
-                  { title: 'Upcoming Events', icon: <Calendar className="h-4 w-4" /> },
+                  { title: 'Upcoming Events', icon: <CalendarIcon className="h-4 w-4" /> },
                   { title: 'Maintenance Requests', icon: <FilePlus className="h-4 w-4" /> },
                   { title: 'Message Board', icon: <MessageSquare className="h-4 w-4" /> },
                   { title: 'Saved Resources', icon: <Bookmark className="h-4 w-4" /> }

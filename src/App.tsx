@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,7 +18,7 @@ import Properties from '@/pages/Properties';
 import Residents from '@/pages/Residents';
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import Transactions from '@/pages/accounting/Transactions';
-import Reports from '@/pages/accounting/Reports';
+import AccountingReports from '@/pages/accounting/Reports';
 import Payments from '@/pages/accounting/Payments';
 import Announcements from '@/pages/communications/Announcements';
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
@@ -55,7 +56,7 @@ function App() {
             {/* Accounting routes */}
             <Route path="/accounting" element={<DashboardLayout><AccountingDashboard /></DashboardLayout>} />
             <Route path="/accounting/transactions" element={<DashboardLayout><Transactions /></DashboardLayout>} />
-            <Route path="/accounting/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
+            <Route path="/accounting/reports" element={<DashboardLayout><AccountingReports /></DashboardLayout>} />
             <Route path="/accounting/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />
             
             {/* Communications routes */}
