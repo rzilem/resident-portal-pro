@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, Users, Home, ChevronRight, CalendarClock, DollarSign, MapPin, Download, Check, X } from 'lucide-react';
+import { Building, Users, Home, ChevronRight, CalendarClock, DollarSign, MapPin, Download, Check, X, MapPinned, Building2, FileText, Briefcase } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import PropertyColumnsSelector, { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
@@ -20,6 +20,7 @@ const Properties = () => {
       type: 'Condominium', 
       units: '48', 
       location: 'Seattle, WA',
+      city: 'Seattle',
       county: 'King',
       taxId: 'TX-12345',
       hasPool: true,
@@ -31,13 +32,17 @@ const Properties = () => {
       manager: 'John Smith',
       contactEmail: 'info@oakwoodheights.com',
       contactPhone: '(206) 555-1234',
-      residents: '112'
+      residents: '112',
+      offsiteAddresses: '6',
+      leases: '12',
+      serviceType: 'Full-Service'
     },
     { 
       name: 'Willow Creek Estates', 
       type: 'HOA', 
       units: '86', 
       location: 'Portland, OR',
+      city: 'Portland',
       county: 'Multnomah',
       taxId: 'TX-23456',
       hasPool: true,
@@ -49,13 +54,17 @@ const Properties = () => {
       manager: 'Sarah Johnson',
       contactEmail: 'info@willowcreek.org',
       contactPhone: '(503) 555-6789',
-      residents: '192'
+      residents: '192',
+      offsiteAddresses: '14',
+      leases: '25',
+      serviceType: 'Self-Managed'
     },
     { 
       name: 'Riverfront Towers', 
       type: 'Condominium', 
       units: '64', 
       location: 'Denver, CO',
+      city: 'Denver',
       county: 'Denver',
       taxId: 'TX-34567',
       hasPool: true,
@@ -67,13 +76,17 @@ const Properties = () => {
       manager: 'Michael Brown',
       contactEmail: 'info@riverfronttowers.com',
       contactPhone: '(303) 555-4321',
-      residents: '143'
+      residents: '143',
+      offsiteAddresses: '8',
+      leases: '17',
+      serviceType: 'Full-Service'
     },
     { 
       name: 'Sunset Gardens', 
       type: 'HOA', 
       units: '32', 
       location: 'San Diego, CA',
+      city: 'San Diego',
       county: 'San Diego',
       taxId: 'TX-45678',
       hasPool: false,
@@ -85,13 +98,17 @@ const Properties = () => {
       manager: 'Emily Wilson',
       contactEmail: 'info@sunsetgardens.org',
       contactPhone: '(619) 555-8765',
-      residents: '76'
+      residents: '76',
+      offsiteAddresses: '3',
+      leases: '7',
+      serviceType: 'Partial'
     },
     { 
       name: 'Pine Valley Community', 
       type: 'HOA', 
       units: '26', 
       location: 'Austin, TX',
+      city: 'Austin',
       county: 'Travis',
       taxId: 'TX-56789',
       hasPool: false,
@@ -103,7 +120,10 @@ const Properties = () => {
       manager: 'Robert Lee',
       contactEmail: 'info@pinevalley.org',
       contactPhone: '(512) 555-3456',
-      residents: '58'
+      residents: '58',
+      offsiteAddresses: '2',
+      leases: '5',
+      serviceType: 'Self-Managed'
     },
   ];
   
@@ -114,6 +134,7 @@ const Properties = () => {
     { id: 'units', label: 'Units', checked: true },
     { id: 'residents', label: 'Residents', checked: true },
     { id: 'location', label: 'Location', checked: true },
+    { id: 'city', label: 'City', checked: false },
     { id: 'county', label: 'County', checked: false },
     { id: 'taxId', label: 'Tax ID', checked: false },
     { id: 'foundedDate', label: 'Founded Date', checked: true },
@@ -122,7 +143,10 @@ const Properties = () => {
     { id: 'hasPool', label: 'Has Pool', checked: false },
     { id: 'hasGate', label: 'Has Gate', checked: false },
     { id: 'hasPedestrianGate', label: 'Has Pedestrian Gate', checked: false },
-    { id: 'status', label: 'Status', checked: true }
+    { id: 'status', label: 'Status', checked: true },
+    { id: 'offsiteAddresses', label: 'Offsite Addresses', checked: false },
+    { id: 'leases', label: 'Leases', checked: false },
+    { id: 'serviceType', label: 'Service Type', checked: false }
   ];
   
   // State for selected columns
@@ -287,9 +311,29 @@ const Properties = () => {
                             <DollarSign className="h-4 w-4 mr-2" />
                             {col.label}
                           </div>
-                        ) : col.id === 'location' ? (
+                        ) : col.id === 'location' || col.id === 'city' ? (
                           <div className="flex items-center">
                             <MapPin className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.id === 'county' ? (
+                          <div className="flex items-center">
+                            <MapPinned className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.id === 'offsiteAddresses' ? (
+                          <div className="flex items-center">
+                            <Building2 className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.id === 'leases' ? (
+                          <div className="flex items-center">
+                            <FileText className="h-4 w-4 mr-2" />
+                            {col.label}
+                          </div>
+                        ) : col.id === 'serviceType' ? (
+                          <div className="flex items-center">
+                            <Briefcase className="h-4 w-4 mr-2" />
                             {col.label}
                           </div>
                         ) : col.label}
