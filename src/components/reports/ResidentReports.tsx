@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { Users } from 'lucide-react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import ResidentOverviewReport from './resident/ResidentOverviewReport';
 import ContactInfoReport from './resident/ContactInfoReport';
 import BoardMembersReport from './resident/BoardMembersReport';
@@ -73,7 +75,13 @@ const ResidentReports = ({ timeRange, association, selectedReport }: ResidentRep
     }
   };
 
-  return <div>{renderReportContent()}</div>;
+  return (
+    <Tabs value={selectedReport} defaultValue={selectedReport}>
+      <TabsContent value={selectedReport}>
+        {renderReportContent()}
+      </TabsContent>
+    </Tabs>
+  );
 };
 
 export default ResidentReports;
