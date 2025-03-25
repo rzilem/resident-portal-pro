@@ -16,6 +16,15 @@ interface CollapsibleNavItemProps {
 export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavItemProps) {
   const navigate = useNavigate();
 
+  // Handle click on the collapsible trigger button
+  const handleButtonClick = (e: React.MouseEvent) => {
+    // If the item has a href, navigate to it
+    if (item.href) {
+      navigate(item.href);
+    }
+    // We don't call onToggle here because the CollapsibleTrigger will handle that
+  };
+
   return (
     <Collapsible open={isOpen} onOpenChange={onToggle}>
       <CollapsibleTrigger asChild>
@@ -25,7 +34,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
             "w-full justify-between font-normal",
             item.active ? "font-medium" : "font-normal"
           )}
-          onClick={() => item.href && navigate(item.href)}
+          onClick={handleButtonClick}
         >
           <span className="flex items-center">
             {item.icon && <span className="mr-2">{item.icon}</span>}
