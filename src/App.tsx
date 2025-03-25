@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -11,6 +11,8 @@ import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
 import NotFound from '@/pages/NotFound';
 import Calendar from '@/pages/Calendar';
+import Index from '@/pages/Index';
+import DashboardLayout from '@/components/DashboardLayout';
 
 // Configure react-query client
 const queryClient = new QueryClient({
@@ -28,11 +30,17 @@ function App() {
       <ThemeProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings" element={<Settings />} />
+            {/* Public route */}
+            <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/calendar" element={<Calendar />} />
+            
+            {/* Dashboard routes with layout */}
+            <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+            <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
+            <Route path="/calendar" element={<DashboardLayout><Calendar /></DashboardLayout>} />
+            
+            {/* Fallback routes */}
+            <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster position="top-right" />
