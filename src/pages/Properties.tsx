@@ -1,187 +1,31 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, Users, Home, ChevronRight, CalendarClock, DollarSign, MapPin, Download, Check, X, MapPinned, Building2, FileText, Briefcase } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Button } from '@/components/ui/button';
-import PropertyColumnsSelector, { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 import { useSettings } from '@/hooks/use-settings';
-import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
 import { useAssociations } from '@/hooks/use-associations';
 import { toast } from 'sonner';
+import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
+import PropertyStats from '@/components/properties/PropertyStats';
+import PropertyList from '@/components/properties/PropertyList';
+import { 
+  getPropertiesFromAssociations, 
+  getDefaultProperties, 
+  getDefaultColumns, 
+  Property
+} from '@/components/properties/PropertyHelpers';
+import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 
 const Properties = () => {
-  const isMobile = useIsMobile();
-  const { preferences, updatePreference } = useSettings();
+  const { preferences } = useSettings();
   const { associations } = useAssociations();
+  const isMobile = useIsMobile();
   
-  const getPropertiesFromAssociations = () => {
-    if (!associations || associations.length === 0) {
-      return [];
-    }
-    
-    return associations.map(association => ({
-      name: association.name,
-      type: association.type,
-      units: association.units.toString(),
-      location: `${association.address.city}, ${association.address.state}`,
-      city: association.address.city,
-      county: association.settings?.county || '',
-      taxId: association.settings?.taxId || '',
-      hasPool: association.settings?.hasPool || false,
-      hasGate: association.settings?.hasGate || false,
-      hasPedestrianGate: association.settings?.hasPedestrianGate || false,
-      status: association.status,
-      foundedDate: association.foundedDate,
-      annualFees: association.settings?.annualFees || '',
-      manager: association.settings?.manager || '',
-      contactEmail: association.contactInfo.email,
-      contactPhone: association.contactInfo.phone,
-      residents: association.settings?.residents || '',
-      offsiteAddresses: association.settings?.offsiteAddresses || '',
-      leases: association.settings?.leases || '',
-      serviceType: association.settings?.serviceType || ''
-    }));
-  };
-  
-  const properties = associations && associations.length > 0 
-    ? getPropertiesFromAssociations() 
-    : [
-        { 
-          name: 'Oakwood Heights', 
-          type: 'Condominium', 
-          units: '48', 
-          location: 'Seattle, WA',
-          city: 'Seattle',
-          county: 'King',
-          taxId: 'TX-12345',
-          hasPool: true,
-          hasGate: true,
-          hasPedestrianGate: false,
-          status: 'Active',
-          foundedDate: '2010-05-14',
-          annualFees: '$125,000',
-          manager: 'John Smith',
-          contactEmail: 'info@oakwoodheights.com',
-          contactPhone: '(206) 555-1234',
-          residents: '112',
-          offsiteAddresses: '6',
-          leases: '12',
-          serviceType: 'Full-Service'
-        },
-        { 
-          name: 'Willow Creek Estates', 
-          type: 'HOA', 
-          units: '86', 
-          location: 'Portland, OR',
-          city: 'Portland',
-          county: 'Multnomah',
-          taxId: 'TX-23456',
-          hasPool: true,
-          hasGate: false,
-          hasPedestrianGate: true,
-          status: 'Active',
-          foundedDate: '2008-09-22',
-          annualFees: '$215,000',
-          manager: 'Sarah Johnson',
-          contactEmail: 'info@willowcreek.org',
-          contactPhone: '(503) 555-6789',
-          residents: '192',
-          offsiteAddresses: '14',
-          leases: '25',
-          serviceType: 'Self-Managed'
-        },
-        { 
-          name: 'Riverfront Towers', 
-          type: 'Condominium', 
-          units: '64', 
-          location: 'Denver, CO',
-          city: 'Denver',
-          county: 'Denver',
-          taxId: 'TX-34567',
-          hasPool: true,
-          hasGate: true,
-          hasPedestrianGate: true,
-          status: 'Active',
-          foundedDate: '2015-03-15',
-          annualFees: '$176,000',
-          manager: 'Michael Brown',
-          contactEmail: 'info@riverfronttowers.com',
-          contactPhone: '(303) 555-4321',
-          residents: '143',
-          offsiteAddresses: '8',
-          leases: '17',
-          serviceType: 'Full-Service'
-        },
-        { 
-          name: 'Sunset Gardens', 
-          type: 'HOA', 
-          units: '32', 
-          location: 'San Diego, CA',
-          city: 'San Diego',
-          county: 'San Diego',
-          taxId: 'TX-45678',
-          hasPool: false,
-          hasGate: false,
-          hasPedestrianGate: false,
-          status: 'Maintenance',
-          foundedDate: '2012-07-08',
-          annualFees: '$78,000',
-          manager: 'Emily Wilson',
-          contactEmail: 'info@sunsetgardens.org',
-          contactPhone: '(619) 555-8765',
-          residents: '76',
-          offsiteAddresses: '3',
-          leases: '7',
-          serviceType: 'Partial'
-        },
-        { 
-          name: 'Pine Valley Community', 
-          type: 'HOA', 
-          units: '26', 
-          location: 'Austin, TX',
-          city: 'Austin',
-          county: 'Travis',
-          taxId: 'TX-56789',
-          hasPool: false,
-          hasGate: true,
-          hasPedestrianGate: false,
-          status: 'Active',
-          foundedDate: '2018-11-29',
-          annualFees: '$62,000',
-          manager: 'Robert Lee',
-          contactEmail: 'info@pinevalley.org',
-          contactPhone: '(512) 555-3456',
-          residents: '58',
-          offsiteAddresses: '2',
-          leases: '5',
-          serviceType: 'Self-Managed'
-        },
-      ];
-  
-  const defaultColumns: PropertyColumn[] = [
-    { id: 'name', label: 'Property Name', checked: true },
-    { id: 'type', label: 'Type', checked: true },
-    { id: 'units', label: 'Units', checked: true },
-    { id: 'residents', label: 'Residents', checked: true },
-    { id: 'location', label: 'Location', checked: true },
-    { id: 'city', label: 'City', checked: false },
-    { id: 'county', label: 'County', checked: false },
-    { id: 'taxId', label: 'Tax ID', checked: false },
-    { id: 'foundedDate', label: 'Onboarding Date', checked: true },
-    { id: 'annualFees', label: 'Annual Fees', checked: true },
-    { id: 'manager', label: 'Manager', checked: true },
-    { id: 'hasPool', label: 'Has Pool', checked: false },
-    { id: 'hasGate', label: 'Has Gate', checked: false },
-    { id: 'hasPedestrianGate', label: 'Has Pedestrian Gate', checked: false },
-    { id: 'status', label: 'Status', checked: true },
-    { id: 'offsiteAddresses', label: 'Offsite Addresses', checked: false },
-    { id: 'leases', label: 'Leases', checked: false },
-    { id: 'serviceType', label: 'Service Type', checked: false }
-  ];
+  const properties: Property[] = associations && associations.length > 0 
+    ? getPropertiesFromAssociations(associations) 
+    : getDefaultProperties();
   
   const [columns, setColumns] = useState<PropertyColumn[]>(
-    preferences?.propertyTableColumns || defaultColumns
+    preferences?.propertyTableColumns || getDefaultColumns()
   );
   
   useEffect(() => {
@@ -225,17 +69,6 @@ const Properties = () => {
     toast.success('Onboarding template downloaded');
   };
   
-  const renderBooleanValue = (value: boolean) => (
-    <span className="flex items-center">
-      {value ? (
-        <Check className="h-4 w-4 text-green-600 mr-1" />
-      ) : (
-        <X className="h-4 w-4 text-red-600 mr-1" />
-      )}
-      {value ? 'Yes' : 'No'}
-    </span>
-  );
-  
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-4 md:gap-6 mb-6">
@@ -244,168 +77,15 @@ const Properties = () => {
           <p className="text-muted-foreground">Overview of all properties in your portfolio</p>
         </section>
         
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { title: 'Total Properties', value: '12', desc: 'Across 3 communities', icon: Building, color: 'bg-blue-50 text-blue-600' },
-            { title: 'Total Units', value: '256', desc: '92% occupancy rate', icon: Home, color: 'bg-green-50 text-green-600' },
-            { title: 'Total Residents', value: '418', desc: 'Active residents', icon: Users, color: 'bg-purple-50 text-purple-600' },
-          ].map((item, i) => (
-            <Card key={i} className="animate-scale-in" style={{ animationDelay: `${i * 100}ms` }}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                <div className={`${item.color} p-2 rounded-full`}>
-                  <item.icon className="h-4 w-4" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{item.value}</div>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
+        <PropertyStats />
         
-        <Card className="animate-fade-in">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Property List</CardTitle>
-              <CardDescription>
-                Complete list of properties in your portfolio
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <PropertyColumnsSelector 
-                columns={columns} 
-                onChange={handleColumnsChange} 
-              />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 gap-1"
-                onClick={handleTemplateDownload}
-              >
-                <Download className="h-4 w-4" />
-                <span className="hidden md:inline">Template</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 gap-1"
-                onClick={handleExport}
-              >
-                <Download className="h-4 w-4" />
-                <span className="hidden md:inline">Export</span>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isMobile && (
-              <div className="space-y-4 md:hidden">
-                {properties.map((property, i) => (
-                  <Card key={i} className="p-4 border">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-medium">{property.name}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {property.status}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                      {columns.filter(col => col.checked && col.id !== 'name' && col.id !== 'status').map(col => (
-                        <div key={col.id} className="flex justify-between">
-                          <span className="text-muted-foreground">{col.label}:</span>
-                          <span>
-                            {typeof property[col.id as keyof typeof property] === 'boolean' 
-                              ? (property[col.id as keyof typeof property] ? 'Yes' : 'No')
-                              : property[col.id as keyof typeof property]}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
-                      View Details <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </Card>
-                ))}
-              </div>
-            )}
-            
-            <div className={isMobile ? "hidden" : "overflow-auto"}>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {columns.map(col => col.checked && (
-                      <TableHead key={col.id}>
-                        {col.id === 'foundedDate' ? (
-                          <div className="flex items-center">
-                            <CalendarClock className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.id === 'annualFees' ? (
-                          <div className="flex items-center">
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.id === 'location' || col.id === 'city' ? (
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.id === 'county' ? (
-                          <div className="flex items-center">
-                            <MapPinned className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.id === 'offsiteAddresses' ? (
-                          <div className="flex items-center">
-                            <Building2 className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.id === 'leases' ? (
-                          <div className="flex items-center">
-                            <FileText className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.id === 'serviceType' ? (
-                          <div className="flex items-center">
-                            <Briefcase className="h-4 w-4 mr-2" />
-                            {col.label}
-                          </div>
-                        ) : col.label}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {properties.map((property, i) => (
-                    <TableRow key={i} className="cursor-pointer hover:bg-muted">
-                      {columns.map(col => col.checked && (
-                        <TableCell key={col.id}>
-                          {col.id === 'name' ? (
-                            <span className="font-medium">{property.name}</span>
-                          ) : col.id === 'status' ? (
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {property.status}
-                            </span>
-                          ) : col.id === 'foundedDate' ? (
-                            new Date(property.foundedDate).toLocaleDateString()
-                          ) : typeof property[col.id as keyof typeof property] === 'boolean' ? (
-                            renderBooleanValue(property[col.id as keyof typeof property] as boolean)
-                          ) : (
-                            property[col.id as keyof typeof property]
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <PropertyList 
+          properties={properties}
+          columns={columns}
+          onColumnsChange={handleColumnsChange}
+          onExport={handleExport}
+          onTemplateDownload={handleTemplateDownload}
+        />
       </div>
     </div>
   );
