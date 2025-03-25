@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Calendar, calendarStyles } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -192,14 +191,11 @@ const CalendarView = ({
                       return isSameDay(eventStart, date);
                     })
                 }}
-                modifiersClassNames={{
-                  hasEvent: "has-event"
-                }}
                 styles={{
                   day: { width: '2.25rem', height: '2.25rem' }
                 }}
                 components={{
-                  DayContent: ({ date, ...contentProps }) => {
+                  DayContent: ({ date }) => {
                     const hasEvents = events.some(event => {
                       const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
                       return isSameDay(eventStart, date);
@@ -211,13 +207,13 @@ const CalendarView = ({
                       
                       return (
                         <div className="relative flex h-full w-full items-center justify-center">
-                          <div {...contentProps} />
+                          <div>{date.getDate()}</div>
                           <div className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${eventClass}`} />
                         </div>
                       );
                     }
                     
-                    return <div {...contentProps} />;
+                    return <div>{date.getDate()}</div>;
                   }
                 }}
               />
