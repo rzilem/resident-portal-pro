@@ -47,6 +47,8 @@ export type ActivityLog = {
   activity: string;
   type: 'login' | 'payment' | 'document' | 'message' | 'request' | 'other';
   details?: string;
+  sessionId?: string; // Added to support session tracking for mimicking
+  device?: string;    // Added to support device information
 }
 
 export type Document = {

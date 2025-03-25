@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { FileText, Clock, Search } from 'lucide-react';
+import { FileText, Clock, Search, LogIn } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Note, ActivityLog } from '@/types/resident';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface NotesTabProps {
   notes?: Note[];
@@ -15,6 +17,7 @@ interface NotesTabProps {
 
 const NotesTab: React.FC<NotesTabProps> = ({ notes = [], activityLogs = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
   
   const filteredNotes = notes.filter(note => 
     note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,6 +27,18 @@ const NotesTab: React.FC<NotesTabProps> = ({ notes = [], activityLogs = [] }) =>
   const filteredActivityLogs = activityLogs.filter(log => 
     log.activity.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleMimicSession = (timestamp: string, details?: string) => {
+    // In a real implementation, this would initiate a session mimicking flow
+    // For now, we'll just show a toast notification
+    toast.success(`Mimicking session from ${timestamp}`, {
+      description: details || 'Accessing homeowner portal view'
+    });
+    
+    // This would navigate to a homeowner portal view in a real implementation
+    // For demonstration purposes, we'll just log this action
+    console.log(`Mimicking session from ${timestamp}`);
+  };
 
   return (
     <Card>
@@ -95,6 +110,21 @@ const NotesTab: React.FC<NotesTabProps> = ({ notes = [], activityLogs = [] }) =>
                       </div>
                       {log.details && (
                         <p className="text-sm text-muted-foreground mt-1">{log.details}</p>
+                      )}
+                      
+                      {/* Add mimic session button for login activities */}
+                      {log.type === 'login' && (
+                        <div className="mt-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleMimicSession(log.timestamp, log.details)}
+                            className="flex items-center text-xs"
+                            variant="outline"
+                          >
+                            <LogIn className="h-3 w-3 mr-1" />
+                            Mimic Session
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
