@@ -1,15 +1,15 @@
-import React, { useState, useMemo } from 'react';
-import { Calendar, calendarStyles } from '@/components/ui/calendar';
-import { Card, CardContent } from '@/components/ui/card';
-import { format, isSameDay, parseISO } from 'date-fns';
-import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
-import { useCalendar } from '@/hooks/use-calendar';
+
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { CalendarAccessLevel } from '@/types/calendar';
+import { Association } from '@/types/association';
 import CalendarEventDialog from './CalendarEventDialog';
 import CalendarFilters from './CalendarFilters';
 import EventDetails from './EventDetails';
-import { Association } from '@/types/association';
 import CalendarHeader from './CalendarHeader';
 import EventsList from './EventsList';
+import CalendarDisplay from './CalendarDisplay';
+import { useCalendarView } from '@/hooks/use-calendar-view';
 
 interface CalendarViewProps {
   userId: string;
@@ -30,114 +30,33 @@ const CalendarView = ({
   activeAssociation,
   onAssociationChange
 }: CalendarViewProps) => {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [view, setView] = useState<'month' | 'week' | 'day'>('month');
-  const [showFilters, setShowFilters] = useState(false);
-  const [showEventDialog, setShowEventDialog] = useState(false);
-  
-  const { 
-    events, 
-    selectedEvent, 
-    setSelectedEvent, 
-    isLoading, 
-    createEvent, 
-    updateEvent, 
-    deleteEvent 
-  } = useCalendar({
+  const {
+    currentDate,
+    selectedDate,
+    setSelectedDate,
+    view,
+    showFilters,
+    showEventDialog,
+    setShowEventDialog,
+    events,
+    selectedDateEvents,
+    selectedEvent,
+    setSelectedEvent,
+    isLoading,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    getEventTypeForDay,
+    handlePrevious,
+    handleNext,
+    handleToday,
+    handleViewChange,
+    toggleFilters
+  } = useCalendarView({
     userId,
     userAccessLevel,
     associationId
   });
-  
-  const selectedDateEvents = events.filter(event => {
-    const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-    return isSameDay(eventStart, selectedDate);
-  });
-  
-  const getEventTypeForDay = (date: Date): CalendarEventType | undefined => {
-    const dayEvents = events.filter(event => {
-      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-      return isSameDay(eventStart, date);
-    });
-    
-    if (dayEvents.length === 0) return undefined;
-    
-    const typeCounts = dayEvents.reduce((counts, event) => {
-      counts[event.type] = (counts[event.type] || 0) + 1;
-      return counts;
-    }, {} as Record<CalendarEventType, number>);
-    
-    let maxCount = 0;
-    let predominantType: CalendarEventType | undefined;
-    
-    Object.entries(typeCounts).forEach(([type, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        predominantType = type as CalendarEventType;
-      }
-    });
-    
-    return predominantType;
-  };
-  
-  const eventDayClasses = React.useMemo(() => {
-    const classMap: Record<string, string> = {};
-    
-    events.forEach(event => {
-      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-      const dateKey = format(eventStart, 'yyyy-MM-dd');
-      const eventType = event.type;
-      
-      if (eventType) {
-        classMap[dateKey] = `relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:${calendarStyles.eventColors[eventType]} before:rounded-full`;
-      }
-    });
-    
-    return classMap;
-  }, [events]);
-  
-  const getDayClass = (date: Date): string => {
-    const dateKey = format(date, 'yyyy-MM-dd');
-    return eventDayClasses[dateKey] || '';
-  };
-  
-  const handlePrevious = () => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (view === 'month') {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else if (view === 'week') {
-        newDate.setDate(newDate.getDate() - 7);
-      } else {
-        newDate.setDate(newDate.getDate() - 1);
-      }
-      return newDate;
-    });
-  };
-  
-  const handleNext = () => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (view === 'month') {
-        newDate.setMonth(newDate.getMonth() + 1);
-      } else if (view === 'week') {
-        newDate.setDate(newDate.getDate() + 7);
-      } else {
-        newDate.setDate(newDate.getDate() + 1);
-      }
-      return newDate;
-    });
-  };
-  
-  const handleToday = () => {
-    setCurrentDate(new Date());
-    setSelectedDate(new Date());
-  };
-  
-  const handleViewChange = (newView: 'month' | 'week' | 'day') => {
-    setView(newView);
-  };
   
   const handleAssociationChange = (associationId: string) => {
     if (onAssociationChange && associations.length > 0) {
@@ -161,7 +80,7 @@ const CalendarView = ({
         onPrevious={handlePrevious}
         onNext={handleNext}
         onToday={handleToday}
-        onToggleFilters={() => setShowFilters(!showFilters)}
+        onToggleFilters={toggleFilters}
         onCreateEvent={() => setShowEventDialog(true)}
       />
       
@@ -169,56 +88,13 @@ const CalendarView = ({
       
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         <div className="md:col-span-5">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <h2 className="text-xl font-semibold">
-                  {format(currentDate, view === 'month' ? 'MMMM yyyy' : 'MMMM d, yyyy')}
-                </h2>
-              </div>
-              
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                className="w-full border-none max-w-none"
-                month={currentDate}
-                showOutsideDays
-                modifiers={{
-                  hasEvent: (date) => 
-                    events.some(event => {
-                      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-                      return isSameDay(eventStart, date);
-                    })
-                }}
-                styles={{
-                  day: { width: '2.25rem', height: '2.25rem' }
-                }}
-                components={{
-                  DayContent: ({ date }) => {
-                    const hasEvents = events.some(event => {
-                      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-                      return isSameDay(eventStart, date);
-                    });
-                    
-                    if (hasEvents) {
-                      const eventType = getEventTypeForDay(date);
-                      const eventClass = eventType ? calendarStyles.eventColors[eventType] : calendarStyles.eventColors.default;
-                      
-                      return (
-                        <div className="relative flex h-full w-full items-center justify-center">
-                          <div>{date.getDate()}</div>
-                          <div className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${eventClass}`} />
-                        </div>
-                      );
-                    }
-                    
-                    return <div>{date.getDate()}</div>;
-                  }
-                }}
-              />
-            </CardContent>
-          </Card>
+          <CalendarDisplay
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            events={events}
+            getEventTypeForDay={getEventTypeForDay}
+          />
         </div>
         
         <div className="md:col-span-2">
