@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
 
 // Import components
 import AssociationList from './associations/AssociationList';
@@ -145,6 +147,16 @@ const AssociationSettings = () => {
 
   return (
     <div className="grid gap-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Association Management</h2>
+        <Button asChild variant="outline">
+          <Link to="/calendar?tab=association">
+            <Calendar className="h-4 w-4 mr-2" />
+            View Calendar
+          </Link>
+        </Button>
+      </div>
+
       <AssociationList 
         associations={associations}
         activeAssociation={activeAssociation}

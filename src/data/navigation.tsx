@@ -8,7 +8,8 @@ import {
   Database,
   MessageCircle,
   Zap,
-  Bell
+  Bell,
+  Calendar
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -115,6 +116,12 @@ export const getNavItems = (pathname: string): (NavItem | 'separator')[] => {
       href: "/workflows",
       icon: <Zap className="h-5 w-5" />,
       isActive: pathname === '/workflows',
+    },
+    {
+      label: "Calendar",
+      href: "/calendar",
+      icon: <Calendar className="h-5 w-5" />,
+      isActive: pathname === '/calendar',
     },
     {
       label: "Chatbot",
