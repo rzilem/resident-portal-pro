@@ -26,7 +26,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
   };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={onToggle}>
+    <Collapsible open={isOpen} onOpenChange={onToggle} className="w-full">
       <CollapsibleTrigger asChild>
         <Button
           variant="default"
@@ -48,7 +48,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           />
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-6 pt-1">
+      <CollapsibleContent className="pl-6 pt-1 space-y-1">
         {item.items?.map((subItem) => (
           <Button
             key={subItem.label}
