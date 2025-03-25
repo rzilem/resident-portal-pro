@@ -16,7 +16,10 @@ import {
   FolderClosed,
   Database,
   Workflow,
-  LayoutGrid
+  LayoutGrid,
+  UserCircle,
+  PanelsTopLeft,
+  ClipboardList
 } from 'lucide-react';
 
 // Define the NavItem type with proper structure
@@ -39,164 +42,109 @@ export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
     href: "/dashboard",
     active: currentPath === "/dashboard"
   },
+  "separator",
+  // Community Management Section
   {
-    label: "Properties",
-    icon: <Building2 className="h-4 w-4" />,
-    href: "/properties",
-    active: currentPath === "/properties"
-  },
-  {
-    label: "Residents",
-    icon: <Users className="h-4 w-4" />,
-    href: "/residents",
-    active: currentPath === "/residents"
-  },
-  {
-    label: "Calendar",
-    icon: <Calendar className="h-4 w-4" />,
-    href: "/calendar",
-    active: currentPath === "/calendar",
+    label: "Community Management",
+    icon: <PanelsTopLeft className="h-4 w-4" />,
+    active: currentPath.startsWith("/properties") || 
+            currentPath.startsWith("/residents") || 
+            currentPath.startsWith("/community-hub"),
+    href: "/properties", // Default href
     items: [
       {
-        label: "Calendar View",
+        label: "Properties",
+        href: "/properties",
+        active: currentPath === "/properties"
+      },
+      {
+        label: "Residents",
+        href: "/residents",
+        active: currentPath === "/residents"
+      },
+      {
+        label: "Community Hub",
+        href: "/community-hub",
+        active: currentPath === "/community-hub"
+      }
+    ]
+  },
+  // Operations Section
+  {
+    label: "Operations",
+    icon: <ClipboardList className="h-4 w-4" />,
+    active: currentPath.startsWith("/calendar") || 
+            currentPath.startsWith("/accounting") || 
+            currentPath.startsWith("/communications") ||
+            currentPath.startsWith("/workflows"),
+    href: "/calendar", // Default href
+    items: [
+      {
+        label: "Calendar",
         href: "/calendar",
         active: currentPath === "/calendar"
       },
       {
-        label: "Calendar Settings",
-        href: "/settings/calendar",
-        active: currentPath === "/settings/calendar"
+        label: "Accounting",
+        href: "/accounting/dashboard",
+        active: currentPath.startsWith("/accounting")
+      },
+      {
+        label: "Communications",
+        href: "/communications/messaging",
+        active: currentPath.startsWith("/communications")
+      },
+      {
+        label: "Workflows",
+        href: "/workflows",
+        active: currentPath === "/workflows"
       }
     ]
   },
+  // Records & Reports Section
   {
-    label: "Accounting",
-    icon: <CircleDollarSign className="h-4 w-4" />,
-    active: currentPath.startsWith("/accounting"),
-    href: "/accounting/dashboard", // Add default href for parent item
+    label: "Records & Reports",
+    icon: <FileSpreadsheet className="h-4 w-4" />,
+    active: currentPath.startsWith("/database") || 
+            currentPath.startsWith("/documents") || 
+            currentPath.startsWith("/reports"),
+    href: "/database/records", // Default href
     items: [
       {
-        label: "Dashboard",
-        href: "/accounting/dashboard",
-        active: currentPath === "/accounting/dashboard"
+        label: "Records",
+        href: "/database/records",
+        active: currentPath === "/database/records"
       },
       {
-        label: "Transactions",
-        href: "/accounting/transactions",
-        active: currentPath === "/accounting/transactions"
-      },
-      {
-        label: "Payments",
-        href: "/accounting/payments",
-        active: currentPath === "/accounting/payments"
-      },
-      {
-        label: "Journal Entries",
-        href: "/accounting/journal-entries",
-        active: currentPath === "/accounting/journal-entries"
+        label: "Documents",
+        href: "/documents/association",
+        active: currentPath.startsWith("/documents")
       },
       {
         label: "Reports",
-        href: "/accounting/reports",
-        active: currentPath === "/accounting/reports"
-      }
-    ]
-  },
-  {
-    label: "Communications",
-    icon: <MessageSquare className="h-4 w-4" />,
-    active: currentPath.startsWith("/communications"),
-    href: "/communications/messaging", // Add default href for parent item
-    items: [
-      {
-        label: "Community Messaging",
-        href: "/communications/messaging",
-        active: currentPath === "/communications/messaging"
-      },
-      {
-        label: "Announcements",
-        href: "/communications/announcements",
-        active: currentPath === "/communications/announcements"
-      }
-    ]
-  },
-  {
-    label: "Records",
-    icon: <Database className="h-4 w-4" />,
-    active: currentPath.startsWith("/database"),
-    href: "/database/records", // Add default href for parent item
-    items: [
-      {
-        label: "Association Records",
-        href: "/database/records",
-        active: currentPath === "/database/records"
+        href: "/reports",
+        active: currentPath === "/reports"
       }
     ]
   },
   "separator",
+  // System Section
   {
-    label: "Documents",
-    icon: <FolderClosed className="h-4 w-4" />,
-    active: currentPath.startsWith("/documents"),
-    href: "/documents/association", // Add default href for parent item
-    items: [
-      {
-        label: "Association Documents",
-        href: "/documents/association",
-        active: currentPath === "/documents/association"
-      },
-      {
-        label: "Document Templates",
-        href: "/documents/templates",
-        active: currentPath === "/documents/templates"
-      }
-    ]
-  },
-  {
-    label: "Reports",
-    icon: <BarChart3 className="h-4 w-4" />,
-    href: "/reports",
-    active: currentPath === "/reports"
-  },
-  {
-    label: "Workflows",
-    icon: <Workflow className="h-4 w-4" />,
-    href: "/workflows",
-    active: currentPath === "/workflows",
-  },
-  {
-    label: "Community Hub",
-    icon: <LayoutGrid className="h-4 w-4" />,
-    href: "/community-hub",
-    active: currentPath === "/community-hub",
-  },
-  "separator",
-  {
-    label: "Integrations",
-    icon: <Network className="h-4 w-4" />,
-    href: "/integrations",
-    active: currentPath === "/integrations"
-  },
-  {
-    label: "Settings",
+    label: "System",
     icon: <Cog className="h-4 w-4" />,
-    active: currentPath.startsWith("/settings"),
-    href: "/settings", // Add default href for parent item
+    active: currentPath.startsWith("/integrations") || 
+            currentPath.startsWith("/settings"),
+    href: "/integrations", // Default href
     items: [
       {
-        label: "General Settings",
+        label: "Integrations",
+        href: "/integrations",
+        active: currentPath === "/integrations"
+      },
+      {
+        label: "Settings",
         href: "/settings",
-        active: currentPath === "/settings"
-      },
-      {
-        label: "Calendar Settings",
-        href: "/settings/calendar",
-        active: currentPath === "/settings/calendar"
-      },
-      {
-        label: "User Permissions",
-        href: "/settings/permissions",
-        active: currentPath === "/settings/permissions"
+        active: currentPath.startsWith("/settings")
       }
     ]
   }

@@ -1,60 +1,75 @@
 
 import React from 'react';
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
-import { Link, useLocation } from 'react-router-dom';
+import { UserCircle, HelpCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { 
+  NavigationMenu, 
+  NavigationMenuItem, 
+  NavigationMenuList, 
+  NavigationMenuContent,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+  navigationMenuTriggerStyle 
+} from '@/components/ui/navigation-menu';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const MainNav = () => {
-  const location = useLocation();
-  
-  // Top level navigation items - these should be consistent across all dashboard pages
-  const mainNavItems = [
-    {
-      title: 'Dashboard',
-      href: '/dashboard',
-      active: location.pathname === '/dashboard',
-    },
-    {
-      title: 'Properties',
-      href: '/properties',
-      active: location.pathname === '/properties',
-    },
-    {
-      title: 'Residents',
-      href: '/residents',
-      active: location.pathname === '/residents',
-    },
-    {
-      title: 'Calendar',
-      href: '/calendar',
-      active: location.pathname === '/calendar' || location.pathname === '/settings/calendar',
-    },
-    {
-      title: 'Reports',
-      href: '/reports',
-      active: location.pathname === '/reports',
-    },
-  ];
-
   return (
-    <NavigationMenu className="hidden md:flex">
-      <NavigationMenuList>
-        {mainNavItems.map((item) => (
-          <NavigationMenuItem key={item.title}>
-            <Link to={item.href} className="no-underline">
-              <NavigationMenuLink 
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  item.active ? "bg-accent text-accent-foreground" : ""
-                )}
-              >
-                {item.title}
+    <div className="flex items-center justify-between w-full">
+      <div className="font-semibold text-lg">HOA Management</div>
+      
+      <NavigationMenu className="hidden md:flex">
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>User Account</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-3 p-4 w-[200px]">
+                <li className="row-span-1">
+                  <NavigationMenuLink asChild>
+                    <Link
+                      to="/profile"
+                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
+                    >
+                      <UserCircle className="h-5 w-5 mb-2" />
+                      <div className="mb-2 mt-2 text-base font-medium">
+                        Profile
+                      </div>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+                <li className="row-span-1">
+                  <NavigationMenuLink asChild>
+                    <Link
+                      to="/logout"
+                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
+                    >
+                      <div className="mb-2 mt-2 text-base font-medium">
+                        Logout
+                      </div>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          
+          <NavigationMenuItem>
+            <Link to="/help">
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                <HelpCircle className="h-4 w-4 mr-1" />
+                Help
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
-        ))}
-      </NavigationMenuList>
-    </NavigationMenu>
+        </NavigationMenuList>
+      </NavigationMenu>
+      
+      {/* Mobile menu button */}
+      <Button variant="ghost" size="sm" className="md:hidden">
+        <UserCircle className="h-5 w-5" />
+      </Button>
+    </div>
   );
 }
 

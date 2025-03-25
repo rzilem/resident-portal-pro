@@ -12,7 +12,6 @@ import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
 import { getNavItems, NavItem } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
-import { Button } from "./ui/button";
 import { useState } from "react";
 import HoaSidebar from "./HoaSidebar";
 
@@ -38,11 +37,18 @@ export function Sidebar({
   
   // Initialize sidebar groups with relevant sections expanded
   const { openGroups, toggleGroup } = useSidebarState({
-    "Calendar": location.pathname.startsWith('/calendar') || location.pathname === '/settings/calendar',
-    "Accounting": location.pathname.startsWith('/accounting'),
-    "Communications": location.pathname.startsWith('/communications'),
-    "Records": location.pathname.startsWith('/database'),
-    "Settings": location.pathname.startsWith('/settings')
+    "Community Management": location.pathname.startsWith('/properties') || 
+                   location.pathname.startsWith('/residents') ||
+                   location.pathname.startsWith('/community-hub'),
+    "Operations": location.pathname.startsWith('/calendar') ||
+              location.pathname.startsWith('/accounting') ||
+              location.pathname.startsWith('/communications') ||
+              location.pathname.startsWith('/workflows'),
+    "Records & Reports": location.pathname.startsWith('/database') ||
+                  location.pathname.startsWith('/documents') ||
+                  location.pathname.startsWith('/reports'),
+    "System": location.pathname.startsWith('/settings') || 
+           location.pathname.startsWith('/integrations')
   });
 
   const NAV_ITEMS = getNavItems(location.pathname);
@@ -55,14 +61,6 @@ export function Sidebar({
             <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
               HOA Management
             </h2>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-start" 
-              onClick={() => navigate('/')}
-            >
-              Back to Home
-            </Button>
           </SidebarHeader>
           <ScrollArea className="h-[calc(100vh-8rem)] px-3">
             <div className="space-y-1">
