@@ -15,7 +15,7 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
     {
       label: "Calendar",
       href: "/calendar",
-      active: currentPath === "/calendar"
+      active: currentPath === "/calendar" || currentPath.startsWith("/calendar/")
     },
     {
       label: "Accounting",
@@ -30,7 +30,7 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
     {
       label: "Workflows",
       href: "/workflows",
-      active: currentPath === "/workflows"
+      active: currentPath === "/workflows" || currentPath.startsWith("/workflows/")
     }
   ]
 });
