@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useComposerContext } from './ComposerContext';
+import { useComposer } from './ComposerContext';
 
 const ScheduleOptions: React.FC = () => {
   const { 
@@ -18,7 +17,7 @@ const ScheduleOptions: React.FC = () => {
     setScheduledDate,
     scheduledTime,
     setScheduledTime
-  } = useComposerContext();
+  } = useComposer();
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
