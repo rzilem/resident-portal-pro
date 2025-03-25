@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserX, Search, ChevronRight, Settings2 } from 'lucide-react';
+import { Users, UserCheck, UserX, Search, ChevronRight, Settings2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -46,6 +45,9 @@ const Residents = () => {
   const [columns, setColumns] = useState<ResidentColumn[]>(
     preferences?.residentTableColumns || defaultColumns
   );
+  const [sortField, setSortField] = useState<string>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     if (preferences?.residentTableColumns) {
@@ -63,6 +65,17 @@ const Residents = () => {
     if (hasCheckedColumn) {
       setColumns(updatedColumns);
       updatePreference('residentTableColumns', updatedColumns);
+    }
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field clicked
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
     }
   };
   
@@ -188,7 +201,38 @@ const Residents = () => {
       ownerType: 'Investor'
     },
   ];
-  
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
+  };
+
+  const filteredResidents = searchTerm 
+    ? residents.filter(resident => 
+        Object.values(resident).some(value => 
+          value && String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      )
+    : residents;
+
+  const sortedResidents = [...filteredResidents].sort((a, b) => {
+    const valueA = a[sortField as keyof typeof a];
+    const valueB = b[sortField as keyof typeof b];
+    
+    if (valueA === undefined || valueB === undefined) return 0;
+    
+    if (typeof valueA === 'number' && typeof valueB === 'number') {
+      return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+    } else {
+      const strA = String(valueA).toLowerCase();
+      const strB = String(valueB).toLowerCase();
+      
+      return sortDirection === 'asc' 
+        ? strA.localeCompare(strB)
+        : strB.localeCompare(strA);
+    }
+  });
+
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-4 md:gap-6 mb-6">
@@ -233,10 +277,11 @@ const Residents = () => {
                   type="search"
                   placeholder="Search residents..."
                   className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="flex gap-2">
-                {/* Add Column Customization */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="h-10 gap-1">
@@ -274,10 +319,9 @@ const Residents = () => {
               </div>
             </div>
             
-            {/* Mobile view */}
             {isMobile && (
               <div className="space-y-4 md:hidden">
-                {residents.map((resident, i) => (
+                {sortedResidents.map((resident, i) => (
                   <Card key={i} className="p-4 border">
                     <div className="flex justify-between items-center mb-2">
                       <Link
@@ -328,19 +372,27 @@ const Residents = () => {
               </div>
             )}
             
-            {/* Desktop view */}
             <div className={isMobile ? "hidden" : "overflow-auto"}>
               <Table>
                 <TableHeader>
                   <TableRow>
                     {columns.filter(col => col.checked).map((column) => (
-                      <TableHead key={column.id}>{column.label}</TableHead>
+                      <TableHead 
+                        key={column.id}
+                        className="cursor-pointer hover:bg-muted/30 transition-colors"
+                        onClick={() => handleSort(column.id)}
+                      >
+                        <div className="flex items-center gap-1">
+                          {column.label}
+                          <SortIcon field={column.id} />
+                        </div>
+                      </TableHead>
                     ))}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {residents.map((resident, i) => (
+                  {sortedResidents.map((resident, i) => (
                     <TableRow key={i}>
                       {columns.filter(col => col.checked).map((column) => (
                         <TableCell key={column.id}>

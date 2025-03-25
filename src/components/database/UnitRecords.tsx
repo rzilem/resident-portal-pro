@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Filter, Download, ChevronRight } from 'lucide-react';
+import { Search, Filter, Download, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,6 +13,8 @@ const UnitRecords = () => {
   const isMobile = useIsMobile();
   const { preferences } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<string>('unit');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   const defaultColumns: DatabaseColumn[] = [
     { id: 'id', label: 'ID', checked: true },
@@ -36,6 +39,17 @@ const UnitRecords = () => {
   
   const handleColumnsChange = (newColumns: DatabaseColumn[]) => {
     setColumns(newColumns);
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field clicked
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
   };
   
   const units = [
@@ -90,6 +104,51 @@ const UnitRecords = () => {
       taxId: 'AUS-9954-XC' 
     },
   ];
+
+  // Filter units based on search
+  const filteredUnits = searchTerm
+    ? units.filter(unit => 
+        Object.values(unit).some(value => 
+          value && String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      )
+    : units;
+
+  // Sort units based on current sort field and direction
+  const sortedUnits = [...filteredUnits].sort((a, b) => {
+    const valueA = a[sortField as keyof typeof a];
+    const valueB = b[sortField as keyof typeof b];
+    
+    // Special handling for numeric fields
+    if (sortField === 'sqft' || sortField === 'bedrooms') {
+      const numA = parseInt(String(valueA), 10) || 0;
+      const numB = parseInt(String(valueB), 10) || 0;
+      return sortDirection === 'asc' ? numA - numB : numB - numA;
+    } 
+    // Special handling for unit numbers (could be alphanumeric)
+    else if (sortField === 'unit') {
+      // Try to parse as numbers first, fall back to string comparison
+      const numA = parseInt(String(valueA), 10);
+      const numB = parseInt(String(valueB), 10);
+      
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return sortDirection === 'asc' ? numA - numB : numB - numA;
+      }
+    }
+    
+    // Default string comparison
+    const strA = String(valueA).toLowerCase();
+    const strB = String(valueB).toLowerCase();
+    
+    return sortDirection === 'asc' 
+      ? strA.localeCompare(strB)
+      : strB.localeCompare(strA);
+  });
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
+  };
   
   return (
     <div className="pt-4">
@@ -123,7 +182,7 @@ const UnitRecords = () => {
       
       {isMobile && (
         <div className="space-y-3 md:hidden">
-          {units.map((unit, i) => (
+          {sortedUnits.map((unit, i) => (
             <Card key={i} className="p-4">
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -167,12 +226,21 @@ const UnitRecords = () => {
           <TableHeader>
             <TableRow>
               {columns.map(col => col.checked && (
-                <TableHead key={col.id}>{col.label}</TableHead>
+                <TableHead 
+                  key={col.id}
+                  className="cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => handleSort(col.id)}
+                >
+                  <div className="flex items-center gap-1">
+                    {col.label}
+                    <SortIcon field={col.id} />
+                  </div>
+                </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {units.map((unit, i) => (
+            {sortedUnits.map((unit, i) => (
               <TableRow key={i}>
                 {columns.map(col => col.checked && (
                   <TableCell key={col.id}>

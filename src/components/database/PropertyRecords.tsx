@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Filter, Download } from 'lucide-react';
+import { Search, Filter, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DatabaseColumnsSelector, DatabaseColumn } from './DatabaseColumnsSelector';
@@ -10,6 +10,8 @@ import { useSettings } from '@/hooks/use-settings';
 const PropertyRecords = () => {
   const { preferences } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<string>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Define default columns
   const defaultColumns: DatabaseColumn[] = [
@@ -36,6 +38,17 @@ const PropertyRecords = () => {
   const handleColumnsChange = (newColumns: DatabaseColumn[]) => {
     setColumns(newColumns);
   };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field clicked
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
   
   // Sample property data
   const properties = [
@@ -45,6 +58,43 @@ const PropertyRecords = () => {
     { id: 'P004', name: 'Sunset Gardens', type: 'HOA', units: '32', location: 'San Diego, CA', created: '2019-07-08' },
     { id: 'P005', name: 'Pine Valley Community', type: 'HOA', units: '26', location: 'Austin, TX', created: '2021-11-29' },
   ];
+
+  // Filter properties based on search term
+  const filteredProperties = searchTerm
+    ? properties.filter(property => 
+        Object.values(property).some(value => 
+          value && String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      )
+    : properties;
+
+  // Sort properties based on current sort field and direction
+  const sortedProperties = [...filteredProperties].sort((a, b) => {
+    const valueA = a[sortField as keyof typeof a];
+    const valueB = b[sortField as keyof typeof b];
+    
+    if (valueA === undefined || valueB === undefined) return 0;
+    
+    // Special case for numeric columns
+    if (sortField === 'units') {
+      const numA = parseInt(String(valueA), 10) || 0;
+      const numB = parseInt(String(valueB), 10) || 0;
+      return sortDirection === 'asc' ? numA - numB : numB - numA;
+    } else {
+      // Default string comparison
+      const strA = String(valueA).toLowerCase();
+      const strB = String(valueB).toLowerCase();
+      
+      return sortDirection === 'asc' 
+        ? strA.localeCompare(strB)
+        : strB.localeCompare(strA);
+    }
+  });
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
+  };
 
   return (
     <div className="pt-4">
@@ -80,12 +130,21 @@ const PropertyRecords = () => {
         <TableHeader>
           <TableRow>
             {columns.map(col => col.checked && (
-              <TableHead key={col.id}>{col.label}</TableHead>
+              <TableHead 
+                key={col.id}
+                className="cursor-pointer hover:bg-muted/30 transition-colors"
+                onClick={() => handleSort(col.id)}
+              >
+                <div className="flex items-center gap-1">
+                  {col.label}
+                  <SortIcon field={col.id} />
+                </div>
+              </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {properties.map((property, i) => (
+          {sortedProperties.map((property, i) => (
             <TableRow key={i}>
               {columns.map(col => col.checked && (
                 <TableCell key={col.id}>
