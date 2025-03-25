@@ -1,26 +1,13 @@
 
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Building, FileText } from "lucide-react";
+import { FileText, Building } from "lucide-react";
 import IntegrationCard from './IntegrationCard';
 
 const ManagementIntegrations = () => {
   return (
     <ScrollArea className="h-[600px] pr-4">
       <div className="grid gap-6">
-        {/* Property Management */}
-        <IntegrationCard 
-          title="Property Management"
-          description="Connect with property management systems"
-          icon={<Building className="h-5 w-5" />}
-          integrations={[
-            { name: "Buildium", connected: false },
-            { name: "AppFolio", connected: false },
-            { name: "Propertyware", connected: false },
-            { name: "Yardi", connected: false }
-          ]}
-        />
-        
         {/* Microsoft Dynamics 365 */}
         <IntegrationCard 
           title="Microsoft Dynamics 365"
