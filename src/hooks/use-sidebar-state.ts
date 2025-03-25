@@ -9,34 +9,33 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
   const [openGroups, setOpenGroups] = useState<SidebarGroupState>(initialGroups);
 
   useEffect(() => {
-    // Auto-open groups based on current path
-    const newOpenGroups = { ...openGroups };
+    // Auto-open groups based on current path with more consistent logic
+    const newOpenGroups: SidebarGroupState = {};
     
-    if (location.pathname.startsWith('/accounting')) {
-      newOpenGroups["Accounting"] = true;
-    }
-    
-    if (location.pathname.startsWith('/communications')) {
-      newOpenGroups["Communications"] = true;
-    }
-    
-    if (location.pathname.startsWith('/database')) {
-      newOpenGroups["Records"] = true;
-    }
-    
-    if (location.pathname.startsWith('/documents')) {
-      newOpenGroups["Documents"] = true;
-    }
-    
-    if (location.pathname.startsWith('/settings')) {
-      newOpenGroups["Settings"] = true;
-    }
-    
-    if (location.pathname.startsWith('/calendar') || location.pathname === '/settings/calendar') {
-      newOpenGroups["Calendar"] = true;
-    }
-    
-    setOpenGroups(newOpenGroups);
+    const pathToGroupMap: Record<string, string> = {
+      '/accounting': 'Operations',
+      '/calendar': 'Operations',
+      '/communications': 'Operations',
+      '/workflows': 'Operations',
+      '/database': 'Records & Reports',
+      '/documents': 'Records & Reports',
+      '/reports': 'Records & Reports',
+      '/settings': 'System',
+      '/integrations': 'System'
+    };
+
+    // Check for exact matches and starts-with matches
+    Object.entries(pathToGroupMap).forEach(([path, group]) => {
+      if (location.pathname === path || location.pathname.startsWith(path)) {
+        newOpenGroups[group] = true;
+      }
+    });
+
+    // Merge with existing state to preserve user interactions
+    setOpenGroups(prev => ({
+      ...prev,
+      ...newOpenGroups
+    }));
   }, [location.pathname]);
 
   const toggleGroup = (group: string) => {
