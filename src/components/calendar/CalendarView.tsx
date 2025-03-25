@@ -1,18 +1,16 @@
+
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { format, isSameDay, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, Plus, Building } from 'lucide-react';
 import { CalendarEvent, CalendarAccessLevel } from '@/types/calendar';
 import { useCalendar } from '@/hooks/use-calendar';
 import CalendarEventDialog from './CalendarEventDialog';
 import CalendarFilters from './CalendarFilters';
 import EventDetails from './EventDetails';
 import { Association } from '@/types/association';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import CalendarHeader from './CalendarHeader';
+import EventsList from './EventsList';
 
 interface CalendarViewProps {
   userId: string;
@@ -91,15 +89,10 @@ const CalendarView = ({
     setSelectedDate(new Date());
   };
   
-  const getDayClassNames = (date: Date) => {
-    const hasEvents = events.some(event => {
-      const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-      return isSameDay(eventStart, date);
-    });
-    
-    return hasEvents ? 'bg-primary-100 rounded-full' : '';
+  const handleViewChange = (newView: 'month' | 'week' | 'day') => {
+    setView(newView);
   };
-
+  
   const handleAssociationChange = (associationId: string) => {
     if (onAssociationChange && associations.length > 0) {
       const association = associations.find(a => a.id === associationId);
@@ -111,67 +104,20 @@ const CalendarView = ({
   
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5" />
-          <h1 className="text-2xl font-bold">
-            {isGlobalAdmin ? 'Global Calendar' : 'Association Calendar'}
-          </h1>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-2">
-          {!isGlobalAdmin && associations.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
-              <Select 
-                value={activeAssociation?.id || ''} 
-                onValueChange={handleAssociationChange}
-              >
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Select association" />
-                </SelectTrigger>
-                <SelectContent>
-                  {associations.map(association => (
-                    <SelectItem key={association.id} value={association.id}>
-                      {association.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <Tabs value={view} onValueChange={(v) => setView(v as 'month' | 'week' | 'day')}>
-            <TabsList>
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="day">Day</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={handlePrevious}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleToday}>
-              Today
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleNext}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          
-          <Button onClick={() => setShowEventDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Event
-          </Button>
-        </div>
-      </div>
+      <CalendarHeader 
+        view={view}
+        currentDate={currentDate}
+        isGlobalAdmin={isGlobalAdmin}
+        associations={associations}
+        activeAssociation={activeAssociation || null}
+        onAssociationChange={handleAssociationChange}
+        onViewChange={handleViewChange}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        onToday={handleToday}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        onCreateEvent={() => setShowEventDialog(true)}
+      />
       
       {showFilters && <CalendarFilters />}
       
@@ -208,51 +154,12 @@ const CalendarView = ({
         </div>
         
         <div>
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-4">
-                {format(selectedDate, 'MMMM d, yyyy')}
-              </h3>
-              
-              {isLoading ? (
-                <div className="text-center py-4">Loading events...</div>
-              ) : selectedDateEvents.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">No events scheduled</div>
-              ) : (
-                <div className="space-y-3">
-                  {selectedDateEvents.map((event) => (
-                    <div 
-                      key={event.id} 
-                      className="p-3 rounded-md border hover:bg-accent cursor-pointer"
-                      onClick={() => setSelectedEvent(event)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">{event.title}</h4>
-                          {!event.allDay && (
-                            <p className="text-sm text-muted-foreground">
-                              {typeof event.start === 'string'
-                                ? format(parseISO(event.start), 'h:mm a')
-                                : format(event.start, 'h:mm a')}
-                              {event.end && ` - ${typeof event.end === 'string'
-                                ? format(parseISO(event.end), 'h:mm a')
-                                : format(event.end, 'h:mm a')}`}
-                            </p>
-                          )}
-                          {event.location && (
-                            <p className="text-sm text-muted-foreground">{event.location}</p>
-                          )}
-                        </div>
-                        <Badge variant={event.type === 'holiday' ? 'destructive' : 'default'}>
-                          {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <EventsList 
+            selectedDate={selectedDate}
+            events={selectedDateEvents}
+            isLoading={isLoading}
+            onSelectEvent={setSelectedEvent}
+          />
         </div>
       </div>
       
