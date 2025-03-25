@@ -1,14 +1,13 @@
-
 import React from 'react';
 import { Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { SecurityLevel, UserRole, GlobalPermission, ModulePermissions } from "@/types/user";
 
-export const securityLevelIcons: Record<SecurityLevel, React.ReactNode> = {
-  'restricted': <Shield className="h-4 w-4 text-red-500" />,
-  'basic': <Shield className="h-4 w-4 text-blue-500" />,
-  'elevated': <Shield className="h-4 w-4 text-green-500" />,
-  'advanced': <ShieldCheck className="h-4 w-4 text-purple-500" />,
-  'full': <ShieldAlert className="h-4 w-4 text-amber-500" />
+export const securityLevelIcons: Record<SecurityLevel, () => React.ReactNode> = {
+  'restricted': () => <Shield className="h-4 w-4 text-red-500" />,
+  'basic': () => <Shield className="h-4 w-4 text-blue-500" />,
+  'elevated': () => <Shield className="h-4 w-4 text-green-500" />,
+  'advanced': () => <ShieldCheck className="h-4 w-4 text-purple-500" />,
+  'full': () => <ShieldAlert className="h-4 w-4 text-amber-500" />
 };
 
 export const securityLevelDescriptions: Record<SecurityLevel, string> = {
