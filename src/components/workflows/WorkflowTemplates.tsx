@@ -4,78 +4,39 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowRight, FileCheck, AlertTriangle, MessageSquare, Mail, Calendar, Clock, CreditCard } from "lucide-react";
-
-// Predefined workflow templates
-const workflowTemplates = [
-  {
-    id: 'delinquency',
-    title: 'Delinquency Collection Process',
-    description: 'Automate the collection of delinquent payments with notifications, late fees, and escalation steps',
-    category: 'Financial',
-    steps: 8,
-    icon: <CreditCard className="w-10 h-10 text-orange-500" />,
-    popular: true
-  },
-  {
-    id: 'violation',
-    title: 'Compliance Violation Workflow',
-    description: 'Standardized process for handling CC&R violations with notices, hearings, and enforcement actions',
-    category: 'Compliance',
-    steps: 6,
-    icon: <AlertTriangle className="w-10 h-10 text-red-500" />
-  },
-  {
-    id: 'maintenance',
-    title: 'Maintenance Request Handling',
-    description: 'Track maintenance requests from submission to completion with vendor assignments and status updates',
-    category: 'Maintenance',
-    steps: 5,
-    icon: <FileCheck className="w-10 h-10 text-green-500" />
-  },
-  {
-    id: 'residentonboarding',
-    title: 'New Resident Onboarding',
-    description: 'Welcome new residents with community information, access credentials, and orientation materials',
-    category: 'Resident Management',
-    steps: 4,
-    icon: <MessageSquare className="w-10 h-10 text-blue-500" />
-  },
-  {
-    id: 'boardmeetings',
-    title: 'Board Meeting Coordination',
-    description: 'Schedule meetings, distribute agendas, send reminders, and follow up with minutes',
-    category: 'Governance',
-    steps: 7,
-    icon: <Calendar className="w-10 h-10 text-purple-500" />
-  },
-  {
-    id: 'architecturalreview',
-    title: 'Architectural Review Process',
-    description: 'Manage the submission and approval process for architectural modifications',
-    category: 'Compliance',
-    steps: 5,
-    icon: <FileCheck className="w-10 h-10 text-teal-500" />
-  },
-  {
-    id: 'emailcommunication',
-    title: 'Email Communication Campaign',
-    description: 'Schedule and send targeted email communications to residents based on specific triggers',
-    category: 'Communication',
-    steps: 3,
-    icon: <Mail className="w-10 h-10 text-blue-400" />
-  },
-  {
-    id: 'feereminders',
-    title: 'Assessment Fee Reminders',
-    description: 'Automated reminders for upcoming and overdue assessment payments',
-    category: 'Financial',
-    steps: 4,
-    icon: <Clock className="w-10 h-10 text-amber-500" />
-  }
-];
+import { ArrowRight } from "lucide-react";
+import { useWorkflows } from '@/hooks/use-workflows';
+import { getTemplateIcon } from '@/data/workflowTemplates';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const WorkflowTemplates = () => {
+  const { templates, createFromTemplate, isLoading } = useWorkflows();
+  const navigate = useNavigate();
+
+  const handleUseTemplate = async (templateId: string) => {
+    try {
+      const newWorkflow = await createFromTemplate(templateId);
+      toast.success(`Template "${newWorkflow.name}" has been applied`);
+      
+      // Navigate to the workflow builder with the new workflow
+      navigate(`/workflows?tab=builder&id=${newWorkflow.id}`);
+    } catch (error) {
+      console.error('Error using template:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[600px]">
+        <div className="animate-pulse text-center">
+          <div className="h-8 w-48 bg-muted rounded mx-auto mb-4"></div>
+          <div className="h-4 w-64 bg-muted rounded mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -85,11 +46,13 @@ const WorkflowTemplates = () => {
       
       <ScrollArea className="h-[600px]">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {workflowTemplates.map((template) => (
+          {templates.map((template) => (
             <Card key={template.id} className="h-full flex flex-col">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="p-2 rounded-md bg-muted">{template.icon}</div>
+                  <div className="p-2 rounded-md bg-muted">
+                    {getTemplateIcon(template)}
+                  </div>
                   <Badge variant="outline">{template.category}</Badge>
                 </div>
                 <CardTitle className="mt-4">{template.title}</CardTitle>
@@ -106,7 +69,7 @@ const WorkflowTemplates = () => {
                 )}
               </CardContent>
               <CardFooter>
-                <Button className="w-full">
+                <Button className="w-full" onClick={() => handleUseTemplate(template.id)}>
                   Use Template <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardFooter>

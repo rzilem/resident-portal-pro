@@ -1,95 +1,63 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, ArrowLeft } from "lucide-react";
 import WorkflowHeader from './builder/WorkflowHeader';
 import WorkflowStepsList from './builder/WorkflowStepsList';
-import { WorkflowStep, TriggerStep, ActionStep, ConditionStep } from './builder/types';
+import { WorkflowStep } from '@/types/workflow';
 import { toast } from "sonner";
+import { useWorkflowSteps } from '@/hooks/use-workflow-steps';
+import { useWorkflows } from '@/hooks/use-workflows';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { v4 as uuid } from 'uuid';
 
 const WorkflowBuilder = () => {
+  const [searchParams] = useSearchParams();
+  const workflowId = searchParams.get('id');
+  const readOnly = searchParams.get('readonly') === 'true';
+  
+  const { workflows, updateWorkflow, createWorkflow } = useWorkflows();
+  const navigate = useNavigate();
+  
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
   const [workflowCategory, setWorkflowCategory] = useState('');
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([
-    { id: '1', type: 'trigger', triggerType: '', name: '', config: {} } as TriggerStep,
-    { id: '2', type: 'action', actionType: '', name: '', config: {} } as ActionStep
+  
+  // Get steps from the hook
+  const { 
+    steps: workflowSteps, 
+    addStep, 
+    removeStep, 
+    updateStep, 
+    moveStep,
+    setWorkflowSteps
+  } = useWorkflowSteps([
+    { id: uuid(), type: 'trigger', triggerType: '', name: 'Start', config: {} },
+    { id: uuid(), type: 'action', actionType: '', name: 'New Action', config: {} }
   ]);
   
-  const addStep = (afterId: string) => {
-    const newId = Date.now().toString();
-    const afterIndex = workflowSteps.findIndex(step => step.id === afterId);
-    
-    const newSteps = [...workflowSteps];
-    newSteps.splice(afterIndex + 1, 0, { 
-      id: newId, 
-      type: 'action', 
-      actionType: '', 
-      name: '',
-      config: {}
-    } as ActionStep);
-    
-    setWorkflowSteps(newSteps);
-  };
-  
-  const addCondition = (afterId: string) => {
-    const newId = Date.now().toString();
-    const afterIndex = workflowSteps.findIndex(step => step.id === afterId);
-    
-    const newSteps = [...workflowSteps];
-    newSteps.splice(afterIndex + 1, 0, { 
-      id: newId, 
-      type: 'condition', 
-      conditionType: 'equals', 
-      field: '',
-      value: '',
-      name: 'If condition',
-      config: {
-        trueSteps: [],
-        falseSteps: []
+  // Load workflow data if editing
+  useEffect(() => {
+    if (workflowId) {
+      const workflow = workflows.find(w => w.id === workflowId);
+      if (workflow) {
+        setWorkflowName(workflow.name);
+        setWorkflowDescription(workflow.description);
+        setWorkflowCategory(workflow.category);
+        setWorkflowSteps(workflow.steps);
       }
-    } as ConditionStep);
-    
-    setWorkflowSteps(newSteps);
-  };
-  
-  const removeStep = (id: string) => {
-    setWorkflowSteps(workflowSteps.filter(step => step.id !== id));
-  };
-  
-  const moveStep = (id: string, direction: 'up' | 'down') => {
-    const stepIndex = workflowSteps.findIndex(step => step.id === id);
-    if ((direction === 'up' && stepIndex === 0) || 
-        (direction === 'down' && stepIndex === workflowSteps.length - 1)) {
-      return;
     }
-    
-    const newSteps = [...workflowSteps];
-    const temp = newSteps[stepIndex];
-    
-    if (direction === 'up') {
-      newSteps[stepIndex] = newSteps[stepIndex - 1];
-      newSteps[stepIndex - 1] = temp;
-    } else {
-      newSteps[stepIndex] = newSteps[stepIndex + 1];
-      newSteps[stepIndex + 1] = temp;
-    }
-    
-    setWorkflowSteps(newSteps);
+  }, [workflowId, workflows, setWorkflowSteps]);
+  
+  const handleAddStep = (afterId: string) => {
+    addStep(afterId, 'action');
   };
   
-  const updateStep = (id: string, data: Partial<WorkflowStep>) => {
-    setWorkflowSteps(
-      workflowSteps.map(step => {
-        if (step.id === id) {
-          return { ...step, ...data } as WorkflowStep;
-        }
-        return step;
-      })
-    );
+  const handleAddCondition = (afterId: string) => {
+    addStep(afterId, 'condition');
   };
   
-  const saveWorkflow = () => {
+  const saveWorkflow = async () => {
     // Validate required fields before saving
     if (!workflowName.trim()) {
       toast.error('Please enter a workflow name');
@@ -103,8 +71,8 @@ const WorkflowBuilder = () => {
 
     // Check if all steps have necessary properties filled
     const incompleteSteps = workflowSteps.filter(step => {
-      if (step.type === 'trigger' && !(step as TriggerStep).triggerType) return true;
-      if (step.type === 'action' && !(step as ActionStep).actionType) return true;
+      if (step.type === 'trigger' && !step.triggerType) return true;
+      if (step.type === 'action' && !step.actionType) return true;
       return false;
     });
 
@@ -113,21 +81,44 @@ const WorkflowBuilder = () => {
       return;
     }
 
-    const workflow = {
-      name: workflowName,
-      description: workflowDescription,
-      category: workflowCategory,
-      steps: workflowSteps,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('Saving workflow:', workflow);
-    // Here you would typically save to database or state
-    toast.success('Workflow saved successfully!');
+    try {
+      if (workflowId) {
+        // Update existing workflow
+        await updateWorkflow(workflowId, {
+          name: workflowName,
+          description: workflowDescription,
+          category: workflowCategory,
+          steps: workflowSteps,
+        });
+        toast.success('Workflow updated successfully!');
+      } else {
+        // Create new workflow
+        const newWorkflow = await createWorkflow({
+          name: workflowName,
+          description: workflowDescription,
+          category: workflowCategory,
+          steps: workflowSteps,
+        });
+        toast.success('Workflow created successfully!');
+        
+        // Navigate to the new workflow
+        navigate(`/workflows?tab=builder&id=${newWorkflow.id}`);
+      }
+    } catch (error) {
+      console.error('Error saving workflow:', error);
+      toast.error('Failed to save workflow');
+    }
   };
   
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/workflows')}>
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back to Workflows
+        </Button>
+      </div>
+      
       <WorkflowHeader
         workflowName={workflowName}
         setWorkflowName={setWorkflowName}
@@ -135,14 +126,17 @@ const WorkflowBuilder = () => {
         setWorkflowDescription={setWorkflowDescription}
         workflowCategory={workflowCategory}
         setWorkflowCategory={setWorkflowCategory}
+        readOnly={readOnly}
       />
       
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Workflow Steps</h2>
-        <Button variant="outline" onClick={saveWorkflow}>
-          <Save className="mr-2 h-4 w-4" />
-          Save Workflow
-        </Button>
+        {!readOnly && (
+          <Button variant="outline" onClick={saveWorkflow}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Workflow
+          </Button>
+        )}
       </div>
       
       <WorkflowStepsList
@@ -150,9 +144,19 @@ const WorkflowBuilder = () => {
         updateStep={updateStep}
         removeStep={removeStep}
         moveStep={moveStep}
-        addStep={addStep}
-        addCondition={addCondition}
+        addStep={handleAddStep}
+        addCondition={handleAddCondition}
+        readOnly={readOnly}
       />
+      
+      {!readOnly && (
+        <div className="flex justify-end mt-6">
+          <Button variant="default" onClick={saveWorkflow}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Workflow
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

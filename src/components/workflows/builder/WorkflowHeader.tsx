@@ -1,10 +1,20 @@
 
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+
+const WORKFLOW_CATEGORIES = [
+  { value: "Financial", label: "Financial" },
+  { value: "Compliance", label: "Compliance" },
+  { value: "Communication", label: "Communication" },
+  { value: "Maintenance", label: "Maintenance" },
+  { value: "Resident Management", label: "Resident Management" },
+  { value: "Governance", label: "Governance" },
+  { value: "Other", label: "Other" },
+];
 
 interface WorkflowHeaderProps {
   workflowName: string;
@@ -13,6 +23,7 @@ interface WorkflowHeaderProps {
   setWorkflowDescription: (description: string) => void;
   workflowCategory: string;
   setWorkflowCategory: (category: string) => void;
+  readOnly?: boolean;
 }
 
 const WorkflowHeader = ({
@@ -21,50 +32,62 @@ const WorkflowHeader = ({
   workflowDescription,
   setWorkflowDescription,
   workflowCategory,
-  setWorkflowCategory
+  setWorkflowCategory,
+  readOnly = false
 }: WorkflowHeaderProps) => {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="workflow-name">Workflow Name</Label>
-              <Input 
-                id="workflow-name" 
-                placeholder="Enter workflow name"
-                value={workflowName}
-                onChange={(e) => setWorkflowName(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="workflow-category">Category</Label>
-              <Select value={workflowCategory} onValueChange={setWorkflowCategory}>
-                <SelectTrigger id="workflow-category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="financial">Financial</SelectItem>
-                  <SelectItem value="compliance">Compliance</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="communication">Communication</SelectItem>
-                  <SelectItem value="governance">Governance</SelectItem>
-                  <SelectItem value="resident">Resident Management</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="workflowName">Workflow Name</Label>
+            <Input
+              id="workflowName"
+              value={workflowName}
+              onChange={(e) => setWorkflowName(e.target.value)}
+              placeholder="Enter workflow name"
+              readOnly={readOnly}
+              className={readOnly ? "opacity-70" : ""}
+            />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="workflow-description">Description</Label>
-            <Textarea 
-              id="workflow-description" 
-              placeholder="Describe what this workflow does"
+            <Label htmlFor="workflowCategory">Category</Label>
+            {readOnly ? (
+              <Input 
+                value={workflowCategory} 
+                readOnly 
+                className="opacity-70" 
+              />
+            ) : (
+              <Select
+                value={workflowCategory}
+                onValueChange={setWorkflowCategory}
+                disabled={readOnly}
+              >
+                <SelectTrigger id="workflowCategory">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {WORKFLOW_CATEGORIES.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="workflowDescription">Description</Label>
+            <Textarea
+              id="workflowDescription"
               value={workflowDescription}
               onChange={(e) => setWorkflowDescription(e.target.value)}
-              rows={3}
+              placeholder="Describe the purpose and functionality of this workflow"
+              className={`resize-none min-h-[100px] ${readOnly ? "opacity-70" : ""}`}
+              readOnly={readOnly}
             />
           </div>
         </div>
