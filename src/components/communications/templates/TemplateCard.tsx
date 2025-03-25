@@ -1,85 +1,60 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, FileEdit, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Edit, Trash, Send } from 'lucide-react';
 import { MessageTemplate } from './types';
-import { SAMPLE_COMMUNITIES } from './types';
 
 interface TemplateCardProps {
   template: MessageTemplate;
   onPreview: (template: MessageTemplate) => void;
   onEdit: (template: MessageTemplate) => void;
-  onDelete: (templateId: string) => void;
+  onDelete: (id: string) => void;
   onSelect: (template: MessageTemplate) => void;
 }
 
-const TemplateCard: React.FC<TemplateCardProps> = ({ 
-  template, 
-  onPreview, 
-  onEdit, 
-  onDelete, 
-  onSelect 
+const TemplateCard: React.FC<TemplateCardProps> = ({
+  template,
+  onPreview,
+  onEdit,
+  onDelete,
+  onSelect
 }) => {
+  const handleUseTemplate = () => {
+    onSelect(template);
+  };
+
   return (
-    <Card className="flex flex-col">
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg truncate">{template.name}</CardTitle>
-        <CardDescription className="truncate">{template.description}</CardDescription>
+        <div className="flex justify-between items-start">
+          <Badge variant="outline">{template.category}</Badge>
+          <span className="text-xs text-muted-foreground">
+            {new Date(template.updatedAt).toLocaleDateString()}
+          </span>
+        </div>
+        <CardTitle className="text-lg mt-2 line-clamp-1">{template.name}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow pb-2">
-        <div className="space-y-1 text-sm">
-          <div className="font-medium">Category: {template.category}</div>
-          <div className="truncate">Subject: {template.subject}</div>
-          <div>
-            {template.communities?.includes('all') 
-              ? 'All Communities' 
-              : template.communities?.map(c => {
-                  const community = SAMPLE_COMMUNITIES.find(sc => sc.id === c);
-                  return community?.name;
-                }).join(', ') || 'All Communities'}
-          </div>
-        </div>
+      <CardContent className="py-2 flex-grow">
+        <p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
       </CardContent>
-      <CardFooter className="pt-0 flex-col gap-2">
-        <div className="flex gap-2 w-full">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onPreview(template)}
-          >
-            <Eye className="mr-1 h-4 w-4" />
-            Preview
+      <CardFooter className="flex justify-between pt-2">
+        <div className="flex space-x-1">
+          <Button variant="ghost" size="icon" onClick={() => onPreview(template)}>
+            <Eye className="h-4 w-4" />
           </Button>
-          <Button 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onSelect(template)}
-          >
-            Use
+          <Button variant="ghost" size="icon" onClick={() => onEdit(template)}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => onDelete(template.id)}>
+            <Trash className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex gap-2 w-full">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onEdit(template)}
-          >
-            <FileEdit className="mr-1 h-4 w-4" />
-            Edit
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete(template.id)}
-          >
-            <Trash2 className="mr-1 h-4 w-4" />
-            Delete
-          </Button>
-        </div>
+        <Button variant="default" size="sm" onClick={handleUseTemplate}>
+          <Send className="mr-2 h-4 w-4" />
+          Use Template
+        </Button>
       </CardFooter>
     </Card>
   );

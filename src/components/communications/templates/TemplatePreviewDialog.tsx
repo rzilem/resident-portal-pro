@@ -19,6 +19,11 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
 }) => {
   if (!template) return null;
 
+  const handleUseTemplate = () => {
+    onUseTemplate(template);
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
@@ -35,10 +40,7 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
         
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button onClick={() => {
-            onUseTemplate(template);
-            onClose();
-          }}>
+          <Button onClick={handleUseTemplate}>
             Use Template
           </Button>
         </DialogFooter>
