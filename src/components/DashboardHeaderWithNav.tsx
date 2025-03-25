@@ -36,7 +36,7 @@ const DashboardHeaderWithNav = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:inline-flex"
+            className="inline-flex"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
           >
@@ -75,6 +75,12 @@ const DashboardHeaderWithNav = ({
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/profile">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/settings">
                 <Settings className="mr-2 h-4 w-4" />

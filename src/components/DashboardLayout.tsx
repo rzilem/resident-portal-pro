@@ -30,7 +30,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     if (path === '/reports') return 'Reports';
     if (path === '/integrations') return 'Integrations';
     if (path === '/workflows') return 'Workflows';
-    if (path === '/chatbot') return 'Community Hub';
+    if (path === '/community-hub') return 'Community Hub';
     
     // Settings section
     if (path === '/settings') return 'Settings';
@@ -39,7 +39,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     
     // Accounting section
     if (path.startsWith('/accounting')) {
-      if (path === '/accounting') return 'Accounting Dashboard';
+      if (path === '/accounting/dashboard') return 'Accounting Dashboard';
       if (path === '/accounting/transactions') return 'Transactions';
       if (path === '/accounting/reports') return 'Financial Reports';
       if (path === '/accounting/payments') return 'Payments';
@@ -114,7 +114,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
         />
         
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
+        <main className="flex-1 animate-fade-in">
           {children}
         </main>
       </div>
