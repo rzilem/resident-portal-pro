@@ -3,6 +3,8 @@
  * User type definitions for the application
  */
 
+import { DashboardLayout } from './dashboard';
+
 export interface User {
   id: string;
   firstName: string;
@@ -32,5 +34,6 @@ export interface UserPreferences {
     sms: boolean;
   };
   calendarView?: 'day' | 'week' | 'month' | 'agenda';
+  dashboardLayout?: DashboardLayout;
   dashboardWidgets?: string[];
 }
