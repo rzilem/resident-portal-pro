@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import CalendarView from '@/components/calendar/CalendarView';
 import { Button } from '@/components/ui/button';
 import { Plus, Settings } from 'lucide-react';
 import CalendarEventDialog from '@/components/calendar/CalendarEventDialog';
+import { useAssociations } from '@/hooks/use-associations';
 
 const Calendar = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,9 @@ const Calendar = () => {
   
   const [activeTab, setActiveTab] = useState(tabFromUrl || "association");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  
+  // Get associations for the dropdown
+  const { associations, activeAssociation, selectAssociation } = useAssociations();
   
   // Sync URL with tab changes
   const handleTabChange = (value: string) => {
@@ -24,9 +28,6 @@ const Calendar = () => {
   // Example user and access level - in a real app, this would come from authentication
   const userId = 'current-user';
   const userAccessLevel = 'admin' as const;
-  
-  // Currently selected association - in a real app, this would be the current association context
-  const associationId = 'assoc-1';
   
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
@@ -56,8 +57,11 @@ const Calendar = () => {
           <CalendarView 
             userId={userId}
             userAccessLevel={userAccessLevel}
-            associationId={associationId}
+            associationId={activeAssociation?.id}
             isGlobalAdmin={false}
+            associations={associations}
+            activeAssociation={activeAssociation}
+            onAssociationChange={selectAssociation}
           />
         </TabsContent>
         
@@ -75,7 +79,7 @@ const Calendar = () => {
           open={showCreateEvent}
           onOpenChange={setShowCreateEvent}
           onSave={() => {}}
-          associationId={activeTab === 'association' ? associationId : undefined}
+          associationId={activeTab === 'association' ? activeAssociation?.id : undefined}
           userAccessLevel={userAccessLevel}
         />
       )}

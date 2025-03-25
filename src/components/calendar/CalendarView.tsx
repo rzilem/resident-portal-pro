@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -6,25 +5,33 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { format, isSameDay, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, Plus, Building } from 'lucide-react';
 import { CalendarEvent, CalendarAccessLevel } from '@/types/calendar';
 import { useCalendar } from '@/hooks/use-calendar';
 import CalendarEventDialog from './CalendarEventDialog';
 import CalendarFilters from './CalendarFilters';
 import EventDetails from './EventDetails';
+import { Association } from '@/types/association';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CalendarViewProps {
   userId: string;
   userAccessLevel: CalendarAccessLevel;
   associationId?: string;
   isGlobalAdmin?: boolean;
+  associations?: Association[];
+  activeAssociation?: Association | null;
+  onAssociationChange?: (association: Association) => void;
 }
 
 const CalendarView = ({ 
   userId, 
   userAccessLevel, 
   associationId,
-  isGlobalAdmin = false
+  isGlobalAdmin = false,
+  associations = [],
+  activeAssociation,
+  onAssociationChange
 }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -85,13 +92,21 @@ const CalendarView = ({
   };
   
   const getDayClassNames = (date: Date) => {
-    // Check if there are events on this day
     const hasEvents = events.some(event => {
       const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
       return isSameDay(eventStart, date);
     });
     
     return hasEvents ? 'bg-primary-100 rounded-full' : '';
+  };
+
+  const handleAssociationChange = (associationId: string) => {
+    if (onAssociationChange && associations.length > 0) {
+      const association = associations.find(a => a.id === associationId);
+      if (association) {
+        onAssociationChange(association);
+      }
+    }
   };
   
   return (
@@ -105,6 +120,27 @@ const CalendarView = ({
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
+          {!isGlobalAdmin && associations.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Building className="h-4 w-4 text-muted-foreground" />
+              <Select 
+                value={activeAssociation?.id || ''} 
+                onValueChange={handleAssociationChange}
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Select association" />
+                </SelectTrigger>
+                <SelectContent>
+                  {associations.map(association => (
+                    <SelectItem key={association.id} value={association.id}>
+                      {association.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <Tabs value={view} onValueChange={(v) => setView(v as 'month' | 'week' | 'day')}>
             <TabsList>
               <TabsTrigger value="month">Month</TabsTrigger>
