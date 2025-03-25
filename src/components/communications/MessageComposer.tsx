@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card';
 import { Send, Bot, Copy, TagIcon } from 'lucide-react';
 import HtmlEditor from './HtmlEditor';
 import { Textarea } from '@/components/ui/textarea';
-import { MergeTag } from '@/types/mergeTags';
 import { mergeTagService } from '@/services/mergeTagService';
 import MergeTagsDialog from './MergeTagsDialog';
 import { MessageData } from './composer/types';
@@ -71,7 +70,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     }
   };
 
-  const handleInsertMergeTag = (tag: MergeTag) => {
+  const handleInsertMergeTag = (tag: any) => {
     if (format === 'plain') {
       setContent(prev => prev + ' ' + tag.tag + ' ');
     } else {
