@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +33,6 @@ interface MessageTemplatesProps {
   onDeleteTemplate: (templateId: string) => void;
 }
 
-// Sample communities data
 const SAMPLE_COMMUNITIES = [
   { id: 'all', name: 'All Communities' },
   { id: 'comm1', name: 'Riverside HOA' },
@@ -180,22 +178,18 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
 
   const handleCommunityToggle = (communityId: string) => {
     setSelectedCommunities(prev => {
-      // If selecting 'all', clear other selections
       if (communityId === 'all') {
         return ['all'];
       }
       
-      // If already has 'all' and selecting another community, remove 'all'
       if (prev.includes('all') && communityId !== 'all') {
         return [communityId];
       }
       
-      // Toggle selection
       const newSelection = prev.includes(communityId)
         ? prev.filter(id => id !== communityId)
         : [...prev, communityId];
         
-      // If nothing selected, default to 'all'
       return newSelection.length === 0 ? ['all'] : newSelection;
     });
   };
@@ -399,7 +393,7 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {templates.map(template => (
           <Card key={template.id} className="flex flex-col">
             <CardHeader className="pb-2">
