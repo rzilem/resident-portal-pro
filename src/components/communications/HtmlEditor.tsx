@@ -5,6 +5,7 @@ import EditorToolbar from './editor/EditorToolbar';
 import VisualEditor from './editor/VisualEditor';
 import HtmlSourceEditor from './editor/HtmlSourceEditor';
 import EditorTabs from './editor/EditorTabs';
+import { TabsContent } from '@/components/ui/tabs';
 
 interface HtmlEditorProps {
   value: string;
@@ -34,29 +35,28 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
 
   return (
     <Card className="border overflow-hidden">
-      <EditorTabs activeTab={activeTab} onTabChange={handleTabChange} />
-      
-      <div className="p-0">
-        {activeTab === 'visual' && (
-          <EditorToolbar 
-            executeCommand={executeCommand}
-            createLink={createLink}
-            insertImage={insertImage}
-          />
-        )}
-        
-        {activeTab === 'visual' ? (
+      <EditorTabs activeTab={activeTab} onTabChange={handleTabChange}>
+        <TabsContent value="visual" className="p-0">
+          {activeTab === 'visual' && (
+            <EditorToolbar 
+              executeCommand={executeCommand}
+              createLink={createLink}
+              insertImage={insertImage}
+            />
+          )}
           <VisualEditor 
             value={value} 
             onUpdate={onChange} 
           />
-        ) : (
+        </TabsContent>
+        
+        <TabsContent value="html" className="p-0">
           <HtmlSourceEditor 
             value={value} 
             onChange={onChange} 
           />
-        )}
-      </div>
+        </TabsContent>
+      </EditorTabs>
     </Card>
   );
 };
