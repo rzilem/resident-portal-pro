@@ -22,6 +22,7 @@ export interface Property {
   offsiteAddresses: string;
   leases: string;
   serviceType: string;
+  assessmentFrequency: string;
 }
 
 export const getPropertiesFromAssociations = (associations: Association[]): Property[] => {
@@ -49,7 +50,8 @@ export const getPropertiesFromAssociations = (associations: Association[]): Prop
     residents: association.settings?.residents || '',
     offsiteAddresses: association.settings?.offsiteAddresses || '',
     leases: association.settings?.leases || '',
-    serviceType: association.settings?.serviceType || ''
+    serviceType: association.settings?.serviceType || '',
+    assessmentFrequency: association.settings?.feesFrequency || 'monthly'
   }));
 };
 
@@ -74,7 +76,8 @@ export const getDefaultProperties = (): Property[] => [
     residents: '112',
     offsiteAddresses: '6',
     leases: '12',
-    serviceType: 'Full-Service'
+    serviceType: 'Full-Service',
+    assessmentFrequency: 'Monthly'
   },
   { 
     name: 'Willow Creek Estates', 
@@ -96,7 +99,8 @@ export const getDefaultProperties = (): Property[] => [
     residents: '192',
     offsiteAddresses: '14',
     leases: '25',
-    serviceType: 'Self-Managed'
+    serviceType: 'Self-Managed',
+    assessmentFrequency: 'Quarterly'
   },
   { 
     name: 'Riverfront Towers', 
@@ -118,7 +122,8 @@ export const getDefaultProperties = (): Property[] => [
     residents: '143',
     offsiteAddresses: '8',
     leases: '17',
-    serviceType: 'Full-Service'
+    serviceType: 'Full-Service',
+    assessmentFrequency: 'Monthly'
   },
   { 
     name: 'Sunset Gardens', 
@@ -140,7 +145,8 @@ export const getDefaultProperties = (): Property[] => [
     residents: '76',
     offsiteAddresses: '3',
     leases: '7',
-    serviceType: 'Partial'
+    serviceType: 'Partial',
+    assessmentFrequency: 'Annually'
   },
   { 
     name: 'Pine Valley Community', 
@@ -162,7 +168,8 @@ export const getDefaultProperties = (): Property[] => [
     residents: '58',
     offsiteAddresses: '2',
     leases: '5',
-    serviceType: 'Self-Managed'
+    serviceType: 'Self-Managed',
+    assessmentFrequency: 'Quarterly'
   }
 ];
 
@@ -184,5 +191,7 @@ export const getDefaultColumns = () => [
   { id: 'status', label: 'Status', checked: true },
   { id: 'offsiteAddresses', label: 'Offsite Addresses', checked: false },
   { id: 'leases', label: 'Leases', checked: false },
-  { id: 'serviceType', label: 'Service Type', checked: false }
+  { id: 'serviceType', label: 'Service Type', checked: false },
+  { id: 'assessmentFrequency', label: 'Assessment Frequency', checked: false }
 ];
+

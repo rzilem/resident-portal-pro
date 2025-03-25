@@ -21,6 +21,7 @@ const PropertyListReport = ({ properties, timeRange, association }: PropertyList
             <TableHead>Status</TableHead>
             <TableHead>Founded Date</TableHead>
             <TableHead>Annual Fees</TableHead>
+            <TableHead>Assessment Frequency</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -39,11 +40,12 @@ const PropertyListReport = ({ properties, timeRange, association }: PropertyList
                 </TableCell>
                 <TableCell>{new Date(property.foundedDate).toLocaleDateString()}</TableCell>
                 <TableCell>${property.annualFees}</TableCell>
+                <TableCell>{property.assessmentFrequency}</TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-4">No properties data available</TableCell>
+              <TableCell colSpan={7} className="text-center py-4">No properties data available</TableCell>
             </TableRow>
           )}
         </TableBody>

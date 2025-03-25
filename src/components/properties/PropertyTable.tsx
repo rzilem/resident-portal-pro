@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, X, CalendarClock, DollarSign, MapPin, MapPinned, Building2, FileText, Briefcase, ChevronUp, ChevronDown } from 'lucide-react';
+import { Check, X, CalendarClock, DollarSign, MapPin, MapPinned, Building2, FileText, Briefcase, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
 import { PropertyColumn } from './PropertyColumnsSelector';
 import { Property } from './PropertyHelpers';
 
@@ -119,6 +120,11 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
                     <Briefcase className="h-4 w-4 mr-2" />
                     {col.label}
                   </div>
+                ) : col.id === 'assessmentFrequency' ? (
+                  <div className="flex items-center">
+                    <CalendarDays className="h-4 w-4 mr-2" />
+                    {col.label}
+                  </div>
                 ) : col.label}
                 <SortIcon field={col.id} />
               </div>
@@ -141,6 +147,11 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
                   </span>
                 ) : col.id === 'foundedDate' ? (
                   new Date(property.foundedDate).toLocaleDateString()
+                ) : col.id === 'assessmentFrequency' ? (
+                  <span className="flex items-center">
+                    <CalendarDays className="h-4 w-4 text-blue-600 mr-1" />
+                    {property.assessmentFrequency}
+                  </span>
                 ) : typeof property[col.id as keyof typeof property] === 'boolean' ? (
                   renderBooleanValue(property[col.id as keyof typeof property] as boolean)
                 ) : (
