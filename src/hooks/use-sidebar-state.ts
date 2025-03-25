@@ -20,6 +20,8 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/documents': 'Records & Reports',
       '/reports': 'Records & Reports',
       '/settings': 'System',
+      '/settings/associations': 'System',
+      '/settings/permissions': 'System',
       '/integrations': 'System',
       '/properties': 'Community Management',
       '/residents': 'Community Management',

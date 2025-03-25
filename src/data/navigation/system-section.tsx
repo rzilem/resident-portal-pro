@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Cog } from 'lucide-react';
+import { Cog, Building, Shield } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getSystemSection = (currentPath: string): NavItem => ({
@@ -18,7 +18,19 @@ export const getSystemSection = (currentPath: string): NavItem => ({
     {
       label: "Settings",
       href: "/settings",
-      active: currentPath.startsWith("/settings")
+      active: currentPath === "/settings"
+    },
+    {
+      label: "Associations",
+      icon: <Building className="h-4 w-4" />,
+      href: "/settings/associations",
+      active: currentPath.startsWith("/settings/associations")
+    },
+    {
+      label: "Permissions",
+      icon: <Shield className="h-4 w-4" />,
+      href: "/settings/permissions",
+      active: currentPath.startsWith("/settings/permissions")
     }
   ]
 });
