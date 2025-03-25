@@ -121,8 +121,8 @@ const CalendarView = ({
       
       {showFilters && <CalendarFilters />}
       
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-        <div className="md:col-span-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="md:col-span-3">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center mb-4">
@@ -149,7 +149,7 @@ const CalendarView = ({
                   hasEvent: "relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:bg-primary/10 before:rounded-full"
                 }}
                 styles={{
-                  day: { width: '3rem', height: '3rem' }
+                  day: { width: '2.5rem', height: '2.5rem' }
                 }}
               />
             </CardContent>
