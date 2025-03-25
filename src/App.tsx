@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -58,6 +59,9 @@ import UserProfile from "./pages/profile/UserProfile";
 // Add import for EmailWorkflows component
 import EmailWorkflows from "./pages/settings/EmailWorkflows";
 
+// Add import for PrintQueue component
+import PrintQueue from "./pages/PrintQueue";
+
 const App = () => {
   return (
     <ThemeProvider>
@@ -91,6 +95,7 @@ const App = () => {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/system-uploads" element={<SystemUploads />} />
+          <Route path="/print-queue" element={<PrintQueue />} />
           
           {/* Accounting routes */}
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />

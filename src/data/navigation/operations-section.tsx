@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClipboardList, Calendar, MessageCircle, ShieldCheck, GitBranch } from 'lucide-react';
+import { ClipboardList, Calendar, MessageCircle, ShieldCheck, GitBranch, Printer } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getOperationsSection = (currentPath: string): NavItem => ({
@@ -9,7 +9,8 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
   active: currentPath.startsWith("/calendar") || 
           currentPath.startsWith("/communications") ||
           currentPath.startsWith("/workflows") ||
-          currentPath.startsWith("/compliance"),
+          currentPath.startsWith("/compliance") ||
+          currentPath.startsWith("/print-queue"),
   href: "/calendar", // Default href
   items: [
     {
@@ -29,6 +30,12 @@ export const getOperationsSection = (currentPath: string): NavItem => ({
       icon: <ShieldCheck className="h-4 w-4" />,
       href: "/compliance",
       active: currentPath === "/compliance" || currentPath.startsWith("/compliance/")
+    },
+    {
+      label: "Print Queue",
+      icon: <Printer className="h-4 w-4" />,
+      href: "/print-queue",
+      active: currentPath === "/print-queue" || currentPath.startsWith("/print-queue/")
     },
     {
       label: "Workflows",

@@ -15,6 +15,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/communications': 'Operations',
       '/compliance': 'Operations',
       '/workflows': 'Operations',
+      '/print-queue': 'Operations',
       '/accounting': 'Accounting', // New dedicated accounting section
       '/database': 'Records & Reports',
       '/documents': 'Records & Reports',
@@ -25,7 +26,9 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/integrations': 'System',
       '/properties': 'Community Management',
       '/residents': 'Community Management',
-      '/community-hub': 'Community Management'
+      '/community-hub': 'Community Management',
+      '/email-workflows': 'System',
+      '/system-uploads': 'System'
     };
 
     // Check current path against map
