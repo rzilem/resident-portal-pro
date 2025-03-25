@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 type Theme = 'light' | 'dark' | 'system';
 
 export function useTheme() {
-  // Initialize with a default to prevent errors before localStorage is checked
+  // Initialize with a default theme
   const [theme, setTheme] = useState<Theme>('light');
   
-  // Move localStorage check to useEffect to ensure it only runs in browser
+  // Access localStorage only after component mounts
   useEffect(() => {
     // Check for stored theme preference in localStorage
     const storedTheme = localStorage.getItem('theme') as Theme;

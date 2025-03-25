@@ -83,14 +83,16 @@ const Dashboard = () => {
 
   if (isLoading || !isInitialized) {
     return (
-      <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
-        <Card className={cardClass}>
-          <CardContent className="p-6 flex flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading your dashboard...</p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardLayout>
+        <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
+          <Card className={cardClass}>
+            <CardContent className="p-6 flex flex-col items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Loading your dashboard...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
     );
   }
 

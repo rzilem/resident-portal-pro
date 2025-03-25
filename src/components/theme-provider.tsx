@@ -13,6 +13,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   
   // Initialize theme from localStorage or system preference
   useEffect(() => {
+    // Only access browser APIs after component mounts
     const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system';
     if (storedTheme) {
       setTheme(storedTheme);
@@ -23,6 +24,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Apply theme changes
   useEffect(() => {
+    // Only access browser APIs after component mounts
     const root = window.document.documentElement;
     
     // Remove previous theme classes
@@ -43,9 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <div className={theme === 'dark' ? 'dark' : ''}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }
