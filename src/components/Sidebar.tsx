@@ -10,7 +10,7 @@ import {
 import { CollapsibleNavItem } from "./sidebar/CollapsibleNavItem";
 import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
-import { getNavItems } from "@/data/navigation";
+import { getNavItems, NavItem } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { Button } from "./ui/button";
 import { useState } from "react";
@@ -72,21 +72,24 @@ export function Sidebar({
                   return <NavSeparator key={`sep-${i}`} />;
                 }
 
+                // Now we know item is a NavItem, not a string
+                const navItem = item as NavItem;
+                
                 // Render a nav group with dropdown
-                if (item.items && item.items.length > 0) {
+                if (navItem.items && navItem.items.length > 0) {
                   return (
                     <CollapsibleNavItem
-                      key={item.label}
-                      item={item}
-                      isOpen={openGroups[item.label]}
-                      onToggle={() => toggleGroup(item.label)}
+                      key={navItem.label}
+                      item={navItem}
+                      isOpen={openGroups[navItem.label]}
+                      onToggle={() => toggleGroup(navItem.label)}
                     />
                   );
                 }
 
                 // Render a regular nav item
                 return (
-                  <RegularNavItem key={item.label} item={item} />
+                  <RegularNavItem key={navItem.label} item={navItem} />
                 );
               })}
             </div>

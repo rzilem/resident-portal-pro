@@ -27,7 +27,7 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
           )}
           onClick={() => navigate(item.href)}
         >
-          {item.icon && <span className="mr-2">{React.createElement(item.icon)}</span>}
+          {item.icon && <span className="mr-2">{item.icon}</span>}
           {item.label}
         </SidebarMenuButton>
       </SidebarMenuItem>

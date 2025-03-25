@@ -27,7 +27,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           )}
         >
           <span className="flex items-center">
-            {item.icon && <span className="mr-2">{React.createElement(item.icon)}</span>}
+            {item.icon && <span className="mr-2">{item.icon}</span>}
             {item.label}
           </span>
           <ChevronDown

@@ -19,7 +19,20 @@ import {
   LayoutGrid
 } from 'lucide-react';
 
-export const getNavItems = (currentPath: string) => [
+// Define the NavItem type to avoid TypeScript errors
+export type NavItem = {
+  label: string;
+  icon: React.ReactNode;
+  href: string;
+  active: boolean;
+  items?: {
+    label: string;
+    href: string;
+    active: boolean;
+  }[];
+};
+
+export const getNavItems = (currentPath: string): (NavItem | "separator")[] => [
   {
     label: "Dashboard",
     icon: <LayoutDashboard className="h-4 w-4" />,
