@@ -12,43 +12,7 @@ import MessagePreview from './composer/MessagePreview';
 import AiAssistant from './composer/AiAssistant';
 import { useDialogState, appendToContent } from './composer/ComposerUtils';
 import { useComposer } from './composer/ComposerContext';
-
-// Sample template data
-const SAMPLE_TEMPLATES = [
-  {
-    id: '1',
-    name: 'Welcome New Resident',
-    description: 'Send to new residents to welcome them to the community',
-    subject: 'Welcome to our Community!',
-    content: '<p>Dear {{resident.first_name}},</p><p>On behalf of the {{association.name}}, we would like to welcome you to our community! We are excited to have you join us.</p><p>Please find attached our welcome packet with important information about our community rules, amenities, and contact information.</p><p>If you have any questions, feel free to reach out to us at {{association.email}} or {{association.phone}}.</p><p>Best regards,<br>{{board.president}}<br>Board President</p>',
-    category: 'Welcome',
-    communities: ['all'],
-    createdAt: '2023-07-15T10:00:00Z',
-    updatedAt: '2023-07-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    name: 'Monthly Meeting Reminder',
-    description: 'Monthly reminder about upcoming board meeting',
-    subject: 'Reminder: Monthly Board Meeting - {{meeting.date}}',
-    content: '<p>Dear Homeowners,</p><p>This is a reminder that our monthly board meeting will be held on {{meeting.date}} at {{meeting.time}} in the {{meeting.location}}.</p><p>Agenda items include:</p><p>{{meeting.agenda}}</p><p>We hope to see you there!</p><p>Regards,<br>{{board.secretary}}<br>Board Secretary</p>',
-    category: 'Meetings',
-    communities: ['comm1', 'comm3'],
-    createdAt: '2023-07-16T10:00:00Z',
-    updatedAt: '2023-07-16T10:00:00Z'
-  },
-  {
-    id: '3',
-    name: 'Annual Assessment Notice',
-    description: 'Annual notice about upcoming assessment dues',
-    subject: 'Annual Assessment Notice for {{association.name}}',
-    content: '<p>Dear {{resident.name}},</p><p>This letter serves as a notice that your annual assessment for your property at {{property.address}} is due on {{financial.due_date}}.</p><p>The annual assessment amount is {{financial.monthly_assessment}}.</p><p>Payment can be made via {{financial.payment_methods}}.</p><p>If you have any questions, please contact our office.</p><p>Thank you,<br>{{board.treasurer}}<br>Board Treasurer</p>',
-    category: 'Financial',
-    communities: ['comm2', 'comm4'],
-    createdAt: '2023-07-17T10:00:00Z',
-    updatedAt: '2023-07-17T10:00:00Z'
-  }
-];
+import { INITIAL_TEMPLATES } from '@/pages/communications/useCommunityMessaging';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -124,7 +88,7 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
           
           <RecipientSelector />
           
-          <SubjectField templates={SAMPLE_TEMPLATES} />
+          <SubjectField templates={INITIAL_TEMPLATES} />
           
           <ContentEditor 
             onOpenAiAssistant={() => setIsAiAssistantOpen(true)}

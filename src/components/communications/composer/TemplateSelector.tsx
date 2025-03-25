@@ -12,19 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText } from 'lucide-react';
-
-// Using the existing MessageTemplate interface from MessageTemplates component
-interface MessageTemplate {
-  id: string;
-  name: string;
-  description: string;
-  subject: string;
-  content: string;
-  category: string;
-  createdAt: string;
-  updatedAt: string;
-  communities?: string[]; // Added communities field
-}
+import { MessageTemplate } from '@/pages/communications/types';
 
 interface TemplateSelectorProps {
   templates: MessageTemplate[];

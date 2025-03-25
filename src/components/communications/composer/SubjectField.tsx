@@ -5,16 +5,22 @@ import { Input } from '@/components/ui/input';
 import { useComposer } from './ComposerContext';
 import TemplateSelector from './TemplateSelector';
 import { filterTemplatesByCommunity } from './ComposerUtils';
+import { MessageTemplate } from '@/pages/communications/types';
 
 interface SubjectFieldProps {
-  templates: any[];
+  templates: MessageTemplate[];
 }
 
 const SubjectField: React.FC<SubjectFieldProps> = ({ templates }) => {
-  const { subject, setSubject, selectedCommunity } = useComposer();
+  const { subject, setSubject, setContent, selectedCommunity } = useComposer();
   
   // Filter templates based on the selected community
   const filteredTemplates = filterTemplatesByCommunity(templates, selectedCommunity);
+
+  const handleTemplateSelect = (template: MessageTemplate) => {
+    setSubject(template.subject);
+    setContent(template.content);
+  };
 
   return (
     <div className="space-y-2">
@@ -22,9 +28,7 @@ const SubjectField: React.FC<SubjectFieldProps> = ({ templates }) => {
         <Label htmlFor="subject">Subject</Label>
         <TemplateSelector 
           templates={filteredTemplates}
-          onSelectTemplate={(template) => {
-            setSubject(template.subject);
-          }}
+          onSelectTemplate={handleTemplateSelect}
           currentCommunity={selectedCommunity}
         />
       </div>
