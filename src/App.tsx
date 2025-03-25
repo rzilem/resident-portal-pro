@@ -71,7 +71,8 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/residents" element={<Residents />} />
-          <Route path="/resident/:id" element={<ResidentProfile />} />
+          {/* Update the route path to match the links in Residents.tsx */}
+          <Route path="/residents/:id" element={<ResidentProfile />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/reports" element={<Reports />} />
