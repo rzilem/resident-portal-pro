@@ -11,6 +11,7 @@ export type NavItem = {
     label: string;
     href: string;
     active: boolean;
+    icon?: React.ReactNode; // Add optional icon support for sub-items
   }[];
 };
 
