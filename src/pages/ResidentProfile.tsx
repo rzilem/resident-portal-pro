@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -20,7 +21,7 @@ type PropertyDetails = {
   sqft: number;
   leaseStart?: string;
   leaseEnd?: string;
-  monthlyRent?: string;
+  monthlyAssessment?: string;
   deposit?: string;
   taxDistrict?: string;
   taxId?: string;
@@ -94,10 +95,10 @@ const residentProfiles: Record<number, ResidentProfile> = {
     balance: '$0.00',
     lastPayment: { date: '2023-06-01', amount: '$1,200.00', method: 'Credit Card' },
     accountHistory: [
-      { date: '2023-06-01', description: 'Monthly Rent Payment', amount: '$1,200.00', balance: '$0.00' },
+      { date: '2023-06-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$0.00' },
       { date: '2023-05-15', description: 'Late Fee', amount: '$50.00', balance: '$1,250.00' },
-      { date: '2023-05-01', description: 'Monthly Rent Payment', amount: '$1,200.00', balance: '$0.00' },
-      { date: '2023-04-01', description: 'Monthly Rent Payment', amount: '$1,200.00', balance: '$0.00' },
+      { date: '2023-05-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$0.00' },
+      { date: '2023-04-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$0.00' },
     ],
     communications: [
       { date: '2023-05-20', type: 'Email', subject: 'Late Payment Reminder', status: 'Delivered' },
@@ -121,7 +122,7 @@ const residentProfiles: Record<number, ResidentProfile> = {
       sqft: 1200,
       leaseStart: '2023-01-01',
       leaseEnd: '2023-12-31',
-      monthlyRent: '$1,200.00',
+      monthlyAssessment: '$1,200.00',
       deposit: '$1,800.00',
       taxDistrict: 'North Seattle',
       taxId: 'TX-10145-A'
@@ -140,9 +141,9 @@ const residentProfiles: Record<number, ResidentProfile> = {
     balance: '$0.00',
     lastPayment: { date: '2023-06-01', amount: '$1,450.00', method: 'Bank Transfer' },
     accountHistory: [
-      { date: '2023-06-01', description: 'Monthly Rent Payment', amount: '$1,450.00', balance: '$0.00' },
-      { date: '2023-05-01', description: 'Monthly Rent Payment', amount: '$1,450.00', balance: '$0.00' },
-      { date: '2023-04-01', description: 'Monthly Rent Payment', amount: '$1,450.00', balance: '$0.00' },
+      { date: '2023-06-01', description: 'Monthly Assessment Payment', amount: '$1,450.00', balance: '$0.00' },
+      { date: '2023-05-01', description: 'Monthly Assessment Payment', amount: '$1,450.00', balance: '$0.00' },
+      { date: '2023-04-01', description: 'Monthly Assessment Payment', amount: '$1,450.00', balance: '$0.00' },
     ],
     communications: [
       { date: '2023-05-15', type: 'Email', subject: 'Community Newsletter', status: 'Opened' },
@@ -165,7 +166,7 @@ const residentProfiles: Record<number, ResidentProfile> = {
       sqft: 1650,
       leaseStart: '2023-01-01',
       leaseEnd: '2023-12-31',
-      monthlyRent: '$1,450.00',
+      monthlyAssessment: '$1,450.00',
       deposit: '$2,175.00',
       taxDistrict: 'Portland Metro',
       taxId: 'PDX-2367'
@@ -184,9 +185,9 @@ const residentProfiles: Record<number, ResidentProfile> = {
     balance: '$25.00',
     lastPayment: { date: '2023-06-01', amount: '$1,575.00', method: 'Credit Card' },
     accountHistory: [
-      { date: '2023-06-01', description: 'Monthly Rent Payment', amount: '$1,575.00', balance: '$25.00' },
+      { date: '2023-06-01', description: 'Monthly Assessment Payment', amount: '$1,575.00', balance: '$25.00' },
       { date: '2023-05-28', description: 'Maintenance Fee', amount: '$25.00', balance: '$25.00' },
-      { date: '2023-05-01', description: 'Monthly Rent Payment', amount: '$1,575.00', balance: '$0.00' },
+      { date: '2023-05-01', description: 'Monthly Assessment Payment', amount: '$1,575.00', balance: '$0.00' },
     ],
     communications: [],
     notes: [],
@@ -198,7 +199,7 @@ const residentProfiles: Record<number, ResidentProfile> = {
       sqft: 1350,
       leaseStart: '2023-01-01',
       leaseEnd: '2023-12-31',
-      monthlyRent: '$1,575.00',
+      monthlyAssessment: '$1,575.00',
       deposit: '$2,000.00'
     }
   },
@@ -242,7 +243,7 @@ const residentProfiles: Record<number, ResidentProfile> = {
       sqft: 1100,
       leaseStart: '2023-01-01',
       leaseEnd: '2023-12-31',
-      monthlyRent: '$1,300.00',
+      monthlyAssessment: '$1,300.00',
       deposit: '$1,950.00'
     }
   },
@@ -487,12 +488,12 @@ const ResidentProfile = () => {
                   </div>
                 )}
                 
-                {resident.propertyDetails?.monthlyRent && (
+                {resident.propertyDetails?.monthlyAssessment && (
                   <div className="flex items-start">
                     <CircleDollarSign className="h-4 w-4 mt-1 mr-2 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Monthly Rent</p>
-                      <p className="text-sm text-muted-foreground">{resident.propertyDetails.monthlyRent}</p>
+                      <p className="text-sm font-medium">Monthly Assessment</p>
+                      <p className="text-sm text-muted-foreground">{resident.propertyDetails.monthlyAssessment}</p>
                     </div>
                   </div>
                 )}
@@ -501,7 +502,7 @@ const ResidentProfile = () => {
                   <div className="flex items-start">
                     <FileText className="h-4 w-4 mt-1 mr-2 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Lease Period</p>
+                      <p className="text-sm font-medium">Ownership Period</p>
                       <p className="text-sm text-muted-foreground">
                         {resident.propertyDetails.leaseStart} to {resident.propertyDetails.leaseEnd}
                       </p>
@@ -772,25 +773,25 @@ const ResidentProfile = () => {
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Lease Information</h3>
+                    <h3 className="text-lg font-semibold mb-4">Ownership Information</h3>
                     <div className="space-y-4">
                       {resident.propertyDetails.leaseStart && resident.propertyDetails.leaseEnd && (
                         <>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-sm font-medium">Lease Start</p>
+                              <p className="text-sm font-medium">Start Date</p>
                               <p className="text-muted-foreground">{resident.propertyDetails.leaseStart}</p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium">Lease End</p>
+                              <p className="text-sm font-medium">End Date</p>
                               <p className="text-muted-foreground">{resident.propertyDetails.leaseEnd}</p>
                             </div>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-sm font-medium">Monthly Rent</p>
-                              <p className="text-muted-foreground">{resident.propertyDetails.monthlyRent}</p>
+                              <p className="text-sm font-medium">Monthly Assessment</p>
+                              <p className="text-muted-foreground">{resident.propertyDetails.monthlyAssessment}</p>
                             </div>
                             <div>
                               <p className="text-sm font-medium">Security Deposit</p>
@@ -801,9 +802,9 @@ const ResidentProfile = () => {
                       )}
                       
                       <div className="mt-6 flex justify-end gap-2">
-                        <Button variant="outline">View Lease Documents</Button>
+                        <Button variant="outline">View Ownership Documents</Button>
                         {resident.status === 'Active' && (
-                          <Button>Manage Lease</Button>
+                          <Button>Manage Ownership</Button>
                         )}
                       </div>
                     </div>

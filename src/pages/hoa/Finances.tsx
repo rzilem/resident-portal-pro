@@ -17,7 +17,7 @@ const Finances = () => {
       
       <Card>
         <CardHeader>
-          <CardTitle>Invoices</CardTitle>
+          <CardTitle>Assessment Invoices</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
