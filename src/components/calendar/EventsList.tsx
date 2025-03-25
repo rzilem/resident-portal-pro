@@ -14,8 +14,8 @@ interface EventsListProps {
 
 const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsListProps) => {
   return (
-    <Card>
-      <CardContent className="pt-6">
+    <Card className="h-full">
+      <CardContent className="pt-6 h-full">
         <h3 className="text-lg font-medium mb-4">
           {format(selectedDate, 'MMMM d, yyyy')}
         </h3>

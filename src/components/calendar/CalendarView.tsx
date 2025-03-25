@@ -121,8 +121,8 @@ const CalendarView = ({
       
       {showFilters && <CalendarFilters />}
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="md:col-span-3">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center mb-4">
@@ -135,7 +135,7 @@ const CalendarView = ({
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                className="rounded-md border"
+                className="w-full border-none"
                 month={currentDate}
                 showOutsideDays
                 modifiers={{
@@ -153,7 +153,7 @@ const CalendarView = ({
           </Card>
         </div>
         
-        <div>
+        <div className="h-full">
           <EventsList 
             selectedDate={selectedDate}
             events={selectedDateEvents}
