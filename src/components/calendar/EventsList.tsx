@@ -17,7 +17,7 @@ const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsLi
     <Card className="h-full">
       <CardContent className="pt-6 h-full">
         <h3 className="text-lg font-medium mb-4">
-          {format(selectedDate, 'MMMM d, yyyy')}
+          {format(selectedDate, 'MMMM d, yyyy')} - Events
         </h3>
         
         {isLoading ? (
@@ -25,16 +25,16 @@ const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsLi
         ) : events.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">No events scheduled</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-auto max-h-[400px] pr-1">
             {events.map((event) => (
               <div 
                 key={event.id} 
-                className="p-3 rounded-md border hover:bg-accent cursor-pointer"
+                className="p-3 rounded-md border hover:bg-accent cursor-pointer transition-colors"
                 onClick={() => onSelectEvent(event)}
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium">{event.title}</h4>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{event.title}</h4>
                     {!event.allDay && (
                       <p className="text-sm text-muted-foreground">
                         {typeof event.start === 'string'
@@ -46,7 +46,7 @@ const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsLi
                       </p>
                     )}
                     {event.location && (
-                      <p className="text-sm text-muted-foreground">{event.location}</p>
+                      <p className="text-sm text-muted-foreground truncate">{event.location}</p>
                     )}
                   </div>
                   <Badge variant={event.type === 'holiday' ? 'destructive' : 'default'}>

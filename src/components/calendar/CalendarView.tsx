@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -121,8 +120,8 @@ const CalendarView = ({
       
       {showFilters && <CalendarFilters />}
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-3">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div className="md:col-span-5">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center mb-4">
@@ -149,14 +148,14 @@ const CalendarView = ({
                   hasEvent: "relative before:absolute before:top-0 before:left-0 before:w-full before:h-full before:bg-primary/10 before:rounded-full"
                 }}
                 styles={{
-                  day: { width: '2.5rem', height: '2.5rem' }
+                  day: { width: '2.25rem', height: '2.25rem' }
                 }}
               />
             </CardContent>
           </Card>
         </div>
         
-        <div className="h-full">
+        <div className="md:col-span-2">
           <EventsList 
             selectedDate={selectedDate}
             events={selectedDateEvents}
