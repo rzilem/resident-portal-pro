@@ -24,6 +24,10 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       newOpenGroups["Records"] = true;
     }
     
+    if (location.pathname.startsWith('/documents')) {
+      newOpenGroups["Documents"] = true;
+    }
+    
     if (location.pathname.startsWith('/settings')) {
       newOpenGroups["Settings"] = true;
     }
