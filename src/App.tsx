@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -43,6 +44,7 @@ import DocumentTemplates from '@/pages/documents/DocumentTemplates';
 // Settings pages
 import Permissions from '@/pages/settings/Permissions';
 import CalendarSettings from '@/components/settings/CalendarSettings'; 
+import Associations from '@/pages/settings/Associations';
 
 // HOA pages
 import HoaDashboard from '@/pages/hoa/Dashboard';
@@ -82,6 +84,7 @@ const App = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/calendar" element={<CalendarSettings />} />
           <Route path="/settings/permissions" element={<Permissions />} />
+          <Route path="/settings/associations" element={<Associations />} />
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/community-hub" element={<CommunityHub />} />
           <Route path="/profile" element={<UserProfile />} />
