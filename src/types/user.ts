@@ -1,10 +1,10 @@
-
 /**
  * User type definitions for the application
  */
 
 import { DashboardLayout } from './dashboard';
 import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
+import { DatabaseColumn } from '@/components/database/DatabaseColumnsSelector';
 
 export interface User {
   id: string;
@@ -96,9 +96,12 @@ export interface UserPreferences {
   dashboardLayout?: DashboardLayout;
   dashboardWidgets?: string[];
   propertyTableColumns?: PropertyColumn[];
+  databasePropertyColumns?: DatabaseColumn[];
+  databaseUnitColumns?: DatabaseColumn[];
+  databaseHomeownerColumns?: DatabaseColumn[];
+  databaseTransactionColumns?: DatabaseColumn[];
 }
 
-// Permission definitions
 export interface PermissionSet {
   global?: GlobalPermission;
   modules?: ModulePermissions;

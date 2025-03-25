@@ -1,15 +1,42 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Search, Filter, Download, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { DatabaseColumnsSelector, DatabaseColumn } from './DatabaseColumnsSelector';
+import { useSettings } from '@/hooks/use-settings';
 
 const UnitRecords = () => {
   const isMobile = useIsMobile();
+  const { preferences } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const defaultColumns: DatabaseColumn[] = [
+    { id: 'id', label: 'ID', checked: true },
+    { id: 'unit', label: 'Unit Number', checked: true },
+    { id: 'property', label: 'Property', checked: true },
+    { id: 'sqft', label: 'Sq Ft', checked: true },
+    { id: 'bedrooms', label: 'Bedrooms', checked: true },
+    { id: 'taxDistrict', label: 'Tax District', checked: true },
+    { id: 'taxId', label: 'Tax ID', checked: true },
+    { id: 'status', label: 'Status', checked: true },
+  ];
+  
+  const [columns, setColumns] = useState<DatabaseColumn[]>(
+    preferences?.databaseUnitColumns || defaultColumns
+  );
+  
+  useEffect(() => {
+    if (preferences?.databaseUnitColumns) {
+      setColumns(preferences.databaseUnitColumns);
+    }
+  }, [preferences]);
+  
+  const handleColumnsChange = (newColumns: DatabaseColumn[]) => {
+    setColumns(newColumns);
+  };
   
   const units = [
     { 
@@ -78,6 +105,11 @@ const UnitRecords = () => {
           />
         </div>
         <div className="flex gap-2">
+          <DatabaseColumnsSelector 
+            columns={columns}
+            onChange={handleColumnsChange}
+            type="unit"
+          />
           <Button variant="outline" className="gap-2">
             <Filter className="h-4 w-4" />
             <span className="hidden sm:inline">Filter</span>
@@ -89,7 +121,6 @@ const UnitRecords = () => {
         </div>
       </div>
       
-      {/* Mobile view */}
       {isMobile && (
         <div className="space-y-3 md:hidden">
           {units.map((unit, i) => (
@@ -131,38 +162,35 @@ const UnitRecords = () => {
         </div>
       )}
       
-      {/* Desktop view */}
       <div className="hidden md:block overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Unit Number</TableHead>
-              <TableHead>Property</TableHead>
-              <TableHead>Sq Ft</TableHead>
-              <TableHead>Bedrooms</TableHead>
-              <TableHead>Tax District</TableHead>
-              <TableHead>Tax ID</TableHead>
-              <TableHead>Status</TableHead>
+              {columns.map(col => col.checked && (
+                <TableHead key={col.id}>{col.label}</TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {units.map((unit, i) => (
               <TableRow key={i}>
-                <TableCell className="font-mono">{unit.id}</TableCell>
-                <TableCell className="font-medium">{unit.unit}</TableCell>
-                <TableCell>{unit.property}</TableCell>
-                <TableCell>{unit.sqft}</TableCell>
-                <TableCell>{unit.bedrooms}</TableCell>
-                <TableCell>{unit.taxDistrict}</TableCell>
-                <TableCell className="font-mono">{unit.taxId}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    unit.status === 'Occupied' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {unit.status}
-                  </span>
-                </TableCell>
+                {columns.map(col => col.checked && (
+                  <TableCell key={col.id}>
+                    {col.id === 'id' ? (
+                      <span className="font-mono">{unit[col.id as keyof typeof unit]}</span>
+                    ) : col.id === 'unit' ? (
+                      <span className="font-medium">{unit[col.id as keyof typeof unit]}</span>
+                    ) : col.id === 'status' ? (
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        unit.status === 'Occupied' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {unit.status}
+                      </span>
+                    ) : (
+                      unit[col.id as keyof typeof unit]
+                    )}
+                  </TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Download, Filter, Search, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
+import { DatabaseColumnsSelector, DatabaseColumn } from './DatabaseColumnsSelector';
+import { useSettings } from '@/hooks/use-settings';
 
-// Define type for homeowner data
 type Homeowner = {
   id: string;
   fullName: string;
@@ -31,11 +31,39 @@ type Homeowner = {
 };
 
 const AssociationRecords = () => {
+  const { preferences } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<keyof Homeowner>('fullName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Mock data based on the image
+  const defaultColumns: DatabaseColumn[] = [
+    { id: 'id', label: 'ID', checked: true },
+    { id: 'fullName', label: 'Name', checked: true },
+    { id: 'unit', label: 'Unit', checked: true },
+    { id: 'property', label: 'Property', checked: true },
+    { id: 'contact', label: 'Contact', checked: true },
+    { id: 'status', label: 'Status', checked: true },
+    { id: 'moveInDate', label: 'Move-In Date', checked: true },
+    { id: 'balance', label: 'Balance', checked: true },
+    { id: 'lastPayment', label: 'Last Payment', checked: true },
+    { id: 'ownerType', label: 'Owner Type', checked: true },
+    { id: 'primaryResidence', label: 'Primary Residence', checked: true },
+  ];
+
+  const [columns, setColumns] = useState<DatabaseColumn[]>(
+    preferences?.databaseHomeownerColumns || defaultColumns
+  );
+
+  useEffect(() => {
+    if (preferences?.databaseHomeownerColumns) {
+      setColumns(preferences.databaseHomeownerColumns);
+    }
+  }, [preferences]);
+
+  const handleColumnsChange = (newColumns: DatabaseColumn[]) => {
+    setColumns(newColumns);
+  };
+
   const homeowners: Homeowner[] = [
     {
       id: "H001",
@@ -150,14 +178,12 @@ const AssociationRecords = () => {
     },
   ];
 
-  // Filter homeowners based on search term
   const filteredHomeowners = homeowners.filter(homeowner =>
     Object.values(homeowner).some(value => 
       value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
-  // Sort homeowners based on selected column and direction
   const sortedHomeowners = [...filteredHomeowners].sort((a, b) => {
     const aValue = a[sortColumn]?.toString() || '';
     const bValue = b[sortColumn]?.toString() || '';
@@ -167,7 +193,6 @@ const AssociationRecords = () => {
       : bValue.localeCompare(aValue);
   });
 
-  // Handle sorting when clicking a table header
   const handleSort = (column: keyof Homeowner) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -177,7 +202,6 @@ const AssociationRecords = () => {
     }
   };
 
-  // Get appropriate badge variant based on status
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'Active':
@@ -212,6 +236,11 @@ const AssociationRecords = () => {
             />
           </div>
           <div className="flex gap-2">
+            <DatabaseColumnsSelector 
+              columns={columns}
+              onChange={handleColumnsChange}
+              type="homeowner"
+            />
             <Button variant="outline" className="gap-2">
               <Filter className="h-4 w-4" />
               Filter
@@ -231,93 +260,79 @@ const AssociationRecords = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead 
-                  className="cursor-pointer hover:bg-muted/50" 
-                  onClick={() => handleSort('id')}
-                >
-                  ID {sortColumn === 'id' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-muted/50" 
-                  onClick={() => handleSort('fullName')}
-                >
-                  Name {sortColumn === 'fullName' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Property</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Move-In Date</TableHead>
-                <TableHead>Balance</TableHead>
-                <TableHead>Last Payment</TableHead>
-                <TableHead>Owner Type</TableHead>
-                <TableHead>Primary Residence</TableHead>
+                {columns.map(col => col.checked && (
+                  <TableHead 
+                    key={col.id}
+                    className={col.id === sortColumn ? "cursor-pointer hover:bg-muted/50" : "cursor-pointer hover:bg-muted/50"}
+                    onClick={() => col.id === 'id' || col.id === 'fullName' ? handleSort(col.id as keyof Homeowner) : undefined}
+                  >
+                    {col.label} {(col.id === 'id' || col.id === 'fullName') && col.id === sortColumn && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedHomeowners.length > 0 ? (
                 sortedHomeowners.map((homeowner) => (
                   <TableRow key={homeowner.id}>
-                    <TableCell className="font-mono">{homeowner.id}</TableCell>
-                    <TableCell className="font-medium">
-                      <Link 
-                        to={`/residents/${homeowner.id}`} 
-                        className="text-primary hover:underline hover:text-primary/80 transition-colors"
-                      >
-                        {homeowner.fullName}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{homeowner.unit}</TableCell>
-                    <TableCell>
-                      <Link 
-                        to={`/properties?filter=${encodeURIComponent(homeowner.property)}`}
-                        className="hover:underline hover:text-primary/80 transition-colors"
-                      >
-                        {homeowner.property}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <a 
-                          href={`mailto:${homeowner.email}`}
-                          className="text-sm hover:underline hover:text-primary/80 transition-colors"
-                        >
-                          {homeowner.email}
-                        </a>
-                        <span className="text-xs text-muted-foreground">{homeowner.phone}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(homeowner.status)}>
-                        {homeowner.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span>{homeowner.moveInDate}</span>
-                        {homeowner.moveOutDate && (
-                          <span className="text-xs text-muted-foreground">
-                            to {homeowner.moveOutDate}
-                          </span>
+                    {columns.map(col => col.checked && (
+                      <TableCell key={col.id}>
+                        {col.id === 'id' ? (
+                          <span className="font-mono">{homeowner.id}</span>
+                        ) : col.id === 'fullName' ? (
+                          <Link 
+                            to={`/residents/${homeowner.id}`} 
+                            className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                          >
+                            {homeowner.fullName}
+                          </Link>
+                        ) : col.id === 'property' ? (
+                          <Link 
+                            to={`/properties?filter=${encodeURIComponent(homeowner.property)}`}
+                            className="hover:underline hover:text-primary/80 transition-colors"
+                          >
+                            {homeowner.property}
+                          </Link>
+                        ) : col.id === 'contact' ? (
+                          <div className="flex flex-col">
+                            <a 
+                              href={`mailto:${homeowner.email}`}
+                              className="text-sm hover:underline hover:text-primary/80 transition-colors"
+                            >
+                              {homeowner.email}
+                            </a>
+                            <span className="text-xs text-muted-foreground">{homeowner.phone}</span>
+                          </div>
+                        ) : col.id === 'status' ? (
+                          <Badge variant={getStatusVariant(homeowner.status)}>
+                            {homeowner.status}
+                          </Badge>
+                        ) : col.id === 'moveInDate' ? (
+                          <div className="flex flex-col">
+                            <span>{homeowner.moveInDate}</span>
+                            {homeowner.moveOutDate && (
+                              <span className="text-xs text-muted-foreground">
+                                to {homeowner.moveOutDate}
+                              </span>
+                            )}
+                          </div>
+                        ) : col.id === 'lastPayment' ? (
+                          <div className="flex flex-col">
+                            <span>{homeowner.lastPaymentAmount}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {homeowner.lastPaymentDate} ({homeowner.paymentMethod})
+                            </span>
+                          </div>
+                        ) : (
+                          homeowner[col.id as keyof typeof homeowner]
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{homeowner.balance}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span>{homeowner.lastPaymentAmount}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {homeowner.lastPaymentDate} ({homeowner.paymentMethod})
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{homeowner.ownerType}</TableCell>
-                    <TableCell>{homeowner.primaryResidence}</TableCell>
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={11} className="h-24 text-center">
+                  <TableCell colSpan={columns.filter(col => col.checked).length} className="h-24 text-center">
                     No records found.
                   </TableCell>
                 </TableRow>
@@ -334,3 +349,4 @@ const AssociationRecords = () => {
 };
 
 export default AssociationRecords;
+
