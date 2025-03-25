@@ -24,7 +24,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('bold')}
+        onClick={() => executeCommand('bold', null)}
         className="h-8 w-8 p-0"
       >
         <Bold className="h-4 w-4" />
@@ -33,7 +33,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('italic')}
+        onClick={() => executeCommand('italic', null)}
         className="h-8 w-8 p-0"
       >
         <Italic className="h-4 w-4" />
@@ -51,7 +51,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('insertUnorderedList')}
+        onClick={() => executeCommand('insertUnorderedList', null)}
         className="h-8 w-8 p-0"
       >
         <List className="h-4 w-4" />
@@ -60,7 +60,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('insertOrderedList')}
+        onClick={() => executeCommand('insertOrderedList', null)}
         className="h-8 w-8 p-0"
       >
         <ListOrdered className="h-4 w-4" />
@@ -69,7 +69,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('justifyLeft')}
+        onClick={() => executeCommand('justifyLeft', null)}
         className="h-8 w-8 p-0"
       >
         <AlignLeft className="h-4 w-4" />
@@ -78,7 +78,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('justifyCenter')}
+        onClick={() => executeCommand('justifyCenter', null)}
         className="h-8 w-8 p-0"
       >
         <AlignCenter className="h-4 w-4" />
@@ -87,7 +87,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => executeCommand('justifyRight')}
+        onClick={() => executeCommand('justifyRight', null)}
         className="h-8 w-8 p-0"
       >
         <AlignRight className="h-4 w-4" />
