@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,8 +21,8 @@ interface DashboardHeaderWithNavProps {
 
 const DashboardHeaderWithNav = ({ 
   toggleSidebar, 
-  title = "Dashboard",
-  description,
+  title = "Accounting Dashboard",
+  description = "Manage all financial aspects of your properties and associations",
   icon
 }: DashboardHeaderWithNavProps) => {
   return (
