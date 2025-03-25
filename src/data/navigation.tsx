@@ -1,220 +1,185 @@
+
+import React from 'react';
 import {
-  LayoutDashboard,
-  ImageIcon,
-  Users,
-  Calendar,
-  ListChecks,
-  Mail,
-  Settings,
-  BarChart,
-  MessageSquare,
-  FileText,
-  LucideIcon,
-  Activity,
-  Wallet,
+  BarChart3,
   Building2,
-  ShieldCheck,
-  BookOpen,
-  User
-} from "lucide-react";
+  Calendar,
+  CircleDollarSign,
+  Cog,
+  FileSpreadsheet,
+  Home,
+  LayoutDashboard,
+  MessageSquare,
+  Network,
+  Settings2,
+  Users,
+  FolderClosed,
+  Database,
+  Workflow,
+  LayoutGrid
+} from 'lucide-react';
 
-export type NavItem = {
-  label: string;
-  href: string;
-  icon?: LucideIcon;
-  description?: string;
-  items?: NavItem[];
-  active?: boolean;
-};
-
-type Route = {
-  title: string;
-  href: string;
-  description?: string;
-  items?: Route[];
-};
-
-export const dashboardNavItems: Route[] = [
+export const getNavItems = (currentPath: string) => [
   {
-    title: "Dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard className="h-4 w-4" />,
     href: "/dashboard",
+    active: currentPath === "/dashboard"
   },
   {
-    title: "Properties",
+    label: "Properties",
+    icon: <Building2 className="h-4 w-4" />,
     href: "/properties",
+    active: currentPath === "/properties"
   },
   {
-    title: "Residents",
+    label: "Residents",
+    icon: <Users className="h-4 w-4" />,
     href: "/residents",
+    active: currentPath === "/residents"
   },
   {
-    title: "Calendar",
+    label: "Calendar",
+    icon: <Calendar className="h-4 w-4" />,
     href: "/calendar",
-  },
-  {
-    title: "Workflows",
-    href: "/workflows",
-  },
-];
-
-export const mainNavItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    description: "Overview of your community",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Properties",
-    href: "/properties",
-    description: "Manage properties and units",
-    icon: Building2,
-  },
-  {
-    title: "Residents",
-    href: "/residents",
-    description: "Manage residents and homeowners",
-    icon: Users,
-  },
-  {
-    title: "Accounting",
-    href: "/accounting/dashboard",
-    description: "Manage finances and payments",
-    icon: Wallet,
+    active: currentPath === "/calendar",
     items: [
       {
-        title: "Accounting Dashboard",
-        href: "/accounting/dashboard",
-        description: "Overview of your community finances",
+        label: "Calendar View",
+        href: "/calendar",
+        active: currentPath === "/calendar"
       },
       {
-        title: "Transactions",
-        href: "/accounting/transactions",
-        description: "Manage transactions",
-      },
-      {
-        title: "Journal Entries",
-        href: "/accounting/journal-entries",
-        description: "Create and manage journal entries",
-      },
-      {
-        title: "Payments",
-        href: "/accounting/payments",
-        description: "Manage payments",
-      },
-      {
-        title: "Reports",
-        href: "/accounting/reports",
-        description: "View financial reports",
-      },
-    ],
-  },
-  {
-    title: "Communications",
-    href: "/communications/messaging",
-    description: "Communicate with residents",
-    icon: MessageSquare,
-    items: [
-      {
-        title: "Community Messaging",
-        href: "/communications/messaging",
-        description: "Send messages to residents",
-      },
-      {
-        title: "Announcements",
-        href: "/communications/announcements",
-        description: "Manage announcements",
-      },
-    ],
-  },
-  {
-    title: "Documents",
-    href: "/documents/association",
-    description: "Manage documents and files",
-    icon: FileText,
-    items: [
-      {
-        title: "Association Documents",
-        href: "/documents/association",
-        description: "Manage association documents and files"
-      },
-      {
-        title: "Document Templates",
-        href: "/documents/templates",
-        description: "Access and download data templates"
+        label: "Calendar Settings",
+        href: "/settings/calendar",
+        active: currentPath === "/settings/calendar"
       }
     ]
   },
   {
-    title: "Database",
-    href: "/database/records",
-    description: "Manage database records",
-    icon: ListChecks,
-  },
-  {
-    title: "Calendar",
-    href: "/calendar",
-    description: "Manage events and schedules",
-    icon: Calendar,
-  },
-  {
-    title: "Workflows",
-    href: "/workflows",
-    description: "Automate tasks and processes",
-    icon: Activity,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    description: "Manage settings and configurations",
-    icon: Settings,
+    label: "Accounting",
+    icon: <CircleDollarSign className="h-4 w-4" />,
+    active: currentPath.startsWith("/accounting"),
     items: [
       {
-        title: "Permissions",
-        href: "/settings/permissions",
-        description: "Manage user permissions",
+        label: "Dashboard",
+        href: "/accounting/dashboard",
+        active: currentPath === "/accounting/dashboard"
       },
-    ],
+      {
+        label: "Transactions",
+        href: "/accounting/transactions",
+        active: currentPath === "/accounting/transactions"
+      },
+      {
+        label: "Payments",
+        href: "/accounting/payments",
+        active: currentPath === "/accounting/payments"
+      },
+      {
+        label: "Journal Entries",
+        href: "/accounting/journal-entries",
+        active: currentPath === "/accounting/journal-entries"
+      },
+      {
+        label: "Reports",
+        href: "/accounting/reports",
+        active: currentPath === "/accounting/reports"
+      }
+    ]
   },
   {
-    title: "My Profile",
-    href: "/profile",
-    icon: User,
-    activeIcon: User,
+    label: "Communications",
+    icon: <MessageSquare className="h-4 w-4" />,
+    active: currentPath.startsWith("/communications"),
+    items: [
+      {
+        label: "Community Messaging",
+        href: "/communications/messaging",
+        active: currentPath === "/communications/messaging"
+      },
+      {
+        label: "Announcements",
+        href: "/communications/announcements",
+        active: currentPath === "/communications/announcements"
+      }
+    ]
   },
+  {
+    label: "Records",
+    icon: <Database className="h-4 w-4" />,
+    active: currentPath.startsWith("/database"),
+    items: [
+      {
+        label: "Association Records",
+        href: "/database/records",
+        active: currentPath === "/database/records"
+      }
+    ]
+  },
+  "separator",
+  {
+    label: "Documents",
+    icon: <FolderClosed className="h-4 w-4" />,
+    active: currentPath.startsWith("/documents"),
+    items: [
+      {
+        label: "Association Documents",
+        href: "/documents/association",
+        active: currentPath === "/documents/association"
+      },
+      {
+        label: "Document Templates",
+        href: "/documents/templates",
+        active: currentPath === "/documents/templates"
+      }
+    ]
+  },
+  {
+    label: "Reports",
+    icon: <BarChart3 className="h-4 w-4" />,
+    href: "/reports",
+    active: currentPath === "/reports"
+  },
+  {
+    label: "Workflows",
+    icon: <Workflow className="h-4 w-4" />,
+    href: "/workflows",
+    active: currentPath === "/workflows",
+  },
+  {
+    label: "Community Hub",
+    icon: <LayoutGrid className="h-4 w-4" />,
+    href: "/community-hub",
+    active: currentPath === "/community-hub",
+  },
+  "separator",
+  {
+    label: "Integrations",
+    icon: <Network className="h-4 w-4" />,
+    href: "/integrations",
+    active: currentPath === "/integrations"
+  },
+  {
+    label: "Settings",
+    icon: <Cog className="h-4 w-4" />,
+    active: currentPath.startsWith("/settings"),
+    items: [
+      {
+        label: "General Settings",
+        href: "/settings",
+        active: currentPath === "/settings"
+      },
+      {
+        label: "Calendar Settings",
+        href: "/settings/calendar",
+        active: currentPath === "/settings/calendar"
+      },
+      {
+        label: "User Permissions",
+        href: "/settings/permissions",
+        active: currentPath === "/settings/permissions"
+      }
+    ]
+  }
 ];
-
-// Convert the main navigation items to the format needed by the sidebar
-export const getNavItems = (currentPath: string): (NavItem | 'separator')[] => {
-  const navItems: (NavItem | 'separator')[] = [];
-  
-  // Add main sections
-  mainNavItems.forEach((item) => {
-    const navItem: NavItem = {
-      label: item.title,
-      href: item.href,
-      icon: item.icon,
-      description: item.description,
-      active: currentPath.startsWith(item.href),
-    };
-    
-    // If the item has children, add them
-    if (item.items && item.items.length > 0) {
-      navItem.items = item.items.map((subItem) => ({
-        label: subItem.title,
-        href: subItem.href,
-        description: subItem.description,
-        active: currentPath === subItem.href,
-      }));
-    }
-    
-    navItems.push(navItem);
-    
-    // Add separator after certain sections
-    if (["Calendar", "Workflows"].includes(item.title)) {
-      navItems.push('separator');
-    }
-  });
-  
-  return navItems;
-};

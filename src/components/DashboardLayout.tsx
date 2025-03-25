@@ -43,6 +43,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
       if (path === '/accounting/transactions') return 'Transactions';
       if (path === '/accounting/reports') return 'Financial Reports';
       if (path === '/accounting/payments') return 'Payments';
+      if (path === '/accounting/journal-entries') return 'Journal Entries';
       return 'Accounting';
     }
     
@@ -56,9 +57,18 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     // Database section
     if (path.startsWith('/database')) {
       if (path === '/database/records') return 'Association Records';
-      if (path === '/database/templates') return 'Document Templates';
       return 'Records';
     }
+    
+    // Documents section
+    if (path.startsWith('/documents')) {
+      if (path === '/documents/association') return 'Association Documents';
+      if (path === '/documents/templates') return 'Document Templates';
+      return 'Documents';
+    }
+    
+    // Profile section
+    if (path === '/profile') return 'User Profile';
     
     return 'HOA Management';
   };

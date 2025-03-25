@@ -27,7 +27,7 @@ const MainNav = () => {
     {
       title: 'Calendar',
       href: '/calendar',
-      active: location.pathname === '/calendar',
+      active: location.pathname === '/calendar' || location.pathname === '/settings/calendar',
     },
     {
       title: 'Reports',
