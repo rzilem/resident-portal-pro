@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import DashboardLayout from '@/components/DashboardLayout';
 
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
@@ -53,44 +54,47 @@ const App = () => {
   return (
     <ThemeProvider>
       <Routes>
+        {/* Public routes without dashboard layout */}
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/properties" element={<Properties />} />
-        <Route path="/residents" element={<Residents />} />
-        <Route path="/resident/:id" element={<ResidentProfile />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/integrations" element={<Integrations />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/workflows" element={<Workflows />} />
-        <Route path="/community-hub" element={<CommunityHub />} />
         
-        {/* Accounting routes */}
-        <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
-        <Route path="/accounting/transactions" element={<Transactions />} />
-        <Route path="/accounting/payments" element={<Payments />} />
-        <Route path="/accounting/reports" element={<AccountingReports />} />
-        <Route path="/accounting/journal-entries" element={<JournalEntries />} />
+        {/* Dashboard layout for authenticated pages */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/properties" element={<Properties />} />
+          <Route path="/residents" element={<Residents />} />
+          <Route path="/resident/:id" element={<ResidentProfile />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/integrations" element={<Integrations />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/workflows" element={<Workflows />} />
+          <Route path="/community-hub" element={<CommunityHub />} />
+          <Route path="/profile" element={<UserProfile />} />
+          
+          {/* Accounting routes */}
+          <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
+          <Route path="/accounting/transactions" element={<Transactions />} />
+          <Route path="/accounting/payments" element={<Payments />} />
+          <Route path="/accounting/reports" element={<AccountingReports />} />
+          <Route path="/accounting/journal-entries" element={<JournalEntries />} />
+          
+          {/* Communications routes */}
+          <Route path="/communications/messaging" element={<CommunityMessaging />} />
+          <Route path="/communications/announcements" element={<Announcements />} />
+          
+          {/* Database routes */}
+          <Route path="/database/records" element={<Records />} />
+          
+          {/* Document routes */}
+          <Route path="/documents/association" element={<AssociationDocuments />} />
+          <Route path="/documents/templates" element={<DocumentTemplates />} />
+          
+          {/* Settings routes */}
+          <Route path="/settings/permissions" element={<Permissions />} />
+        </Route>
         
-        {/* Communications routes */}
-        <Route path="/communications/messaging" element={<CommunityMessaging />} />
-        <Route path="/communications/announcements" element={<Announcements />} />
-        
-        {/* Database routes */}
-        <Route path="/database/records" element={<Records />} />
-        
-        {/* Document routes */}
-        <Route path="/documents/association" element={<AssociationDocuments />} />
-        <Route path="/documents/templates" element={<DocumentTemplates />} />
-        
-        {/* Settings routes */}
-        <Route path="/settings/permissions" element={<Permissions />} />
-        
-        {/* UserProfile route */}
-        <Route path="/profile" element={<UserProfile />} />
-        
-        {/* HOA routes */}
+        {/* HOA routes with their own layout */}
         <Route path="/hoa/dashboard" element={<HoaDashboard />} />
         <Route path="/hoa/finances" element={<HoaFinances />} />
         <Route path="/hoa/maintenance" element={<HoaMaintenance />} />

@@ -4,10 +4,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
 import { Sidebar } from '@/components/Sidebar';
 import ChatbotButton from './ChatbotButton';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Outlet } from 'react-router-dom';
 
 interface DashboardLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   title?: string;
 }
 
@@ -113,9 +113,9 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
           title={getPageTitle()} 
         />
         
-        {/* Main Content */}
+        {/* Main Content - use Outlet for nested routes or fallback to children */}
         <main className="flex-1 animate-fade-in">
-          {children}
+          {children || <Outlet />}
         </main>
       </div>
       

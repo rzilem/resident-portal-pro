@@ -63,6 +63,6 @@ const MainNav = () => {
       </NavigationMenuList>
     </NavigationMenu>
   );
-};
+}
 
 export default MainNav;
