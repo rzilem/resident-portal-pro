@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Save, ArrowLeft } from "lucide-react";
 import WorkflowHeader from './builder/WorkflowHeader';
 import WorkflowStepsList from './builder/WorkflowStepsList';
-import { WorkflowStep } from '@/types/workflow';
+import { WorkflowStep, Workflow } from '@/types/workflow';
 import { toast } from "sonner";
 import { useWorkflowSteps } from '@/hooks/use-workflow-steps';
 import { useWorkflows } from '@/hooks/use-workflows';
@@ -22,6 +22,7 @@ const WorkflowBuilder = () => {
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
   const [workflowCategory, setWorkflowCategory] = useState('');
+  const [workflowStatus, setWorkflowStatus] = useState<'active' | 'inactive' | 'draft'>('draft');
   
   // Get steps from the hook
   const { 
@@ -36,15 +37,28 @@ const WorkflowBuilder = () => {
     { id: uuid(), type: 'action', actionType: '', name: 'New Action', config: {} }
   ]);
   
+  // Create a workflow object from current state
+  const workflow: Workflow = {
+    id: workflowId || uuid(),
+    name: workflowName,
+    description: workflowDescription,
+    category: workflowCategory,
+    steps: workflowSteps,
+    status: workflowStatus,
+    createdAt: new Date().toISOString(),
+    lastEditedAt: new Date().toISOString()
+  };
+  
   // Load workflow data if editing
   useEffect(() => {
     if (workflowId) {
-      const workflow = workflows.find(w => w.id === workflowId);
-      if (workflow) {
-        setWorkflowName(workflow.name);
-        setWorkflowDescription(workflow.description);
-        setWorkflowCategory(workflow.category);
-        setWorkflowSteps(workflow.steps);
+      const existingWorkflow = workflows.find(w => w.id === workflowId);
+      if (existingWorkflow) {
+        setWorkflowName(existingWorkflow.name);
+        setWorkflowDescription(existingWorkflow.description);
+        setWorkflowCategory(existingWorkflow.category);
+        setWorkflowStatus(existingWorkflow.status);
+        setWorkflowSteps(existingWorkflow.steps);
       }
     }
   }, [workflowId, workflows, setWorkflowSteps]);
@@ -55,6 +69,22 @@ const WorkflowBuilder = () => {
   
   const handleAddCondition = (afterId: string) => {
     addStep(afterId, 'condition');
+  };
+  
+  const handleWorkflowNameChange = (name: string) => {
+    setWorkflowName(name);
+  };
+  
+  const handleWorkflowDescriptionChange = (description: string) => {
+    setWorkflowDescription(description);
+  };
+  
+  const handleWorkflowCategoryChange = (category: string) => {
+    setWorkflowCategory(category);
+  };
+  
+  const handleWorkflowStatusChange = (status: 'active' | 'inactive' | 'draft') => {
+    setWorkflowStatus(status);
   };
   
   const saveWorkflow = async () => {
@@ -89,6 +119,7 @@ const WorkflowBuilder = () => {
           description: workflowDescription,
           category: workflowCategory,
           steps: workflowSteps,
+          status: workflowStatus
         });
         toast.success('Workflow updated successfully!');
       } else {
@@ -120,13 +151,13 @@ const WorkflowBuilder = () => {
       </div>
       
       <WorkflowHeader
-        workflowName={workflowName}
-        setWorkflowName={setWorkflowName}
-        workflowDescription={workflowDescription}
-        setWorkflowDescription={setWorkflowDescription}
-        workflowCategory={workflowCategory}
-        setWorkflowCategory={setWorkflowCategory}
+        workflow={workflow}
         readOnly={readOnly}
+        onNameChange={handleWorkflowNameChange}
+        onDescriptionChange={handleWorkflowDescriptionChange}
+        onCategoryChange={handleWorkflowCategoryChange}
+        onStatusChange={handleWorkflowStatusChange}
+        onSave={saveWorkflow}
       />
       
       <div className="flex items-center justify-between">
