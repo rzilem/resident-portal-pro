@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Users, Copy, Info, Tag as TagIcon } from 'lucide-react';
+import { Send, Users, Copy, Info, Tag as TagIcon, Bot, MessageSquareMore } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import HtmlEditor from './HtmlEditor';
@@ -14,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import MergeTagsDialog from './MergeTagsDialog';
 import { MergeTag } from '@/types/mergeTags';
 import { mergeTagService } from '@/services/mergeTagService';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -50,6 +49,11 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
   const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
+  
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +77,6 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
         recipients: selectedRecipients,
       });
       
-      // Reset form after successful submission
       setSubject('');
       setContent('');
     } catch (error) {
@@ -92,24 +95,70 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   };
 
   const handleInsertMergeTag = (tag: MergeTag) => {
-    // Handle differently based on plain text vs HTML
     if (format === 'plain') {
       setContent(prev => prev + ' ' + tag.tag + ' ');
     } else {
-      // For HTML editor, we'll need to have the editor provide a method to insert at cursor
-      // For now, we'll just append it
       setContent(prev => prev + ' ' + tag.tag + ' ');
     }
   };
 
   const handlePreviewWithMergeTags = async () => {
-    // Process the content with merge tags
     const processed = await mergeTagService.processMergeTags(content, {
-      // In a real app, you'd pass the actual context data here
     });
     
     setPreviewContent(processed);
     setShowMergeTagPreview(true);
+  };
+
+  const handleGenerateContent = async () => {
+    if (!aiPrompt.trim()) return;
+    
+    setIsGenerating(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const generatedText = generateSampleResponse(aiPrompt);
+      setAiResponse(generatedText);
+    } catch (error) {
+      console.error("Error generating content:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const applyAiSuggestion = () => {
+    if (!aiResponse) return;
+    
+    if (format === 'plain') {
+      setContent(prev => prev + (prev ? '\n\n' : '') + aiResponse);
+    } else {
+      const htmlContent = aiResponse.startsWith('<') 
+        ? aiResponse 
+        : `<p>${aiResponse.replace(/\n/g, '</p><p>')}</p>`;
+      
+      setContent(prev => prev + htmlContent);
+    }
+    
+    setIsAiAssistantOpen(false);
+    setAiPrompt('');
+    setAiResponse('');
+  };
+
+  const generateSampleResponse = (prompt: string) => {
+    const promptLower = prompt.toLowerCase();
+    
+    if (promptLower.includes('welcome')) {
+      return "Welcome to our community! We're delighted to have you join us. This message is to provide you with some important information about our community resources and upcoming events.";
+    } else if (promptLower.includes('maintenance') || promptLower.includes('repair')) {
+      return "We want to inform you about upcoming maintenance work scheduled for next week. The maintenance team will be performing routine inspections and repairs throughout the community. Please ensure access to common areas during this time.";
+    } else if (promptLower.includes('meeting') || promptLower.includes('board')) {
+      return "The next board meeting is scheduled for Tuesday, July 15th at 7:00 PM in the community center. We'll be discussing the annual budget, upcoming renovations, and community events. All residents are welcome to attend.";
+    } else if (promptLower.includes('event') || promptLower.includes('social')) {
+      return "We're excited to announce our Summer Community Festival on Saturday, August 5th from 2:00 PM to 8:00 PM. There will be food, games, and entertainment for all ages. Don't miss this opportunity to meet your neighbors and enjoy a day of fun!";
+    } else {
+      return "Thank you for your message. We appreciate your communication and will address your concerns promptly. Our community thrives through active participation and open dialogue between residents and management.";
+    }
   };
 
   return (
@@ -199,6 +248,16 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
                   type="button" 
                   variant="outline" 
                   size="sm"
+                  onClick={() => setIsAiAssistantOpen(true)}
+                  className="gap-1"
+                >
+                  <Bot className="h-4 w-4" />
+                  AI Assist
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => setIsMergeTagsDialogOpen(true)}
                 >
                   <TagIcon className="mr-2 h-4 w-4" />
@@ -280,7 +339,6 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
           type="button" 
           variant="outline"
           onClick={() => {
-            // Save as draft functionality would go here
             console.log("Save as draft:", { subject, content, recipients: selectedRecipients });
           }}
         >
@@ -293,14 +351,12 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
         </Button>
       </div>
 
-      {/* Merge Tags Dialog */}
       <MergeTagsDialog
         open={isMergeTagsDialogOpen}
         onOpenChange={setIsMergeTagsDialogOpen}
         onSelectTag={handleInsertMergeTag}
       />
 
-      {/* Preview Dialog */}
       <Dialog open={showMergeTagPreview} onOpenChange={setShowMergeTagPreview}>
         <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
@@ -315,6 +371,76 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
           </div>
           <DialogFooter>
             <Button onClick={() => setShowMergeTagPreview(false)}>Close Preview</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAiAssistantOpen} onOpenChange={setIsAiAssistantOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>AI Message Assistant</DialogTitle>
+            <DialogDescription>
+              Describe what kind of message you need help with, and our AI will suggest content.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="ai-prompt">What kind of message do you need?</Label>
+              <Textarea
+                id="ai-prompt"
+                placeholder="e.g., Write a welcome message for new residents"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                className="min-h-[100px]"
+              />
+              <div className="text-xs text-muted-foreground">
+                Try prompts like "maintenance announcement", "board meeting invitation", or "community event"
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleGenerateContent} 
+              disabled={isGenerating || !aiPrompt.trim()} 
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>Generating content...</>
+              ) : (
+                <>
+                  <MessageSquareMore className="mr-2 h-4 w-4" />
+                  Generate Content
+                </>
+              )}
+            </Button>
+            
+            {aiResponse && (
+              <div className="space-y-2 mt-4">
+                <Label>Generated Content</Label>
+                <div className="border rounded-md p-3 bg-muted/30 whitespace-pre-wrap">
+                  {aiResponse}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAiAssistantOpen(false);
+                setAiPrompt('');
+                setAiResponse('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={applyAiSuggestion} 
+              disabled={!aiResponse}
+            >
+              Use This Content
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
