@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,7 +12,6 @@ const Properties = () => {
   const isMobile = useIsMobile();
   const { preferences, updatePreference } = useSettings();
   
-  // Enhanced property data with additional fields
   const properties = [
     { 
       name: 'Oakwood Heights', 
@@ -127,7 +125,6 @@ const Properties = () => {
     },
   ];
   
-  // Define all available columns
   const defaultColumns: PropertyColumn[] = [
     { id: 'name', label: 'Property Name', checked: true },
     { id: 'type', label: 'Type', checked: true },
@@ -137,7 +134,7 @@ const Properties = () => {
     { id: 'city', label: 'City', checked: false },
     { id: 'county', label: 'County', checked: false },
     { id: 'taxId', label: 'Tax ID', checked: false },
-    { id: 'foundedDate', label: 'Founded Date', checked: true },
+    { id: 'foundedDate', label: 'Onboarding Date', checked: true },
     { id: 'annualFees', label: 'Annual Fees', checked: true },
     { id: 'manager', label: 'Manager', checked: true },
     { id: 'hasPool', label: 'Has Pool', checked: false },
@@ -149,21 +146,17 @@ const Properties = () => {
     { id: 'serviceType', label: 'Service Type', checked: false }
   ];
   
-  // State for selected columns
   const [columns, setColumns] = useState<PropertyColumn[]>(
     preferences?.propertyTableColumns || defaultColumns
   );
   
-  // Update columns when preferences change
   useEffect(() => {
     if (preferences?.propertyTableColumns) {
       setColumns(preferences.propertyTableColumns);
     }
   }, [preferences]);
   
-  // Handle column selection changes
   const handleColumnsChange = (newColumns: PropertyColumn[]) => {
-    // Make sure at least one column is selected
     const hasCheckedColumn = newColumns.some(col => col.checked);
     
     if (hasCheckedColumn) {
@@ -171,9 +164,7 @@ const Properties = () => {
     }
   };
   
-  // Handle export to Excel
   const handleExport = () => {
-    // Only include visible columns and format data for export
     const visibleColumns = columns.filter(col => col.checked);
     const exportData = properties.map(property => {
       const exportObj: Record<string, any> = {};
@@ -181,7 +172,6 @@ const Properties = () => {
       visibleColumns.forEach(col => {
         let value = property[col.id as keyof typeof property];
         
-        // Format boolean values
         if (typeof value === 'boolean') {
           value = value ? 'Yes' : 'No';
         }
@@ -195,7 +185,6 @@ const Properties = () => {
     exportToExcel(exportData, 'Property_Report');
   };
   
-  // Render Yes/No for boolean values
   const renderBooleanValue = (value: boolean) => (
     <span className="flex items-center">
       {value ? (
@@ -261,7 +250,6 @@ const Properties = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Mobile view */}
             {isMobile && (
               <div className="space-y-4 md:hidden">
                 {properties.map((property, i) => (
@@ -294,7 +282,6 @@ const Properties = () => {
               </div>
             )}
             
-            {/* Desktop view */}
             <div className={isMobile ? "hidden" : "overflow-auto"}>
               <Table>
                 <TableHeader>
