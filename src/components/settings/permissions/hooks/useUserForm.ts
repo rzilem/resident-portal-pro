@@ -4,7 +4,6 @@ import { User, UserRole } from '@/types/user';
 import { userService } from '@/services/userService';
 import { emailService } from '@/services/emailService';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface UseUserFormProps {
   editingUser: User | null;
@@ -126,6 +125,8 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
         toast.success("User updated successfully");
       } else {
         try {
+          console.log("Attempting to create new user:", formData);
+          
           // Create new user - this will throw an error if the email already exists
           const newUser = await userService.createUser({
             name: formData.name,
@@ -134,6 +135,8 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
             firstName: formData.firstName,
             lastName: formData.lastName,
           });
+          
+          console.log("New user created successfully:", newUser);
           
           // Important: Only add the new user to the state if creation was successful
           setUsers(prevUsers => [...prevUsers, newUser]);

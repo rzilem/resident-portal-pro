@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 interface UserManagementHeaderProps {
   openNewUserDialog: () => void;
@@ -10,17 +9,16 @@ interface UserManagementHeaderProps {
 
 const UserManagementHeader = ({ openNewUserDialog }: UserManagementHeaderProps) => {
   return (
-    <div className="flex flex-row items-center justify-between">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          User Management
-        </CardTitle>
-        <CardDescription>Manage users and their roles in the system</CardDescription>
+        <h3 className="text-lg font-semibold">User Management</h3>
+        <p className="text-sm text-muted-foreground">
+          Manage user accounts and permissions
+        </p>
       </div>
-      <Button onClick={openNewUserDialog}>
-        <UserPlus className="h-4 w-4 mr-2" />
-        Invite User
+      <Button onClick={openNewUserDialog} size="sm" className="gap-1">
+        <UserPlus className="h-4 w-4" />
+        <span>Invite User</span>
       </Button>
     </div>
   );

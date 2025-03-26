@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { addUserToCache } from './types';
 import { defaultRolePermissions } from '@/components/settings/permissions/constants/securityLevels';
 import { userRetrievalService } from './userRetrievalService';
+import { toast } from 'sonner';
 
 export const userCreationService = {
   createUser: async (user: Omit<User, 'id'>): Promise<User> => {
@@ -20,6 +21,8 @@ export const userCreationService = {
       // Get default permissions based on role
       const roleDefaults = defaultRolePermissions[user.role as UserRole];
       const securityLevel = roleDefaults.securityLevel as SecurityLevel;
+      
+      console.log('Creating new user:', { ...user, email: normalizedEmail });
       
       // Generate a unique ID
       const { data: authUser, error: signUpError } = await supabase.auth.signUp({
@@ -43,21 +46,7 @@ export const userCreationService = {
         throw new Error('Failed to create user in Supabase Auth');
       }
       
-      // Ensure profile exists and update it with additional info
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: user.firstName,
-          last_name: user.lastName,
-          role: user.role
-        })
-        .eq('id', authUser.user.id)
-        .select()
-        .single();
-      
-      if (profileError) {
-        console.error('Error updating profile in Supabase:', profileError);
-      }
+      console.log('User created successfully in Auth:', authUser.user.id);
       
       // Create the new user object
       const newUser: User = { 

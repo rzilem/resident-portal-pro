@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@/types/user';
 import { userService } from '@/services/userService';
@@ -9,6 +10,7 @@ export const useUserManagement = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load users on component mount
@@ -17,13 +19,19 @@ export const useUserManagement = () => {
 
   const loadUsers = async () => {
     try {
+      setIsLoading(true);
+      console.log("Fetching users...");
       const fetchedUsers = await userService.getUsers();
+      console.log("Fetched users:", fetchedUsers);
+      
       // Ensure all users have unique IDs to avoid rendering issues
       const uniqueUsers = removeDuplicateUsers(fetchedUsers);
       setUsers(uniqueUsers);
     } catch (error) {
       toast.error("Failed to load users");
-      console.error(error);
+      console.error("Error loading users:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -53,6 +61,7 @@ export const useUserManagement = () => {
   };
   
   const openEditDialog = (user: User) => {
+    console.log("Opening edit dialog for user:", user);
     setEditingUser(user);
     setDialogOpen(true);
   };
@@ -62,6 +71,8 @@ export const useUserManagement = () => {
       const user = users.find(u => u.id === id);
       if (!user) return;
 
+      console.log(`Toggling status for user ${user.name} (${id}) from ${user.status}`);
+      
       let updatedUser;
       if (user.status === 'active') {
         updatedUser = await userService.deactivateUser(id);
@@ -71,17 +82,20 @@ export const useUserManagement = () => {
         toast.success(`${user.name} activated`);
       }
 
+      console.log("Updated user:", updatedUser);
+      
       const updatedUsers = users.map(u => 
         u.id === id ? updatedUser : u
       );
       setUsers(updatedUsers);
     } catch (error) {
       toast.error("Failed to update user status");
-      console.error(error);
+      console.error("Error updating user status:", error);
     }
   };
   
   const confirmDeleteUser = (user: User) => {
+    console.log("Confirming deletion of user:", user);
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
@@ -90,7 +104,9 @@ export const useUserManagement = () => {
     if (!userToDelete) return;
     
     try {
+      console.log("Deleting user:", userToDelete);
       await userService.deleteUser(userToDelete.id);
+      
       // Important: Only filter out the specific user with matching ID
       setUsers(users.filter(u => u.id !== userToDelete.id));
       toast.success(`User deleted successfully`);
@@ -98,7 +114,7 @@ export const useUserManagement = () => {
       setUserToDelete(null);
     } catch (error) {
       toast.error("Failed to delete user");
-      console.error(error);
+      console.error("Error deleting user:", error);
     }
   };
 
@@ -113,10 +129,12 @@ export const useUserManagement = () => {
     setDeleteDialogOpen,
     userToDelete,
     setUserToDelete,
+    isLoading,
     openNewUserDialog,
     openEditDialog,
     toggleUserStatus,
     confirmDeleteUser,
-    deleteUser
+    deleteUser,
+    refreshUsers: loadUsers
   };
 };
