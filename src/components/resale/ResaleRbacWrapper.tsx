@@ -3,14 +3,11 @@ import React, { ReactNode } from 'react';
 import { useAuthRole } from '@/hooks/use-auth-role';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
-
-// Define the Permission type to match the one in roleService.ts
-// Update to include specific permission strings used in ResaleDashboard.tsx
-type Permission = 'view' | 'edit' | 'create' | 'delete' | 'approve' | 'admin' | string;
+import { Permission } from '@/services/roleService';
 
 interface ResaleRbacWrapperProps {
   children: ReactNode;
-  requiredPermission: Permission;
+  requiredPermission: string;
   module?: string;
   fallback?: ReactNode;
 }
@@ -39,11 +36,18 @@ const ResaleRbacWrapper = ({
     ? permissionParts.slice(0, permissionParts.length - 1).join('.') 
     : module;
   
-  // Create a variable of the correct type for the permission check
-  // This ensures that TypeScript knows we're using a valid Permission value
-  const permissionValue: Permission = actualPermission;
+  // Check if the actualPermission is a valid Permission type value
+  // and cast it only if it matches one of the expected values
+  const isValidPermission = (permission: string): permission is Permission => {
+    return ['view', 'edit', 'create', 'delete', 'approve', 'admin'].includes(permission);
+  };
   
-  // Now use the properly typed permission value
+  // Use type assertion with validation
+  const permissionValue = isValidPermission(actualPermission) 
+    ? actualPermission 
+    : 'view'; // Default to 'view' if the permission is not valid
+  
+  // Now use the validated permission value
   const authorized = hasPermission(actualModule, permissionValue);
   
   if (!authorized) {
