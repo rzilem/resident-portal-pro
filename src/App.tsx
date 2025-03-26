@@ -70,6 +70,7 @@ import PrintQueue from "./pages/PrintQueue";
 
 // Add import for Resale module
 import ResaleDashboard from "@/pages/resale/ResaleDashboard";
+import ResaleWizard from "@/pages/resale/wizard/ResaleWizard";
 
 const App = () => {
   return (
@@ -107,8 +108,13 @@ const App = () => {
           <Route path="/system-uploads" element={<SystemUploads />} />
           <Route path="/print-queue" element={<PrintQueue />} />
           
-          {/* Resale Module */}
+          {/* Resale Module Routes */}
           <Route path="/resale" element={<ResaleDashboard />} />
+          <Route path="/resale/wizard" element={<ResaleWizard />} />
+          <Route path="/resale/certificate" element={<ResaleDashboard />} />
+          <Route path="/resale/questionnaire" element={<ResaleDashboard />} />
+          <Route path="/resale/inspection" element={<ResaleDashboard />} />
+          <Route path="/resale/statements" element={<ResaleDashboard />} />
           
           {/* Vendor routes */}
           <Route path="/vendors" element={<Vendors />} />

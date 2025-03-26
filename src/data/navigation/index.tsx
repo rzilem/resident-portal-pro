@@ -6,6 +6,7 @@ import { getOperationsSection } from './operations-section';
 import { getRecordsSection } from './records-section';
 import { getSystemSection } from './system-section';
 import { getAccountingSection } from './accounting-section';
+import { getResaleSection } from './resale-section';
 
 // Re-export the types
 export * from './types';
@@ -21,6 +22,8 @@ export const getNavItems = (currentPath: string): NavigationItem[] => [
   getOperationsSection(currentPath),
   // Records & Reports Section
   getRecordsSection(currentPath),
+  // Resale Management Section
+  getResaleSection(currentPath),
   "separator",
   // System Section
   getSystemSection(currentPath)
