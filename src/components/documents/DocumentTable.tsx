@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { 
   FileText, Download, Eye, Share2, Star, 
   MoreVertical, FileIcon, BarChart2, File,
-  Calendar, User, Clock, Tag, Filter, RefreshCw
+  Calendar, User, Clock, Tag, Filter, RefreshCw,
+  FileSpreadsheet, FilePdf, FileImage, FileCode
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,6 +31,36 @@ import { getDocuments, formatFileSize } from '@/utils/documents/documentUtils';
 import DocumentPreview from './DocumentPreview';
 import DocumentActions from './DocumentActions';
 import { toast } from 'sonner';
+
+// Helper function to determine icon based on file name or type
+const getDocumentIcon = (fileName: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  
+  switch(extension) {
+    case 'pdf':
+      return <FilePdf className="h-5 w-5 text-red-500" />;
+    case 'doc':
+    case 'docx':
+      return <FileText className="h-5 w-5 text-blue-500" />;
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+      return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+      return <FileImage className="h-5 w-5 text-purple-500" />;
+    case 'html':
+    case 'css':
+    case 'js':
+    case 'ts':
+    case 'json':
+      return <FileCode className="h-5 w-5 text-yellow-500" />;
+    default:
+      return <File className="h-5 w-5 text-gray-500" />;
+  }
+};
 
 interface DocumentTableProps {
   category?: string;
