@@ -1,4 +1,3 @@
-
 import { Vendor, VendorInvoice, VendorService } from '@/types/vendor';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -70,7 +69,31 @@ export const mockVendors: Vendor[] = [
       { id: '1', label: 'Landscaping', color: '#65a30d', type: 'service', createdAt: '2022-03-15T08:00:00Z' },
       { id: '2', label: 'Reliable', color: '#0ea5e9', type: 'reliability', createdAt: '2022-03-15T08:00:00Z' }
     ],
-    lastInvoiceDate: '2023-06-01T10:00:00Z'
+    lastInvoiceDate: '2023-06-01T10:00:00Z',
+    insurance: {
+      policyNumber: 'POL-123456789',
+      provider: 'SafeGuard Insurance',
+      expirationDate: '2024-08-15T00:00:00Z',
+      coverageAmount: 1000000,
+      coverageType: 'General Liability',
+      agent: {
+        name: 'Sarah Thompson',
+        email: 'sthompson@safeguard.com',
+        phone: '(555) 987-6543'
+      },
+      documents: [
+        {
+          id: '1',
+          name: 'Certificate of Insurance.pdf',
+          uploadDate: '2023-08-15T00:00:00Z'
+        },
+        {
+          id: '2',
+          name: 'Policy Document.pdf',
+          uploadDate: '2023-08-15T00:00:00Z'
+        }
+      ]
+    }
   },
   {
     id: '2',
@@ -91,7 +114,26 @@ export const mockVendors: Vendor[] = [
       { id: '3', label: 'Plumbing', color: '#0d9488', type: 'service', createdAt: '2021-11-20T09:30:00Z' },
       { id: '4', label: 'Emergency', color: '#dc2626', type: 'service', createdAt: '2021-11-20T09:30:00Z' }
     ],
-    lastInvoiceDate: '2023-05-15T14:00:00Z'
+    lastInvoiceDate: '2023-05-15T14:00:00Z',
+    insurance: {
+      policyNumber: 'PLB-987654321',
+      provider: 'Waterways Insurance Co.',
+      expirationDate: '2023-12-30T00:00:00Z',
+      coverageAmount: 750000,
+      coverageType: 'Professional & General Liability',
+      agent: {
+        name: 'Robert Martinez',
+        email: 'rmartinez@waterwaysins.com',
+        phone: '(555) 345-6789'
+      },
+      documents: [
+        {
+          id: '3',
+          name: 'Plumbing License & Insurance.pdf',
+          uploadDate: '2023-01-05T00:00:00Z'
+        }
+      ]
+    }
   },
   {
     id: '3',
@@ -112,7 +154,31 @@ export const mockVendors: Vendor[] = [
       { id: '5', label: 'Electrical', color: '#f97316', type: 'service', createdAt: '2022-01-10T10:15:00Z' },
       { id: '6', label: 'Premium', color: '#9333ea', type: 'pricing', createdAt: '2022-01-10T10:15:00Z' }
     ],
-    lastInvoiceDate: '2023-06-05T11:30:00Z'
+    lastInvoiceDate: '2023-06-05T11:30:00Z',
+    insurance: {
+      policyNumber: 'ELE-456789012',
+      provider: 'Volt Insurance Group',
+      expirationDate: '2023-07-01T00:00:00Z',
+      coverageAmount: 2000000,
+      coverageType: 'Electrical Contractor Insurance',
+      agent: {
+        name: 'Jennifer Wong',
+        email: 'jwong@voltinsurance.com',
+        phone: '(555) 234-5678'
+      },
+      documents: [
+        {
+          id: '4',
+          name: 'Electrical License.pdf',
+          uploadDate: '2022-07-01T00:00:00Z'
+        },
+        {
+          id: '5',
+          name: 'Certificate of Insurance.pdf',
+          uploadDate: '2022-07-01T00:00:00Z'
+        }
+      ]
+    }
   },
   {
     id: '4',
@@ -158,7 +224,6 @@ export const mockVendors: Vendor[] = [
   }
 ];
 
-// Generate additional data for each vendor
 export const getVendorInvoices = (vendorId: string): VendorInvoice[] => {
   return generateMockInvoices(vendorId, 6);
 };
