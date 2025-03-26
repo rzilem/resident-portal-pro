@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Receipt, FileText, DollarSign, LineChart, LayoutDashboard, CreditCard, FileInput, BookOpen, BarChart4, Landmark } from 'lucide-react';
+import { Receipt, FileText, DollarSign, LineChart, LayoutDashboard, CreditCard, FileInput, BookOpen, BarChart4, Landmark, Inbox } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getAccountingSection = (currentPath: string): NavItem => ({
@@ -14,6 +14,12 @@ export const getAccountingSection = (currentPath: string): NavItem => ({
       icon: <LayoutDashboard className="h-4 w-4" />,
       href: "/accounting/dashboard",
       active: currentPath === "/accounting/dashboard"
+    },
+    {
+      label: "Invoice Queue",
+      icon: <Inbox className="h-4 w-4" />,
+      href: "/accounting/invoice-queue",
+      active: currentPath === "/accounting/invoice-queue"
     },
     {
       label: "Transactions",

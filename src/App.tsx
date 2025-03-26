@@ -33,6 +33,7 @@ import AccountingReports from '@/pages/accounting/AccountingReports';
 import JournalEntries from '@/pages/accounting/JournalEntries';
 import GlAccounts from '@/pages/accounting/GlAccounts';
 import InvoiceCoding from './pages/accounting/InvoiceCoding';
+import InvoiceQueue from './pages/accounting/InvoiceQueue'; // Add new import
 
 // Communications pages
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
@@ -113,6 +114,7 @@ const App = () => {
           <Route path="/accounting/journal-entries" element={<JournalEntries />} />
           <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
           <Route path="/accounting/invoice-coding" element={<InvoiceCoding />} />
+          <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} /> {/* Add new route */}
           
           {/* Communications routes */}
           <Route path="/communications/messaging" element={<CommunityMessaging />} />
