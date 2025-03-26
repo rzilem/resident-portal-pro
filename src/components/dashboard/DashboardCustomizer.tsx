@@ -34,6 +34,7 @@ const availableWidgets: Array<{
   { type: 'documents', title: 'Documents', description: 'Recently accessed documents' },
   { type: 'announcements', title: 'Announcements', description: 'Community announcements' },
   { type: 'directory', title: 'Directory', description: 'Community directory' },
+  { type: 'ci-insights', title: 'CI Insights', description: 'AI-driven community intelligence insights' },
 ];
 
 const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomizerProps) => {

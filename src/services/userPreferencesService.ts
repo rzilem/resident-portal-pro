@@ -62,9 +62,16 @@ const defaultPreferences: UserPreferences = {
         size: 'small',
         position: 3,
       },
+      {
+        id: 'widget-5',
+        type: 'ci-insights',
+        title: 'CI Insights',
+        size: 'medium',
+        position: 4,
+      },
     ]
   },
-  dashboardWidgets: ['tasks', 'calendar', 'notices', 'weather'],
+  dashboardWidgets: ['tasks', 'calendar', 'notices', 'weather', 'ci-insights'],
   invoiceTableColumns: defaultInvoiceColumns
 };
 
