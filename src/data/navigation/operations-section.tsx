@@ -13,6 +13,13 @@ import { NavItem } from "./types";
 export const getOperationsSection = (currentPath: string): NavItem => {
   return {
     label: "Operations",
+    icon: Home,
+    active: currentPath === "/calendar" || 
+            currentPath.startsWith("/communications") || 
+            currentPath.startsWith("/compliance") || 
+            currentPath === "/workflows" || 
+            currentPath === "/print-queue" ||
+            currentPath.startsWith("/resale"),
     items: [
       {
         label: "Calendar",

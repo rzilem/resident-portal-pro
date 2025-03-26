@@ -16,6 +16,7 @@ interface CollapsibleNavItemProps {
 
 export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavItemProps) {
   const navigate = useNavigate();
+  const Icon = item.icon;
 
   // Handle click on the collapsible trigger button
   const handleButtonClick = (e: React.MouseEvent) => {
@@ -38,7 +39,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           onClick={handleButtonClick}
         >
           <span className="flex items-center">
-            {item.icon && <span className="mr-2">{item.icon}</span>}
+            {item.icon && <span className="mr-2"><Icon className="h-4 w-4" /></span>}
             {item.label}
           </span>
           <ChevronDown
@@ -51,21 +52,24 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
       </CollapsibleTrigger>
       <CollapsibleContent className="w-full pl-4 pt-1 space-y-1">
         <SidebarMenu>
-          {item.items?.map((subItem) => (
-            <SidebarMenuItem key={subItem.label}>
-              <SidebarMenuButton
-                variant="default"
-                className={cn(
-                  "w-full justify-start text-sm px-2 py-1.5 h-8",
-                  subItem.active ? "bg-accent" : "hover:bg-accent/50"
-                )}
-                onClick={() => navigate(subItem.href)}
-              >
-                {subItem.icon && <span className="mr-2">{subItem.icon}</span>}
-                {subItem.label}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {item.items?.map((subItem) => {
+            const SubIcon = subItem.icon;
+            return (
+              <SidebarMenuItem key={subItem.label}>
+                <SidebarMenuButton
+                  variant="default"
+                  className={cn(
+                    "w-full justify-start text-sm px-2 py-1.5 h-8",
+                    subItem.active ? "bg-accent" : "hover:bg-accent/50"
+                  )}
+                  onClick={() => navigate(subItem.href)}
+                >
+                  {subItem.icon && <span className="mr-2"><SubIcon className="h-4 w-4" /></span>}
+                  {subItem.label}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </CollapsibleContent>
     </Collapsible>

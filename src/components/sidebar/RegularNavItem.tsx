@@ -15,6 +15,7 @@ interface RegularNavItemProps {
 
 export function RegularNavItem({ item }: RegularNavItemProps) {
   const navigate = useNavigate();
+  const Icon = item.icon;
 
   return (
     <SidebarMenu>
@@ -27,7 +28,7 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
           )}
           onClick={() => item.href && navigate(item.href)}
         >
-          {item.icon && <span className="mr-2">{item.icon}</span>}
+          {item.icon && <span className="mr-2"><Icon className="h-4 w-4" /></span>}
           {item.label}
         </SidebarMenuButton>
       </SidebarMenuItem>

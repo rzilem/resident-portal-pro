@@ -12,6 +12,11 @@ export type NavItem = {
     href: string;
     active: boolean;
     icon?: LucideIcon; // Updated to LucideIcon type for sub-items
+    submenu?: {
+      label: string;
+      href: string;
+      active: boolean;
+    }[];
   }[];
 };
 
