@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FileUp, Upload } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useAssociations } from '@/hooks/use-associations';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuthRole } from '@/hooks/use-auth-role';
 import FileUploader from './FileUploader';
+import { ensureDocumentsBucketExists } from '@/utils/documents/documentUtils';
 
 interface DocumentUploadDialogProps {
   isOpen: boolean;
@@ -30,6 +31,20 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('uncategorized');
   const [tags, setTags] = useState<string[]>([]);
+  const [bucketReady, setBucketReady] = useState(false);
+
+  useEffect(() => {
+    // Ensure the documents bucket exists when the component mounts
+    const checkBucket = async () => {
+      const exists = await ensureDocumentsBucketExists();
+      setBucketReady(exists);
+      if (!exists) {
+        toast.error("Document storage is not available. Please contact support.");
+      }
+    };
+    
+    checkBucket();
+  }, []);
 
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -46,14 +61,33 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       return;
     }
 
+    if (!bucketReady) {
+      toast.error('Document storage is not available. Please try again later.');
+      return;
+    }
+
     setIsUploading(true);
     
     try {
+      console.log('Starting document upload process');
+      
+      // Get user ID for document ownership
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('User authentication required for uploading documents');
+        setIsUploading(false);
+        return;
+      }
+      
       // Create a unique file name using uuid
       const fileExtension = selectedFile.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExtension}`;
-      const filePath = `${activeAssociation.id}/${fileName}`;
+      
+      // Using just the filename for the path, not nested in association ID
+      const filePath = fileName;
 
+      console.log(`Uploading file to path: ${filePath}`);
+      
       // Upload file to storage
       const { data: storageData, error: storageError } = await supabase.storage
         .from('documents')
@@ -65,17 +99,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       if (storageError) {
         console.error('Upload error:', storageError);
         toast.error(`Failed to upload document: ${storageError.message}`);
+        setIsUploading(false);
         return;
       }
 
       console.log('Document uploaded successfully to storage:', storageData);
-      
-      // Get user ID for document ownership
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('User authentication required for uploading documents');
-        return;
-      }
       
       // Save document metadata to the documents table
       const { data: documentData, error: documentError } = await supabase
@@ -99,6 +127,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       if (documentError) {
         console.error('Error saving document metadata:', documentError);
         toast.error(`Document uploaded but metadata couldn't be saved: ${documentError.message}`);
+        setIsUploading(false);
         return;
       }
 

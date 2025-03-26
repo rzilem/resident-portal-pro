@@ -21,6 +21,38 @@ export const formatDate = (dateString: string): string => {
   });
 };
 
+// Check and create documents bucket if it doesn't exist
+export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
+  try {
+    // Check if bucket exists
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
+    
+    if (!documentsBucket) {
+      console.log('Documents bucket not found, creating it...');
+      // Create the documents bucket
+      const { error } = await supabase.storage.createBucket('documents', {
+        public: false,
+        fileSizeLimit: 10485760, // 10MB
+      });
+      
+      if (error) {
+        console.error('Error creating documents bucket:', error);
+        return false;
+      }
+      
+      console.log('Documents bucket created successfully');
+    } else {
+      console.log('Documents bucket already exists');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking/creating documents bucket:', error);
+    return false;
+  }
+};
+
 export const getDocuments = async (
   filters: DocumentSearchFilters = {}, 
   associationId?: string,
