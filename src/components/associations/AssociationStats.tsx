@@ -26,7 +26,7 @@ const AssociationStats: React.FC<AssociationStatsProps> = ({ association }) => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            <CalendarDays className="h-4 w-4 inline mr-1" /> Founded
+            <CalendarDays className="h-4 w-4 inline mr-1" /> Onboarding Date
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -34,7 +34,7 @@ const AssociationStats: React.FC<AssociationStatsProps> = ({ association }) => {
             {new Date(association.foundedDate).toLocaleDateString()}
           </div>
           <p className="text-muted-foreground">
-            {new Date().getFullYear() - new Date(association.foundedDate).getFullYear()} years ago
+            Client since {new Date(association.foundedDate).getFullYear()}
           </p>
         </CardContent>
       </Card>
