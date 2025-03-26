@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Association } from '@/types/association';
@@ -13,6 +12,7 @@ import AssociationSettingsTab from './tabs/AssociationSettingsTab';
 interface AssociationTabsProps {
   association: Association;
   properties: Property[];
+  className?: string;
 }
 
 interface TabConfig {
@@ -22,7 +22,11 @@ interface TabConfig {
   requiresProperties?: boolean;
 }
 
-const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properties }) => {
+const AssociationTabs: React.FC<AssociationTabsProps> = ({ 
+  association, 
+  properties, 
+  className 
+}) => {
   const tabConfigs: TabConfig[] = [
     {
       id: 'details',
@@ -58,7 +62,7 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
   ];
 
   return (
-    <Tabs defaultValue="details" className="w-full">
+    <Tabs defaultValue="details" className={`w-full ${className || ''}`}>
       <TabsList className="grid grid-cols-6 w-full">
         {tabConfigs.map(tab => (
           <TabsTrigger key={tab.id} value={tab.id}>

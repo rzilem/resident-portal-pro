@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Building } from 'lucide-react';
@@ -103,7 +104,11 @@ const AssociationProfile = () => {
           </div>
         </div>
 
-        <AssociationTabs association={association} properties={properties} />
+        <AssociationTabs 
+          association={association} 
+          properties={properties} 
+          className="mt-0" // Remove top margin
+        />
       </div>
     </div>
   );
