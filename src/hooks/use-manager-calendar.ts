@@ -7,7 +7,7 @@ import { useAssociations } from './use-associations';
 
 export function useManagerCalendar() {
   const { currentUser, isManager } = useAuthRole();
-  const { associations, loading: associationsLoading } = useAssociations();
+  const { associations, isLoading: associationsLoading } = useAssociations();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
