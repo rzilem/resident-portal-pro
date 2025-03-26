@@ -1,66 +1,17 @@
+
 import React, { useState, useCallback } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
   TableHeader, TableRow, TableCaption 
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  FileText, Download, Eye, Share2, Star, 
-  MoreVertical, FileIcon, BarChart2, File,
-  Calendar, User, Clock, Tag, Filter, RefreshCw,
-  FileCode, FileType, FileSpreadsheet, Image
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
-import { getDocuments, formatFileSize } from '@/utils/documents/documentUtils';
+import { getDocuments } from '@/utils/documents/documentUtils';
 import DocumentPreview from './DocumentPreview';
-import DocumentActions from './DocumentActions';
 import { toast } from 'sonner';
-
-// Helper function to determine icon based on file name or type
-const getDocumentIcon = (fileName: string) => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  
-  switch(extension) {
-    case 'pdf':
-      return <FileText className="h-5 w-5 text-red-500" />;
-    case 'doc':
-    case 'docx':
-      return <FileText className="h-5 w-5 text-blue-500" />;
-    case 'xls':
-    case 'xlsx':
-    case 'csv':
-      return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-      return <Image className="h-5 w-5 text-purple-500" />;
-    case 'html':
-    case 'css':
-    case 'js':
-    case 'ts':
-    case 'json':
-      return <FileCode className="h-5 w-5 text-yellow-500" />;
-    default:
-      return <File className="h-5 w-5 text-gray-500" />;
-  }
-};
+import DocumentTableFilters from './DocumentTableFilters';
+import DocumentTableEmptyState from './DocumentTableEmptyState';
+import DocumentTableRow from './DocumentTableRow';
+import DocumentTableLoading from './DocumentTableLoading';
 
 interface DocumentTableProps {
   category?: string;
@@ -172,103 +123,34 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     return 0;
   });
   
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-  
   if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-3">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-14 bg-muted rounded-md"></div>
-        ))}
-      </div>
-    );
+    return <DocumentTableLoading />;
   }
 
   if (sortedDocuments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-10">
-        <FileText className="h-10 w-10 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium">No documents found</h3>
-        <p className="text-muted-foreground mt-1">
-          {searchQuery || localSearchQuery
-            ? `No results for "${searchQuery || localSearchQuery}"`
-            : associationId
-              ? 'No documents available for this association'
-              : 'No documents match the current filters'}
-        </p>
-        <Button variant="outline" className="mt-4" onClick={refreshDocuments}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh Documents
-        </Button>
-      </div>
+      <DocumentTableEmptyState
+        searchQuery={searchQuery}
+        localSearchQuery={localSearchQuery}
+        associationId={associationId}
+        refreshDocuments={refreshDocuments}
+      />
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Filter documents..."
-            className="pl-9 w-full max-w-xs"
-            value={localSearchQuery}
-            onChange={(e) => setLocalSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={refreshDocuments} title="Refresh documents">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          
-          <Select value={tagFilter} onValueChange={setTagFilter}>
-            <SelectTrigger className="w-[160px]">
-              <Tag className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by tag" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Tags</SelectItem>
-              <SelectItem value="budget">Budget</SelectItem>
-              <SelectItem value="legal">Legal</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
-              <SelectItem value="rules">Rules</SelectItem>
-              <SelectItem value="important">Important</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-[160px]">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Date uploaded" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">Last Week</SelectItem>
-              <SelectItem value="month">Last Month</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as any)}>
-            <SelectTrigger className="w-[160px]">
-              <Clock className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date">Most Recent</SelectItem>
-              <SelectItem value="name">Name (A-Z)</SelectItem>
-              <SelectItem value="size">Size (Largest)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <DocumentTableFilters
+        localSearchQuery={localSearchQuery}
+        setLocalSearchQuery={setLocalSearchQuery}
+        tagFilter={tagFilter}
+        setTagFilter={setTagFilter}
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        refreshDocuments={refreshDocuments}
+      />
 
       <div className="rounded-md border">
         <Table>
@@ -285,62 +167,13 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           </TableHeader>
           <TableBody>
             {sortedDocuments.map(doc => (
-              <TableRow key={doc.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {getDocumentIcon(doc.name)}
-                    <div>
-                      <div className="font-medium flex items-center gap-1">
-                        {doc.name}
-                        {doc.version > 1 && (
-                          <Badge variant="outline" className="text-xs">v{doc.version}</Badge>
-                        )}
-                      </div>
-                      {doc.description && (
-                        <div className="text-xs text-muted-foreground">{doc.description}</div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{formatDate(doc.uploadedDate)}</TableCell>
-                <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
-                <TableCell>{doc.uploadedBy}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {doc.tags?.map(tag => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="View"
-                      onClick={() => handleViewDocument(doc)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Download"
-                      onClick={() => handleDownloadDocument(doc)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    
-                    <DocumentActions
-                      document={doc}
-                      onView={handleViewDocument}
-                      onDelete={handleDeleteDocument}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
+              <DocumentTableRow
+                key={doc.id}
+                doc={doc}
+                onView={handleViewDocument}
+                onDownload={handleDownloadDocument}
+                onDelete={handleDeleteDocument}
+              />
             ))}
           </TableBody>
         </Table>
