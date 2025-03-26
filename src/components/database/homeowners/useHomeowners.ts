@@ -16,7 +16,7 @@ const mockHomeowners: Homeowner[] = [
     email: "alice.j@example.com",
     status: "Active",
     moveInDate: "12/05/2019",
-    balance: "$0.00",
+    balance: "$450.00", // Updated with a balance
     lastPaymentDate: "01/15/2023",
     lastPaymentAmount: "$350.00",
     paymentMethod: "Auto-draft",
@@ -176,7 +176,7 @@ export const useHomeowners = () => {
     }
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
     switch (status) {
       case 'Active':
         return 'default';

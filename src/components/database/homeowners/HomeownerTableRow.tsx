@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 interface HomeownerTableRowProps {
   homeowner: Homeowner;
   columns: DatabaseColumn[];
-  getStatusVariant: (status: string) => string;
+  getStatusVariant: (status: string) => "default" | "destructive" | "outline" | "secondary";
 }
 
 const HomeownerTableRow: React.FC<HomeownerTableRowProps> = ({

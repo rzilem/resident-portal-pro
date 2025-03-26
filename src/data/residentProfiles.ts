@@ -54,10 +54,10 @@ const residentProfiles: ResidentProfiles = {
     status: 'Active',
     moveInDate: '2021-03-15',
     paymentPreference: 'Auto-pay (Credit Card)',
-    balance: '$0.00',
+    balance: '$1,250.00', // Updated with a balance
     lastPayment: { date: '2023-06-01', amount: '$1,200.00', method: 'Credit Card' },
     accountHistory: [
-      { date: '2023-06-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$0.00' },
+      { date: '2023-06-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$1,250.00' },
       { date: '2023-05-15', description: 'Late Fee', amount: '$50.00', balance: '$1,250.00' },
       { date: '2023-05-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$0.00' },
       { date: '2023-04-01', description: 'Monthly Assessment Payment', amount: '$1,200.00', balance: '$0.00' },
@@ -98,7 +98,7 @@ const residentProfiles: ResidentProfiles = {
       taxDistrict: 'North Seattle',
       taxId: 'TX-10145-A'
     },
-    tags: [boardMemberTag, newResidentTag]
+    tags: [boardMemberTag, newResidentTag, delinquentTag] // Added delinquent tag
   },
   102: {
     id: 102,
