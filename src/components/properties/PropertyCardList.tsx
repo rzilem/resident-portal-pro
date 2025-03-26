@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +36,7 @@ const PropertyCardList = ({ properties, columns }: PropertyCardListProps) => {
                 {property.status}
               </Badge>
               <div className="text-sm text-muted-foreground">
-                Founded: {new Date(property.foundedDate).toLocaleDateString()}
+                Onboarded: {new Date(property.onboardingDate).toLocaleDateString()}
               </div>
             </div>
 
@@ -58,12 +57,11 @@ const PropertyCardList = ({ properties, columns }: PropertyCardListProps) => {
               )}
             </div>
             
-            {/* Show extra fields based on columns selection */}
             <div className="mt-2 pt-2 border-t border-border">
               {columns
                 .filter(col => 
                   col.checked && 
-                  !['name', 'location', 'units', 'status', 'foundedDate', 'assessmentFrequency'].includes(col.id)
+                  !['name', 'location', 'units', 'status', 'onboardingDate', 'assessmentFrequency'].includes(col.id)
                 )
                 .map(col => {
                   const value = property[col.id as keyof typeof property];

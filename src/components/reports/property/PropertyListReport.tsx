@@ -21,7 +21,7 @@ const PropertyListReport = ({ properties, timeRange, association }: PropertyList
             <TableHead>Location</TableHead>
             <TableHead>Units</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Founded Date</TableHead>
+            <TableHead>Onboarding Date</TableHead>
             <TableHead>Annual Fees</TableHead>
             <TableHead>Assessment Frequency</TableHead>
           </TableRow>
@@ -38,7 +38,7 @@ const PropertyListReport = ({ properties, timeRange, association }: PropertyList
                     {property.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{formatDate(property.foundedDate)}</TableCell>
+                <TableCell>{formatDate(property.onboardingDate)}</TableCell>
                 <TableCell>{formatCurrency(property.annualFees)}</TableCell>
                 <TableCell className="capitalize">{property.assessmentFrequency}</TableCell>
               </TableRow>

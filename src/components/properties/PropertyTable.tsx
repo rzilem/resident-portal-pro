@@ -17,10 +17,8 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
 
   const handleSort = (field: string) => {
     if (sortField === field) {
-      // Toggle direction if same field clicked
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // Set new field and default to ascending
       setSortField(field);
       setSortDirection('asc');
     }
@@ -56,50 +54,48 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
               className="cursor-pointer hover:bg-muted/30 transition-colors"
               onClick={() => handleSort(col.id)}
             >
-              <div className="flex items-center gap-1">
-                {col.id === 'foundedDate' ? (
-                  <div className="flex items-center">
-                    <CalendarClock className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'annualFees' ? (
-                  <div className="flex items-center">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'location' || col.id === 'city' ? (
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'county' ? (
-                  <div className="flex items-center">
-                    <MapPinned className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'offsiteAddresses' ? (
-                  <div className="flex items-center">
-                    <Building2 className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'leases' ? (
-                  <div className="flex items-center">
-                    <FileText className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'serviceType' ? (
-                  <div className="flex items-center">
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.id === 'assessmentFrequency' ? (
-                  <div className="flex items-center">
-                    <CalendarDays className="h-4 w-4 mr-2" />
-                    {col.label}
-                  </div>
-                ) : col.label}
-                <SortIcon field={col.id} />
-              </div>
+              {col.id === 'foundedDate' ? (
+                <div className="flex items-center">
+                  <CalendarClock className="h-4 w-4 mr-2" />
+                  Onboarding Date
+                </div>
+              ) : col.id === 'annualFees' ? (
+                <div className="flex items-center">
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.id === 'location' || col.id === 'city' ? (
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.id === 'county' ? (
+                <div className="flex items-center">
+                  <MapPinned className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.id === 'offsiteAddresses' ? (
+                <div className="flex items-center">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.id === 'leases' ? (
+                <div className="flex items-center">
+                  <FileText className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.id === 'serviceType' ? (
+                <div className="flex items-center">
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.id === 'assessmentFrequency' ? (
+                <div className="flex items-center">
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  {col.label}
+                </div>
+              ) : col.label}
+              <SortIcon field={col.id} />
             </TableHead>
           ))}
         </TableRow>
@@ -123,7 +119,7 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
                     {property.status}
                   </span>
                 ) : col.id === 'foundedDate' ? (
-                  new Date(property.foundedDate).toLocaleDateString()
+                  new Date(property.onboardingDate).toLocaleDateString()
                 ) : col.id === 'assessmentFrequency' ? (
                   <span className="flex items-center">
                     <CalendarDays className="h-4 w-4 text-blue-600 mr-1" />

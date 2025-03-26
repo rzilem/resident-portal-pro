@@ -1,4 +1,3 @@
-
 import { Association } from '@/types/association';
 
 export interface Property {
@@ -6,7 +5,7 @@ export interface Property {
   location: string;
   units: number;
   status: string;
-  foundedDate: string;
+  onboardingDate: string;
   annualFees: number;
   assessmentFrequency: string;
   hasPool?: boolean;
@@ -17,7 +16,7 @@ export interface Property {
   offsiteAddresses?: number;
   leases?: number;
   serviceType?: string;
-  associationId?: string;  // Added associationId property
+  associationId?: string;
 }
 
 export const getDefaultProperties = (): Property[] => [
@@ -26,7 +25,7 @@ export const getDefaultProperties = (): Property[] => [
     location: 'Los Angeles, CA',
     units: 48,
     status: 'Active',
-    foundedDate: '2010-01-15',
+    onboardingDate: '2010-01-15',
     annualFees: 2400,
     assessmentFrequency: 'Monthly',
     hasPool: true,
@@ -37,14 +36,14 @@ export const getDefaultProperties = (): Property[] => [
     offsiteAddresses: 12,
     leases: 8,
     serviceType: 'Full',
-    associationId: '1'  // Added associationId
+    associationId: '1'
   },
   {
     name: 'Ocean View Condos',
     location: 'Miami, FL',
     units: 120,
     status: 'Active',
-    foundedDate: '2015-06-20',
+    onboardingDate: '2015-06-20',
     annualFees: 3600,
     assessmentFrequency: 'Monthly',
     hasPool: true,
@@ -55,14 +54,14 @@ export const getDefaultProperties = (): Property[] => [
     offsiteAddresses: 35,
     leases: 42,
     serviceType: 'Full',
-    associationId: '2'  // Added associationId
+    associationId: '2'
   },
   {
     name: 'Mountain Valley Association',
     location: 'Denver, CO',
     units: 75,
     status: 'Inactive',
-    foundedDate: '2008-03-10',
+    onboardingDate: '2008-03-10',
     annualFees: 1800,
     assessmentFrequency: 'Quarterly',
     hasPool: false,
@@ -73,7 +72,7 @@ export const getDefaultProperties = (): Property[] => [
     offsiteAddresses: 15,
     leases: 10,
     serviceType: 'Limited',
-    associationId: '3'  // Added associationId
+    associationId: '3'
   }
 ];
 
@@ -83,7 +82,7 @@ export const getDefaultColumns = () => {
     { id: 'location', label: 'Location', checked: true },
     { id: 'units', label: 'Units', checked: true },
     { id: 'status', label: 'Status', checked: true },
-    { id: 'foundedDate', label: 'Founded Date', checked: true },
+    { id: 'foundedDate', label: 'Onboarding Date', checked: true },
     { id: 'annualFees', label: 'Annual Fees', checked: false },
     { id: 'assessmentFrequency', label: 'Assessment Frequency', checked: true },
     { id: 'hasPool', label: 'Has Pool', checked: false },
@@ -103,7 +102,7 @@ export const getPropertiesFromAssociations = (associations: Association[]): Prop
     location: `${association.address.city}, ${association.address.state}`,
     units: association.units,
     status: association.status === 'active' ? 'Active' : 'Inactive',
-    foundedDate: association.foundedDate,
+    onboardingDate: association.foundedDate,
     annualFees: Number(association.settings?.annualFees || 0),
     assessmentFrequency: association.settings?.feesFrequency 
       ? association.settings.feesFrequency.charAt(0).toUpperCase() + association.settings.feesFrequency.slice(1)
@@ -116,6 +115,6 @@ export const getPropertiesFromAssociations = (associations: Association[]): Prop
     hasPool: association.settings?.hasPool,
     hasGate: association.settings?.hasGate,
     hasPedestrianGate: association.settings?.hasPedestrianGate,
-    associationId: association.id  // Added associationId
+    associationId: association.id
   }));
 };
