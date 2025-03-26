@@ -27,27 +27,27 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
         <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="details" className="mt-2">
+      <TabsContent value="details" className="mt-1">
         <AssociationDetailsTab association={association} />
       </TabsContent>
 
-      <TabsContent value="financials" className="mt-2">
+      <TabsContent value="financials" className="mt-1">
         <AssociationFinancialsTab association={association} />
       </TabsContent>
 
-      <TabsContent value="properties" className="mt-2">
+      <TabsContent value="properties" className="mt-1">
         <AssociationPropertiesTab properties={properties} association={association} />
       </TabsContent>
 
-      <TabsContent value="documents" className="mt-2">
+      <TabsContent value="documents" className="mt-1">
         <AssociationDocumentsTab association={association} />
       </TabsContent>
       
-      <TabsContent value="members" className="mt-2">
+      <TabsContent value="members" className="mt-1">
         <AssociationMembersTab association={association} />
       </TabsContent>
 
-      <TabsContent value="settings" className="mt-2">
+      <TabsContent value="settings" className="mt-1">
         <AssociationSettingsTab association={association} />
       </TabsContent>
     </Tabs>
@@ -55,3 +55,4 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
 };
 
 export default AssociationTabs;
+
