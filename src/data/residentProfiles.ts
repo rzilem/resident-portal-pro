@@ -98,7 +98,32 @@ const residentProfiles: ResidentProfiles = {
       taxDistrict: 'North Seattle',
       taxId: 'TX-10145-A'
     },
-    tags: [boardMemberTag, newResidentTag, delinquentTag] // Added delinquent tag
+    tags: [boardMemberTag, newResidentTag, delinquentTag], // Added delinquent tag
+    violations: [
+      {
+        id: uuidv4(),
+        date: '2023-05-28',
+        type: 'Landscaping',
+        description: 'Overgrown lawn and shrubs',
+        status: 'Open',
+        dueDate: '2023-06-15'
+      }
+    ],
+    arcApplications: [
+      {
+        id: uuidv4(),
+        submittedDate: '2023-06-01',
+        projectType: 'Exterior Paint',
+        description: 'Change exterior color to light grey with white trim',
+        status: 'Pending',
+        reviewDate: '2023-06-20'
+      }
+    ],
+    lastContact: {
+      called: '2023-06-05',
+      visitedOffice: '2023-05-20',
+      email: '2023-06-02'
+    }
   },
   102: {
     id: 102,
