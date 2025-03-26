@@ -165,9 +165,7 @@ function generateStepsFromTemplate(templateId: string): WorkflowStep[] {
       type: 'action',
       actionType: 'notification',
       name: 'Send Notification',
-      config: {
-        message: 'Workflow step completed'
-      }
+      config: { message: 'Workflow step completed' }
     }
   ];
   
