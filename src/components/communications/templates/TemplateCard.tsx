@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,8 +58,13 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
             <Trash className="h-4 w-4" />
           </Button>
         </div>
-        <Button variant="default" size="sm" className="h-8 px-3" onClick={handleUseTemplate}>
-          <Send className="mr-1 h-4 w-4" />
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="h-7 px-2" 
+          onClick={handleUseTemplate}
+        >
+          <Send className="mr-1 h-3 w-3" />
           Use
         </Button>
       </CardFooter>
