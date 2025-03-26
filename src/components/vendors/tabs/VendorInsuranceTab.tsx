@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Vendor } from '@/types/vendor';
@@ -14,7 +13,6 @@ interface VendorInsuranceTabProps {
 const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
   const insurance = vendor.insurance || {};
   
-  // Check if insurance is expired or expiring soon (within 30 days)
   const isExpired = insurance.expirationDate && 
     isAfter(new Date(), parseISO(insurance.expirationDate));
   
@@ -30,7 +28,6 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
     }
     
     if (isExpiringSoon) {
-      // Changed from variant="warning" to variant="outline" with custom colors
       return <Badge variant="outline" className="ml-2 bg-amber-500 text-white border-amber-600">Expiring Soon</Badge>;
     }
     
