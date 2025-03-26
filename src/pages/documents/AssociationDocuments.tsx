@@ -3,21 +3,86 @@ import React, { useState, useEffect } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { File, Folder, FileText, Upload, Download, Search } from 'lucide-react';
+import { File, Folder, FileText, Upload, Download, Search, Clock, BookMarked, Star } from 'lucide-react';
 import DocumentCategoryList from '@/components/documents/DocumentCategoryList';
 import DocumentSearch from '@/components/documents/DocumentSearch';
 import DocumentTable from '@/components/documents/DocumentTable';
-import DocumentUploader from '@/components/documents/DocumentUploader';
+import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import { DOCUMENT_CATEGORIES } from '@/components/database/DocumentCategoryStructure';
 import AssociationSelector from '@/components/documents/AssociationSelector';
 import { useAssociations } from '@/hooks/use-associations';
+import { DocumentFile, DocumentCategory, DocumentSearchFilters } from '@/types/documents';
+import { getDocuments, getDocumentCategories } from '@/utils/documents/documentUtils';
+import DocumentPreview from '@/components/documents/DocumentPreview';
+import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 const AssociationDocuments = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [activeCategory, setActiveCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<DocumentSearchFilters>({});
+  const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  
   const { activeAssociation } = useAssociations();
-
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    loadCategories();
+  }, []);
+  
+  const loadCategories = async () => {
+    try {
+      const cats = await getDocumentCategories();
+      setCategories(cats);
+    } catch (error) {
+      console.error('Failed to load document categories:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load document categories"
+      });
+    }
+  };
+  
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+  
+  const handleAdvancedSearch = (filters: DocumentSearchFilters) => {
+    setAdvancedFilters(filters);
+    // Also update the simple search query if provided
+    if (filters.query) {
+      setSearchQuery(filters.query);
+    }
+  };
+  
+  const handleCategorySelect = (categoryId: string) => {
+    setActiveCategory(categoryId);
+  };
+  
+  const handleDocumentView = (document: DocumentFile) => {
+    setSelectedDocument(document);
+    setShowPreview(true);
+  };
+  
+  const handleUploadSuccess = () => {
+    toast({
+      title: "Upload Successful",
+      description: "Document has been uploaded successfully"
+    });
+  };
+  
+  const getCategoryName = () => {
+    if (!activeCategory) return 'All Documents';
+    const category = categories.find(c => c.id === activeCategory);
+    return category ? category.name : 'Documents';
+  };
+  
   return (
     <>
       <DashboardHeaderWithNav
@@ -28,23 +93,23 @@ const AssociationDocuments = () => {
       
       <div className="container mx-auto p-4 md:p-6">
         {/* Association selector */}
-        <div className="mb-6">
+        <div className="mb-6 flex justify-end">
           <AssociationSelector className="ml-auto" />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Left sidebar with document categories */}
           <div className="md:col-span-1">
-            <Card>
+            <Card className="h-full">
               <CardHeader className="pb-3">
-                <CardTitle>Categories</CardTitle>
+                <CardTitle>Document Categories</CardTitle>
                 <CardDescription>Browse document categories</CardDescription>
               </CardHeader>
               <CardContent>
                 <DocumentCategoryList 
-                  categories={DOCUMENT_CATEGORIES}
+                  categories={categories}
                   activeCategory={activeCategory}
-                  onSelectCategory={setActiveCategory}
+                  onSelectCategory={handleCategorySelect}
                 />
               </CardContent>
             </Card>
@@ -54,20 +119,26 @@ const AssociationDocuments = () => {
           <div className="md:col-span-3">
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <DocumentSearch onSearch={setSearchQuery} />
-                <DocumentUploader />
+                <DocumentSearch 
+                  onSearch={handleSearch} 
+                  onAdvancedSearch={handleAdvancedSearch}
+                />
+                <Button onClick={() => setShowUploadDialog(true)}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Document
+                </Button>
               </div>
               
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-center">
                     <CardTitle>
-                      {activeCategory 
-                        ? DOCUMENT_CATEGORIES.find(c => c.id === activeCategory)?.name || 'Documents'
-                        : 'All Documents'}
-                      {activeAssociation && <span className="text-sm font-normal text-muted-foreground ml-2">
-                        ({activeAssociation.name})
-                      </span>}
+                      {getCategoryName()}
+                      {activeAssociation && (
+                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                          ({activeAssociation.name})
+                        </span>
+                      )}
                     </CardTitle>
                     <Download className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-primary" />
                   </div>
@@ -78,10 +149,26 @@ const AssociationDocuments = () => {
                 <CardContent>
                   <Tabs defaultValue="all" className="space-y-4" onValueChange={setActiveTab}>
                     <TabsList>
-                      <TabsTrigger value="all">All</TabsTrigger>
-                      <TabsTrigger value="recent">Recent</TabsTrigger>
-                      <TabsTrigger value="shared">Shared</TabsTrigger>
-                      <TabsTrigger value="important">Important</TabsTrigger>
+                      <TabsTrigger value="all" className="flex items-center gap-1">
+                        <File className="h-4 w-4" />
+                        All
+                      </TabsTrigger>
+                      <TabsTrigger value="recent" className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        Recent
+                      </TabsTrigger>
+                      <TabsTrigger value="shared" className="flex items-center gap-1">
+                        <Folder className="h-4 w-4" />
+                        Shared
+                      </TabsTrigger>
+                      <TabsTrigger value="important" className="flex items-center gap-1">
+                        <Star className="h-4 w-4" />
+                        Important
+                      </TabsTrigger>
+                      <TabsTrigger value="templates" className="flex items-center gap-1">
+                        <BookMarked className="h-4 w-4" />
+                        Templates
+                      </TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="all" className="space-y-4">
@@ -118,6 +205,10 @@ const AssociationDocuments = () => {
                         associationId={activeAssociation?.id}
                       />
                     </TabsContent>
+                    
+                    <TabsContent value="templates" className="space-y-4 m-0">
+                      <DocumentTemplates />
+                    </TabsContent>
                   </Tabs>
                 </CardContent>
               </Card>
@@ -125,6 +216,18 @@ const AssociationDocuments = () => {
           </div>
         </div>
       </div>
+      
+      <DocumentUploadDialog 
+        isOpen={showUploadDialog}
+        onClose={() => setShowUploadDialog(false)}
+        onSuccess={handleUploadSuccess}
+      />
+      
+      <DocumentPreview
+        document={selectedDocument}
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+      />
     </>
   );
 };
