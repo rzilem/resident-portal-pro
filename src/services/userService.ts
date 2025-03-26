@@ -327,11 +327,11 @@ export const userService = {
 
   activateUser: async (id: string): Promise<User> => {
     try {
-      // Update the profile status in Supabase
-      const { error } = await supabase.rpc('update_user_status', {
-        user_id: id,
-        new_status: 'active'
-      });
+      // Instead of using RPC, update the profile directly with the status
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'active' })
+        .eq('id', id);
       
       if (error) {
         console.error('Error activating user in Supabase:', error);
@@ -373,11 +373,11 @@ export const userService = {
 
   deactivateUser: async (id: string): Promise<User> => {
     try {
-      // Update the profile status in Supabase
-      const { error } = await supabase.rpc('update_user_status', {
-        user_id: id,
-        new_status: 'inactive'
-      });
+      // Instead of using RPC, update the profile directly with the status
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'inactive' })
+        .eq('id', id);
       
       if (error) {
         console.error('Error deactivating user in Supabase:', error);
