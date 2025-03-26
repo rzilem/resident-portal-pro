@@ -34,7 +34,7 @@ const Index = () => {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="dark:bg-gray-900">
         <Hero />
         <Features />
         
@@ -102,7 +102,7 @@ const Index = () => {
         </section>
         
         {/* CTA Section */}
-        <section className="py-20 md:py-32 bg-primary/5">
+        <section className="py-20 md:py-32 bg-primary/5 dark:bg-primary/10">
           <div className="container mx-auto px-4 text-center max-w-3xl">
             <TextReveal
               text="Ready to transform your community management?"

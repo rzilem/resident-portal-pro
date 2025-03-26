@@ -9,7 +9,7 @@ const Hero = () => {
     <section className="relative pt-24 pb-20 md:pt-36 md:pb-32 overflow-hidden">
       {/* Background elements */}
       <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary/10 rounded-full filter blur-3xl opacity-70 animate-blob"></div>
-      <div className="absolute top-60 -right-40 w-80 h-80 bg-blue-300/20 rounded-full filter blur-3xl opacity-70 animate-blob" style={{ animationDelay: '4s' }}></div>
+      <div className="absolute top-60 -right-40 w-80 h-80 bg-blue-300/20 dark:bg-blue-500/10 rounded-full filter blur-3xl opacity-70 animate-blob" style={{ animationDelay: '4s' }}></div>
       
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 md:gap-8 items-center">

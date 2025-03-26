@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/hooks/use-theme';
 
 interface NavItem {
   label: string;
@@ -20,6 +21,7 @@ const navItems: NavItem[] = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,7 +40,7 @@ const Navbar = () => {
       className={cn(
         'fixed top-0 w-full z-50 transition-all duration-300',
         scrolled
-          ? 'bg-white/80 backdrop-blur-md shadow-sm py-4'
+          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm py-4'
           : 'bg-transparent py-6'
       )}
     >
@@ -65,6 +67,28 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Theme Toggle Buttons */}
+            <div className="flex items-center border rounded-md overflow-hidden">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`px-3 py-1.5 rounded-none ${theme === 'light' ? 'bg-primary text-primary-foreground' : ''}`}
+                onClick={() => setTheme('light')}
+              >
+                <Sun className="h-4 w-4 mr-1" />
+                Light
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`px-3 py-1.5 rounded-none ${theme === 'dark' ? 'bg-primary text-primary-foreground' : ''}`}
+                onClick={() => setTheme('dark')}
+              >
+                <Moon className="h-4 w-4 mr-1" />
+                Dark
+              </Button>
+            </div>
+
             <Link to="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
@@ -91,7 +115,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div
         className={cn(
-          'fixed inset-x-0 top-[72px] bg-white/95 backdrop-blur-md md:hidden shadow-lg transition-all duration-300 ease-in-out overflow-hidden',
+          'fixed inset-x-0 top-[72px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md md:hidden shadow-lg transition-all duration-300 ease-in-out overflow-hidden',
           mobileMenuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
         )}
       >
@@ -107,6 +131,28 @@ const Navbar = () => {
                 {item.label}
               </a>
             ))}
+          </div>
+
+          {/* Mobile Theme Toggle */}
+          <div className="flex items-center justify-center border rounded-md overflow-hidden mb-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 px-3 py-1.5 rounded-none ${theme === 'light' ? 'bg-primary text-primary-foreground' : ''}`}
+              onClick={() => setTheme('light')}
+            >
+              <Sun className="h-4 w-4 mr-2" />
+              Light
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 px-3 py-1.5 rounded-none ${theme === 'dark' ? 'bg-primary text-primary-foreground' : ''}`}
+              onClick={() => setTheme('dark')}
+            >
+              <Moon className="h-4 w-4 mr-2" />
+              Dark
+            </Button>
           </div>
 
           <div className="flex flex-col gap-3">
