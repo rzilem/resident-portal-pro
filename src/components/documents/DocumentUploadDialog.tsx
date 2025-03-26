@@ -29,19 +29,38 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('uncategorized');
   const [tags, setTags] = useState<string[]>([]);
+  const [initializing, setInitializing] = useState(true);
   
   // Hooks
   const { activeAssociation } = useAssociations();
   const { bucketReady, isLoading, isCreating, errorMessage, retryCheck, checkStorageStatus } = useDocumentsBucket();
 
-  // Reset form when dialog opens
+  // Reset form when dialog opens and check storage status
   useEffect(() => {
     if (isOpen) {
       resetForm();
-      // Check storage status when dialog opens
-      checkStorageStatus();
+      
+      // Only run the initial check when the dialog first opens
+      if (initializing) {
+        console.log('Checking storage status on dialog open');
+        checkStorageStatus();
+        
+        // Set a timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          setInitializing(false);
+        }, 15000); // Give it 15 seconds max
+        
+        return () => clearTimeout(timeoutId);
+      }
     }
-  }, [isOpen, checkStorageStatus]);
+  }, [isOpen, checkStorageStatus, initializing]);
+  
+  // Update initializing state when loading completes
+  useEffect(() => {
+    if (!isLoading && initializing) {
+      setInitializing(false);
+    }
+  }, [isLoading, initializing]);
 
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -100,11 +119,20 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   };
   
   const handleRetryBucketCreation = () => {
+    setInitializing(true); // Reset initializing to show loading again
     console.log('Retrying bucket creation...');
     retryCheck();
+    
+    // Set a timeout to exit initializing state if it gets stuck
+    setTimeout(() => {
+      setInitializing(false);
+    }, 10000);
   };
 
   const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady;
+
+  // Determine what state to display
+  const isLoadingState = isLoading || initializing;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -117,14 +145,16 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          {isLoading ? (
+          {isLoadingState ? (
             <div className="flex flex-col items-center justify-center p-6">
               <div className="relative">
                 <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
               </div>
               <span className="text-lg font-medium">Preparing document storage...</span>
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                This may take a moment. If it takes too long, you can try refreshing or initializing storage manually.
+                {initializing && isLoading ? 
+                  "This may take a moment. If it takes too long, you can try refreshing or initializing storage manually." :
+                  "Almost ready! Checking storage accessibility..."}
               </p>
             </div>
           ) : !bucketReady ? (
