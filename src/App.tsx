@@ -21,6 +21,10 @@ import NotFound from '@/pages/NotFound';
 import Compliance from '@/pages/compliance/Compliance';
 import SystemUploads from '@/pages/SystemUploads';
 
+// Vendor pages
+import Vendors from '@/pages/vendors/Vendors';
+import VendorProfile from '@/pages/vendors/VendorProfile';
+
 // Accounting pages
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import Transactions from '@/pages/accounting/Transactions';
@@ -96,6 +100,10 @@ const App = () => {
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/system-uploads" element={<SystemUploads />} />
           <Route path="/print-queue" element={<PrintQueue />} />
+          
+          {/* Vendor routes */}
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/vendors/:id" element={<VendorProfile />} />
           
           {/* Accounting routes */}
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
