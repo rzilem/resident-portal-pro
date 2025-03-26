@@ -10,7 +10,7 @@ import {
   CreditCard
 } from "lucide-react";
 
-type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'void' | 'partially_paid';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'void' | 'partially_paid';
 
 interface InvoiceStatusBadgeProps {
   status: string;
