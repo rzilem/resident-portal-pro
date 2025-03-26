@@ -1,6 +1,7 @@
 
 import { Workflow, WorkflowStep, WorkflowTemplate } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
+import { checkWorkflowProgressForAlert } from '@/utils/alertUtils';
 
 // Simulated database of workflows
 let workflows: Workflow[] = [];
@@ -55,6 +56,12 @@ export const workflowService = {
     };
     
     workflows[index] = updatedWorkflow;
+    
+    // If workflow status changed to 'completed', check if there's an associated alert to update
+    if (updates.status === 'completed' && updatedWorkflow.metadata?.alertId) {
+      checkWorkflowProgressForAlert(updatedWorkflow.metadata.alertId);
+    }
+    
     return Promise.resolve(updatedWorkflow);
   },
 
@@ -85,9 +92,10 @@ export const workflowService = {
       description: template.description,
       category: template.category,
       steps,
-      status: 'draft',
+      status: 'active', // Auto-activate workflows created from templates
       createdAt: new Date().toISOString(),
       lastEditedAt: new Date().toISOString(),
+      metadata: customizations?.metadata || {},
       ...customizations,
     };
     
@@ -96,7 +104,7 @@ export const workflowService = {
   },
 
   // Activate/deactivate workflow
-  setWorkflowStatus: (id: string, status: 'active' | 'inactive' | 'draft') => {
+  setWorkflowStatus: (id: string, status: 'active' | 'inactive' | 'draft' | 'completed') => {
     return workflowService.updateWorkflow(id, { status });
   },
 
@@ -132,6 +140,11 @@ export const workflowService = {
       return Promise.reject(new Error(`Template with id ${id} not found`));
     }
     return Promise.resolve(template);
+  },
+  
+  // Complete a workflow (for manual testing)
+  completeWorkflow: (id: string) => {
+    return workflowService.updateWorkflow(id, { status: 'completed' });
   }
 };
 
@@ -218,7 +231,8 @@ export function initializeWorkflows() {
         status: 'active',
         createdAt: '2023-05-10T14:30:00Z',
         lastEditedAt: '2023-05-10T14:30:00Z',
-        createdBy: 'John Smith'
+        createdBy: 'John Smith',
+        metadata: {}
       },
       {
         id: 'sample-2',
@@ -244,7 +258,8 @@ export function initializeWorkflows() {
         status: 'active',
         createdAt: '2023-06-12T16:45:00Z',
         lastEditedAt: '2023-06-12T16:45:00Z',
-        createdBy: 'John Smith'
+        createdBy: 'John Smith',
+        metadata: {}
       }
     ];
   }

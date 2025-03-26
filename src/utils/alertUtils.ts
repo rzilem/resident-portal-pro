@@ -1,6 +1,7 @@
 
 import { v4 as uuid } from 'uuid';
 import { toast } from 'sonner';
+import { workflowService } from '@/services/workflowService';
 
 // Alert and workflow related types
 export interface Alert {
@@ -217,6 +218,26 @@ export const implementSolution = async (alertId: string, solutionId: string): Pr
   }
 };
 
+// New function to check workflow progress and update alert status
+export const checkWorkflowProgressForAlert = async (alertId: string): Promise<void> => {
+  const alert = getAlertById(alertId);
+  if (!alert || !alert.relatedWorkflowId) return;
+  
+  try {
+    const workflow = await workflowService.getWorkflowById(alert.relatedWorkflowId);
+    
+    // If the workflow is completed, mark the alert as resolved
+    if (workflow.status === 'completed') {
+      updateAlertStatus(alertId, 'resolved');
+      toast.success(`Alert "${alert.title}" resolved`, {
+        description: "The associated workflow has been completed"
+      });
+    }
+  } catch (error) {
+    console.error('Error checking workflow progress:', error);
+  }
+};
+
 // Implementation of solution actions
 // These would typically initiate workflows, create tasks, or trigger other actions
 export const initializeSolutionActions = (): void => {
@@ -230,11 +251,14 @@ export const initializeSolutionActions = (): void => {
       if (solution.actionType === 'workflow' && solution.workflowTemplateId) {
         actionFn = async () => {
           console.log(`Starting workflow: ${solution.workflowTemplateId} for alert: ${alert.id}`);
-          // In a real implementation, this would start a workflow using the workflow service
-          // return workflowService.createFromTemplate(solution.workflowTemplateId);
-          
-          // For now, we'll just simulate a delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // In a real implementation, this would create a workflow with the correct template
+          try {
+            // This is just the initialization, the actual workflow creation happens in the FixThisButton component
+            return Promise.resolve();
+          } catch (err) {
+            console.error('Failed to initialize workflow:', err);
+            return Promise.reject(err);
+          }
         };
       } else {
         actionFn = async () => {

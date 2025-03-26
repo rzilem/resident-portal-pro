@@ -5,11 +5,12 @@ export interface Workflow {
   description: string;
   category: string;
   steps: WorkflowStep[];
-  status: 'active' | 'inactive' | 'draft';
+  status: 'active' | 'inactive' | 'draft' | 'completed';
   createdAt: string;
   lastEditedAt?: string;
   createdBy?: string;
   supportedMergeTags?: string[]; // List of merge tag IDs supported by this workflow
+  metadata?: Record<string, any>; // For storing alert relationships and other custom data
 }
 
 export type WorkflowStepType = 'trigger' | 'action' | 'condition';

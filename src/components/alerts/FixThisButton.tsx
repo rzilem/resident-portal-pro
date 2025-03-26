@@ -48,19 +48,47 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
     setImplementing(solutionId);
     
     try {
-      const success = await implementSolution(alert.id, solutionId);
+      const solution = alert.solutions.find(s => s.id === solutionId);
+      if (!solution) throw new Error('Solution not found');
       
-      if (success) {
-        // Close the dialog after a short delay to show success state
-        setTimeout(() => {
-          setIsOpen(false);
-          
-          // Call the callback if provided
-          if (onStatusUpdate) {
-            onStatusUpdate(alert.id, 'in-progress');
+      // If this solution has a workflow template, create a workflow from it
+      if (solution.actionType === 'workflow' && solution.workflowTemplateId) {
+        // Create a workflow from the template
+        const workflow = await workflowService.createFromTemplate(solution.workflowTemplateId, {
+          // Link the workflow to this alert
+          metadata: { 
+            alertId: alert.id,
+            solutionId: solutionId,
+            created: new Date().toISOString()
           }
-        }, 1000);
+        });
+        
+        // Update the alert with the workflow ID
+        const updatedAlert = {
+          ...alert,
+          relatedWorkflowId: workflow.id
+        };
+        
+        // Call implementSolution to update alert status
+        await implementSolution(alert.id, solutionId);
+        
+        toast.success(`Workflow "${workflow.name}" created successfully`, {
+          description: "You can monitor progress in the Workflows section"
+        });
+      } else {
+        // For non-workflow solutions, just implement the solution
+        await implementSolution(alert.id, solutionId);
       }
+      
+      // Close the dialog after a short delay to show success state
+      setTimeout(() => {
+        setIsOpen(false);
+        
+        // Call the callback if provided
+        if (onStatusUpdate) {
+          onStatusUpdate(alert.id, 'in-progress');
+        }
+      }, 1000);
     } catch (error) {
       console.error('Error implementing solution:', error);
       toast.error('Failed to implement solution');
