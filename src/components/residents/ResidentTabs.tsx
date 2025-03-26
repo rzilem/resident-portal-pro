@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ResidentProfile } from '@/types/resident';
 import SummaryTab from './SummaryTab';
+import PropertyTab from './PropertyTab';
 import FinancialTab from './FinancialTab';
 import CommunicationsTab from './CommunicationsTab';
-import NotesTab from './NotesTab';
 import DocumentsTab from './DocumentsTab';
-import PropertyTab from './PropertyTab';
-import { ResidentProfile } from '@/types/resident';
+import NotesTab from './NotesTab';
 
 interface ResidentTabsProps {
   resident: ResidentProfile;
@@ -15,44 +15,41 @@ interface ResidentTabsProps {
 
 const ResidentTabs: React.FC<ResidentTabsProps> = ({ resident }) => {
   return (
-    <Tabs defaultValue="summary" className="w-full">
-      <TabsList className="grid grid-cols-2 md:grid-cols-6 mb-4">
+    <Tabs defaultValue="summary" className="space-y-6">
+      <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full bg-background">
         <TabsTrigger value="summary">Summary</TabsTrigger>
+        <TabsTrigger value="property">Property</TabsTrigger>
         <TabsTrigger value="financial">Financial</TabsTrigger>
         <TabsTrigger value="communications">Communications</TabsTrigger>
-        <TabsTrigger value="notes">Notes</TabsTrigger>
         <TabsTrigger value="documents">Documents</TabsTrigger>
-        <TabsTrigger value="property">Property</TabsTrigger>
+        <TabsTrigger value="notes">Notes</TabsTrigger>
       </TabsList>
-      
-      {/* Summary Tab */}
-      <TabsContent value="summary">
+
+      <TabsContent value="summary" className="space-y-6">
         <SummaryTab resident={resident} />
       </TabsContent>
-      
-      {/* Financial Tab */}
-      <TabsContent value="financial">
-        <FinancialTab transactions={resident.accountHistory} />
+
+      <TabsContent value="property" className="space-y-6">
+        <PropertyTab propertyDetails={resident.propertyDetails} />
       </TabsContent>
-      
-      {/* Communications Tab */}
-      <TabsContent value="communications">
+
+      <TabsContent value="financial" className="space-y-6">
+        <FinancialTab 
+          transactions={resident.accountHistory} 
+          resident={resident}
+        />
+      </TabsContent>
+
+      <TabsContent value="communications" className="space-y-6">
         <CommunicationsTab communications={resident.communications} />
       </TabsContent>
-      
-      {/* Notes Tab */}
-      <TabsContent value="notes">
-        <NotesTab notes={resident.notes} activityLogs={resident.activityLogs} />
-      </TabsContent>
-      
-      {/* Documents Tab */}
-      <TabsContent value="documents">
+
+      <TabsContent value="documents" className="space-y-6">
         <DocumentsTab documents={resident.documents} />
       </TabsContent>
-      
-      {/* Property Tab */}
-      <TabsContent value="property">
-        <PropertyTab propertyDetails={resident.propertyDetails} status={resident.status} />
+
+      <TabsContent value="notes" className="space-y-6">
+        <NotesTab notes={resident.notes} />
       </TabsContent>
     </Tabs>
   );
