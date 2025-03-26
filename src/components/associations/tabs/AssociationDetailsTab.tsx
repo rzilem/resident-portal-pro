@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, Calendar, Users, Building, Hash, Globe, Mail, Phone } from 'lucide-react';
+import { MapPin, Calendar, Users, Building, Hash, Globe, Mail, Phone, AlertTriangle, Droplet, Elevator, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Association } from '@/types/association';
@@ -10,7 +10,20 @@ interface AssociationDetailsTabProps {
   association: Association;
 }
 
+// Mock critical dates (in a real app, these would come from the association data)
+const mockCriticalDates = {
+  insuranceExpiration: '2025-06-15',
+  poolPermitExpiration: '2024-05-30',
+  elevatorInspection: '2024-08-10',
+  fireInspection: '2024-07-22',
+  buildingPermit: '2025-03-15',
+};
+
 const AssociationDetailsTab: React.FC<AssociationDetailsTabProps> = ({ association }) => {
+  // Determine if the association has certain amenities
+  const hasPool = association.settings?.hasPool;
+  const hasElevator = association.settings?.hasElevator;
+
   return (
     <div className="mt-4 space-y-4">
       <Card>
@@ -126,20 +139,78 @@ const AssociationDetailsTab: React.FC<AssociationDetailsTabProps> = ({ associati
       
       <Card>
         <CardHeader>
+          <CardTitle>Critical Dates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-500" />
+                  <div className="text-muted-foreground text-sm mb-1">Insurance Expiration</div>
+                </div>
+                <div className="font-medium mt-1">
+                  {formatDate(mockCriticalDates.insuranceExpiration)}
+                </div>
+              </div>
+              
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  <div className="text-muted-foreground text-sm mb-1">Fire Inspection Due</div>
+                </div>
+                <div className="font-medium mt-1">
+                  {formatDate(mockCriticalDates.fireInspection)}
+                </div>
+              </div>
+              
+              {hasPool && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <Droplet className="h-5 w-5 text-cyan-500" />
+                    <div className="text-muted-foreground text-sm mb-1">Pool Permit Expiration</div>
+                  </div>
+                  <div className="font-medium mt-1">
+                    {formatDate(mockCriticalDates.poolPermitExpiration)}
+                  </div>
+                </div>
+              )}
+              
+              {hasElevator && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <Elevator className="h-5 w-5 text-violet-500" />
+                    <div className="text-muted-foreground text-sm mb-1">Elevator Inspection Due</div>
+                  </div>
+                  <div className="font-medium mt-1">
+                    {formatDate(mockCriticalDates.elevatorInspection)}
+                  </div>
+                </div>
+              )}
+              
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-green-500" />
+                  <div className="text-muted-foreground text-sm mb-1">Building Permit Expiration</div>
+                </div>
+                <div className="font-medium mt-1">
+                  {formatDate(mockCriticalDates.buildingPermit)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
           <CardTitle>Association Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-muted-foreground text-sm mb-1">Current Status</div>
               <div className="font-medium capitalize">{association.status}</div>
-            </div>
-            
-            <div className="bg-muted/50 rounded-lg p-4">
-              <div className="text-muted-foreground text-sm mb-1">Primary Language</div>
-              <div className="font-medium">
-                {association.settings?.primaryLanguage ? association.settings.primaryLanguage.toUpperCase() : 'English (EN)'}
-              </div>
             </div>
             
             <div className="bg-muted/50 rounded-lg p-4">
