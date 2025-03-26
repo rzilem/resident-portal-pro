@@ -6,9 +6,13 @@ import {
   Bell, 
   Building2, 
   CreditCard, 
-  FileText 
+  FileText,
+  ArrowRight,
+  Users
 } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -63,49 +67,63 @@ const Dashboard = () => {
       value: '$5,230', 
       icon: <CreditCard className="h-6 w-6 text-red-500" />, 
       color: 'text-red-500',
-      bg: 'bg-red-50' 
+      bg: 'bg-red-50',
+      link: '/hoa/finances'
     },
     { 
       title: 'Open Requests', 
       value: '12', 
       icon: <FileText className="h-6 w-6 text-blue-500" />, 
       color: 'text-blue-500',
-      bg: 'bg-blue-50'  
+      bg: 'bg-blue-50',
+      link: '/hoa/maintenance'
     },
     { 
       title: 'Upcoming Events', 
       value: '3', 
       icon: <Building2 className="h-6 w-6 text-green-500" />, 
       color: 'text-green-500',
-      bg: 'bg-green-50'  
+      bg: 'bg-green-50',
+      link: '/hoa/events'
     },
     { 
-      title: 'New Announcements', 
-      value: '2', 
-      icon: <Bell className="h-6 w-6 text-orange-500" />, 
+      title: 'Members', 
+      value: '157', 
+      icon: <Users className="h-6 w-6 text-orange-500" />, 
       color: 'text-orange-500',
-      bg: 'bg-orange-50'  
+      bg: 'bg-orange-50',
+      link: '/hoa/members'
     },
   ];
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-semibold text-gray-800 mb-6">Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-semibold text-gray-800">HOA Dashboard</h1>
+        <Button variant="outline" asChild>
+          <Link to="/dashboard" state={{ from: '/hoa/dashboard' }}>
+            <span>Main Dashboard</span>
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statsCards.map((card, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
-              </div>
-              <div className={`p-3 rounded-full ${card.bg}`}>
-                {card.icon}
-              </div>
-            </CardContent>
-          </Card>
+          <Link key={index} to={card.link} className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{card.title}</p>
+                  <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
+                </div>
+                <div className={`p-3 rounded-full ${card.bg}`}>
+                  {card.icon}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
       
@@ -123,8 +141,14 @@ const Dashboard = () => {
       
       {/* Recent Activities */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Activities</CardTitle>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/hoa/events">
+              View All
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

@@ -20,6 +20,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
   
   // Check if we're coming from an HOA page to show back button
   const showHoaBackButton = location.state?.from?.startsWith('/hoa');
+  const hoaPage = location.state?.from || '/hoa/dashboard';
   
   // Dynamically set title based on the current route
   const getPageTitle = () => {
@@ -107,10 +108,10 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
             <Button 
               variant="outline" 
               size="sm" 
-              className="gap-2"
+              className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
               asChild
             >
-              <Link to="/hoa/dashboard" state={{ from: location.pathname }}>
+              <Link to={hoaPage} state={{ from: location.pathname }}>
                 <ArrowLeft className="h-4 w-4" />
                 Back to HOA Dashboard
               </Link>
