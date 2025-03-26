@@ -7,6 +7,9 @@ import './index.css'
 import './styles/theme.css'
 import { ThemeProvider } from "@/components/theme-provider"
 
+// Apply theme class to body for more visible theming
+document.body.classList.add('theme-applied');
+
 // Make sure we have a valid DOM element before rendering
 const rootElement = document.getElementById("root");
 

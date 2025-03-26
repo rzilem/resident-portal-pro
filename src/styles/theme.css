@@ -26,7 +26,7 @@
 
 /* Theme transition */
 *, *::before, *::after {
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 /* Density controls */
@@ -68,6 +68,22 @@
   --theme-border: var(--color-border, #E5E7EB);
 }
 
+/* Apply theme colors to UI components */
+.theme-applied button.btn-primary,
+.theme-applied .bg-primary,
+button[data-variant="default"] {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+.theme-applied .text-primary {
+  color: var(--theme-primary) !important;
+}
+
+.theme-applied .border-primary {
+  border-color: var(--theme-primary) !important;
+}
+
 /* Custom theme preset effects */
 .theme-preset-ocean {
   --color-primary: #0EA5E9;
@@ -105,6 +121,70 @@
   --color-accent: #93C5FD;
 }
 
+.theme-preset-emerald {
+  --color-primary: #059669;
+  --color-secondary: #10B981;
+  --color-accent: #6EE7B7;
+}
+
+.theme-preset-ruby {
+  --color-primary: #DC2626;
+  --color-secondary: #EF4444;
+  --color-accent: #FCA5A5;
+}
+
+.theme-preset-graphite {
+  --color-primary: #4B5563;
+  --color-secondary: #6B7280;
+  --color-accent: #9CA3AF;
+}
+
+/* Make theme effects more prominent */
+.theme-preset-ocean button[data-variant="default"],
+.theme-preset-ocean .bg-primary {
+  background-color: #0EA5E9 !important;
+}
+
+.theme-preset-forest button[data-variant="default"],
+.theme-preset-forest .bg-primary {
+  background-color: #22C55E !important;
+}
+
+.theme-preset-sunset button[data-variant="default"],
+.theme-preset-sunset .bg-primary {
+  background-color: #F97316 !important;
+}
+
+.theme-preset-lavender button[data-variant="default"],
+.theme-preset-lavender .bg-primary {
+  background-color: #8B5CF6 !important;
+}
+
+.theme-preset-cherry button[data-variant="default"],
+.theme-preset-cherry .bg-primary {
+  background-color: #EC4899 !important;
+}
+
+.theme-preset-midnight button[data-variant="default"],
+.theme-preset-midnight .bg-primary {
+  background-color: #1E40AF !important;
+}
+
+.theme-preset-emerald button[data-variant="default"],
+.theme-preset-emerald .bg-primary {
+  background-color: #059669 !important;
+}
+
+.theme-preset-ruby button[data-variant="default"],
+.theme-preset-ruby .bg-primary {
+  background-color: #DC2626 !important;
+}
+
+.theme-preset-graphite button[data-variant="default"],
+.theme-preset-graphite .bg-primary {
+  background-color: #4B5563 !important;
+}
+
 /* Custom background styles */
 body.custom-background {
   background-repeat: no-repeat;
@@ -118,4 +198,21 @@ body.background-pattern {
 
 body.background-image {
   background-size: cover;
+}
+
+/* Add a class to indicate that a theme has been applied */
+body.theme-applied {
+  position: relative;
+}
+
+/* Visual indicator for themes */
+body.theme-applied::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--theme-primary);
+  z-index: 9999;
 }

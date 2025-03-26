@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
 
 interface ThemePreset {
   id: string;
@@ -70,6 +71,33 @@ const presets: ThemePreset[] = [
     accentColor: '#93C5FD',
     background: 'linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%)',
     description: 'Deep, rich blue tones'
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald City',
+    primaryColor: '#059669',
+    secondaryColor: '#10B981',
+    accentColor: '#6EE7B7',
+    background: 'linear-gradient(90deg, hsla(168, 76%, 36%, 1) 0%, hsla(141, 84%, 34%, 1) 100%)',
+    description: 'Rich emerald and teal tones'
+  },
+  {
+    id: 'ruby',
+    name: 'Ruby Red',
+    primaryColor: '#DC2626',
+    secondaryColor: '#EF4444',
+    accentColor: '#FCA5A5',
+    background: 'linear-gradient(90deg, hsla(0, 91%, 71%, 1) 0%, hsla(340, 82%, 59%, 1) 100%)',
+    description: 'Bold and passionate red hues'
+  },
+  {
+    id: 'graphite',
+    name: 'Graphite',
+    primaryColor: '#4B5563',
+    secondaryColor: '#6B7280',
+    accentColor: '#9CA3AF',
+    background: 'linear-gradient(90deg, hsla(217, 10%, 25%, 1) 0%, hsla(215, 16%, 47%, 1) 100%)',
+    description: 'Sleek and modern gray tones'
   }
 ];
 
@@ -81,27 +109,13 @@ const ThemePresets: React.FC = () => {
     if (preferences?.themePreset) {
       const selectedPreset = presets.find(preset => preset.id === preferences.themePreset);
       if (selectedPreset) {
-        // Apply theme classes
-        document.body.classList.remove(
-          'theme-preset-ocean',
-          'theme-preset-forest',
-          'theme-preset-sunset',
-          'theme-preset-lavender',
-          'theme-preset-cherry',
-          'theme-preset-midnight'
-        );
-        document.body.classList.add(`theme-preset-${selectedPreset.id}`);
-        
-        // Apply theme colors to CSS variables
-        document.documentElement.style.setProperty('--theme-primary', selectedPreset.primaryColor);
-        document.documentElement.style.setProperty('--theme-secondary', selectedPreset.secondaryColor);
-        document.documentElement.style.setProperty('--theme-accent', selectedPreset.accentColor);
-        document.documentElement.style.setProperty('--theme-background', selectedPreset.background);
+        applyThemeToDOM(selectedPreset);
       }
     }
   }, [preferences?.themePreset]);
 
-  const applyTheme = (preset: ThemePreset) => {
+  // Helper function to apply theme colors to DOM
+  const applyThemeToDOM = (preset: ThemePreset) => {
     // Remove existing theme classes
     document.body.classList.remove(
       'theme-preset-ocean',
@@ -109,7 +123,10 @@ const ThemePresets: React.FC = () => {
       'theme-preset-sunset',
       'theme-preset-lavender',
       'theme-preset-cherry',
-      'theme-preset-midnight'
+      'theme-preset-midnight',
+      'theme-preset-emerald',
+      'theme-preset-ruby',
+      'theme-preset-graphite'
     );
     
     // Add the new theme class
@@ -120,6 +137,20 @@ const ThemePresets: React.FC = () => {
     document.documentElement.style.setProperty('--theme-secondary', preset.secondaryColor);
     document.documentElement.style.setProperty('--theme-accent', preset.accentColor);
     document.documentElement.style.setProperty('--theme-background', preset.background);
+    
+    // Apply primary color to button backgrounds for immediate visual feedback
+    document.documentElement.style.setProperty('--primary', preset.primaryColor.replace('#', 'hsl('));
+    
+    // Apply to specific UI elements for immediate feedback
+    const buttons = document.querySelectorAll('.btn-primary');
+    buttons.forEach(button => {
+      (button as HTMLElement).style.backgroundColor = preset.primaryColor;
+    });
+  };
+
+  const applyTheme = (preset: ThemePreset) => {
+    // Apply theme to DOM
+    applyThemeToDOM(preset);
     
     // Clear any custom colors when applying a preset
     if (preferences?.customColors) {
@@ -147,7 +178,10 @@ const ThemePresets: React.FC = () => {
       'theme-preset-sunset',
       'theme-preset-lavender',
       'theme-preset-cherry',
-      'theme-preset-midnight'
+      'theme-preset-midnight',
+      'theme-preset-emerald',
+      'theme-preset-ruby',
+      'theme-preset-graphite'
     );
     
     // Reset all theme-related CSS variables
@@ -155,6 +189,7 @@ const ThemePresets: React.FC = () => {
     document.documentElement.style.removeProperty('--theme-secondary');
     document.documentElement.style.removeProperty('--theme-accent');
     document.documentElement.style.removeProperty('--theme-background');
+    document.documentElement.style.removeProperty('--primary');
     
     // Update preference
     updatePreference('themePreset', null);
@@ -181,14 +216,21 @@ const ThemePresets: React.FC = () => {
             className="cursor-pointer group"
             onClick={() => applyTheme(preset)}
           >
-            <Card className={`overflow-hidden h-40 transition-all hover:scale-105 hover:shadow-md border-2 ${preferences?.themePreset === preset.id ? 'border-primary' : 'hover:border-primary'}`}>
+            <Card className={`overflow-hidden h-40 transition-all hover:scale-105 hover:shadow-md border-2 ${preferences?.themePreset === preset.id ? 'border-primary' : 'border-transparent hover:border-primary/50'}`}>
               <div 
                 className="h-24 w-full" 
                 style={{ background: preset.background }}
               />
-              <div className="p-2">
-                <h3 className="font-medium text-sm">{preset.name}</h3>
-                <p className="text-xs text-muted-foreground truncate">{preset.description}</p>
+              <div className="p-2 flex justify-between items-center">
+                <div>
+                  <h3 className="font-medium text-sm">{preset.name}</h3>
+                  <p className="text-xs text-muted-foreground truncate">{preset.description}</p>
+                </div>
+                {preferences?.themePreset === preset.id && (
+                  <span className="bg-primary text-primary-foreground rounded-full p-1">
+                    <Check className="h-4 w-4" />
+                  </span>
+                )}
               </div>
             </Card>
           </div>
