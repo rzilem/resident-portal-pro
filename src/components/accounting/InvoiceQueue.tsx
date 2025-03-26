@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -34,9 +35,9 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
   ];
   
   // Load columns from user preferences or use defaults
-  const [columns, setColumns] = useState<InvoiceColumn[]>(() => {
-    return preferences?.invoiceTableColumns || defaultColumns;
-  });
+  const [columns, setColumns] = useState<InvoiceColumn[]>(
+    preferences?.invoiceTableColumns || defaultColumns
+  );
   
   const handleColumnsChange = (updatedColumns: InvoiceColumn[]) => {
     setColumns(updatedColumns);

@@ -1,8 +1,23 @@
 
 import { UserPreferences } from "@/types/user";
+import { InvoiceColumn } from "@/components/accounting/invoices/InvoiceColumnsSelector";
 
 // Mock storage for user settings
 let userSettings: Record<string, UserPreferences> = {};
+
+// Default invoice columns
+const defaultInvoiceColumns: InvoiceColumn[] = [
+  { id: 'invoiceNumber', label: 'Invoice #', checked: true },
+  { id: 'date', label: 'Date', checked: true },
+  { id: 'dueDate', label: 'Due Date', checked: true },
+  { id: 'vendor', label: 'Vendor', checked: true },
+  { id: 'association', label: 'Association', checked: true },
+  { id: 'amount', label: 'Amount', checked: true },
+  { id: 'status', label: 'Status', checked: true },
+  { id: 'recipient', label: 'Recipient', checked: false },
+  { id: 'category', label: 'Category', checked: false },
+  { id: 'createdAt', label: 'Created', checked: false }
+];
 
 // Initialize with some default settings
 const defaultPreferences: UserPreferences = {
@@ -49,7 +64,8 @@ const defaultPreferences: UserPreferences = {
       },
     ]
   },
-  dashboardWidgets: ['tasks', 'calendar', 'notices', 'weather']
+  dashboardWidgets: ['tasks', 'calendar', 'notices', 'weather'],
+  invoiceTableColumns: defaultInvoiceColumns
 };
 
 export const userPreferencesService = {
