@@ -155,7 +155,9 @@ const UserProfile = () => {
                     allowEmailNotifications: true,
                     allowSmsNotifications: false,
                     allowPushNotifications: false,
-                    emailFrequency: 'daily'
+                    emailFrequency: 'daily',
+                    notificationTopics: [],
+                    subscribedTopics: []
                   }} 
                   updatePreferences={(prefs) => updateUserProfile({ communicationPreferences: prefs })} 
                 />

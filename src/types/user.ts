@@ -101,9 +101,9 @@ export interface CommunicationPreferences {
 
 export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member' | 'board' | 'committee' | 'guest';
 
-export type SecurityLevel = 'full_access' | 'moderate_access' | 'limited_access' | 'view_only' | 'full' | 'advanced' | 'basic' | 'restricted';
+export type SecurityLevel = 'full_access' | 'moderate_access' | 'limited_access' | 'view_only' | 'full' | 'advanced' | 'basic' | 'restricted' | 'elevated';
 
-export type GlobalPermission = 'create' | 'read' | 'update' | 'delete' | 'admin' | 'manage';
+export type GlobalPermission = 'create' | 'read' | 'update' | 'delete' | 'admin' | 'manage' | 'contribute' | 'none';
 
 export interface ModulePermissions {
   accounting: GlobalPermission[];
@@ -113,4 +113,7 @@ export interface ModulePermissions {
   vendors: GlobalPermission[];
   settings: GlobalPermission[];
   calendar?: GlobalPermission[];
+  documents?: GlobalPermission[];
+  reports?: GlobalPermission[];
+  maintenance?: GlobalPermission[];
 }

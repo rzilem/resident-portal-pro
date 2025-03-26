@@ -35,6 +35,7 @@ const CommunicationPreferencesForm = ({
       allowSmsNotifications: data.allowSmsNotifications,
       allowPushNotifications: data.allowPushNotifications,
       emailFrequency: data.emailFrequency,
+      notificationTopics: preferences.notificationTopics || [],
       subscribedTopics: data.subscribedTopics || [],
     });
   }
