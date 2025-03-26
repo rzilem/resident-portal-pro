@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { Check, Grid3X3, LayoutGrid, Plus, Settings } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, Grid3X3, LayoutGrid, Plus, Settings } from 'lucide-react';
 import { Widget, WidgetType } from '@/types/dashboard';
 import { cn } from '@/lib/utils';
 import { Toggle } from '@/components/ui/toggle';
@@ -102,6 +102,38 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
     );
   };
 
+  const moveWidgetUp = (index: number) => {
+    if (index === 0) return; // Already at the top
+    
+    const items = Array.from(currentWidgets);
+    const [movedItem] = items.splice(index, 1);
+    items.splice(index - 1, 0, movedItem);
+    
+    // Update positions
+    const updatedItems = items.map((item, idx) => ({
+      ...item,
+      position: idx,
+    }));
+    
+    setCurrentWidgets(updatedItems);
+  };
+  
+  const moveWidgetDown = (index: number) => {
+    if (index === currentWidgets.length - 1) return; // Already at the bottom
+    
+    const items = Array.from(currentWidgets);
+    const [movedItem] = items.splice(index, 1);
+    items.splice(index + 1, 0, movedItem);
+    
+    // Update positions
+    const updatedItems = items.map((item, idx) => ({
+      ...item,
+      position: idx,
+    }));
+    
+    setCurrentWidgets(updatedItems);
+  };
+
   const setColumnLayout = (numColumns: number) => {
     setColumnCount(numColumns);
   };
@@ -123,7 +155,7 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
         <DialogHeader>
           <DialogTitle>Customize Your Dashboard</DialogTitle>
           <DialogDescription>
-            Drag and drop widgets to rearrange them. Add or remove widgets as needed.
+            Drag and drop widgets to rearrange them or use the arrow buttons to change their order. Add or remove widgets as needed.
           </DialogDescription>
         </DialogHeader>
 
@@ -178,6 +210,28 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
                             <span>{widget.title}</span>
                           </div>
                           <div className="flex items-center gap-2">
+                            <div className="flex items-center border rounded-md mr-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={index === 0}
+                                onClick={() => moveWidgetUp(index)}
+                                className="h-8 px-2 rounded-none rounded-l-md border-r"
+                                title="Move Up"
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={index === currentWidgets.length - 1}
+                                onClick={() => moveWidgetDown(index)}
+                                className="h-8 px-2 rounded-none rounded-r-md"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="h-4 w-4" />
+                              </Button>
+                            </div>
                             <Button 
                               variant="outline" 
                               size="sm" 
