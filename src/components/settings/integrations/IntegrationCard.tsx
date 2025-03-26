@@ -86,7 +86,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     }
   };
 
-  const handleSaveAPIConfig = async (values: Record<string, string>) => {
+  const handleSaveAPIConfig = async (values: Record<string, any>) => {
     if (!selectedIntegration) return;
     
     try {
@@ -154,7 +154,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     }
   };
 
-  const handleTestConnection = async (values: Record<string, string>) => {
+  const handleTestConnection = async (values: Record<string, any>) => {
     if (!selectedIntegration) return false;
     
     try {
@@ -180,7 +180,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     const integration = getIntegration(name);
     if (!integration) return {};
     
-    // Filter out non-user-configurable fields
+    // Filter out non-user-configurable fields and convert to appropriate format
     const {enabled, lastSync, ...config} = integration;
     return config;
   };
@@ -458,6 +458,181 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
       )}
     </Card>
   );
+  
+  function renderAPIConfigForm() {
+    if (!selectedIntegration) return null;
+    
+    // Get fields from either the integration or the card's apiFields
+    let fields: APIConfigFormProps['fields'] = [];
+    
+    if (integrations) {
+      const integration = integrations.find(i => i.name === selectedIntegration);
+      if (integration?.apiFields) {
+        fields = integration.apiFields;
+      }
+    } else if (apiFields) {
+      fields = apiFields;
+    }
+    
+    const initialValues = getIntegrationConfig(selectedIntegration);
+    
+    return (
+      <Dialog open={open && showConfigForm} onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) setShowConfigForm(false);
+      }}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Configure {selectedIntegration}</DialogTitle>
+            <DialogDescription>
+              Enter your API details for {selectedIntegration}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <APIConfigForm 
+            integrationId={selectedIntegration}
+            fields={fields}
+            initialValues={initialValues}
+            onSave={handleSaveAPIConfig}
+            onCancel={() => {
+              setOpen(false);
+              setShowConfigForm(false);
+            }}
+            testConnection={handleTestConnection}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  function renderApiKeyDialog() {
+    return (
+      <Dialog open={open && !showConfigForm} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configure API Key</DialogTitle>
+            <DialogDescription>
+              Enter your API key for {selectedIntegration}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="apiKey">API Key</Label>
+              <Input 
+                id="apiKey" 
+                placeholder="Enter your API key" 
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                This key will be stored securely and used to authenticate with the service.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveApiKey}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  function renderWebhookDialog() {
+    return (
+      <Dialog open={open && !showConfigForm} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configure Webhook</DialogTitle>
+            <DialogDescription>
+              Enter your webhook URL for {selectedIntegration}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="webhookUrl">Webhook URL</Label>
+              <Input 
+                id="webhookUrl" 
+                placeholder="https://hooks.zapier.com/..." 
+                value={webhookUrl}
+                onChange={(e) => setWebhookUrl(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                This URL will receive webhook events from our system.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleTestWebhook}
+              disabled={!webhookUrl}
+            >
+              Test Webhook
+            </Button>
+            <div className="space-x-2">
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveWebhook}>Save</Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  function renderWebhookEndpointDialog() {
+    return (
+      <Dialog open={open && !showConfigForm} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Webhook Endpoint</DialogTitle>
+            <DialogDescription>
+              Use this URL to send data to your system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="endpointUrl">Your Webhook URL</Label>
+              <div className="flex items-center space-x-2">
+                <Input 
+                  id="endpointUrl" 
+                  readOnly 
+                  value="https://api.yourdomain.com/webhook/incoming" 
+                />
+                <Button 
+                  size="icon" 
+                  variant="outline" 
+                  onClick={handleCopyApiKey}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <div className="pt-4">
+                <div className="rounded-md bg-muted p-4">
+                  <div className="text-sm font-medium">Example webhook payload:</div>
+                  <pre className="mt-2 text-xs text-muted-foreground overflow-auto">
+                    {JSON.stringify({
+                      event: "new_document",
+                      timestamp: new Date().toISOString(),
+                      data: {
+                        id: "doc-123",
+                        name: "Example Document",
+                        type: "pdf"
+                      }
+                    }, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 };
 
 export default IntegrationCard;

@@ -30,10 +30,10 @@ interface APIFieldDefinition {
 export interface APIConfigFormProps {
   integrationId: string;
   fields: APIFieldDefinition[];
-  initialValues?: Record<string, string>;
-  onSave: (values: Record<string, string>) => Promise<void>;
+  initialValues?: Record<string, any>;
+  onSave: (values: Record<string, any>) => Promise<void>;
   onCancel: () => void;
-  testConnection?: (values: Record<string, string>) => Promise<boolean>;
+  testConnection?: (values: Record<string, any>) => Promise<boolean>;
 }
 
 export const APIConfigForm: React.FC<APIConfigFormProps> = ({
@@ -52,15 +52,16 @@ export const APIConfigForm: React.FC<APIConfigFormProps> = ({
     const shape: Record<string, z.ZodTypeAny> = {};
     
     fields.forEach(field => {
-      let validator = z.string();
+      let validator: z.ZodTypeAny = z.string();
+      
+      if (field.type === 'url') {
+        validator = z.string().url({ message: "Please enter a valid URL" });
+      }
+      
       if (field.required) {
         validator = validator.min(1, { message: `${field.label} is required` });
       } else {
-        validator = validator.optional();
-      }
-      
-      if (field.type === 'url') {
-        validator = validator.url({ message: "Please enter a valid URL" });
+        validator = z.string().optional();
       }
       
       shape[field.name] = validator;
@@ -81,7 +82,9 @@ export const APIConfigForm: React.FC<APIConfigFormProps> = ({
     // Update form values when initialValues change
     if (initialValues) {
       Object.entries(initialValues).forEach(([key, value]) => {
-        form.setValue(key as any, value);
+        if (value !== undefined) {
+          form.setValue(key as any, String(value));
+        }
       });
     }
   }, [initialValues, form]);

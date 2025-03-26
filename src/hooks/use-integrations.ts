@@ -10,6 +10,7 @@ interface IntegrationSettings {
   connectedAccount?: string;
   lastSync?: string;
   config?: Record<string, any>;
+  [key: string]: any; // Allow any additional fields for integration-specific configurations
 }
 
 export function useIntegrations(entityId: string = 'current-user') {
