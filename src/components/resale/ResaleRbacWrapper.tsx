@@ -5,7 +5,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
 
 // Define the Permission type to match the one in roleService.ts
-type Permission = 'view' | 'edit' | 'create' | 'delete' | 'approve' | 'admin';
+// Update to include specific permission strings used in ResaleDashboard.tsx
+type Permission = 'view' | 'edit' | 'create' | 'delete' | 'approve' | 'admin' | string;
 
 interface ResaleRbacWrapperProps {
   children: ReactNode;

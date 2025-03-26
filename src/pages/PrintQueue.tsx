@@ -5,6 +5,7 @@ import PrintQueueToolbar from '@/components/print-queue/PrintQueueToolbar';
 import PrintQueueTable from '@/components/print-queue/PrintQueueTable';
 import PrintQueueSettings from '@/components/print-queue/PrintQueueSettings';
 import { usePrintQueue } from '@/hooks/use-print-queue';
+import PrintQueueFilters from '@/components/print-queue/PrintQueueFilters';
 
 const PrintQueue = () => {
   const {
@@ -78,6 +79,16 @@ const PrintQueue = () => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
+          
+          {categoryFilter || associationFilter ? (
+            <PrintQueueFilters
+              categoryFilter={categoryFilter}
+              associationFilter={associationFilter}
+              associationName={associationName}
+              onClearCategoryFilter={handleClearCategoryFilter}
+              onClearAssociationFilter={handleClearAssociationFilter}
+            />
+          ) : null}
           
           {activeTab === 'queue' && (
             <PrintQueueTable

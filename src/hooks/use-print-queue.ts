@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { PrintJob, PrintQueueStats, PrintCategory } from '@/services/printQueueService';
@@ -218,7 +219,7 @@ export const usePrintQueue = () => {
     return newJob;
   };
 
-  // Renamed to avoid variable name conflict
+  // Renamed function to avoid name conflict
   const printSelectedJobs = () => {
     console.log('Printing selected jobs:', selectedJobs);
     // In a real app, this would handle actual printing
