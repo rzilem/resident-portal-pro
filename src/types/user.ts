@@ -14,7 +14,7 @@ export interface UserPreferences {
     widgets: Widget[];
   };
   dashboardWidgets: string[];
-  invoiceTableColumns?: InvoiceColumn[];
+  invoiceTableColumns: InvoiceColumn[];
   vendorTableColumns?: any[];
   databasePropertyColumns?: any[];
   databaseUnitColumns?: any[];
@@ -31,3 +31,4 @@ export interface Widget {
 }
 
 import { InvoiceColumn } from '@/components/accounting/invoices/InvoiceColumnsSelector';
+

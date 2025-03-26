@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { FileText } from "lucide-react";
@@ -18,30 +17,30 @@ interface InvoiceQueueProps {
 
 const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('all');
-  const { getUserPreferences } = useSettings();
+  const { preferences, updatePreference } = useSettings();
   
   // Define default columns
   const defaultColumns: InvoiceColumn[] = [
     { id: 'invoiceNumber', label: 'Invoice #', checked: true },
     { id: 'date', label: 'Date', checked: true },
     { id: 'dueDate', label: 'Due Date', checked: true },
-    { id: 'recipient', label: 'Recipient', checked: true },
+    { id: 'vendor', label: 'Vendor', checked: true },
+    { id: 'association', label: 'Association', checked: true },
     { id: 'amount', label: 'Amount', checked: true },
     { id: 'status', label: 'Status', checked: true },
-    { id: 'vendor', label: 'Vendor', checked: false },
-    { id: 'association', label: 'Association', checked: false },
+    { id: 'recipient', label: 'Recipient', checked: false },
     { id: 'category', label: 'Category', checked: false },
     { id: 'createdAt', label: 'Created', checked: false }
   ];
   
   // Load columns from user preferences or use defaults
   const [columns, setColumns] = useState<InvoiceColumn[]>(() => {
-    const userPrefs = getUserPreferences();
-    return userPrefs?.invoiceTableColumns || defaultColumns;
+    return preferences?.invoiceTableColumns || defaultColumns;
   });
   
   const handleColumnsChange = (updatedColumns: InvoiceColumn[]) => {
     setColumns(updatedColumns);
+    updatePreference('invoiceTableColumns', updatedColumns);
   };
   
   const [invoices, setInvoices] = useState<Invoice[]>([
@@ -164,10 +163,10 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Invoice Queue
+          Association Payment Queue
         </CardTitle>
         <CardDescription>
-          Manage and track all invoices in the system
+          Manage and process vendor payments on behalf of associations
           {associationId && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ interface InvoiceTableRowProps {
 const InvoiceTableRow: React.FC<InvoiceTableRowProps> = ({ invoice, columns }) => {
   const visibleColumns = columns.filter(col => col.checked);
   
-  // Function to render cell content based on column id
   const renderCellContent = (columnId: string) => {
     switch (columnId) {
       case 'invoiceNumber':
@@ -23,16 +21,16 @@ const InvoiceTableRow: React.FC<InvoiceTableRowProps> = ({ invoice, columns }) =
         return new Date(invoice.date).toLocaleDateString();
       case 'dueDate':
         return new Date(invoice.dueDate).toLocaleDateString();
-      case 'recipient':
-        return `${invoice.recipientType === 'resident' ? 'Resident' : 'Vendor'}-${invoice.recipientId}`;
+      case 'vendor':
+        return invoice.vendorName || 'N/A';
+      case 'association':
+        return invoice.associationName || 'N/A';
       case 'amount':
         return `$${invoice.amount.toFixed(2)}`;
       case 'status':
         return <InvoiceStatusBadge status={invoice.status} />;
-      case 'vendor':
-        return invoice.vendorName || (invoice.recipientType === 'vendor' ? invoice.recipientId : 'N/A');
-      case 'association':
-        return invoice.associationName || 'Default Association';
+      case 'recipient':
+        return `${invoice.recipientType === 'resident' ? 'Resident' : 'Vendor'}-${invoice.recipientId}`;
       case 'category':
         return invoice.items?.[0]?.category || 'Uncategorized';
       case 'createdAt':
@@ -57,16 +55,16 @@ const InvoiceTableRow: React.FC<InvoiceTableRowProps> = ({ invoice, columns }) =
         <div className="flex items-center justify-end gap-2">
           <Button variant="ghost" size="sm">View</Button>
           {invoice.status === 'draft' && (
-            <Button variant="outline" size="sm">Send</Button>
+            <Button variant="outline" size="sm">Process Payment</Button>
           )}
           {invoice.status === 'sent' && (
-            <Button variant="outline" size="sm">Remind</Button>
+            <Button variant="outline" size="sm">Pay Now</Button>
           )}
           {invoice.status === 'overdue' && (
-            <Button variant="outline" size="sm">Send Reminder</Button>
+            <Button variant="outline" size="sm">Pay Now</Button>
           )}
           {invoice.status === 'paid' && (
-            <Button variant="outline" size="sm">Print Receipt</Button>
+            <Button variant="outline" size="sm">View Receipt</Button>
           )}
         </div>
       </TableCell>
