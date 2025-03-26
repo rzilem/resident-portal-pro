@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/use-settings';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,40 @@ const CustomBackground: React.FC = () => {
   const [imgUrl, setImgUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('url');
+
+  // Initialize state from saved preferences
+  useEffect(() => {
+    if (preferences?.customBackground) {
+      // Set the correct tab based on saved background type
+      if (preferences.customBackground.type === 'url') {
+        setActiveTab('url');
+        setImgUrl(preferences.customBackground.value);
+      } else if (preferences.customBackground.type === 'data') {
+        setActiveTab('upload');
+        setPreviewUrl(preferences.customBackground.value);
+      } else if (preferences.customBackground.type === 'pattern') {
+        setActiveTab('patterns');
+      }
+      
+      // Apply the background based on type
+      document.body.classList.add('custom-background');
+      
+      if (preferences.customBackground.type === 'pattern') {
+        document.body.classList.add('background-pattern');
+        document.body.classList.remove('background-image');
+        
+        const pattern = backgroundPatterns.find(p => p.id === preferences.customBackground.value);
+        if (pattern) {
+          document.body.style.backgroundImage = `url(${pattern.url})`;
+        }
+      } else {
+        document.body.classList.add('background-image');
+        document.body.classList.remove('background-pattern');
+        document.body.style.backgroundImage = `url(${preferences.customBackground.value})`;
+      }
+    }
+  }, [preferences?.customBackground]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -57,11 +91,27 @@ const CustomBackground: React.FC = () => {
       return;
     }
     
+    // Update DOM
+    document.body.classList.add('custom-background', 'background-image');
+    document.body.classList.remove('background-pattern');
     document.body.style.backgroundImage = `url(${imgUrl})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundAttachment = 'fixed';
     
+    // Update preference
     updatePreference('customBackground', { type: 'url', value: imgUrl });
+    
+    // Clear theme preset if one is active
+    if (preferences?.themePreset) {
+      document.body.classList.remove(
+        'theme-preset-ocean',
+        'theme-preset-forest',
+        'theme-preset-sunset',
+        'theme-preset-lavender',
+        'theme-preset-cherry',
+        'theme-preset-midnight'
+      );
+      updatePreference('themePreset', null);
+    }
+    
     toast.success('Background image applied');
   };
 
@@ -71,37 +121,79 @@ const CustomBackground: React.FC = () => {
       return;
     }
     
+    // Update DOM
+    document.body.classList.add('custom-background', 'background-image');
+    document.body.classList.remove('background-pattern');
     document.body.style.backgroundImage = `url(${previewUrl})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundAttachment = 'fixed';
     
+    // Update preference
     updatePreference('customBackground', { type: 'data', value: previewUrl });
+    
+    // Clear theme preset if one is active
+    if (preferences?.themePreset) {
+      document.body.classList.remove(
+        'theme-preset-ocean',
+        'theme-preset-forest',
+        'theme-preset-sunset',
+        'theme-preset-lavender',
+        'theme-preset-cherry',
+        'theme-preset-midnight'
+      );
+      updatePreference('themePreset', null);
+    }
+    
     toast.success('Background image applied');
   };
 
   const applyPatternBackground = (pattern: any) => {
+    // Update DOM
+    document.body.classList.add('custom-background', 'background-pattern');
+    document.body.classList.remove('background-image');
     document.body.style.backgroundImage = `url(${pattern.url})`;
-    document.body.style.backgroundSize = 'auto';
-    document.body.style.backgroundAttachment = 'fixed';
     
+    // Update preference
     updatePreference('customBackground', { type: 'pattern', value: pattern.id });
+    
+    // Clear theme preset if one is active
+    if (preferences?.themePreset) {
+      document.body.classList.remove(
+        'theme-preset-ocean',
+        'theme-preset-forest',
+        'theme-preset-sunset',
+        'theme-preset-lavender',
+        'theme-preset-cherry',
+        'theme-preset-midnight'
+      );
+      updatePreference('themePreset', null);
+    }
+    
     toast.success(`${pattern.name} pattern applied`);
   };
 
   const clearBackground = () => {
+    // Update DOM
+    document.body.classList.remove('custom-background', 'background-pattern', 'background-image');
     document.body.style.backgroundImage = 'none';
+    
+    // Update preference
     updatePreference('customBackground', null);
+    
     toast.success('Background cleared');
   };
 
   return (
     <div className="space-y-4">
-      <Label className="text-base">Custom Background</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-base">Custom Background</Label>
+        <Button variant="outline" size="sm" onClick={clearBackground}>
+          Clear Background
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground mb-4">
         Personalize your interface with a custom background
       </p>
       
-      <Tabs defaultValue="url" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="url">
             <Link2 className="h-4 w-4 mr-2" />
@@ -127,9 +219,24 @@ const CustomBackground: React.FC = () => {
               onChange={(e) => setImgUrl(e.target.value)}
             />
           </div>
+          
+          {imgUrl && (
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-2">Preview:</p>
+              <img 
+                src={imgUrl} 
+                alt="Background preview" 
+                className="w-full h-32 object-cover rounded-md border"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://placehold.co/400x200?text=Invalid+Image+URL';
+                  toast.error('Could not load the image. Please check the URL.');
+                }}
+              />
+            </div>
+          )}
+          
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={clearBackground}>Clear</Button>
-            <Button onClick={applyUrlBackground}>Apply</Button>
+            <Button onClick={applyUrlBackground} disabled={!imgUrl}>Apply</Button>
           </div>
         </TabsContent>
         
@@ -156,7 +263,6 @@ const CustomBackground: React.FC = () => {
           )}
           
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={clearBackground}>Clear</Button>
             <Button onClick={applyUploadedBackground} disabled={!previewUrl}>Apply</Button>
           </div>
         </TabsContent>
@@ -166,7 +272,12 @@ const CustomBackground: React.FC = () => {
             {backgroundPatterns.map((pattern) => (
               <div 
                 key={pattern.id}
-                className="border rounded-md p-2 cursor-pointer hover:border-primary"
+                className={`border rounded-md p-2 cursor-pointer ${
+                  preferences?.customBackground?.type === 'pattern' && 
+                  preferences.customBackground.value === pattern.id 
+                    ? 'border-primary' 
+                    : 'hover:border-primary'
+                }`}
                 onClick={() => applyPatternBackground(pattern)}
               >
                 <div 
@@ -176,10 +287,6 @@ const CustomBackground: React.FC = () => {
                 <p className="text-sm font-medium text-center">{pattern.name}</p>
               </div>
             ))}
-          </div>
-          
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={clearBackground}>Clear</Button>
           </div>
         </TabsContent>
       </Tabs>

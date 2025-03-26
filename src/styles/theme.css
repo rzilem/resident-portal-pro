@@ -57,3 +57,65 @@
   border: none;
   box-shadow: none;
 }
+
+/* Custom theme colors */
+:root {
+  --theme-primary: var(--color-primary, #8B5CF6);
+  --theme-secondary: var(--color-secondary, #A78BFA);
+  --theme-accent: var(--color-accent, #C4B5FD);
+  --theme-background: var(--color-background, #FFFFFF);
+  --theme-text: var(--color-text, #1F2937);
+  --theme-border: var(--color-border, #E5E7EB);
+}
+
+/* Custom theme preset effects */
+.theme-preset-ocean {
+  --color-primary: #0EA5E9;
+  --color-secondary: #38BDF8;
+  --color-accent: #7DD3FC;
+}
+
+.theme-preset-forest {
+  --color-primary: #22C55E;
+  --color-secondary: #4ADE80;
+  --color-accent: #86EFAC;
+}
+
+.theme-preset-sunset {
+  --color-primary: #F97316;
+  --color-secondary: #FB923C;
+  --color-accent: #FDBA74;
+}
+
+.theme-preset-lavender {
+  --color-primary: #8B5CF6;
+  --color-secondary: #A78BFA;
+  --color-accent: #C4B5FD;
+}
+
+.theme-preset-cherry {
+  --color-primary: #EC4899;
+  --color-secondary: #F472B6;
+  --color-accent: #F9A8D4;
+}
+
+.theme-preset-midnight {
+  --color-primary: #1E40AF;
+  --color-secondary: #3B82F6;
+  --color-accent: #93C5FD;
+}
+
+/* Custom background styles */
+body.custom-background {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+}
+
+body.background-pattern {
+  background-size: auto;
+}
+
+body.background-image {
+  background-size: cover;
+}

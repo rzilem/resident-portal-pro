@@ -31,13 +31,25 @@ const ColorCustomizer: React.FC = () => {
   const { preferences, updatePreference } = useSettings();
   const [colors, setColors] = useState<ColorState>(defaultColors);
   const [activeColor, setActiveColor] = useState<keyof ColorState>('primary');
+  const [isApplied, setIsApplied] = useState(false);
 
+  // Initialize from saved preferences
   useEffect(() => {
-    // Initialize from saved preferences if available
     if (preferences?.customColors) {
       setColors(preferences.customColors);
+      setIsApplied(true);
+      
+      // Apply saved colors to CSS variables
+      document.documentElement.style.setProperty('--color-primary', preferences.customColors.primary);
+      document.documentElement.style.setProperty('--color-secondary', preferences.customColors.secondary);
+      document.documentElement.style.setProperty('--color-accent', preferences.customColors.accent);
+      document.documentElement.style.setProperty('--color-background', preferences.customColors.background);
+      document.documentElement.style.setProperty('--color-text', preferences.customColors.text);
+      document.documentElement.style.setProperty('--color-border', preferences.customColors.border);
+    } else {
+      setIsApplied(false);
     }
-  }, [preferences]);
+  }, [preferences?.customColors]);
 
   const updateColor = (color: string) => {
     setColors(prev => ({
@@ -55,13 +67,30 @@ const ColorCustomizer: React.FC = () => {
     document.documentElement.style.setProperty('--color-text', colors.text);
     document.documentElement.style.setProperty('--color-border', colors.border);
     
+    // Clear theme preset if one is active
+    if (preferences?.themePreset) {
+      document.body.classList.remove(
+        'theme-preset-ocean',
+        'theme-preset-forest',
+        'theme-preset-sunset',
+        'theme-preset-lavender',
+        'theme-preset-cherry',
+        'theme-preset-midnight'
+      );
+      updatePreference('themePreset', null);
+    }
+    
     // Save to preferences
     updatePreference('customColors', colors);
+    setIsApplied(true);
     toast.success('Custom colors applied');
   };
 
   const resetColors = () => {
+    // Reset colors state
     setColors(defaultColors);
+    
+    // Remove CSS variables
     document.documentElement.style.removeProperty('--color-primary');
     document.documentElement.style.removeProperty('--color-secondary');
     document.documentElement.style.removeProperty('--color-accent');
@@ -69,13 +98,30 @@ const ColorCustomizer: React.FC = () => {
     document.documentElement.style.removeProperty('--color-text');
     document.documentElement.style.removeProperty('--color-border');
     
+    // Clear from preferences
     updatePreference('customColors', null);
+    setIsApplied(false);
     toast.success('Colors reset to default');
+  };
+
+  const applyPalette = (colors: [string, string, string]) => {
+    setColors(prev => ({
+      ...prev,
+      primary: colors[0],
+      secondary: colors[1],
+      accent: colors[2]
+    }));
   };
 
   return (
     <div className="space-y-4">
-      <Label className="text-base">Color Customizer</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-base">Color Customizer</Label>
+        <Button variant="outline" size="sm" onClick={resetColors} disabled={!isApplied}>
+          Reset Colors
+        </Button>
+      </div>
+      
       <p className="text-sm text-muted-foreground mb-4">
         Customize the colors of your interface to match your brand or preferences
       </p>
@@ -132,7 +178,6 @@ const ColorCustomizer: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={resetColors}>Reset</Button>
             <Button onClick={applyColors}>Apply Colors</Button>
           </div>
         </TabsContent>
@@ -150,14 +195,7 @@ const ColorCustomizer: React.FC = () => {
               <div 
                 key={index}
                 className="cursor-pointer border rounded p-2 hover:border-primary"
-                onClick={() => {
-                  setColors(prev => ({
-                    ...prev,
-                    primary: palette.colors[0],
-                    secondary: palette.colors[1],
-                    accent: palette.colors[2]
-                  }));
-                }}
+                onClick={() => applyPalette(palette.colors as [string, string, string])}
               >
                 <div className="flex h-8 rounded overflow-hidden mb-2">
                   {palette.colors.map((color, i) => (
@@ -170,7 +208,6 @@ const ColorCustomizer: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-2 pt-2">
-            <Button variant="outline" onClick={resetColors}>Reset</Button>
             <Button onClick={applyColors}>Apply Colors</Button>
           </div>
         </TabsContent>
@@ -198,7 +235,6 @@ const ColorCustomizer: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-2 pt-2">
-            <Button variant="outline" onClick={resetColors}>Reset</Button>
             <Button onClick={applyColors}>Apply Colors</Button>
           </div>
         </TabsContent>

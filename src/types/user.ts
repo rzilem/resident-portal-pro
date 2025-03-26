@@ -1,3 +1,4 @@
+
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   cardStyle: 'default' | 'flat' | 'rounded' | 'glass';
@@ -23,7 +24,7 @@ export interface UserPreferences {
   propertyTableColumns?: any[];
   residentTableColumns?: any[];
   
-  // Add new preferences for custom theming
+  // Theme customization preferences
   themePreset?: string;
   customColors?: {
     primary: string;

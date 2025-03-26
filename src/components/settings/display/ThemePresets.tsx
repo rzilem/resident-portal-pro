@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSettings } from '@/hooks/use-settings';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface ThemePreset {
   id: string;
@@ -73,23 +74,102 @@ const presets: ThemePreset[] = [
 ];
 
 const ThemePresets: React.FC = () => {
-  const { updatePreference } = useSettings();
+  const { preferences, updatePreference } = useSettings();
+
+  // Apply saved theme on component mount
+  useEffect(() => {
+    if (preferences?.themePreset) {
+      const selectedPreset = presets.find(preset => preset.id === preferences.themePreset);
+      if (selectedPreset) {
+        // Apply theme classes
+        document.body.classList.remove(
+          'theme-preset-ocean',
+          'theme-preset-forest',
+          'theme-preset-sunset',
+          'theme-preset-lavender',
+          'theme-preset-cherry',
+          'theme-preset-midnight'
+        );
+        document.body.classList.add(`theme-preset-${selectedPreset.id}`);
+        
+        // Apply theme colors to CSS variables
+        document.documentElement.style.setProperty('--theme-primary', selectedPreset.primaryColor);
+        document.documentElement.style.setProperty('--theme-secondary', selectedPreset.secondaryColor);
+        document.documentElement.style.setProperty('--theme-accent', selectedPreset.accentColor);
+        document.documentElement.style.setProperty('--theme-background', selectedPreset.background);
+      }
+    }
+  }, [preferences?.themePreset]);
 
   const applyTheme = (preset: ThemePreset) => {
+    // Remove existing theme classes
+    document.body.classList.remove(
+      'theme-preset-ocean',
+      'theme-preset-forest',
+      'theme-preset-sunset',
+      'theme-preset-lavender',
+      'theme-preset-cherry',
+      'theme-preset-midnight'
+    );
+    
+    // Add the new theme class
+    document.body.classList.add(`theme-preset-${preset.id}`);
+    
     // Apply theme colors to CSS variables
     document.documentElement.style.setProperty('--theme-primary', preset.primaryColor);
     document.documentElement.style.setProperty('--theme-secondary', preset.secondaryColor);
     document.documentElement.style.setProperty('--theme-accent', preset.accentColor);
     document.documentElement.style.setProperty('--theme-background', preset.background);
     
+    // Clear any custom colors when applying a preset
+    if (preferences?.customColors) {
+      updatePreference('customColors', null);
+    }
+    
+    // Clear any custom background when applying a preset
+    if (preferences?.customBackground) {
+      updatePreference('customBackground', null);
+      // This will ensure body background is cleared
+      document.body.style.backgroundImage = 'none';
+      document.body.classList.remove('custom-background', 'background-pattern', 'background-image');
+    }
+    
     // Save theme preference
     updatePreference('themePreset', preset.id);
     toast.success(`${preset.name} theme applied`);
   };
 
+  const resetTheme = () => {
+    // Remove existing theme classes
+    document.body.classList.remove(
+      'theme-preset-ocean',
+      'theme-preset-forest',
+      'theme-preset-sunset',
+      'theme-preset-lavender',
+      'theme-preset-cherry',
+      'theme-preset-midnight'
+    );
+    
+    // Reset all theme-related CSS variables
+    document.documentElement.style.removeProperty('--theme-primary');
+    document.documentElement.style.removeProperty('--theme-secondary');
+    document.documentElement.style.removeProperty('--theme-accent');
+    document.documentElement.style.removeProperty('--theme-background');
+    
+    // Update preference
+    updatePreference('themePreset', null);
+    toast.success('Theme reset to default');
+  };
+
   return (
     <div className="space-y-4">
-      <Label className="text-base">Theme Presets</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-base">Theme Presets</Label>
+        <Button variant="outline" size="sm" onClick={resetTheme}>
+          Reset Theme
+        </Button>
+      </div>
+      
       <p className="text-sm text-muted-foreground mb-4">
         Choose from our pre-designed themes to instantly transform your interface
       </p>
@@ -101,7 +181,7 @@ const ThemePresets: React.FC = () => {
             className="cursor-pointer group"
             onClick={() => applyTheme(preset)}
           >
-            <Card className="overflow-hidden h-40 transition-all hover:scale-105 hover:shadow-md border-2 hover:border-primary">
+            <Card className={`overflow-hidden h-40 transition-all hover:scale-105 hover:shadow-md border-2 ${preferences?.themePreset === preset.id ? 'border-primary' : 'hover:border-primary'}`}>
               <div 
                 className="h-24 w-full" 
                 style={{ background: preset.background }}
