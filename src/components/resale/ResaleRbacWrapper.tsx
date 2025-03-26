@@ -27,7 +27,19 @@ const ResaleRbacWrapper = ({
     return <div className="flex justify-center items-center h-32">Loading...</div>;
   }
   
-  const authorized = hasPermission(module, requiredPermission);
+  // Split the permission if it contains a dot notation (e.g., "resale.certificate.view")
+  const permissionParts = requiredPermission.split('.');
+  const actualPermission = permissionParts.length > 1 
+    ? permissionParts[permissionParts.length - 1] as Permission 
+    : requiredPermission;
+  
+  // If the permission has module prefix (e.g., "resale.certificate.view"), 
+  // use the module part from the permission
+  const actualModule = permissionParts.length > 1 
+    ? permissionParts.slice(0, permissionParts.length - 1).join('.') 
+    : module;
+  
+  const authorized = hasPermission(actualModule, actualPermission);
   
   if (!authorized) {
     return fallback || (
@@ -35,7 +47,7 @@ const ResaleRbacWrapper = ({
         <ShieldAlert className="h-4 w-4" />
         <AlertTitle>Access Denied</AlertTitle>
         <AlertDescription>
-          You don't have permission to {requiredPermission} in the {module} module.
+          You don't have permission to {actualPermission} in the {actualModule} module.
         </AlertDescription>
       </Alert>
     );
