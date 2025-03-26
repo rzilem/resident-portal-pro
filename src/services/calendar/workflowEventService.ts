@@ -6,10 +6,10 @@ import { toast } from 'sonner';
 
 export const workflowEventService = {
   // Create a workflow event
-  createWorkflowEvent: (workflowId: string, title: string, start: Date, associationId: string) => {
+  createWorkflowEvent: async (workflowId: string, title: string, start: Date, associationId: string) => {
     try {
-      // Get workflow details
-      const workflow = workflowService.getWorkflowById(workflowId);
+      // Get workflow details - need to await the Promise
+      const workflow = await workflowService.getWorkflowById(workflowId);
       
       // Create calendar event for the workflow
       const event = calendarEventService.createEvent({
@@ -64,7 +64,11 @@ export const workflowEventService = {
       // Update event to mark it as executed
       calendarEventService.updateEvent(eventId, {
         description: `${event.description} (Executed at ${new Date().toLocaleString()})`,
-        executed: true
+        metadata: { 
+          ...event.metadata,
+          executed: true,
+          executedAt: new Date().toISOString()
+        }
       });
       
       toast.success(`Workflow "${event.title}" executed successfully`);
