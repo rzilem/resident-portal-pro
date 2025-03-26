@@ -22,6 +22,9 @@ const PrintQueue = () => {
   const [includeMailingLabels, setIncludeMailingLabels] = useState(true);
   const [printPreview, setPrintPreview] = useState(true);
   const [activeTab, setActiveTab] = useState('queue');
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
+  const [associationFilter, setAssociationFilter] = useState<string | undefined>(undefined);
+  const [associationName, setAssociationName] = useState<string | undefined>(undefined);
 
   const handleIncludeMailingLabelsChange = (checked: boolean) => {
     setIncludeMailingLabels(checked);
@@ -29,6 +32,24 @@ const PrintQueue = () => {
 
   const handlePrintPreviewChange = (checked: boolean) => {
     setPrintPreview(checked);
+  };
+
+  const handleSetCategoryFilter = (category: string) => {
+    setCategoryFilter(category);
+  };
+
+  const handleSetAssociationFilter = (id: string, name: string) => {
+    setAssociationFilter(id);
+    setAssociationName(name);
+  };
+
+  const handleClearCategoryFilter = () => {
+    setCategoryFilter(undefined);
+  };
+
+  const handleClearAssociationFilter = () => {
+    setAssociationFilter(undefined);
+    setAssociationName(undefined);
   };
 
   return (
@@ -64,9 +85,8 @@ const PrintQueue = () => {
               selectedJobs={selectedJobs}
               onToggleSelect={toggleJobSelection}
               onSelectAll={selectAllJobs}
-              onClearSelection={clearSelection}
-              onDeleteJob={deleteJob}
-              isLoading={isLoading}
+              onSetCategoryFilter={handleSetCategoryFilter}
+              onSetAssociationFilter={handleSetAssociationFilter}
             />
           )}
           

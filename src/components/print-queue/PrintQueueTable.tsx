@@ -167,7 +167,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
                       <TableCell>{job.category}</TableCell>
                       <TableCell>{job.associationName}</TableCell>
                       <TableCell>{job.category}</TableCell>
-                      <TableCell>{format(job.created, 'MM/dd/yyyy h:mm a')}</TableCell>
+                      <TableCell>{format(new Date(job.createdAt), 'MM/dd/yyyy h:mm a')}</TableCell>
                       <TableCell>{job.description}</TableCell>
                       <TableCell>
                         <RadioGroup className="flex flex-row">
@@ -175,7 +175,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
                             <RadioGroupItem 
                               value="yes" 
                               id={`yes-${job.id}`} 
-                              checked={job.sendCertified}
+                              checked={job.sendCertified === true}
                               disabled
                             />
                             <label htmlFor={`yes-${job.id}`} className="text-sm">Yes</label>
@@ -184,7 +184,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
                             <RadioGroupItem 
                               value="no" 
                               id={`no-${job.id}`} 
-                              checked={!job.sendCertified}
+                              checked={job.sendCertified === false}
                               disabled
                             />
                             <label htmlFor={`no-${job.id}`} className="text-sm">No</label>

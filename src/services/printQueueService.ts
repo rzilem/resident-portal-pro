@@ -1,4 +1,18 @@
 
+export type PrintCategory = 
+  | 'Bank Return' 
+  | 'Statement' 
+  | 'Notice' 
+  | 'Invoice' 
+  | 'Welcome Letter' 
+  | 'Violation' 
+  | 'Election Material' 
+  | 'Other'
+  | 'Board Documents'
+  | 'Financial Documents'
+  | 'Communications'
+  | 'Compliance';
+
 export interface PrintJob {
   id: string;
   name: string;
@@ -18,8 +32,9 @@ export interface PrintJob {
   estimatedCompletionTime?: string;
   associationId: string;
   associationName: string;
-  category: string;
+  category: PrintCategory;
   description: string;
+  sendCertified?: boolean;
 }
 
 export interface PrintQueueStats {

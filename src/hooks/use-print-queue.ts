@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PrintJob, PrintQueueStats } from '@/services/printQueueService';
+import { PrintJob, PrintQueueStats, PrintCategory } from '@/services/printQueueService';
 
 export const usePrintQueue = () => {
   const [printJobs, setPrintJobs] = useState<PrintJob[]>([]);
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
   const [stats, setStats] = useState<PrintQueueStats>({
     totalJobs: 0,
     pendingJobs: 0,
@@ -37,7 +37,8 @@ export const usePrintQueue = () => {
       associationId: '1',
       associationName: 'Sunset Heights HOA',
       category: 'Board Documents',
-      description: 'Monthly board meeting minutes for distribution'
+      description: 'Monthly board meeting minutes for distribution',
+      sendCertified: false
     },
     {
       id: uuidv4(),
@@ -58,7 +59,8 @@ export const usePrintQueue = () => {
       associationId: '1',
       associationName: 'Sunset Heights HOA',
       category: 'Financial Documents',
-      description: 'Annual budget report for homeowner review'
+      description: 'Annual budget report for homeowner review',
+      sendCertified: true
     },
     {
       id: uuidv4(),
@@ -79,7 +81,8 @@ export const usePrintQueue = () => {
       associationId: '1',
       associationName: 'Sunset Heights HOA',
       category: 'Communications',
-      description: 'Quarterly newsletter for all residents'
+      description: 'Quarterly newsletter for all residents',
+      sendCertified: false
     },
     {
       id: uuidv4(),
@@ -100,7 +103,8 @@ export const usePrintQueue = () => {
       associationId: '1',
       associationName: 'Sunset Heights HOA',
       category: 'Compliance',
-      description: 'Batch of compliance violation letters'
+      description: 'Batch of compliance violation letters',
+      sendCertified: true
     }
   ];
 
@@ -139,6 +143,28 @@ export const usePrintQueue = () => {
     }, 1000);
   }, []);
 
+  const toggleJobSelection = (id: string) => {
+    setSelectedJobs(prev =>
+      prev.includes(id)
+        ? prev.filter(jobId => jobId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const selectAllJobs = () => {
+    if (selectedJobs.length === printJobs.length) {
+      // If all jobs are currently selected, deselect all
+      setSelectedJobs([]);
+    } else {
+      // Otherwise, select all jobs
+      setSelectedJobs(printJobs.map(job => job.id));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedJobs([]);
+  };
+
   const addPrintJob = (job: Omit<PrintJob, 'id' | 'createdAt' | 'status'>) => {
     const newJob: PrintJob = {
       ...job,
@@ -151,6 +177,12 @@ export const usePrintQueue = () => {
     setStats(calculateStats([...printJobs, newJob]));
     
     return newJob;
+  };
+
+  const deleteJob = (id: string) => {
+    setPrintJobs(prev => prev.filter(job => job.id !== id));
+    setSelectedJobs(prev => prev.filter(jobId => jobId !== id));
+    setStats(calculateStats(printJobs.filter(job => job.id !== id)));
   };
 
   const cancelPrintJob = (id: string) => {
@@ -186,16 +218,32 @@ export const usePrintQueue = () => {
     return newJob;
   };
 
+  const printJobs = () => {
+    console.log('Printing selected jobs:', selectedJobs);
+    // In a real app, this would handle actual printing
+  };
+
+  const sendToHOAMailers = () => {
+    console.log('Sending to HOA Mailers:', selectedJobs);
+    // In a real app, this would handle sending to an external service
+  };
+
   return {
-    printJobs,
-    stats,
-    loading,
+    jobs: printJobs,
+    selectedJobs,
+    isLoading: loading,
     error,
     addPrintJob,
     cancelPrintJob,
-    reprintJob
+    reprintJob,
+    toggleJobSelection,
+    selectAllJobs,
+    clearSelection,
+    deleteJob,
+    printJobs,
+    sendToHOAMailers,
+    stats
   };
 };
 
-export type { PrintJob } from '@/services/printQueueService';
-export type { PrintQueueStats } from '@/services/printQueueService';
+export type { PrintJob, PrintQueueStats, PrintCategory } from '@/services/printQueueService';

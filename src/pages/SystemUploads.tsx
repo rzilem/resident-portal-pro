@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileUp, FileDown, Database, CheckCircle } from 'lucide-react';
+import { Upload, FileUp, FileDown, Database } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import DocumentStructureTab from '@/components/database/upload/DocumentStructureTab';
 import TemplatesTab from '@/components/database/upload/TemplatesTab';
@@ -29,6 +29,7 @@ const SystemUploads = () => {
 
   const handleDialogClose = () => {
     // Placeholder for dialog close function
+    console.log('Dialog closed');
   };
 
   return (
@@ -64,7 +65,10 @@ const SystemUploads = () => {
             
             <TabsContent value="upload">
               {uploadStep === 'success' ? (
-                <SuccessState onReset={handleReset} onClose={handleDialogClose} />
+                <SuccessState 
+                  onReset={handleReset} 
+                  onClose={handleDialogClose} 
+                />
               ) : (
                 <UploadDataTab onComplete={handleUploadComplete} />
               )}

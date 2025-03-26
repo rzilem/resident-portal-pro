@@ -2,9 +2,8 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check } from 'lucide-react';
 
-// Import the new tab components
+// Import the tab components
 import UploadDataTab from './upload/UploadDataTab';
 import DocumentStructureTab from './upload/DocumentStructureTab';
 import TemplatesTab from './upload/TemplatesTab';
@@ -23,6 +22,14 @@ const BulkUploadDialog = ({ open, onOpenChange }: BulkUploadDialogProps) => {
     setUploadState('idle');
   };
 
+  const handleUploadComplete = () => {
+    setUploadState('success');
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -36,7 +43,7 @@ const BulkUploadDialog = ({ open, onOpenChange }: BulkUploadDialogProps) => {
         {uploadState === 'success' ? (
           <SuccessState 
             onReset={resetUpload} 
-            onClose={() => onOpenChange(false)} 
+            onClose={handleClose} 
           />
         ) : (
           <Tabs defaultValue="upload" className="w-full" onValueChange={setActiveTab}>
@@ -47,15 +54,15 @@ const BulkUploadDialog = ({ open, onOpenChange }: BulkUploadDialogProps) => {
             </TabsList>
             
             <TabsContent value="upload" className="space-y-4 py-4">
-              <UploadDataTab onOpenChange={onOpenChange} />
+              <UploadDataTab onComplete={handleUploadComplete} />
             </TabsContent>
             
             <TabsContent value="documents" className="space-y-6 py-4">
-              <DocumentStructureTab onOpenChange={onOpenChange} />
+              <DocumentStructureTab onOpenChange={handleClose} />
             </TabsContent>
             
             <TabsContent value="templates" className="space-y-6 py-4">
-              <TemplatesTab onOpenChange={onOpenChange} />
+              <TemplatesTab onOpenChange={handleClose} />
             </TabsContent>
           </Tabs>
         )}
