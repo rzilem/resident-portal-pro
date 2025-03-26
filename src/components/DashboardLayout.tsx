@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
 import { Sidebar } from '@/components/Sidebar';
+import HoaSidebar from '@/components/HoaSidebar';
 import ChatbotButton from './ChatbotButton';
 import { useLocation, Outlet, Link } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -18,6 +19,9 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
   const isMobile = useIsMobile();
   const location = useLocation();
   
+  // Check if we're in an HOA page to show appropriate sidebar
+  const isHoaPage = location.pathname.startsWith('/hoa');
+  
   // Check if we're coming from an HOA page to show back button
   const showHoaBackButton = location.state?.from?.startsWith('/hoa');
   const hoaPage = location.state?.from || '/hoa/dashboard';
@@ -27,6 +31,13 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
     if (propTitle) return propTitle;
     
     const path = location.pathname;
+    
+    // HOA routes
+    if (path === '/hoa/dashboard') return 'HOA Dashboard';
+    if (path === '/hoa/finances') return 'HOA Finances';
+    if (path === '/hoa/maintenance') return 'HOA Maintenance';
+    if (path === '/hoa/members') return 'HOA Members';
+    if (path === '/hoa/events') return 'HOA Events';
     
     // Accounting routes take precedence
     if (path === '/accounting/dashboard') return 'Accounting Dashboard';
@@ -85,14 +96,27 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
 
   return (
     <div className="min-h-screen bg-background flex w-full">
-      {/* Sidebar - with smooth transition */}
-      <div 
-        className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
-      >
-        <Sidebar className="min-h-screen"/>
-      </div>
+      {/* Render appropriate sidebar based on whether we're in an HOA page */}
+      {isHoaPage ? (
+        <div 
+          className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
+        >
+          <HoaSidebar 
+            collapsed={!sidebarOpen} 
+            onCollapse={toggleSidebar} 
+          />
+        </div>
+      ) : (
+        <div 
+          className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
+        >
+          <Sidebar className="min-h-screen"/>
+        </div>
+      )}
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen w-full">
@@ -103,7 +127,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
         />
         
         {/* Back to HOA button if applicable */}
-        {showHoaBackButton && (
+        {showHoaBackButton && !isHoaPage && (
           <div className="mx-4 mt-4">
             <Button 
               variant="outline" 

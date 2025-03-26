@@ -6,6 +6,7 @@ import PropertyRecords from './PropertyRecords';
 import UnitRecords from './UnitRecords';
 import AssociationRecords from './AssociationRecords';
 import TransactionRecordsPlaceholder from './TransactionRecordsPlaceholder';
+import { Database, Building, Users, CreditCard } from 'lucide-react';
 
 const DatabaseExplorer = () => {
   return (
@@ -19,10 +20,22 @@ const DatabaseExplorer = () => {
       <CardContent>
         <Tabs defaultValue="homeowners">
           <TabsList className="mb-4">
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="units">Units</TabsTrigger>
-            <TabsTrigger value="homeowners">Homeowners</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="properties" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              <span>Properties</span>
+            </TabsTrigger>
+            <TabsTrigger value="units" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              <span>Units</span>
+            </TabsTrigger>
+            <TabsTrigger value="homeowners" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span>Homeowners</span>
+            </TabsTrigger>
+            <TabsTrigger value="transactions" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              <span>Transactions</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="properties">

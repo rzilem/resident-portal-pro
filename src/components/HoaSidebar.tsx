@@ -42,9 +42,6 @@ export const HoaSidebar = ({
     { name: 'Events', path: '/hoa/events', icon: <Calendar size={20} /> },
   ];
   
-  // Show a more visible back button at the top of the sidebar
-  const showBackButton = true;
-
   return (
     <aside 
       className={cn(
@@ -69,21 +66,19 @@ export const HoaSidebar = ({
         </div>
         
         {/* Back to main app - prominent placement */}
-        {showBackButton && (
-          <div className="p-3 border-b border-gray-100">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-              asChild
-            >
-              <Link to="/dashboard" state={{ from: location.pathname }}>
-                <ArrowLeft size={16} />
-                {!collapsed && <span>Back to Main App</span>}
-              </Link>
-            </Button>
-          </div>
-        )}
+        <div className="p-3 border-b border-gray-100">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+            asChild
+          >
+            <Link to="/dashboard" state={{ from: location.pathname }}>
+              <ArrowLeft size={16} />
+              {!collapsed && <span>Back to Main App</span>}
+            </Link>
+          </Button>
+        </div>
         
         <nav className="flex-1 p-4">
           <div className="mb-1">

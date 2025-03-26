@@ -11,7 +11,7 @@ import {
   Users
 } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Chart as ChartJS,
@@ -34,6 +34,8 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   // Sample data for payments chart
   const paymentData = {
     labels: ['January', 'February', 'March', 'April'],
@@ -111,19 +113,21 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statsCards.map((card, index) => (
-          <Link key={index} to={card.link} className="block hover:no-underline">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                  <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
-                </div>
-                <div className={`p-3 rounded-full ${card.bg}`}>
-                  {card.icon}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <Card 
+            key={index} 
+            className="hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => navigate(card.link)}
+          >
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{card.title}</p>
+                <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
+              </div>
+              <div className={`p-3 rounded-full ${card.bg}`}>
+                {card.icon}
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
       
