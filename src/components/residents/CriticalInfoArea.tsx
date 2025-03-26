@@ -27,11 +27,11 @@ const CriticalInfoArea: React.FC<CriticalInfoAreaProps> = ({ resident }) => {
   };
 
   return (
-    <Card className="w-72 border-2 border-blue-300 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+    <Card className="mb-6 border-2 border-blue-300 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
       <CardContent className="py-4">
         <h3 className="text-lg font-semibold mb-3">Critical Information</h3>
         
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Financial Status */}
           <div className="flex items-start gap-2">
             <CircleDollarSign className={`h-5 w-5 mt-0.5 ${resident.balance !== '$0.00' ? 'text-red-500' : 'text-green-500'}`} />
