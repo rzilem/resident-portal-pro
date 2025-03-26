@@ -61,15 +61,17 @@ export const APIConfigForm: React.FC<APIConfigFormProps> = ({
       }
       
       if (field.required) {
-        // Check if it's a string type before applying min
-        if (field.type !== 'url') {
-          validator = z.string().min(1, { message: `${field.label} is required` });
+        if (field.type === 'url') {
+          // For URL fields that are required
+          validator = z.string()
+            .min(1, { message: `${field.label} is required` })
+            .url({ message: "Please enter a valid URL" });
         } else {
-          // For URL fields, use refine to check if it's not empty
-          validator = z.string().url({ message: "Please enter a valid URL" })
-            .refine(val => val.length > 0, { message: `${field.label} is required` });
+          // For other types that are required
+          validator = z.string().min(1, { message: `${field.label} is required` });
         }
       } else {
+        // Optional fields
         validator = z.string().optional();
       }
       
