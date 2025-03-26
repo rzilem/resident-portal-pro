@@ -1,0 +1,62 @@
+
+/* Theme variables and base styles */
+
+/* Theme-specific styles */
+
+/* Dark mode specific styles */
+:root.dark {
+  color-scheme: dark;
+}
+
+/* Light mode specific styles */
+:root.light {
+  color-scheme: light;
+}
+
+/* Custom theme colors */
+:root {
+  --theme-primary: var(--color-primary, #8B5CF6);
+  --theme-secondary: var(--color-secondary, #A78BFA);
+  --theme-accent: var(--color-accent, #C4B5FD);
+  --theme-background: var(--color-background, #FFFFFF);
+  --theme-text: var(--color-text, #1F2937);
+  --theme-border: var(--color-border, #E5E7EB);
+}
+
+/* Apply theme colors to UI components */
+.theme-applied button.btn-primary,
+.theme-applied .bg-primary,
+button[data-variant="default"] {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+.theme-applied .text-primary {
+  color: var(--theme-primary) !important;
+}
+
+.theme-applied .border-primary {
+  border-color: var(--theme-primary) !important;
+}
+
+/* Theme transition */
+*, *::before, *::after {
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+/* Add a class to indicate that a theme has been applied */
+body.theme-applied {
+  position: relative;
+}
+
+/* Visual indicator for themes */
+body.theme-applied::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--theme-primary);
+  z-index: 9999;
+}
