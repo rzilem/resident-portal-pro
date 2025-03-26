@@ -74,6 +74,12 @@ export interface ViolationTemplate {
   isUsed: boolean;
 }
 
+export interface MetricData {
+  name: string;
+  value: number;
+  color: string;
+}
+
 export interface Violation {
   id: string;
   propertyId: string | number;
