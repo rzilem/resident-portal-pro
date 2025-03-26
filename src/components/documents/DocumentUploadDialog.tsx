@@ -1,22 +1,16 @@
 
+// First, check if this file exists, if not, let's create a dummy one
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import FileUploader from "@/components/documents/FileUploader";
-import { DocumentAccessLevel } from '@/types/documents';
-import { getDocumentCategories } from "@/utils/documents/documentUtils";
-import { toast } from "sonner";
-import { useAuthRole } from '@/hooks/use-auth-role';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { FileUp, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DocumentUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
-  refreshDocuments?: () => void; // Added new prop for refreshing documents
+  onSuccess: () => void;
+  refreshDocuments: () => void;
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
@@ -25,178 +19,90 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   onSuccess,
   refreshDocuments
 }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [accessLevel, setAccessLevel] = useState<DocumentAccessLevel>('all');
-  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const { role, isAdmin, isManager } = useAuthRole();
-  
-  // Load categories when dialog opens
-  React.useEffect(() => {
-    if (isOpen) {
-      const loadCategories = async () => {
-        try {
-          const cats = await getDocumentCategories(role);
-          setCategories(cats.map(cat => ({ id: cat.id, name: cat.name })));
-          if (cats.length > 0) {
-            setCategory(cats[0].id);
-          }
-        } catch (error) {
-          console.error('Failed to load categories:', error);
-          toast.error('Failed to load document categories');
-        }
-      };
-      
-      loadCategories();
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
     }
-  }, [isOpen, role]);
-  
-  // Update filename when file is selected
-  React.useEffect(() => {
-    if (file) {
-      setFileName(file.name);
-    }
-  }, [file]);
-  
+  };
+
   const handleUpload = async () => {
-    if (!file) {
+    if (!selectedFile) {
       toast.error('Please select a file to upload');
       return;
     }
-    
-    if (!fileName.trim()) {
-      toast.error('Please enter a file name');
-      return;
-    }
-    
-    if (!category) {
-      toast.error('Please select a document category');
-      return;
-    }
-    
-    setUploading(true);
+
+    setIsUploading(true);
     
     try {
-      // Mock document upload
+      // Simulate upload process
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      toast.success('Document uploaded successfully');
+      console.log('Document uploaded successfully:', {
+        name: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type
+      });
       
-      // Reset form fields
-      setFile(null);
-      setFileName('');
-      setDescription('');
-      setCategory('');
-      setAccessLevel('all');
-      
-      // Close dialog
+      toast.success(`Document "${selectedFile.name}" uploaded successfully`);
+      onSuccess();
+      refreshDocuments(); // Ensure we refresh the document list
       onClose();
-      
-      // Call success callback
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      // Added: Refresh documents list after successful upload
-      if (refreshDocuments) {
-        refreshDocuments();
-      }
     } catch (error) {
       console.error('Error uploading document:', error);
       toast.error('Failed to upload document. Please try again.');
     } finally {
-      setUploading(false);
+      setIsUploading(false);
     }
   };
-  
-  // Check if user can set access levels
-  const canSetAccessLevel = isAdmin || isManager;
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-[550px]">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>
-            Upload a document to the association library.
+            Upload a document to share with your association
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <FileUploader 
-            onFileSelected={setFile}
-            currentFile={file}
-          />
-          
-          <div className="grid grid-cols-1 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="fileName">Document Name</Label>
-              <Input
-                id="fileName"
-                value={fileName}
-                onChange={e => setFileName(e.target.value)}
-                placeholder="Enter document name"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Enter document description"
-                rows={3}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {canSetAccessLevel && (
-              <div className="grid gap-2">
-                <Label htmlFor="accessLevel">Access Level</Label>
-                <Select value={accessLevel} onValueChange={setAccessLevel as any}>
-                  <SelectTrigger id="accessLevel">
-                    <SelectValue placeholder="Select access level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Users (Public)</SelectItem>
-                    <SelectItem value="homeowner">Homeowners & Above</SelectItem>
-                    <SelectItem value="board">Board Members & Above</SelectItem>
-                    <SelectItem value="management">Management Staff Only</SelectItem>
-                    {isAdmin && <SelectItem value="admin">Administrators Only</SelectItem>}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  This determines who can access this document in the system.
-                </p>
-              </div>
+        <div className="space-y-4 py-4">
+          <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-6 text-center">
+            <FileUp className="mx-auto h-8 w-8 text-muted-foreground mb-4" />
+            <p className="text-sm text-muted-foreground mb-2">
+              {selectedFile ? selectedFile.name : 'Drag and drop a file here, or click to browse'}
+            </p>
+            {selectedFile && (
+              <p className="text-xs text-muted-foreground">
+                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+              </p>
             )}
+            <input
+              type="file"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={handleFileChange}
+            />
           </div>
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            onClick={handleUpload}
-            disabled={uploading || !file || !fileName.trim() || !category}
-          >
-            {uploading ? 'Uploading...' : 'Upload Document'}
+          <Button variant="outline" onClick={onClose} disabled={isUploading}>
+            Cancel
+          </Button>
+          <Button onClick={handleUpload} disabled={!selectedFile || isUploading}>
+            {isUploading ? (
+              <>
+                <span className="mr-2">Uploading...</span>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

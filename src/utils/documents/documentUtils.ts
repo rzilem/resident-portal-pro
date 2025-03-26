@@ -1,3 +1,4 @@
+
 import { DocumentFile, DocumentCategory, DocumentSearchFilters, DocumentAccessLevel } from '@/types/documents';
 import { UserRole } from '@/types/user';
 
@@ -113,6 +114,75 @@ const mockDocuments: DocumentFile[] = [
     isPublic: false,
     isArchived: false,
     associations: ["assoc-001", "assoc-002"]
+  },
+  // Adding more documents with broader association coverage for testing
+  {
+    id: "doc-007",
+    name: "Community Newsletter - Q1 2023.pdf",
+    description: "First quarter newsletter for residents",
+    fileSize: 1250000,
+    fileType: "application/pdf",
+    url: "/mock-documents/newsletter.pdf",
+    category: "communications",
+    tags: ["newsletter", "community", "2023"],
+    uploadedBy: "admin-user",
+    uploadedDate: "2023-03-25T10:30:00Z",
+    lastModified: "2023-03-25T10:30:00Z",
+    version: 1,
+    isPublic: true,
+    isArchived: false,
+    associations: ["assoc-001", "assoc-002", "assoc-003", "1"]
+  },
+  {
+    id: "doc-008",
+    name: "Board Election Results 2023.pdf",
+    description: "Results of the annual board election",
+    fileSize: 520000,
+    fileType: "application/pdf",
+    url: "/mock-documents/election.pdf",
+    category: "meetings",
+    tags: ["board", "election", "voting", "2023"],
+    uploadedBy: "admin-user",
+    uploadedDate: "2023-06-10T15:45:00Z",
+    lastModified: "2023-06-10T15:45:00Z",
+    version: 1,
+    isPublic: true,
+    isArchived: false,
+    associations: ["1", "assoc-001"]
+  },
+  {
+    id: "doc-009",
+    name: "Maintenance Schedule - 2023.xlsx",
+    description: "Annual maintenance schedule for common areas",
+    fileSize: 780000,
+    fileType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    url: "/mock-documents/maintenance.xlsx",
+    category: "maintenance",
+    tags: ["maintenance", "schedule", "planning"],
+    uploadedBy: "property-manager",
+    uploadedDate: "2023-01-20T09:15:00Z",
+    lastModified: "2023-01-20T09:15:00Z",
+    version: 1,
+    isPublic: false,
+    isArchived: false,
+    associations: ["1", "assoc-002"]
+  },
+  {
+    id: "doc-010",
+    name: "Reserve Study - 2023-2033.pdf",
+    description: "Ten-year reserve study and financial planning",
+    fileSize: 4250000,
+    fileType: "application/pdf",
+    url: "/mock-documents/reserve.pdf",
+    category: "financial",
+    tags: ["reserve", "financial", "planning", "long-term"],
+    uploadedBy: "admin-user",
+    uploadedDate: "2023-05-05T11:30:00Z",
+    lastModified: "2023-05-05T11:30:00Z",
+    version: 1,
+    isPublic: false,
+    isArchived: false,
+    associations: ["1", "assoc-001"]
   }
 ];
 
@@ -203,8 +273,10 @@ export const getDocuments = async (
   // Filter by association if provided
   if (associationId) {
     console.log('Filtering by association:', associationId);
+    // Important fix: Convert associationId to string for comparison
+    const strAssociationId = String(associationId);
     filteredDocs = filteredDocs.filter(doc => 
-      doc.associations?.includes(associationId)
+      doc.associations?.some(assocId => String(assocId) === strAssociationId)
     );
   }
   
@@ -258,6 +330,17 @@ export const getDocuments = async (
       filteredDocs = filteredDocs.filter(doc => 
         doc.isArchived === filters.isArchived
       );
+    }
+    
+    // Filter by date range if provided
+    if (filters.dateRange) {
+      const startDate = new Date(filters.dateRange.start).getTime();
+      const endDate = new Date(filters.dateRange.end).getTime();
+      
+      filteredDocs = filteredDocs.filter(doc => {
+        const docDate = new Date(doc.uploadedDate).getTime();
+        return docDate >= startDate && docDate <= endDate;
+      });
     }
   }
   

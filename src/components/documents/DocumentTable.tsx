@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
   TableHeader, TableRow, TableCaption 
@@ -11,6 +12,7 @@ import DocumentTableFilters from './DocumentTableFilters';
 import DocumentTableEmptyState from './DocumentTableEmptyState';
 import DocumentTableRow from './DocumentTableRow';
 import DocumentTableLoading from './DocumentTableLoading';
+import { useAuthRole } from '@/hooks/use-auth-role';
 
 interface DocumentTableProps {
   category?: string;
@@ -38,14 +40,31 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
   const [loadKey, setLoadKey] = useState(0);
+  const { role } = useAuthRole();
   
-  React.useEffect(() => {
+  useEffect(() => {
+    console.log("DocumentTable mounted/updated with props:", { 
+      category, 
+      searchQuery, 
+      filter, 
+      associationId,
+      refreshTrigger
+    });
     loadDocuments();
-  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, refreshTrigger, loadKey]);
+  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, refreshTrigger, loadKey, role]);
   
   const loadDocuments = useCallback(async () => {
     setIsLoading(true);
     try {
+      console.log("Loading documents with filters:", {
+        query: searchQuery || localSearchQuery,
+        categories: category ? [category] : [],
+        tags: tagFilter ? [tagFilter] : [],
+        dateFilter,
+        associationId,
+        role
+      });
+      
       const filters: DocumentSearchFilters = {
         query: searchQuery || localSearchQuery,
         categories: category ? [category] : [],
@@ -79,10 +98,11 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         filters.isPublic = true;
       } else if (filter === 'important') {
         filters.tags = ['important'];
+      } else if (filter === 'recent') {
+        // For recent, we'll just sort by date which happens by default
       }
       
-      console.log('Loading documents with filters:', filters);
-      const docs = await getDocuments(filters, associationId);
+      const docs = await getDocuments(filters, associationId, role);
       console.log('Loaded documents:', docs);
       setDocuments(docs);
     } catch (error) {
@@ -91,9 +111,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter]);
+  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, role]);
   
   const refreshDocuments = () => {
+    console.log("Refreshing documents list");
     setLoadKey(prevKey => prevKey + 1);
   };
   

@@ -83,18 +83,23 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   
   useEffect(() => {
     loadDocuments();
-  }, [association.id, activeCategory, searchQuery, tagFilter, role, refreshTrigger]); // Add refreshTrigger dependency
+  }, [association.id, activeCategory, searchQuery, tagFilter, role, refreshTrigger]); 
   
   const loadDocuments = async () => {
     setIsLoading(true);
     try {
+      // Convert ID to string to ensure proper comparison
+      const associationIdString = String(association.id);
+      console.log(`Loading documents for association ID: ${associationIdString}, category: ${activeCategory}, role: ${role}`);
+      
       const filters = {
         query: searchQuery,
         categories: activeCategory === 'all' ? [] : [activeCategory],
         tags: tagFilter ? [tagFilter] : []
       };
       
-      const docs = await getDocuments(filters, association.id, role);
+      const docs = await getDocuments(filters, associationIdString, role);
+      console.log(`Found ${docs.length} documents matching criteria`);
       setDocuments(docs);
     } catch (error) {
       console.error('Error loading documents:', error);
