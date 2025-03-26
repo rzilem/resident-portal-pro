@@ -11,6 +11,7 @@ interface CalendarDisplayProps {
   onSelectDate: (date: Date | undefined) => void;
   events: CalendarEvent[];
   getEventTypeForDay: (date: Date) => CalendarEventType | undefined;
+  onDayDoubleClick?: (date: Date) => void;
 }
 
 const CalendarDisplay = ({
@@ -18,8 +19,15 @@ const CalendarDisplay = ({
   selectedDate,
   onSelectDate,
   events,
-  getEventTypeForDay
+  getEventTypeForDay,
+  onDayDoubleClick
 }: CalendarDisplayProps) => {
+  const handleDayDoubleClick = (date: Date) => {
+    if (onDayDoubleClick) {
+      onDayDoubleClick(date);
+    }
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -53,19 +61,24 @@ const CalendarDisplay = ({
                 return isSameDay(eventStart, date);
               });
               
-              if (hasEvents) {
-                const eventType = getEventTypeForDay(date);
-                const eventClass = eventType ? calendarStyles.eventColors[eventType] : calendarStyles.eventColors.default;
-                
-                return (
-                  <div className="relative flex h-full w-full items-center justify-center">
-                    <div>{date.getDate()}</div>
-                    <div className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${eventClass}`} />
-                  </div>
-                );
-              }
-              
-              return <div>{date.getDate()}</div>;
+              // Add double-click functionality to each day
+              return (
+                <div 
+                  className="relative flex h-full w-full items-center justify-center cursor-pointer"
+                  onDoubleClick={() => handleDayDoubleClick(date)}
+                >
+                  <div>{date.getDate()}</div>
+                  {hasEvents && (
+                    <div 
+                      className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${
+                        getEventTypeForDay(date) 
+                          ? calendarStyles.eventColors[getEventTypeForDay(date)!] 
+                          : calendarStyles.eventColors.default
+                      }`} 
+                    />
+                  )}
+                </div>
+              );
             }
           }}
         />

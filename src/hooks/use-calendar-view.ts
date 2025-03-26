@@ -26,7 +26,8 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     isLoading, 
     createEvent, 
     updateEvent, 
-    deleteEvent 
+    deleteEvent,
+    createWorkflowEvent
   } = useCalendar({
     userId,
     userAccessLevel,
@@ -121,6 +122,7 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     createEvent,
     updateEvent,
     deleteEvent,
+    createWorkflowEvent,
     getEventTypeForDay,
     handlePrevious,
     handleNext,

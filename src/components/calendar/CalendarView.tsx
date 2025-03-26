@@ -1,15 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { CalendarAccessLevel } from '@/types/calendar';
 import { Association } from '@/types/association';
 import CalendarEventDialog from './CalendarEventDialog';
+import QuickEventDialog from './QuickEventDialog';
 import CalendarFilters from './CalendarFilters';
 import EventDetails from './EventDetails';
 import CalendarHeader from './CalendarHeader';
 import EventsList from './EventsList';
 import CalendarDisplay from './CalendarDisplay';
 import { useCalendarView } from '@/hooks/use-calendar-view';
+import { useWorkflows } from '@/hooks/use-workflows';
 
 interface CalendarViewProps {
   userId: string;
@@ -30,6 +32,11 @@ const CalendarView = ({
   activeAssociation,
   onAssociationChange
 }: CalendarViewProps) => {
+  // Get workflows for the association
+  const { workflows = [] } = useWorkflows({ associationId });
+  
+  const [quickEventDate, setQuickEventDate] = useState<Date | null>(null);
+  
   const {
     currentDate,
     selectedDate,
@@ -46,6 +53,7 @@ const CalendarView = ({
     createEvent,
     updateEvent,
     deleteEvent,
+    createWorkflowEvent,
     getEventTypeForDay,
     handlePrevious,
     handleNext,
@@ -65,6 +73,10 @@ const CalendarView = ({
         onAssociationChange(association);
       }
     }
+  };
+  
+  const handleDayDoubleClick = (date: Date) => {
+    setQuickEventDate(date);
   };
   
   return (
@@ -94,6 +106,7 @@ const CalendarView = ({
             onSelectDate={setSelectedDate}
             events={events}
             getEventTypeForDay={getEventTypeForDay}
+            onDayDoubleClick={handleDayDoubleClick}
           />
         </div>
         
@@ -124,6 +137,19 @@ const CalendarView = ({
           onSave={createEvent}
           associationId={associationId}
           userAccessLevel={userAccessLevel}
+        />
+      )}
+      
+      {quickEventDate && (
+        <QuickEventDialog
+          open={!!quickEventDate}
+          onOpenChange={(open) => !open && setQuickEventDate(null)}
+          date={quickEventDate}
+          onSaveEvent={createEvent}
+          onScheduleWorkflow={createWorkflowEvent}
+          associationId={associationId}
+          userAccessLevel={userAccessLevel}
+          workflows={workflows}
         />
       )}
     </div>
