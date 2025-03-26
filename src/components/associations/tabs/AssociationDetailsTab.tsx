@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Association } from '@/types/association';
-import { GeneralInfoCard } from './details';
+import { GeneralInfoCard, AIAnalysisCard } from './details';
 
 interface AssociationDetailsTabProps {
   association: Association;
@@ -10,6 +10,7 @@ interface AssociationDetailsTabProps {
 const AssociationDetailsTab: React.FC<AssociationDetailsTabProps> = ({ association }) => {
   return (
     <div className="mt-4 space-y-4">
+      <AIAnalysisCard association={association} />
       <GeneralInfoCard association={association} />
     </div>
   );
