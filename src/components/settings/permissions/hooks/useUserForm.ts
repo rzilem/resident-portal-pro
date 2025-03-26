@@ -70,7 +70,14 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
   };
 
   const validateEmail = () => {
-    // If we're editing a user, we need to make sure we don't flag their existing email as a duplicate
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    
+    // Check for duplicates, but exclude the current user being edited
     const existingUser = userService.getUserByEmail(formData.email);
     if (existingUser && (!editingUser || existingUser.id !== editingUser.id)) {
       setEmailError('A user with this email already exists');
@@ -84,6 +91,7 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
     setIsSubmitting(true);
     
     try {
+      // Form validation
       if (!formData.name || !formData.email || !formData.role) {
         toast.error("Please fill in all required fields");
         setIsSubmitting(false);
@@ -96,10 +104,11 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
       }
       
       if (editingUser) {
+        // Update existing user
         const updatedUser = userService.updateUser({
           ...editingUser,
           name: formData.name,
-          email: formData.email,
+          email: formData.email.trim(),
           role: formData.role,
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -108,15 +117,17 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
         setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
         toast.success("User updated successfully");
       } else {
+        // Create new user
         const newUser = userService.createUser({
           name: formData.name,
-          email: formData.email,
+          email: formData.email.trim(),
           role: formData.role,
           firstName: formData.firstName,
           lastName: formData.lastName,
         });
         
-        setUsers([...users, newUser]);
+        // Important: Add the new user to the state
+        setUsers(prevUsers => [...prevUsers, newUser]);
         
         await emailService.sendWelcomeEmail(
           newUser.email,
@@ -139,8 +150,12 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
       
       onSuccess();
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error(editingUser ? "Failed to update user" : "Failed to invite user");
+      }
       console.error("Error saving user:", error);
-      toast.error(editingUser ? "Failed to update user" : "Failed to invite user");
     } finally {
       setIsSubmitting(false);
     }

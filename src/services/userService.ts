@@ -59,7 +59,9 @@ export const userService = {
   },
 
   getUserByEmail: (email: string): User | undefined => {
-    return users.find(user => user.email.toLowerCase() === email.toLowerCase());
+    if (!email) return undefined;
+    const normalizedEmail = email.toLowerCase().trim();
+    return users.find(user => user.email.toLowerCase() === normalizedEmail);
   },
 
   updateUser: (updatedUser: User): User => {
@@ -79,13 +81,17 @@ export const userService = {
   },
 
   createUser: (user: Omit<User, 'id'>): User => {
-    // Check if user with this email already exists
-    const existingUser = userService.getUserByEmail(user.email);
+    // Normalize the email by converting to lowercase and trimming
+    const normalizedEmail = user.email.toLowerCase().trim();
+    
+    // Check if user with this email already exists - case insensitive
+    const existingUser = users.find(u => u.email.toLowerCase() === normalizedEmail);
     if (existingUser) {
       throw new Error('A user with this email already exists');
     }
     
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+    // Generate a unique ID with timestamp and random string to make it truly unique
+    const uniqueId = Date.now().toString() + '-' + Math.random().toString(36).substring(2, 11);
     
     // Get default permissions based on role
     const roleDefaults = defaultRolePermissions[user.role as UserRole];
@@ -93,7 +99,8 @@ export const userService = {
     
     const newUser: User = { 
       ...user, 
-      id, 
+      id: uniqueId, 
+      email: normalizedEmail, // Store normalized email
       createdAt: new Date().toISOString(),
       securityLevel,
       status: 'pending' // New users start as pending until they accept the invitation
@@ -104,6 +111,7 @@ export const userService = {
   },
 
   deleteUser: (id: string): void => {
+    // Find the exact user with the matching ID (not by any other attribute)
     const index = users.findIndex(user => user.id === id);
     if (index !== -1) {
       users.splice(index, 1);
