@@ -19,6 +19,19 @@ const QuickContactCard: React.FC<QuickContactCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  // Mock data for manager contacts (in a real app, this would come from the association object)
+  const communityManager = {
+    name: "Jane Smith",
+    phone: association.contactInfo.phone,
+    email: association.contactInfo.email
+  };
+  
+  const assistantManager = {
+    name: "John Davis",
+    phone: "555-123-4567",
+    email: "john.davis@example.com"
+  };
+
   return (
     <Card className="border-2 border-primary/20">
       <CardHeader className="bg-primary/5 pb-3">
@@ -31,29 +44,21 @@ const QuickContactCard: React.FC<QuickContactCardProps> = ({
         <div>
           <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
             <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-            Contact
+            Community Manager
           </h4>
-          <p className="text-sm">{association.contactInfo.phone}</p>
+          <p className="text-sm font-medium">{communityManager.name}</p>
+          <p className="text-sm">{communityManager.phone}</p>
+          <p className="text-sm">{communityManager.email}</p>
         </div>
         
         <div>
           <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
             <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-            Email
+            Assistant Manager
           </h4>
-          <p className="text-sm">{association.contactInfo.email}</p>
-        </div>
-        
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-            Next Dues
-          </h4>
-          <p className="text-sm">
-            {association.settings?.dueDay ? 
-              `${association.settings.dueDay}${getDaySuffix(association.settings.dueDay)} of each ${association.settings?.feesFrequency || 'month'}` : 
-              'No due date set'}
-          </p>
+          <p className="text-sm font-medium">{assistantManager.name}</p>
+          <p className="text-sm">{assistantManager.phone}</p>
+          <p className="text-sm">{assistantManager.email}</p>
         </div>
         
         <div>
