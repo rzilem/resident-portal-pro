@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { FileIcon, PencilIcon, CheckIcon } from 'lucide-react';
 import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
@@ -14,12 +14,14 @@ interface DocumentCategoryListProps {
   categories: DocumentCategory[];
   activeCategory: string;
   onSelectCategory: (categoryId: string) => void;
+  onUpdateCategory?: (updatedCategory: DocumentCategory) => void;
 }
 
 const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
   categories,
   activeCategory,
-  onSelectCategory
+  onSelectCategory,
+  onUpdateCategory
 }) => {
   const { checkCategoryAccess } = useDocumentPermissions();
   const [editMode, setEditMode] = useState(false);
@@ -27,6 +29,11 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
   const [editedCategories, setEditedCategories] = useState<DocumentCategory[]>(categories);
   const [tempName, setTempName] = useState('');
   const [tempAccessLevel, setTempAccessLevel] = useState<DocumentAccessLevel>('all');
+
+  // Update edited categories when props change
+  useEffect(() => {
+    setEditedCategories(categories);
+  }, [categories]);
 
   // Start editing a category
   const handleEditStart = (category: DocumentCategory) => {
@@ -37,13 +44,20 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
 
   // Save the edited category
   const handleSaveEdit = (categoryId: string) => {
-    setEditedCategories(prev => 
-      prev.map(cat => 
-        cat.id === categoryId 
-          ? { ...cat, name: tempName, accessLevel: tempAccessLevel } 
-          : cat
-      )
+    const updatedCategories = editedCategories.map(cat => 
+      cat.id === categoryId 
+        ? { ...cat, name: tempName, accessLevel: tempAccessLevel } 
+        : cat
     );
+    
+    setEditedCategories(updatedCategories);
+    
+    // Find the updated category and pass it to the parent if callback exists
+    const updatedCategory = updatedCategories.find(cat => cat.id === categoryId);
+    if (updatedCategory && onUpdateCategory) {
+      onUpdateCategory(updatedCategory);
+    }
+    
     setEditingCategory(null);
     toast.success("Category updated");
   };

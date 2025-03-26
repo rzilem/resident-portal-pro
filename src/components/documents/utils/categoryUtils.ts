@@ -1,99 +1,68 @@
 
-import { DocumentAccessLevel } from '@/types/documents';
-import { 
-  BarChartIcon, FileIcon, FileTextIcon, 
-  ClipboardIcon, FileSpreadsheetIcon, ShieldIcon,
-  UsersIcon, UserIcon, FolderIcon,
-  LucideIcon
-} from 'lucide-react';
 import React from 'react';
+import { ShieldIcon, LockIcon, Users2Icon, UserCircleIcon } from 'lucide-react';
+import { DocumentAccessLevel } from '@/types/documents';
 
-export const getCategoryIcon = (categoryId: string): React.ReactNode => {
-  switch (categoryId) {
-    case 'financials':
-    case 'financial':
-    case 'monthlyFinancialReports':
-      return React.createElement(BarChartIcon, { className: "h-4 w-4 text-blue-500" });
-    case 'forms':
-      return React.createElement(ClipboardIcon, { className: "h-4 w-4 text-purple-500" });
-    case 'invoiceImages':
-      return React.createElement(FileSpreadsheetIcon, { className: "h-4 w-4 text-green-500" });
-    case 'communityDocuments':
-    case 'communityMeetings':
-    case 'meetings':
-      return React.createElement(FileTextIcon, { className: "h-4 w-4 text-amber-500" });
-    case 'governing':
-      return React.createElement(ShieldIcon, { className: "h-4 w-4 text-red-500" });
-    case 'legal':
-      return React.createElement(ClipboardIcon, { className: "h-4 w-4 text-red-500" });
-    case 'rules':
-      return React.createElement(ShieldIcon, { className: "h-4 w-4 text-indigo-500" });
-    case 'contracts':
-      return React.createElement(FileTextIcon, { className: "h-4 w-4 text-gray-500" });
-    default:
-      return React.createElement(FolderIcon, { className: "h-4 w-4 text-yellow-400" });
-  }
-};
-
-export const getAccessLevelIcon = (accessLevel?: DocumentAccessLevel): React.ReactNode => {
-  switch(accessLevel) {
+// Function to get the appropriate security level icon
+export const getAccessLevelIcon = (accessLevel?: DocumentAccessLevel) => {
+  switch (accessLevel) {
     case 'admin':
-      return React.createElement(ShieldIcon, { className: "h-3 w-3" });
+      return <LockIcon className="h-3 w-3" />;
     case 'management':
-      return React.createElement(UserIcon, { className: "h-3 w-3" });
+      return <UserCircleIcon className="h-3 w-3" />;
     case 'board':
-      return React.createElement(UsersIcon, { className: "h-3 w-3" });
+      return <Users2Icon className="h-3 w-3" />;
     case 'homeowner':
-      return React.createElement(UsersIcon, { className: "h-3 w-3" });
-    case 'all':
+      return <ShieldIcon className="h-3 w-3" />;
     default:
       return null;
   }
 };
 
-export const getAccessLevelLabel = (accessLevel?: DocumentAccessLevel): string => {
-  switch(accessLevel) {
+// Function to get the human-readable label for an access level
+export const getAccessLevelLabel = (accessLevel?: DocumentAccessLevel) => {
+  switch (accessLevel) {
     case 'admin':
       return 'Administrators Only';
     case 'management':
-      return 'Management Staff';
+      return 'Management Staff Only';
     case 'board':
-      return 'Board Members';
+      return 'Board Members & Above';
     case 'homeowner':
-      return 'Homeowners';
+      return 'Homeowners & Above';
     case 'all':
     default:
-      return 'Public';
+      return 'All Users';
   }
 };
 
-export const getSecurityLevelColor = (accessLevel?: DocumentAccessLevel): string => {
-  switch(accessLevel) {
+// Function to get the CSS class for the security level
+export const getSecurityLevelColor = (accessLevel?: DocumentAccessLevel) => {
+  switch (accessLevel) {
     case 'admin':
-      return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:border-red-800 dark:text-red-400';
+      return 'text-red-600 border-red-200 bg-red-50';
     case 'management':
-      return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/20 dark:border-purple-800 dark:text-purple-400';
+      return 'text-amber-600 border-amber-200 bg-amber-50';
     case 'board':
-      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800 dark:text-blue-400';
+      return 'text-blue-600 border-blue-200 bg-blue-50';
     case 'homeowner':
-      return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:border-green-800 dark:text-green-400';
-    case 'all':
+      return 'text-green-600 border-green-200 bg-green-50';
     default:
-      return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800/20 dark:border-gray-700 dark:text-gray-400';
+      return 'text-muted-foreground';
   }
 };
 
-export const getFolderIconColor = (accessLevel?: DocumentAccessLevel): string => {
-  switch(accessLevel) {
+// Function to get folder icon color based on access level
+export const getFolderIconColor = (accessLevel?: DocumentAccessLevel) => {
+  switch (accessLevel) {
     case 'admin':
       return 'text-red-500';
     case 'management':
-      return 'text-purple-500';
+      return 'text-amber-500';
     case 'board':
       return 'text-blue-500';
     case 'homeowner':
       return 'text-green-500';
-    case 'all':
     default:
       return 'text-yellow-400';
   }

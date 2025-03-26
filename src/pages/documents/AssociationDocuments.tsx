@@ -55,6 +55,25 @@ const AssociationDocuments = () => {
     console.log('Refreshing documents list');
     setRefreshTrigger(prev => prev + 1);
   };
+
+  // New function to handle category updates
+  const handleCategoryUpdate = (updatedCategory: DocumentCategory) => {
+    console.log('Category updated:', updatedCategory);
+    
+    // Update the categories array with the updated category
+    setCategories(prevCategories => 
+      prevCategories.map(cat => 
+        cat.id === updatedCategory.id ? updatedCategory : cat
+      )
+    );
+    
+    // In a real application, you would save this to a database here
+    // For now, we're just updating the local state
+    toast({
+      title: "Category Updated",
+      description: `${updatedCategory.name} has been updated successfully`
+    });
+  };
   
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -119,6 +138,7 @@ const AssociationDocuments = () => {
                   categories={categories}
                   activeCategory={activeCategory}
                   onSelectCategory={handleCategorySelect}
+                  onUpdateCategory={handleCategoryUpdate}
                 />
               </CardContent>
             </Card>
