@@ -17,7 +17,7 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
     if (listError) {
       console.error('Error listing buckets:', listError);
       // If we get a permission error here, we'll assume the bucket exists but we can't see it due to permissions
-      if (listError.message?.includes('permission') || listError.status === 403) {
+      if (listError.message?.includes('permission') || listError.message?.includes('403')) {
         console.log('Permission error listing buckets. Assuming documents bucket exists.');
         return true;
       }
@@ -56,8 +56,8 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
           
           // Check if error is due to permissions
           if (error.message && (error.message.includes('permission') || 
-              error.message.includes('policy') || error.status === 400 || 
-              error.status === 403)) {
+              error.message.includes('policy') || 
+              error.message.includes('403'))) {
             console.log('Permission error creating bucket. Will attempt to use it anyway.');
             toast.info("Using existing document storage");
             return true;
@@ -78,7 +78,7 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
         if (verifyError) {
           console.error('Error verifying bucket creation:', verifyError);
           // If we get a permission error, assume it exists
-          if (verifyError.message?.includes('permission') || verifyError.status === 403) {
+          if (verifyError.message?.includes('permission') || verifyError.message?.includes('403')) {
             return true;
           }
           return false;
