@@ -6,6 +6,7 @@ import App from './App'
 import './index.css'
 import './styles/theme.css'
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from '@/contexts/AuthContext'
 
 // Apply theme class to body for more visible theming
 document.body.classList.add('theme-applied');
@@ -21,9 +22,11 @@ if (!rootElement) {
   root.render(
     <React.StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </AuthProvider>
       </ThemeProvider>
     </React.StrictMode>
   );
