@@ -1,17 +1,23 @@
 
 import React from 'react';
 import { TableHeader, TableRow, TableHead } from "@/components/ui/table";
+import { InvoiceColumn } from './InvoiceColumnsSelector';
 
-const InvoiceTableHeader: React.FC = () => {
+interface InvoiceTableHeaderProps {
+  columns: InvoiceColumn[];
+}
+
+const InvoiceTableHeader: React.FC<InvoiceTableHeaderProps> = ({ columns }) => {
+  const visibleColumns = columns.filter(col => col.checked);
+  
   return (
     <TableHeader>
       <TableRow>
-        <TableHead>Invoice #</TableHead>
-        <TableHead>Date</TableHead>
-        <TableHead>Due Date</TableHead>
-        <TableHead>Recipient</TableHead>
-        <TableHead className="text-right">Amount</TableHead>
-        <TableHead>Status</TableHead>
+        {visibleColumns.map(column => (
+          <TableHead key={column.id} className={column.id === 'amount' ? 'text-right' : ''}>
+            {column.label}
+          </TableHead>
+        ))}
         <TableHead className="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>

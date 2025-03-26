@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { FileText } from "lucide-react";
@@ -7,6 +8,8 @@ import InvoiceFilters from './invoices/InvoiceFilters';
 import InvoiceActionButtons from './invoices/InvoiceActionButtons';
 import InvoiceTabs from './invoices/InvoiceTabs';
 import InvoiceTabContent from './invoices/InvoiceTabContent';
+import InvoiceColumnsSelector, { InvoiceColumn } from './invoices/InvoiceColumnsSelector';
+import { useSettings } from '@/hooks/use-settings';
 
 interface InvoiceQueueProps {
   className?: string;
@@ -15,6 +18,31 @@ interface InvoiceQueueProps {
 
 const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('all');
+  const { getUserPreferences } = useSettings();
+  
+  // Define default columns
+  const defaultColumns: InvoiceColumn[] = [
+    { id: 'invoiceNumber', label: 'Invoice #', checked: true },
+    { id: 'date', label: 'Date', checked: true },
+    { id: 'dueDate', label: 'Due Date', checked: true },
+    { id: 'recipient', label: 'Recipient', checked: true },
+    { id: 'amount', label: 'Amount', checked: true },
+    { id: 'status', label: 'Status', checked: true },
+    { id: 'vendor', label: 'Vendor', checked: false },
+    { id: 'association', label: 'Association', checked: false },
+    { id: 'category', label: 'Category', checked: false },
+    { id: 'createdAt', label: 'Created', checked: false }
+  ];
+  
+  // Load columns from user preferences or use defaults
+  const [columns, setColumns] = useState<InvoiceColumn[]>(() => {
+    const userPrefs = getUserPreferences();
+    return userPrefs?.invoiceTableColumns || defaultColumns;
+  });
+  
+  const handleColumnsChange = (updatedColumns: InvoiceColumn[]) => {
+    setColumns(updatedColumns);
+  };
   
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
@@ -26,6 +54,8 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
       status: "sent",
       recipientId: "RES-456",
       recipientType: "resident",
+      vendorName: "N/A",
+      associationName: "Evergreen HOA",
       items: [
         {
           id: "ITEM-001",
@@ -56,6 +86,8 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
       status: "draft",
       recipientId: "RES-789",
       recipientType: "resident",
+      vendorName: "N/A",
+      associationName: "Sunset Estates",
       items: [
         {
           id: "ITEM-003",
@@ -86,6 +118,8 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
       status: "overdue",
       recipientId: "RES-101",
       recipientType: "resident",
+      vendorName: "N/A",
+      associationName: "Mountain View",
       items: [
         {
           id: "ITEM-005",
@@ -108,6 +142,8 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
       status: "paid",
       recipientId: "VEN-001",
       recipientType: "vendor",
+      vendorName: "Evergreen Landscaping",
+      associationName: "Lakeside Community",
       items: [
         {
           id: "ITEM-006",
@@ -139,14 +175,23 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
         <Tabs defaultValue="all" className="space-y-4" onValueChange={setActiveTab}>
           <div className="flex flex-col sm:flex-row sm:justify-between gap-4 items-start sm:items-center">
             <InvoiceTabs activeTab={activeTab} onTabChange={setActiveTab} />
-            <InvoiceActionButtons />
+            <div className="flex items-center gap-2">
+              <InvoiceColumnsSelector 
+                columns={columns} 
+                onChange={handleColumnsChange} 
+              />
+              <InvoiceActionButtons />
+            </div>
           </div>
           
           <InvoiceFilters />
           
           {/* All Invoices Tab */}
           <TabsContent value="all" className="m-0">
-            <InvoiceTabContent invoices={invoices} />
+            <InvoiceTabContent 
+              invoices={invoices} 
+              columns={columns}
+            />
           </TabsContent>
           
           {/* Draft Invoices Tab */}
@@ -155,6 +200,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
               invoices={invoices} 
               status="draft" 
               showCaption={true} 
+              columns={columns}
             />
           </TabsContent>
           
@@ -164,6 +210,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
               invoices={invoices} 
               status="sent" 
               showCaption={true} 
+              columns={columns}
             />
           </TabsContent>
           
@@ -173,6 +220,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
               invoices={invoices} 
               status="overdue" 
               showCaption={true} 
+              columns={columns}
             />
           </TabsContent>
           
@@ -182,6 +230,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
               invoices={invoices} 
               status="paid" 
               showCaption={true} 
+              columns={columns}
             />
           </TabsContent>
         </Tabs>

@@ -1,4 +1,3 @@
-
 import { Association, AssociationSettings } from '@/types/association';
 
 export type { Association };
@@ -71,27 +70,24 @@ export interface FinancialDocument {
 export interface Invoice {
   id: string;
   invoiceNumber: string;
-  number?: string; // For backward compatibility
   date: string;
   dueDate: string;
   amount: number;
   status: string;
   recipientId: string;
   recipientType: 'resident' | 'vendor';
-  customer?: {
-    name: string;
-    id: string;
-  };
-  items?: {
+  vendorName?: string;
+  associationName?: string;
+  items: {
     id: string;
     description: string;
     quantity: number;
     unitPrice: number;
     total: number;
-    category: string;
+    category?: string;
   }[];
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Vendor Payment Types
