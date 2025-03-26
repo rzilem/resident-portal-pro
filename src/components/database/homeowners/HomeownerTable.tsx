@@ -12,7 +12,7 @@ interface HomeownerTableProps {
   sortColumn: keyof Homeowner;
   sortDirection: 'asc' | 'desc';
   handleSort: (column: keyof Homeowner) => void;
-  getStatusVariant: (status: string) => string;
+  getStatusVariant: (status: string) => "default" | "destructive" | "outline" | "secondary";
 }
 
 const HomeownerTable: React.FC<HomeownerTableProps> = ({
