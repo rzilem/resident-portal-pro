@@ -1,307 +1,230 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { CalendarEvent, CalendarEventType, CalendarAccessLevel } from '@/types/calendar';
-import { Workflow } from '@/types/workflow';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Clock, Workflow } from "lucide-react";
+import { CalendarEvent } from "@/types/calendar";
+import { Workflow as WorkflowType } from "@/types/workflow";
+import { format } from "date-fns";
 
 interface QuickEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
   onSaveEvent: (event: Omit<CalendarEvent, 'id'>) => void;
-  onScheduleWorkflow?: (workflowId: string, title: string, start: Date) => void;
+  onScheduleWorkflow: (workflowId: string, title: string, start: Date) => void;
   associationId?: string;
-  userAccessLevel: CalendarAccessLevel;
-  workflows?: Workflow[];
+  userAccessLevel: string;
+  workflows: WorkflowType[];
 }
 
-const eventColors: Record<CalendarEventType, string> = {
-  meeting: '#4f46e5',
-  maintenance: '#f59e0b',
-  holiday: '#ef4444',
-  deadline: '#6366f1',
-  workflow: '#8b5cf6',
-  community: '#10b981',
-  custom: '#6b7280'
-};
-
-const QuickEventDialog = ({ 
-  open, 
-  onOpenChange, 
+const QuickEventDialog = ({
+  open,
+  onOpenChange,
   date,
   onSaveEvent,
   onScheduleWorkflow,
   associationId,
   userAccessLevel,
-  workflows = []
+  workflows
 }: QuickEventDialogProps) => {
   const [activeTab, setActiveTab] = useState('event');
   
   // Event form state
-  const [eventForm, setEventForm] = useState<Omit<CalendarEvent, 'id'>>({
-    title: '',
-    description: '',
-    start: date,
-    end: new Date(date.getTime() + 60 * 60 * 1000), // Default 1 hour duration
-    allDay: false,
-    type: 'meeting',
-    associationId: associationId,
-    accessLevel: 'residents',
-    color: eventColors.meeting
-  });
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventType, setEventType] = useState('meeting');
+  const [eventAccess, setEventAccess] = useState('residents');
   
   // Workflow form state
-  const [workflowForm, setWorkflowForm] = useState({
-    workflowId: '',
-    title: '',
-    date: date
-  });
+  const [selectedWorkflow, setSelectedWorkflow] = useState('');
+  const [workflowTitle, setWorkflowTitle] = useState('');
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEventForm(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSelectChange = (name: string, value: string) => {
-    if (name === 'type') {
-      // Update color based on event type
-      setEventForm(prev => ({ 
-        ...prev, 
-        [name]: value as CalendarEventType,
-        color: eventColors[value as CalendarEventType]
-      }));
-    } else {
-      setEventForm(prev => ({ ...prev, [name]: value }));
-    }
-  };
-  
-  const handleAllDayChange = (checked: boolean) => {
-    setEventForm(prev => ({ ...prev, allDay: checked }));
-  };
-  
-  const handleWorkflowChange = (name: string, value: string) => {
-    setWorkflowForm(prev => ({ ...prev, [name]: value }));
-  };
+  const activeWorkflows = workflows.filter(w => w.status === 'active');
   
   const handleSaveEvent = () => {
-    onSaveEvent(eventForm);
+    if (!eventTitle.trim()) return;
+    
+    onSaveEvent({
+      title: eventTitle,
+      description: eventDescription,
+      start: date,
+      type: eventType as any,
+      accessLevel: eventAccess as any,
+      associationId: associationId
+    });
+    
+    resetForm();
     onOpenChange(false);
   };
   
   const handleScheduleWorkflow = () => {
-    if (onScheduleWorkflow && workflowForm.workflowId && workflowForm.title) {
-      onScheduleWorkflow(workflowForm.workflowId, workflowForm.title, workflowForm.date);
-      onOpenChange(false);
-    }
+    if (!selectedWorkflow || !workflowTitle.trim()) return;
+    
+    onScheduleWorkflow(selectedWorkflow, workflowTitle, date);
+    
+    resetForm();
+    onOpenChange(false);
+  };
+  
+  const resetForm = () => {
+    setEventTitle('');
+    setEventDescription('');
+    setEventType('meeting');
+    setEventAccess('residents');
+    setSelectedWorkflow('');
+    setWorkflowTitle('');
+    setActiveTab('event');
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" /> 
-            {format(date, 'EEEE, MMMM d, yyyy')}
+          <DialogTitle>
+            Add for {format(date, "MMMM d, yyyy")}
           </DialogTitle>
+          <DialogDescription>
+            Quickly add an event or schedule a workflow
+          </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 w-full mb-4">
-            <TabsTrigger value="event">Create Event</TabsTrigger>
-            <TabsTrigger value="workflow" disabled={!onScheduleWorkflow}>Schedule Workflow</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="event" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>Add Event</span>
+            </TabsTrigger>
+            <TabsTrigger value="workflow" className="flex items-center gap-2">
+              <Workflow className="h-4 w-4" />
+              <span>Schedule Workflow</span>
+            </TabsTrigger>
           </TabsList>
           
-          {/* Event Tab */}
-          <TabsContent value="event" className="space-y-4">
-            <div className="space-y-3">
+          <TabsContent value="event" className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Event Title</Label>
+              <Input 
+                id="title" 
+                placeholder="Enter event title" 
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Input 
+                id="description" 
+                placeholder="Enter event description" 
+                value={eventDescription}
+                onChange={(e) => setEventDescription(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Event Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={eventForm.title}
-                  onChange={handleInputChange}
-                  placeholder="Enter event title"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="type">Event Type</Label>
-                <Select
-                  value={eventForm.type}
-                  onValueChange={(value) => handleSelectChange('type', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                <Label htmlFor="eventType">Event Type</Label>
+                <Select value={eventType} onValueChange={setEventType}>
+                  <SelectTrigger id="eventType">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="meeting">Meeting</SelectItem>
                     <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="holiday">Holiday</SelectItem>
-                    <SelectItem value="deadline">Deadline</SelectItem>
                     <SelectItem value="community">Community</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
+                    <SelectItem value="holiday">Holiday</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="allDay" 
-                    checked={eventForm.allDay}
-                    onCheckedChange={handleAllDayChange}
-                  />
-                  <Label htmlFor="allDay">All Day Event</Label>
-                </div>
-              </div>
-              
-              {!eventForm.allDay && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <div className="relative">
-                      <Input
-                        id="startTime"
-                        name="startTime"
-                        type="time"
-                        value={format(eventForm.start, 'HH:mm')}
-                        onChange={(e) => {
-                          const [hours, minutes] = e.target.value.split(':');
-                          const newStart = new Date(date);
-                          newStart.setHours(parseInt(hours), parseInt(minutes));
-                          setEventForm(prev => ({ ...prev, start: newStart }));
-                        }}
-                      />
-                      <Clock className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">End Time</Label>
-                    <div className="relative">
-                      <Input
-                        id="endTime"
-                        name="endTime"
-                        type="time"
-                        value={eventForm.end ? format(eventForm.end, 'HH:mm') : ''}
-                        onChange={(e) => {
-                          const [hours, minutes] = e.target.value.split(':');
-                          const newEnd = new Date(date);
-                          newEnd.setHours(parseInt(hours), parseInt(minutes));
-                          setEventForm(prev => ({ ...prev, end: newEnd }));
-                        }}
-                      />
-                      <Clock className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={eventForm.description || ''}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Enter event description"
-                />
+                <Label htmlFor="eventAccess">Visibility</Label>
+                <Select value={eventAccess} onValueChange={setEventAccess}>
+                  <SelectTrigger id="eventAccess">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="residents">Residents Only</SelectItem>
+                    <SelectItem value="board">Board Only</SelectItem>
+                    <SelectItem value="admin">Admin Only</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            
-            <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveEvent} disabled={!eventForm.title}>
-                Create Event
-              </Button>
-            </DialogFooter>
           </TabsContent>
           
-          {/* Workflow Tab */}
-          <TabsContent value="workflow" className="space-y-4">
-            {workflows.length > 0 ? (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="workflowId">Select Workflow</Label>
-                  <Select
-                    value={workflowForm.workflowId}
-                    onValueChange={(value) => handleWorkflowChange('workflowId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a workflow" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {workflows.map(workflow => (
-                        <SelectItem key={workflow.id} value={workflow.id}>
-                          {workflow.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="workflowTitle">Title</Label>
-                  <Input
-                    id="workflowTitle"
-                    value={workflowForm.title}
-                    onChange={(e) => handleWorkflowChange('title', e.target.value)}
-                    placeholder="Enter a title for this scheduled workflow"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="workflowTime">Time</Label>
-                  <div className="relative">
-                    <Input
-                      id="workflowTime"
-                      type="time"
-                      value={format(workflowForm.date, 'HH:mm')}
-                      onChange={(e) => {
-                        const [hours, minutes] = e.target.value.split(':');
-                        const newDate = new Date(date);
-                        newDate.setHours(parseInt(hours), parseInt(minutes));
-                        setWorkflowForm(prev => ({ ...prev, date: newDate }));
-                      }}
-                    />
-                    <Clock className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-muted-foreground">No workflows available to schedule.</p>
-                <p className="text-sm text-muted-foreground mt-1">Create workflows in the Workflows section first.</p>
-              </div>
-            )}
-            
-            <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleScheduleWorkflow} 
-                disabled={!workflowForm.workflowId || !workflowForm.title || workflows.length === 0}
+          <TabsContent value="workflow" className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="workflow">Select Workflow</Label>
+              <Select 
+                value={selectedWorkflow} 
+                onValueChange={setSelectedWorkflow}
               >
-                Schedule Workflow
-              </Button>
-            </DialogFooter>
+                <SelectTrigger id="workflow">
+                  <SelectValue placeholder="Select a workflow to schedule" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeWorkflows.length > 0 ? (
+                    activeWorkflows.map((workflow) => (
+                      <SelectItem key={workflow.id} value={workflow.id}>
+                        {workflow.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      No active workflows available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="workflowTitle">Scheduled Title</Label>
+              <Input 
+                id="workflowTitle" 
+                placeholder="Enter a title for this scheduled workflow" 
+                value={workflowTitle}
+                onChange={(e) => setWorkflowTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="workflowDate">Date & Time</Label>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground border p-2 rounded-md">
+                <Calendar className="h-4 w-4" />
+                <span>{format(date, "MMMM d, yyyy")}</span>
+                <Clock className="h-4 w-4 ml-2" />
+                <span>{format(date, "h:mm a")}</span>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          {activeTab === 'event' ? (
+            <Button onClick={handleSaveEvent} disabled={!eventTitle.trim()}>
+              Add Event
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleScheduleWorkflow} 
+              disabled={!selectedWorkflow || !workflowTitle.trim()}
+            >
+              Schedule Workflow
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

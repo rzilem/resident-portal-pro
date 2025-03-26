@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { WorkflowStep } from './types';
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { WorkflowStep } from '@/types/workflow';
 import WorkflowStepCard from './WorkflowStepCard';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Pencil } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface WorkflowStepsListProps {
   workflowSteps: WorkflowStep[];
@@ -27,30 +27,31 @@ const WorkflowStepsList = ({
 }: WorkflowStepsListProps) => {
   if (workflowSteps.length === 0) {
     return (
-      <Alert>
-        <AlertDescription>
-          No steps defined yet. Start by adding steps to your workflow.
-        </AlertDescription>
-      </Alert>
+      <div className="text-center py-10 border-2 border-dashed rounded-lg">
+        <p className="text-muted-foreground mb-4">No workflow steps defined yet</p>
+        {!readOnly && (
+          <Button onClick={() => addStep('start')}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add First Step
+          </Button>
+        )}
+      </div>
     );
   }
   
+  // Connection line
+  const ConnectionLine = () => (
+    <div className="flex justify-center my-1">
+      <div className="h-6 w-0.5 bg-primary/30"></div>
+    </div>
+  );
+  
   return (
-    <>
-      {readOnly && (
-        <Alert className="mb-4">
-          <Pencil className="h-4 w-4 mr-2" />
-          <AlertDescription>
-            You are viewing this workflow in read-only mode. Switch to edit mode to make changes.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <ScrollArea className="h-[500px] rounded-md border p-4">
-        <div className="space-y-4">
-          {workflowSteps.map((step, index) => (
+    <ScrollArea className="h-[600px] px-4">
+      <div className="space-y-0 mb-10">
+        {workflowSteps.map((step, index) => (
+          <React.Fragment key={step.id}>
             <WorkflowStepCard
-              key={step.id}
               step={step}
               index={index}
               totalSteps={workflowSteps.length}
@@ -61,10 +62,11 @@ const WorkflowStepsList = ({
               addCondition={addCondition}
               readOnly={readOnly}
             />
-          ))}
-        </div>
-      </ScrollArea>
-    </>
+            {index < workflowSteps.length - 1 && <ConnectionLine />}
+          </React.Fragment>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 

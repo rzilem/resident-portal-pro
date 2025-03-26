@@ -1,5 +1,7 @@
 
-interface EmailWorkflowRule {
+import { v4 as uuid } from 'uuid';
+
+export interface EmailWorkflowRule {
   id: string;
   inboundEmail: string;
   workflowType: string;
@@ -10,201 +12,157 @@ interface EmailWorkflowRule {
   lastModified?: string;
 }
 
-// Mock data storage for email workflow rules
+// Possible workflow types for email rules
+export const workflowTypes = [
+  'General Inquiry',
+  'Maintenance Request',
+  'Violation Report',
+  'Payment Confirmation',
+  'Document Submission',
+  'Board Communication',
+  'Committee Request',
+  'Event Registration',
+  'Architectural Review',
+  'Custom Workflow'
+];
+
+// Mock database for email rules
 let emailWorkflowRules: EmailWorkflowRule[] = [
   {
     id: '1',
-    inboundEmail: 'info@psprop.net',
-    workflowType: 'General Inquiry',
-    association: '',
-    forwardingEmail: 'pspm-2@messages.vantaca.com',
+    inboundEmail: 'maintenance@oakridgecommunity.com',
+    workflowType: 'Maintenance Request',
+    association: 'Oakridge Community',
+    forwardingEmail: 'service@repairteam.com',
     isActive: true,
-    createdAt: '2023-05-10T14:30:00Z'
+    createdAt: '2023-06-15T10:00:00Z'
   },
   {
     id: '2',
-    inboundEmail: 'payments@psprop.net',
-    workflowType: 'Billing Question',
-    association: '',
-    forwardingEmail: 'pspm-3@messages.vantaca.com',
+    inboundEmail: 'violations@pinetreehoa.org',
+    workflowType: 'Violation Report',
+    association: 'Pine Tree HOA',
+    forwardingEmail: 'compliance@pinetreehoa.org',
     isActive: true,
-    createdAt: '2023-05-10T14:30:00Z'
+    createdAt: '2023-07-22T14:30:00Z'
   },
   {
     id: '3',
-    inboundEmail: 'avalon@psprop.net',
-    workflowType: 'General Inquiry',
-    association: 'Avalon Master Community, Inc',
-    forwardingEmail: 'pspm-5@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-05-10T14:30:00Z'
-  },
-  {
-    id: '4',
-    inboundEmail: 'thewoodshoa@psprop.net',
-    workflowType: 'General Inquiry',
-    association: 'The Woods Association of Owners, Inc.',
-    forwardingEmail: 'pspm-8@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-05-10T14:30:00Z'
-  },
-  {
-    id: '5',
-    inboundEmail: 'violations@psprop.net',
-    workflowType: 'General Inquiry',
-    association: '',
-    forwardingEmail: 'pspm-10@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-05-10T14:30:00Z'
-  },
-  {
-    id: '6',
-    inboundEmail: 'communitymanager@hillspoa.com',
-    workflowType: 'Hills General Inquiry',
-    association: 'Hills of Lakeway Property Owners Association Inc',
-    forwardingEmail: 'pspm-11@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-06-12T10:15:00Z'
-  },
-  {
-    id: '7',
-    inboundEmail: 'siena@psprop.net',
-    workflowType: 'General Inquiry',
-    association: 'Siena Master Community, Inc',
-    forwardingEmail: 'pspm-12@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-06-15T09:30:00Z'
-  },
-  {
-    id: '8',
-    inboundEmail: 'architecture@hillspoa.com',
-    workflowType: 'Hills ARC Request',
-    association: 'Hills of Lakeway Property Owners Association Inc',
-    forwardingEmail: 'pspm-13@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-06-18T14:20:00Z'
-  },
-  {
-    id: '9',
-    inboundEmail: 'thehills@psprop.net',
-    workflowType: 'General Inquiry',
-    association: 'Hills of Lakeway Property Owners Association Inc',
-    forwardingEmail: 'pspm-14@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-06-20T11:45:00Z'
-  },
-  {
-    id: '10',
-    inboundEmail: 'invoices@psprop.net',
-    workflowType: 'Invoice',
-    association: '',
-    forwardingEmail: 'pspm-15@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-06-22T16:30:00Z'
-  },
-  {
-    id: '11',
-    inboundEmail: 'compliance@psprop.net',
-    workflowType: 'Violation Inquiry',
-    association: '',
-    forwardingEmail: 'pspm-16@messages.vantaca.com',
-    isActive: true,
-    createdAt: '2023-06-25T13:10:00Z'
+    inboundEmail: 'documents@lakesidecondos.net',
+    workflowType: 'Document Submission',
+    association: 'Lakeside Condominiums',
+    forwardingEmail: 'records@propertymgmt.com',
+    isActive: false,
+    createdAt: '2023-08-05T09:15:00Z',
+    lastModified: '2023-09-10T11:20:00Z'
   }
 ];
 
-// Predefined workflow types
-export const workflowTypes = [
-  'General Inquiry',
-  'Billing Question',
-  'Invoice',
-  'Hills General Inquiry',
-  'Hills ARC Request',
-  'Violation Inquiry',
-  'Maintenance Request',
-  'Board Communication',
-  'Other'
-];
-
 export const emailWorkflowService = {
-  /**
-   * Get all email workflow rules
-   */
-  getAllWorkflowRules: () => {
-    return [...emailWorkflowRules];
+  // Get all email workflow rules
+  getAllRules: () => {
+    return Promise.resolve([...emailWorkflowRules]);
   },
-
-  /**
-   * Get a specific email workflow rule by ID
-   */
-  getWorkflowRuleById: (id: string) => {
-    const rule = emailWorkflowRules.find(rule => rule.id === id);
+  
+  // Get rule by ID
+  getRuleById: (id: string) => {
+    const rule = emailWorkflowRules.find(r => r.id === id);
     if (!rule) {
-      throw new Error(`Email workflow rule with ID ${id} not found`);
+      return Promise.reject(new Error(`Rule with ID ${id} not found`));
     }
-    return { ...rule };
+    return Promise.resolve({...rule});
   },
-
-  /**
-   * Create a new email workflow rule
-   */
-  createWorkflowRule: (rule: Omit<EmailWorkflowRule, 'id' | 'createdAt'>) => {
+  
+  // Create new rule
+  createRule: (rule: Omit<EmailWorkflowRule, 'id' | 'createdAt'>) => {
     const newRule: EmailWorkflowRule = {
       ...rule,
-      id: (emailWorkflowRules.length + 1).toString(),
-      isActive: rule.isActive ?? true,
+      id: uuid(),
       createdAt: new Date().toISOString()
     };
-
+    
     emailWorkflowRules.push(newRule);
-    return { ...newRule };
+    return Promise.resolve(newRule);
   },
-
-  /**
-   * Update an existing email workflow rule
-   */
-  updateWorkflowRule: (id: string, updates: Partial<EmailWorkflowRule>) => {
-    const index = emailWorkflowRules.findIndex(rule => rule.id === id);
+  
+  // Update rule
+  updateRule: (id: string, updates: Partial<Omit<EmailWorkflowRule, 'id' | 'createdAt'>>) => {
+    const index = emailWorkflowRules.findIndex(r => r.id === id);
     if (index === -1) {
-      throw new Error(`Email workflow rule with ID ${id} not found`);
+      return Promise.reject(new Error(`Rule with ID ${id} not found`));
     }
-
-    emailWorkflowRules[index] = {
+    
+    const updatedRule = {
       ...emailWorkflowRules[index],
       ...updates,
       lastModified: new Date().toISOString()
     };
-
-    return { ...emailWorkflowRules[index] };
-  },
-
-  /**
-   * Delete an email workflow rule
-   */
-  deleteWorkflowRule: (id: string) => {
-    const index = emailWorkflowRules.findIndex(rule => rule.id === id);
-    if (index === -1) {
-      throw new Error(`Email workflow rule with ID ${id} not found`);
-    }
-
-    emailWorkflowRules.splice(index, 1);
-    return true;
-  },
-
-  /**
-   * Toggle the active status of a workflow rule
-   */
-  toggleWorkflowRuleStatus: (id: string) => {
-    const index = emailWorkflowRules.findIndex(rule => rule.id === id);
-    if (index === -1) {
-      throw new Error(`Email workflow rule with ID ${id} not found`);
-    }
-
-    emailWorkflowRules[index].isActive = !emailWorkflowRules[index].isActive;
-    emailWorkflowRules[index].lastModified = new Date().toISOString();
     
-    return { ...emailWorkflowRules[index] };
+    emailWorkflowRules[index] = updatedRule;
+    return Promise.resolve(updatedRule);
+  },
+  
+  // Delete rule
+  deleteRule: (id: string) => {
+    const index = emailWorkflowRules.findIndex(r => r.id === id);
+    if (index === -1) {
+      return Promise.reject(new Error(`Rule with ID ${id} not found`));
+    }
+    
+    emailWorkflowRules.splice(index, 1);
+    return Promise.resolve({ success: true });
+  },
+  
+  // Toggle rule status (active/inactive)
+  toggleRuleStatus: (id: string) => {
+    const index = emailWorkflowRules.findIndex(r => r.id === id);
+    if (index === -1) {
+      return Promise.reject(new Error(`Rule with ID ${id} not found`));
+    }
+    
+    const updatedRule = {
+      ...emailWorkflowRules[index],
+      isActive: !emailWorkflowRules[index].isActive,
+      lastModified: new Date().toISOString()
+    };
+    
+    emailWorkflowRules[index] = updatedRule;
+    return Promise.resolve(updatedRule);
+  },
+  
+  // Process an incoming email
+  processIncomingEmail: (email: {
+    from: string;
+    to: string;
+    subject: string;
+    body: string;
+    attachments?: any[];
+  }) => {
+    // Find matching rule
+    const rule = emailWorkflowRules.find(
+      r => r.isActive && r.inboundEmail.toLowerCase() === email.to.toLowerCase()
+    );
+    
+    if (!rule) {
+      return Promise.resolve({
+        processed: false,
+        message: 'No active rule found for this email address'
+      });
+    }
+    
+    // In a real implementation, this would:
+    // 1. Forward the email to the forwarding address
+    // 2. Trigger the appropriate workflow
+    // 3. Process any attachments
+    
+    console.log(`Email processed: ${email.subject}`);
+    console.log(`Workflow type: ${rule.workflowType}`);
+    console.log(`Forwarded to: ${rule.forwardingEmail}`);
+    
+    return Promise.resolve({
+      processed: true,
+      rule,
+      message: `Email processed and forwarded to ${rule.forwardingEmail}`
+    });
   }
 };
-
-export type { EmailWorkflowRule };
