@@ -81,8 +81,9 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
     
     try {
       userService.deleteUser(userToDelete.id);
+      // Important: Only filter out the specific user with matching ID
       setUsers(users.filter(u => u.id !== userToDelete.id));
-      toast.success(`${userToDelete.name} removed`);
+      toast.success(`User deleted successfully`);
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (error) {
@@ -141,6 +142,7 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => openEditDialog(user)}
+                      aria-label={`Edit ${user.name}`}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -148,6 +150,7 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => confirmDeleteUser(user)}
+                      aria-label={`Delete ${user.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -174,6 +177,13 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the user
               account and remove their data from our servers.
+              {userToDelete && (
+                <div className="mt-2 p-2 bg-muted rounded-md">
+                  <p><strong>Name:</strong> {userToDelete.name}</p>
+                  <p><strong>Email:</strong> {userToDelete.email}</p>
+                  <p><strong>ID:</strong> {userToDelete.id}</p>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -85,7 +85,7 @@ export const userService = {
       throw new Error('A user with this email already exists');
     }
     
-    const id = Date.now().toString();
+    const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
     
     // Get default permissions based on role
     const roleDefaults = defaultRolePermissions[user.role as UserRole];

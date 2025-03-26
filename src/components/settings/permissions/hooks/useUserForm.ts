@@ -70,12 +70,11 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
   };
 
   const validateEmail = () => {
-    if (!editingUser) {
-      const existingUser = userService.getUserByEmail(formData.email);
-      if (existingUser) {
-        setEmailError('A user with this email already exists');
-        return false;
-      }
+    // If we're editing a user, we need to make sure we don't flag their existing email as a duplicate
+    const existingUser = userService.getUserByEmail(formData.email);
+    if (existingUser && (!editingUser || existingUser.id !== editingUser.id)) {
+      setEmailError('A user with this email already exists');
+      return false;
     }
     return true;
   };
@@ -87,10 +86,12 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
     try {
       if (!formData.name || !formData.email || !formData.role) {
         toast.error("Please fill in all required fields");
+        setIsSubmitting(false);
         return;
       }
       
       if (!validateEmail()) {
+        setIsSubmitting(false);
         return;
       }
       
