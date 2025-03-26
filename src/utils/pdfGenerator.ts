@@ -19,8 +19,8 @@ export class PdfGenerator extends PDFGeneratorCore {
   }
 }
 
-// Re-export all types and classes
-export { PdfOptions, PDFGeneratorCore };
+// Re-export all types
+export type { PdfOptions };
 export type { ResaleCertificateData };
 export type { CondoQuestionnaireData };
 export type { AccountStatementData };

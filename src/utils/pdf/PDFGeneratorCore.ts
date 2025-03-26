@@ -13,7 +13,7 @@ declare module 'jspdf' {
   }
 }
 
-export { PdfOptions };
+export type { PdfOptions };
 
 export class PDFGeneratorCore {
   protected doc: jsPDF;
