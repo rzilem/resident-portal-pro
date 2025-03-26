@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Building } from 'lucide-react';
@@ -75,7 +76,7 @@ const AssociationProfile = () => {
     poolPermitExpiration: '2024-05-30',
     elevatorInspection: '2024-08-10',
     fireInspection: '2024-07-22',
-    buildingPermit: '2025-03-15',
+    buildingPermit: '2025-03-15', // Keeping for backward compatibility but not displaying it
   };
 
   const hasPool = association.settings?.hasPool;

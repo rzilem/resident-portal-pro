@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shield, AlertTriangle, Droplet, ArrowUpDown, Building } from 'lucide-react';
+import { Shield, AlertTriangle, Droplet, ArrowUpDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/utils/formatters';
 
@@ -10,7 +10,7 @@ interface CriticalDatesCardProps {
     poolPermitExpiration: string;
     elevatorInspection: string;
     fireInspection: string;
-    buildingPermit: string;
+    buildingPermit: string; // Keeping in the interface for backward compatibility
   };
   hasPool: boolean | undefined;
   hasElevator: boolean | undefined;
@@ -72,16 +72,6 @@ const CriticalDatesCard: React.FC<CriticalDatesCardProps> = ({
                 </div>
               </div>
             )}
-            
-            <div className="bg-muted/50 rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-green-500" />
-                <div className="text-muted-foreground text-sm mb-1">Building Permit Expiration</div>
-              </div>
-              <div className="font-medium mt-1">
-                {formatDate(criticalDates.buildingPermit)}
-              </div>
-            </div>
           </div>
         </div>
       </CardContent>
