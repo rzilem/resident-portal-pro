@@ -1,9 +1,49 @@
 
-import { FileText, FileSpreadsheet, FileImage, FileArchive, FileAudio, FileVideo } from 'lucide-react';
+import { FileIcon, FileSpreadsheetIcon, FileTextIcon, FileZipIcon, FileImageIcon, FileVideoIcon, FileAudioIcon, FilePresentationIcon } from 'lucide-react';
 import React from 'react';
 
-// Format date for display
+export const getDocumentIcon = (fileName: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+  
+  switch (extension) {
+    case 'pdf':
+      return <FileTextIcon className="h-4 w-4 text-red-500" />;
+    case 'doc':
+    case 'docx':
+      return <FileTextIcon className="h-4 w-4 text-blue-500" />;
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+      return <FileSpreadsheetIcon className="h-4 w-4 text-green-500" />;
+    case 'ppt':
+    case 'pptx':
+      return <FilePresentationIcon className="h-4 w-4 text-orange-500" />;
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return <FileZipIcon className="h-4 w-4 text-purple-500" />;
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+    case 'bmp':
+      return <FileImageIcon className="h-4 w-4 text-pink-500" />;
+    case 'mp4':
+    case 'avi':
+    case 'mov':
+    case 'wmv':
+      return <FileVideoIcon className="h-4 w-4 text-indigo-500" />;
+    case 'mp3':
+    case 'wav':
+    case 'ogg':
+      return <FileAudioIcon className="h-4 w-4 text-yellow-500" />;
+    default:
+      return <FileIcon className="h-4 w-4 text-gray-500" />;
+  }
+};
+
 export const formatDate = (dateString: string): string => {
+  if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -11,7 +51,6 @@ export const formatDate = (dateString: string): string => {
   });
 };
 
-// Format file size for display
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
   
@@ -19,27 +58,4 @@ export const formatFileSize = (bytes: number): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   
   return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-// Get document icon based on file extension
-export const getDocumentIcon = (fileName: string): JSX.Element => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  
-  if (extension === 'pdf') {
-    return React.createElement(FileText, { className: "h-4 w-4 text-red-500" });
-  } else if (['doc', 'docx'].includes(extension || '')) {
-    return React.createElement(FileText, { className: "h-4 w-4 text-blue-500" });
-  } else if (['xls', 'xlsx', 'csv'].includes(extension || '')) {
-    return React.createElement(FileSpreadsheet, { className: "h-4 w-4 text-green-500" });
-  } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) {
-    return React.createElement(FileImage, { className: "h-4 w-4 text-purple-500" });
-  } else if (['mp3', 'wav', 'ogg'].includes(extension || '')) {
-    return React.createElement(FileAudio, { className: "h-4 w-4 text-yellow-500" });
-  } else if (['mp4', 'webm', 'mov'].includes(extension || '')) {
-    return React.createElement(FileVideo, { className: "h-4 w-4 text-pink-500" });
-  } else if (['zip', 'rar', '7z'].includes(extension || '')) {
-    return React.createElement(FileArchive, { className: "h-4 w-4 text-orange-500" });
-  }
-  
-  return React.createElement(FileText, { className: "h-4 w-4 text-gray-500" });
 };

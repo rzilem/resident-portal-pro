@@ -48,6 +48,60 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          association_id: string
+          category: string | null
+          description: string | null
+          file_size: number
+          file_type: string
+          id: string
+          is_archived: boolean | null
+          is_public: boolean | null
+          last_modified: string | null
+          name: string
+          tags: string[] | null
+          uploaded_by: string | null
+          uploaded_date: string | null
+          url: string
+          version: number | null
+        }
+        Insert: {
+          association_id: string
+          category?: string | null
+          description?: string | null
+          file_size: number
+          file_type: string
+          id?: string
+          is_archived?: boolean | null
+          is_public?: boolean | null
+          last_modified?: string | null
+          name: string
+          tags?: string[] | null
+          uploaded_by?: string | null
+          uploaded_date?: string | null
+          url: string
+          version?: number | null
+        }
+        Update: {
+          association_id?: string
+          category?: string | null
+          description?: string | null
+          file_size?: number
+          file_type?: string
+          id?: string
+          is_archived?: boolean | null
+          is_public?: boolean | null
+          last_modified?: string | null
+          name?: string
+          tags?: string[] | null
+          uploaded_by?: string | null
+          uploaded_date?: string | null
+          url?: string
+          version?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

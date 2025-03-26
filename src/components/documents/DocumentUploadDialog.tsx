@@ -49,10 +49,12 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setIsUploading(true);
     
     try {
+      // Create a unique file name using uuid
       const fileExtension = selectedFile.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExtension}`;
       const filePath = `${activeAssociation.id}/${fileName}`;
 
+      // Upload file to storage
       const { data: storageData, error: storageError } = await supabase.storage
         .from('documents')
         .upload(filePath, selectedFile, {
@@ -66,14 +68,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         return;
       }
 
-      console.log('Document uploaded successfully:', storageData);
+      console.log('Document uploaded successfully to storage:', storageData);
       
-      // Get public URL for the file
-      const { data: publicUrlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-      
-      const publicUrl = publicUrlData?.publicUrl || '';
+      // Get user ID for document ownership
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('User authentication required for uploading documents');
+        return;
+      }
       
       // Save document metadata to the documents table
       const { data: documentData, error: documentError } = await supabase
@@ -86,7 +88,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
           url: filePath,
           category: category,
           tags: tags.length > 0 ? tags : null,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          uploaded_by: user.id,
           association_id: activeAssociation.id,
           is_public: false,
           version: 1
