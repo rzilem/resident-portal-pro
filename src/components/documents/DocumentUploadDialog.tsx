@@ -1,16 +1,18 @@
 
-// First, check if this file exists, if not, let's create a dummy one
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FileUp, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAssociations } from '@/hooks/use-associations';
+import { v4 as uuidv4 } from 'uuid';
 
 interface DocumentUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  refreshDocuments: () => void;
+  refreshDocuments?: () => void;
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
@@ -21,6 +23,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { activeAssociation } = useAssociations();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -34,25 +37,51 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       return;
     }
 
+    if (!activeAssociation) {
+      toast.error('Please select an association first');
+      return;
+    }
+
     setIsUploading(true);
     
     try {
-      // Simulate upload process
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const fileExtension = selectedFile.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExtension}`;
+      const filePath = `${activeAssociation.id}/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Upload error:', error);
+        toast.error(`Failed to upload document: ${error.message}`);
+        return;
+      }
+
+      console.log('Document uploaded successfully:', data);
       
-      console.log('Document uploaded successfully:', {
+      // Here you would typically also save document metadata to your documents table
+      // This is a placeholder - you'll need to implement the actual document record creation
+      const documentRecord = {
         name: selectedFile.name,
-        size: selectedFile.size,
-        type: selectedFile.type
-      });
-      
+        fileSize: selectedFile.size,
+        url: data.path,
+        uploadedBy: 'current_user', // Replace with actual user ID
+        associationId: activeAssociation.id,
+        category: 'uncategorized'  // Default category
+      };
+
       toast.success(`Document "${selectedFile.name}" uploaded successfully`);
       onSuccess();
-      refreshDocuments(); // Ensure we refresh the document list
+      if (refreshDocuments) refreshDocuments();
       onClose();
     } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Failed to upload document. Please try again.');
+      console.error('Unexpected upload error:', error);
+      toast.error('An unexpected error occurred during upload');
     } finally {
       setIsUploading(false);
     }
