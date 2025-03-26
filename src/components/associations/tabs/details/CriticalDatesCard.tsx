@@ -21,6 +21,43 @@ const CriticalDatesCard: React.FC<CriticalDatesCardProps> = ({
   hasPool, 
   hasElevator 
 }) => {
+  // Create an array of dates to display based on conditions
+  const datesToDisplay = [
+    {
+      icon: <Shield className="h-5 w-5 text-blue-500" />,
+      label: "Insurance Expiration",
+      date: criticalDates.insuranceExpiration,
+      condition: true // Always show
+    },
+    {
+      icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
+      label: "Fire Inspection Due",
+      date: criticalDates.fireInspection,
+      condition: true // Always show
+    },
+    {
+      icon: <Droplet className="h-5 w-5 text-cyan-500" />,
+      label: "Pool Permit Expiration",
+      date: criticalDates.poolPermitExpiration,
+      condition: hasPool === true
+    },
+    {
+      icon: <ArrowUpDown className="h-5 w-5 text-violet-500" />,
+      label: "Elevator Inspection Due",
+      date: criticalDates.elevatorInspection,
+      condition: hasElevator === true
+    }
+  ].filter(item => item.condition);
+
+  // Determine grid columns based on number of items
+  const getGridClass = () => {
+    const count = datesToDisplay.length;
+    if (count === 1) return "grid-cols-1";
+    if (count === 2) return "grid-cols-1 md:grid-cols-2";
+    if (count === 3) return "grid-cols-1 md:grid-cols-3";
+    return "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -28,50 +65,18 @@ const CriticalDatesCard: React.FC<CriticalDatesCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-muted/50 rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-500" />
-                <div className="text-muted-foreground text-sm mb-1">Insurance Expiration</div>
-              </div>
-              <div className="font-medium mt-1">
-                {formatDate(criticalDates.insuranceExpiration)}
-              </div>
-            </div>
-            
-            <div className="bg-muted/50 rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                <div className="text-muted-foreground text-sm mb-1">Fire Inspection Due</div>
-              </div>
-              <div className="font-medium mt-1">
-                {formatDate(criticalDates.fireInspection)}
-              </div>
-            </div>
-            
-            {hasPool && (
-              <div className="bg-muted/50 rounded-lg p-4">
+          <div className={`grid ${getGridClass()} gap-4`}>
+            {datesToDisplay.map((item, index) => (
+              <div key={index} className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <Droplet className="h-5 w-5 text-cyan-500" />
-                  <div className="text-muted-foreground text-sm mb-1">Pool Permit Expiration</div>
+                  {item.icon}
+                  <div className="text-muted-foreground text-sm mb-1">{item.label}</div>
                 </div>
                 <div className="font-medium mt-1">
-                  {formatDate(criticalDates.poolPermitExpiration)}
+                  {formatDate(item.date)}
                 </div>
               </div>
-            )}
-            
-            {hasElevator && (
-              <div className="bg-muted/50 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="h-5 w-5 text-violet-500" />
-                  <div className="text-muted-foreground text-sm mb-1">Elevator Inspection Due</div>
-                </div>
-                <div className="font-medium mt-1">
-                  {formatDate(criticalDates.elevatorInspection)}
-                </div>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       </CardContent>
