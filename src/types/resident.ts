@@ -1,3 +1,4 @@
+
 /**
  * Resident type definitions
  */
@@ -68,6 +69,25 @@ export type Tag = {
   createdAt: string;
 }
 
+// New types for violations and ARC requests
+export type Violation = {
+  id: string;
+  date: string;
+  type: string;
+  description: string;
+  status: 'Open' | 'Closed' | 'In Progress';
+  dueDate?: string;
+}
+
+export type ArcApplication = {
+  id: string;
+  submittedDate: string;
+  projectType: string;
+  description: string;
+  status: 'Pending' | 'Approved' | 'Denied' | 'More Info Needed';
+  reviewDate?: string;
+}
+
 export type ResidentProfile = {
   id: number;
   name: string;
@@ -89,6 +109,15 @@ export type ResidentProfile = {
   propertyDetails: PropertyDetails;
   // New tags field
   tags?: Tag[];
+  // New fields for violations and ARC applications
+  violations?: Violation[];
+  arcApplications?: ArcApplication[];
+  // Last contact information
+  lastContact?: {
+    called?: string;
+    visitedOffice?: string;
+    email?: string;
+  };
 }
 
 export type ResidentProfiles = Record<number, ResidentProfile>;
