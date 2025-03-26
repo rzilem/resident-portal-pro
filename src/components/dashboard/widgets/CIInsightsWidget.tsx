@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Bot, ArrowRight, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,9 +11,11 @@ import { useAssociations } from '@/hooks/use-associations';
 
 interface CIInsightsWidgetProps {
   className?: string;
+  size?: 'small' | 'medium' | 'large';
+  cardClass?: string;
 }
 
-const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className }) => {
+const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, cardClass }) => {
   const [expanded, setExpanded] = useState(false);
   const { activeAssociation } = useAssociations();
   
@@ -28,7 +31,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className }) => {
   const displayedAlerts = expanded ? alerts : alerts.slice(0, 2);
   
   return (
-    <Card className={className}>
+    <Card className={cardClass || className}>
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Bot className="h-4 w-4" />

@@ -337,7 +337,7 @@ export const DynamicWidget = ({ type, size, config, cardClass = '' }: DynamicWid
     case 'documents':
       return <DocumentsWidget size={size} cardClass={cardClass} />;
     case 'ci-insights':
-      return <CIInsightsWidget size={size} cardClass={cardClass} />;
+      return <CIInsightsWidget size={size} cardClass={cardClass} className={cardClass} />;
     default:
       return (
         <Card className={cardClass}>

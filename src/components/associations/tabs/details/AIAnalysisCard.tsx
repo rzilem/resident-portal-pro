@@ -1,11 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Analysis } from '@/types/analysis';
+import { Alert } from '@/types/alert';
 import AnalysisAlert from '@/components/alerts/AnalysisAlert';
 import { getAlertsForAssociation } from '@/utils/alerts/alertQueries';
-import { Alert } from '@/types/alert';
 
 interface AIAnalysisCardProps {
   className?: string;
@@ -51,4 +51,3 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ className = '', associa
 };
 
 export default AIAnalysisCard;
-

@@ -46,3 +46,18 @@ export const getAlerts = (filters?: {
 export const getAlertById = (id: string): Alert | undefined => {
   return alertsDatabase.find(alert => alert.id === id);
 };
+
+// Adding the missing functions
+export const getAlertsForAssociation = async (associationId: string): Promise<Alert[]> => {
+  // Filter alerts from the database by association ID
+  return getAlerts({ associationId });
+};
+
+export const getRecentAlerts = (associationId?: string): Alert[] => {
+  // Get recent alerts, optionally filtered by association ID
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const alerts = getAlerts({ associationId });
+  return alerts.filter(alert => new Date(alert.timestamp) >= thirtyDaysAgo);
+};
