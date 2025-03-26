@@ -18,42 +18,57 @@ export const useDocumentsBucket = () => {
     
     try {
       // Set a timeout for the entire check process
-      const timeoutId = setTimeout(() => {
-        console.log('Bucket check timed out, forcing state update');
-        setIsLoading(false);
-        setErrorMessage('Connection to document storage timed out');
-        setBucketReady(false);
-      }, 8000); // Reduced from 10s to 8s for faster feedback
+      const timeoutPromise = new Promise<boolean>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Connection to document storage timed out'));
+        }, 6000); // 6 seconds timeout
+      });
       
       // Check if user is authenticated first
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('User not authenticated, attempting to proceed anyway');
-      }
-
-      // First check if the bucket exists
-      const exists = await ensureDocumentsBucketExists();
       
-      // Clear the timeout since we got a response
-      clearTimeout(timeoutId);
+      // Race the bucket check against the timeout
+      const exists = await Promise.race([
+        ensureDocumentsBucketExists(),
+        timeoutPromise
+      ]).catch(error => {
+        console.log('Bucket check timed out or failed:', error.message);
+        setErrorMessage('Connection to document storage timed out or failed');
+        return false;
+      });
       
       if (exists) {
         // Additionally check if we can actually use the bucket
-        const canAccess = await testBucketAccess();
-        if (canAccess) {
-          console.log('Document storage is ready and accessible');
-          setBucketReady(true);
-          toast.success("Document storage is ready");
-        } else {
-          console.log('Document storage exists but is not accessible');
-          setErrorMessage('Document storage exists but is not accessible');
-          setBucketReady(false);
+        try {
+          const canAccess = await Promise.race([
+            testBucketAccess(),
+            new Promise<boolean>((_, reject) => {
+              setTimeout(() => {
+                reject(new Error('Bucket access test timed out'));
+              }, 5000);
+            })
+          ]);
           
-          if (retryCount < MAX_RETRIES) {
-            toast.info("Attempting to initialize document storage...");
+          if (canAccess) {
+            console.log('Document storage is ready and accessible');
+            setBucketReady(true);
+            toast.success("Document storage is ready");
+            setErrorMessage(null);
           } else {
-            toast.error("Document storage is not accessible. Please contact support.");
+            console.log('Document storage exists but is not accessible');
+            setErrorMessage('Document storage exists but is not accessible');
+            setBucketReady(false);
+            
+            if (retryCount < MAX_RETRIES) {
+              toast.info("Attempting to initialize document storage...");
+            } else {
+              toast.error("Document storage is not accessible. Please check your permissions.");
+            }
           }
+        } catch (accessError) {
+          console.error('Error testing bucket access:', accessError);
+          setErrorMessage('Error testing bucket access: ' + (accessError instanceof Error ? accessError.message : 'Unknown error'));
+          setBucketReady(false);
         }
       } else {
         console.log('Documents bucket does not exist or is not accessible');
@@ -63,7 +78,7 @@ export const useDocumentsBucket = () => {
         if (!isCreating && retryCount < MAX_RETRIES) {
           toast.info("Attempting to initialize document storage...");
         } else if (retryCount >= MAX_RETRIES) {
-          toast.error("Document storage is not available after multiple attempts. Please contact support.");
+          toast.error("Document storage is not available. Please check your Supabase settings.");
         }
       }
       
@@ -81,22 +96,27 @@ export const useDocumentsBucket = () => {
     let isMounted = true;
     
     const checkWithTimeout = async () => {
-      // Set a hard timeout for the initial check
-      const timeoutId = setTimeout(() => {
-        if (isMounted && isLoading) {
-          console.log('Initial bucket check timed out, forcing state update');
-          setIsLoading(false);
-          setErrorMessage('Connection to document storage timed out');
-          setBucketReady(false);
-          toast.error("Document storage connection timed out");
-        }
-      }, 10000); // 10s hard timeout
-      
-      if (isMounted) {
+      try {
         await checkBucket();
+      } catch (error) {
+        console.error('Unhandled error in bucket check:', error);
+        if (isMounted) {
+          setIsLoading(false);
+          setErrorMessage('Unhandled error checking bucket');
+          setBucketReady(false);
+        }
       }
       
-      clearTimeout(timeoutId);
+      // Safety timeout to prevent infinite loading state
+      setTimeout(() => {
+        if (isMounted && isLoading) {
+          console.log('Safety timeout triggered to exit loading state');
+          setIsLoading(false);
+          if (!bucketReady) {
+            setErrorMessage('Document storage check timed out');
+          }
+        }
+      }, 10000);
     };
     
     checkWithTimeout();
@@ -105,7 +125,7 @@ export const useDocumentsBucket = () => {
     return () => {
       isMounted = false;
     };
-  }, [checkBucket]);
+  }, [checkBucket, isLoading, bucketReady]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
@@ -114,21 +134,21 @@ export const useDocumentsBucket = () => {
     setIsCreating(true);
     
     try {
-      // Force bucket creation attempt with timeout
-      const timeoutId = setTimeout(() => {
-        console.log('Bucket creation timed out, forcing state update');
-        setIsCreating(false);
-        setErrorMessage('Bucket creation timed out');
-        setBucketReady(false);
-        setRetryCount(prev => prev + 1);
-      }, 8000); // Reduced from 10s to 8s
-      
-      // Force bucket creation attempt
-      const success = await ensureDocumentsBucketExists(true);
-      clearTimeout(timeoutId);
+      // Force bucket creation with timeout
+      const success = await Promise.race([
+        ensureDocumentsBucketExists(true),
+        new Promise<boolean>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('Bucket creation timed out'));
+          }, 7000);
+        })
+      ]).catch(error => {
+        console.error('Bucket creation failed or timed out:', error.message);
+        return false;
+      });
       
       if (success) {
-        // Also check if we can use it
+        // Check if we can use it
         const canAccess = await testBucketAccess();
         if (canAccess) {
           setBucketReady(true);
@@ -137,12 +157,12 @@ export const useDocumentsBucket = () => {
         } else {
           setBucketReady(false);
           setErrorMessage('Storage initialized but cannot be accessed');
-          toast.error("Document storage exists but cannot be accessed");
+          toast.error("Document storage exists but cannot be accessed. Please check your permissions.");
         }
       } else {
         setBucketReady(false);
         setErrorMessage('Failed to initialize document storage');
-        toast.error("Failed to initialize document storage");
+        toast.error("Failed to initialize document storage. Please check your Supabase settings.");
       }
     } catch (error) {
       console.error('Error during manual bucket creation retry:', error);

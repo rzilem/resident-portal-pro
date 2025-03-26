@@ -30,6 +30,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [category, setCategory] = useState('uncategorized');
   const [tags, setTags] = useState<string[]>([]);
   const [initializing, setInitializing] = useState(true);
+  const [initializationTimeout, setInitializationTimeout] = useState<NodeJS.Timeout | null>(null);
   
   // Hooks
   const { activeAssociation } = useAssociations();
@@ -39,28 +40,43 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   useEffect(() => {
     if (isOpen) {
       resetForm();
+      setInitializing(true);
       
-      // Only run the initial check when the dialog first opens
-      if (initializing) {
-        console.log('Checking storage status on dialog open');
-        checkStorageStatus();
-        
-        // Set a timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-          setInitializing(false);
-        }, 15000); // Give it 15 seconds max
-        
-        return () => clearTimeout(timeoutId);
+      // Clear any existing timeout
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
       }
+      
+      console.log('Checking storage status on dialog open');
+      checkStorageStatus();
+      
+      // Set a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('Initialization timeout reached, exiting loading state');
+        setInitializing(false);
+      }, 10000); // 10 seconds max for initialization
+      
+      setInitializationTimeout(timeoutId);
+      
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+      };
     }
-  }, [isOpen, checkStorageStatus, initializing]);
+  }, [isOpen, checkStorageStatus]);
   
   // Update initializing state when loading completes
   useEffect(() => {
     if (!isLoading && initializing) {
+      console.log('Storage loading complete, setting initializing to false');
       setInitializing(false);
+      
+      // Clear the timeout since loading completed naturally
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
+        setInitializationTimeout(null);
+      }
     }
-  }, [isLoading, initializing]);
+  }, [isLoading, initializing, initializationTimeout]);
 
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -96,12 +112,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       });
       
       if (success) {
+        toast.success(`Document "${selectedFile.name}" uploaded successfully`);
         onSuccess();
         if (refreshDocuments) refreshDocuments();
         resetForm();
         onClose();
       } else {
         console.error('Upload returned false');
+        toast.error('Upload failed. Please try again.');
       }
     } catch (error) {
       console.error('Upload error caught in component:', error);
@@ -124,9 +142,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     retryCheck();
     
     // Set a timeout to exit initializing state if it gets stuck
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setInitializing(false);
-    }, 10000);
+    }, 8000);
+    
+    setInitializationTimeout(timeoutId);
   };
 
   const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady;
@@ -153,7 +173,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
               <span className="text-lg font-medium">Preparing document storage...</span>
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 {initializing && isLoading ? 
-                  "This may take a moment. If it takes too long, you can try refreshing or initializing storage manually." :
+                  "This may take a moment. If it takes too long, you can try refreshing the page." :
                   "Almost ready! Checking storage accessibility..."}
               </p>
             </div>
@@ -168,8 +188,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
                 <div className="flex items-start">
                   <Info className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
                   <p className="text-sm text-amber-800">
-                    Technical note: The system is encountering permission errors when trying to create or access the document storage. 
-                    This may be due to Row Level Security (RLS) policies in Supabase. Please contact an administrator if the problem persists.
+                    The system is having trouble accessing the document storage in Supabase. 
+                    This is usually because of permission issues. Make sure you're logged in, 
+                    or try clicking the button below to initialize storage.
                   </p>
                 </div>
               </div>

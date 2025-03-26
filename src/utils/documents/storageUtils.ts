@@ -16,11 +16,24 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
     
     if (listError) {
       console.error('Error listing buckets:', listError);
-      // If we get a permission error here, we'll assume the bucket exists but we can't see it due to permissions
+      
+      // If we get a permission error here, check if the user is authenticated
       if (listError.message?.includes('permission') || listError.message?.includes('403')) {
-        console.log('Permission error listing buckets. Assuming documents bucket exists.');
+        console.log('Permission error listing buckets. Checking auth status...');
+        
+        // Check auth status
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log('User not authenticated. Authentication is required to use document storage.');
+          toast.error("Authentication required to use document storage");
+          return false;
+        }
+        
+        // User is authenticated but still getting permission errors
+        console.log('User is authenticated but has permission issues. Attempting to use bucket anyway.');
         return true;
       }
+      
       return false;
     }
     
@@ -34,9 +47,9 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-          console.log('User not authenticated, cannot create bucket. Assuming bucket exists.');
-          // For UI purposes, we'll pretend the bucket exists
-          return true;
+          console.log('User not authenticated, cannot create bucket.');
+          toast.error("Authentication required to create document storage");
+          return false;
         }
         
         // Create the documents bucket with public access
@@ -51,6 +64,7 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
           // Check if error is due to bucket already existing
           if (error.message && error.message.includes('already exists')) {
             console.log('Bucket already exists but was not found in initial check');
+            toast.success("Using existing document storage");
             return true;
           }
           
@@ -63,32 +77,21 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
             return true;
           }
           
-          console.log('Attempting to use existing bucket instead...');
+          toast.error(`Failed to create document storage: ${error.message}`);
           return false;
         }
         
         console.log('Documents bucket created successfully');
+        toast.success("Document storage created successfully");
         
         // Add a slight delay to allow bucket creation to propagate
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Verify the bucket was created successfully
-        const { data: verifyBuckets, error: verifyError } = await supabase.storage.listBuckets();
-        
-        if (verifyError) {
-          console.error('Error verifying bucket creation:', verifyError);
-          // If we get a permission error, assume it exists
-          if (verifyError.message?.includes('permission') || verifyError.message?.includes('403')) {
-            return true;
-          }
-          return false;
-        }
-        
-        return verifyBuckets?.some(b => b.name === 'documents') || false;
+        return true;
       } catch (createError) {
         console.error('Exception during bucket creation:', createError);
-        // For UX purposes, we'll assume the bucket exists but we can't access it
-        return true;
+        toast.error('Failed to initialize document storage');
+        return false;
       }
     } else {
       console.log('Documents bucket already exists');
@@ -96,9 +99,16 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
     }
   } catch (error) {
     console.error('Error checking/creating documents bucket:', error);
-    // For better UX, assume the bucket exists but we don't have permission to manage it
-    toast.info("Using existing document storage");
-    return true;
+    
+    // Check if it's an auth-related error
+    if (error instanceof Error && 
+        (error.message.includes('auth') || error.message.includes('token') || error.message.includes('JWT'))) {
+      toast.error("Authentication required to use document storage");
+    } else {
+      toast.error("Failed to access document storage");
+    }
+    
+    return false;
   }
 };
 
@@ -129,6 +139,13 @@ export const testBucketAccess = async (): Promise<boolean> => {
     
     if (error) {
       console.error('Error testing bucket access:', error);
+      
+      // Check if it's an auth-related error
+      if (error.message && 
+          (error.message.includes('auth') || error.message.includes('JWT') || error.message.includes('token'))) {
+        toast.error("Authentication required to access document storage");
+      }
+      
       return false;
     }
     
