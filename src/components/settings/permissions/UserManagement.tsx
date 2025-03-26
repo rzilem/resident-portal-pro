@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
     // Load users on component mount
     const loadUsers = async () => {
       try {
-        const fetchedUsers = userService.getUsers();
+        const fetchedUsers = await userService.getUsers();
         // Ensure all users have unique IDs to avoid rendering issues
         const uniqueUsers = removeDuplicateUsers(fetchedUsers);
         setUsers(uniqueUsers);
@@ -68,17 +69,17 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
     setDialogOpen(true);
   };
   
-  const toggleUserStatus = (id: string) => {
+  const toggleUserStatus = async (id: string) => {
     try {
       const user = users.find(u => u.id === id);
       if (!user) return;
 
       let updatedUser;
       if (user.status === 'active') {
-        updatedUser = userService.deactivateUser(id);
+        updatedUser = await userService.deactivateUser(id);
         toast.success(`${user.name} deactivated`);
       } else {
-        updatedUser = userService.activateUser(id);
+        updatedUser = await userService.activateUser(id);
         toast.success(`${user.name} activated`);
       }
 
@@ -97,11 +98,11 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
     setDeleteDialogOpen(true);
   };
 
-  const deleteUser = () => {
+  const deleteUser = async () => {
     if (!userToDelete) return;
     
     try {
-      userService.deleteUser(userToDelete.id);
+      await userService.deleteUser(userToDelete.id);
       // Important: Only filter out the specific user with matching ID
       setUsers(users.filter(u => u.id !== userToDelete.id));
       toast.success(`User deleted successfully`);

@@ -14,10 +14,10 @@ export function useAuthRole() {
   
   useEffect(() => {
     // Simulate fetching the current user
-    const fetchUser = () => {
+    const fetchUser = async () => {
       setLoading(true);
       try {
-        const user = userService.getUserById(MOCK_CURRENT_USER_ID);
+        const user = await userService.getUserById(MOCK_CURRENT_USER_ID);
         setCurrentUser(user || null);
         if (user) {
           setRole(user.role);

@@ -328,7 +328,7 @@ export const userService = {
   activateUser: async (id: string): Promise<User> => {
     try {
       // Update the profile status in Supabase
-      const { data, error } = await supabase.rpc('update_user_status', {
+      const { error } = await supabase.rpc('update_user_status', {
         user_id: id,
         new_status: 'active'
       });
@@ -374,7 +374,7 @@ export const userService = {
   deactivateUser: async (id: string): Promise<User> => {
     try {
       // Update the profile status in Supabase
-      const { data, error } = await supabase.rpc('update_user_status', {
+      const { error } = await supabase.rpc('update_user_status', {
         user_id: id,
         new_status: 'inactive'
       });

@@ -11,9 +11,9 @@ const PermissionSettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    const loadUsers = () => {
+    const loadUsers = async () => {
       try {
-        const fetchedUsers = userService.getUsers();
+        const fetchedUsers = await userService.getUsers();
         
         // Deduplicate users by email (keep most recent)
         const emailMap = new Map<string, User>();
