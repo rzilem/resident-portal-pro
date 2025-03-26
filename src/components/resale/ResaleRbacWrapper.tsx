@@ -39,6 +39,8 @@ const ResaleRbacWrapper = ({
     ? permissionParts.slice(0, permissionParts.length - 1).join('.') 
     : module;
   
+  // Fix the type issue by casting the permission string to the Permission type
+  // Since we've defined Permission to include string, this should work properly
   const authorized = hasPermission(actualModule, actualPermission as Permission);
   
   if (!authorized) {
