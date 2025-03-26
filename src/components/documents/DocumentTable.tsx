@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -173,6 +172,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                 onView={handleViewDocument}
                 onDownload={handleDownloadDocument}
                 onDelete={handleDeleteDocument}
+                refreshDocuments={refreshDocuments}
               />
             ))}
           </TableBody>

@@ -41,13 +41,15 @@ interface DocumentActionsProps {
   onView: (document: DocumentFile) => void;
   onEdit?: (document: DocumentFile) => void;
   onDelete?: (document: DocumentFile) => void;
+  refreshDocuments?: () => void;  // Add refreshDocuments prop
 }
 
 const DocumentActions: React.FC<DocumentActionsProps> = ({
   document,
   onView,
   onEdit,
-  onDelete
+  onDelete,
+  refreshDocuments  // Add refreshDocuments to destructuring
 }) => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
@@ -70,6 +72,7 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
     // Simulate sending an invite
     toast.success(`Invite sent to ${shareEmail}`);
     setShareEmail('');
+    if (refreshDocuments) refreshDocuments();  // Refresh after sharing
   };
   
   const copyShareLink = () => {
@@ -87,6 +90,7 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
     if (onDelete) {
       // In a real app, this would show a confirmation dialog
       onDelete(document);
+      if (refreshDocuments) refreshDocuments();  // Refresh after delete
     }
   };
   
@@ -113,7 +117,10 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
           </DropdownMenuItem>
           
           {onEdit && (
-            <DropdownMenuItem onClick={() => onEdit(document)}>
+            <DropdownMenuItem onClick={() => { 
+              onEdit(document);
+              if (refreshDocuments) refreshDocuments();  // Refresh after edit
+            }}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>

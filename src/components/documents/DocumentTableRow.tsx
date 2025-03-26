@@ -15,13 +15,15 @@ interface DocumentTableRowProps {
   onView: (doc: DocumentFile) => void;
   onDownload: (doc: DocumentFile) => void;
   onDelete: (doc: DocumentFile) => void;
+  refreshDocuments?: () => void;  // Add refreshDocuments prop
 }
 
 const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
   doc,
   onView,
   onDownload,
-  onDelete
+  onDelete,
+  refreshDocuments  // Add refreshDocuments to destructuring
 }) => {
   return (
     <TableRow>
@@ -76,6 +78,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
             document={doc}
             onView={onView}
             onDelete={onDelete}
+            refreshDocuments={refreshDocuments}  // Pass refreshDocuments prop
           />
         </div>
       </TableCell>

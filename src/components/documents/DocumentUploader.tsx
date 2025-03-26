@@ -5,7 +5,11 @@ import { Upload } from "lucide-react";
 import { useAssociations } from '@/hooks/use-associations';
 import { toast } from 'sonner';
 
-const DocumentUploader: React.FC = () => {
+interface DocumentUploaderProps {
+  refreshDocuments?: () => void;
+}
+
+const DocumentUploader: React.FC<DocumentUploaderProps> = ({ refreshDocuments }) => {
   const { activeAssociation } = useAssociations();
 
   const handleUpload = () => {
@@ -17,6 +21,14 @@ const DocumentUploader: React.FC = () => {
     // In a real app, this would open a file upload dialog
     // For now, just show a toast
     toast.success(`Uploading document to ${activeAssociation.name}`);
+    
+    // Simulate successful upload after a delay
+    setTimeout(() => {
+      toast.success(`Document uploaded successfully to ${activeAssociation.name}`);
+      if (refreshDocuments) {
+        refreshDocuments();
+      }
+    }, 1500);
   };
 
   return (
