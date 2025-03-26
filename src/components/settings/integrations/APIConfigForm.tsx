@@ -1,31 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage, 
-  FormDescription 
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Check, X } from "lucide-react";
+import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
+import { z } from "zod";
 
-interface APIFieldDefinition {
-  name: string;
-  label: string;
-  type: 'text' | 'password' | 'url' | 'textarea';
-  description?: string;
-  placeholder?: string;
-  required?: boolean;
-}
+// Import the new components
+import APIFormField, { APIFieldDefinition } from './form/FormField';
+import FormActions from './form/FormActions';
+import createFormSchema from './form/SchemaBuilder';
 
 export interface APIConfigFormProps {
   integrationId: string;
@@ -47,41 +31,8 @@ export const APIConfigForm: React.FC<APIConfigFormProps> = ({
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Dynamically create schema based on fields
-  const createFormSchema = () => {
-    const shape: Record<string, z.ZodTypeAny> = {};
-    
-    fields.forEach(field => {
-      let validator: z.ZodTypeAny;
-      
-      if (field.type === 'url') {
-        validator = z.string().url({ message: "Please enter a valid URL" });
-      } else {
-        validator = z.string();
-      }
-      
-      if (field.required) {
-        if (field.type === 'url') {
-          // For URL fields that are required
-          validator = z.string()
-            .min(1, { message: `${field.label} is required` })
-            .url({ message: "Please enter a valid URL" });
-        } else {
-          // For other types that are required
-          validator = z.string().min(1, { message: `${field.label} is required` });
-        }
-      } else {
-        // Optional fields
-        validator = z.string().optional();
-      }
-      
-      shape[field.name] = validator;
-    });
-    
-    return z.object(shape);
-  };
-
-  const formSchema = createFormSchema();
+  // Create form schema based on fields
+  const formSchema = createFormSchema(fields);
   type FormSchema = z.infer<typeof formSchema>;
 
   const form = useForm<FormSchema>({
@@ -138,63 +89,19 @@ export const APIConfigForm: React.FC<APIConfigFormProps> = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-4">
         {fields.map((field) => (
-          <FormField
+          <APIFormField 
             key={field.name}
-            control={form.control}
-            name={field.name as any}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label}</FormLabel>
-                <FormControl>
-                  {field.type === 'textarea' ? (
-                    <Textarea
-                      placeholder={field.placeholder}
-                      {...formField}
-                    />
-                  ) : (
-                    <Input
-                      type={field.type}
-                      placeholder={field.placeholder}
-                      {...formField}
-                    />
-                  )}
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
+            field={field} 
+            form={form}
           />
         ))}
 
-        <div className="flex justify-between mt-6">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-            className="gap-2"
-          >
-            <X className="h-4 w-4" /> Cancel
-          </Button>
-          
-          <div className="space-x-2">
-            {testConnection && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleTestConnection}
-                disabled={isTesting}
-              >
-                {isTesting ? "Testing..." : "Test Connection"}
-              </Button>
-            )}
-            
-            <Button type="submit" disabled={isSaving} className="gap-2">
-              <Check className="h-4 w-4" /> {isSaving ? "Saving..." : "Save Configuration"}
-            </Button>
-          </div>
-        </div>
+        <FormActions 
+          onCancel={onCancel}
+          isSaving={isSaving}
+          isTesting={isTesting}
+          onTestConnection={testConnection ? handleTestConnection : undefined}
+        />
       </form>
     </Form>
   );
