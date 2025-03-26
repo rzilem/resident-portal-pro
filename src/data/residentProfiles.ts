@@ -42,6 +42,22 @@ const newResidentTag: Tag = {
   createdAt: '2023-02-15'
 };
 
+const violationTag: Tag = {
+  id: uuidv4(),
+  type: 'delinquent',
+  label: 'Landscaping Violation',
+  color: '#ea580c', // orange-600
+  createdAt: '2023-06-15'
+};
+
+const arcPendingTag: Tag = {
+  id: uuidv4(),
+  type: 'custom',
+  label: 'ARC Pending',
+  color: '#7c3aed', // violet-600
+  createdAt: '2023-06-15'
+};
+
 // Mock data for resident profiles
 const residentProfiles: ResidentProfiles = {
   101: {
@@ -98,7 +114,7 @@ const residentProfiles: ResidentProfiles = {
       taxDistrict: 'North Seattle',
       taxId: 'TX-10145-A'
     },
-    tags: [boardMemberTag, newResidentTag, delinquentTag], // Added delinquent tag
+    tags: [boardMemberTag, newResidentTag, delinquentTag, violationTag, arcPendingTag], // Added delinquent tag
     violations: [
       {
         id: uuidv4(),
