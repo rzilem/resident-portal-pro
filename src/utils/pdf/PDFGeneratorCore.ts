@@ -1,6 +1,10 @@
 
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { PdfOptions } from './types/PdfTypes';
+import { PdfFooterManager } from './utils/PdfFooterManager';
+import { PdfTextManager } from './utils/PdfTextManager';
+import { PdfElementManager } from './utils/PdfElementManager';
 
 // Extend the jsPDF type to include autoTable
 declare module 'jspdf' {
@@ -9,23 +13,7 @@ declare module 'jspdf' {
   }
 }
 
-export interface PdfOptions {
-  title?: string;
-  filename?: string;
-  author?: string;
-  subject?: string;
-  keywords?: string;
-  creator?: string;
-  orientation?: 'portrait' | 'landscape';
-  unit?: 'pt' | 'mm' | 'cm' | 'in';
-  format?: 'a4' | 'letter' | 'legal' | [number, number];
-  compress?: boolean;
-  footer?: {
-    text: string;
-    fontSize?: number;
-    color?: string;
-  };
-}
+export { PdfOptions };
 
 export class PDFGeneratorCore {
   protected doc: jsPDF;
@@ -81,59 +69,29 @@ export class PDFGeneratorCore {
   }
   
   private addFooter() {
-    const { text, fontSize = 8, color = '#666666' } = this.options.footer;
-    
-    const addFooterToPages = () => {
-      const pageCount = this.doc.getNumberOfPages();
-      
-      for (let i = 1; i <= pageCount; i++) {
-        this.doc.setPage(i);
-        this.doc.setFontSize(fontSize);
-        this.doc.setTextColor(color);
-        this.doc.text(
-          text,
-          this.pageWidth / 2,
-          this.pageHeight - 10,
-          { align: 'center' }
-        );
-        this.doc.text(
-          `Page ${i} of ${pageCount}`,
-          this.pageWidth - this.marginRight,
-          this.pageHeight - 10,
-          { align: 'right' }
-        );
-      }
-    };
-    
-    // Set up event handler for adding footer when document is complete
-    this.doc.internal.events.subscribe('addPage', function() {
-      addFooterToPages();
-    });
-    
-    // Add footer to the first page
-    addFooterToPages();
+    PdfFooterManager.addFooter(
+      this.doc,
+      this.options.footer,
+      this.pageWidth,
+      this.pageHeight,
+      this.marginRight
+    );
   }
   
   addTitle(text: string, fontSize: number = 18) {
-    this.doc.setFontSize(fontSize);
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text(text, this.pageWidth / 2, this.currentY, { align: 'center' });
+    this.currentY = PdfTextManager.addTitle(this.doc, text, this.pageWidth, this.currentY, fontSize);
     this.currentY += this.lineHeight;
     return this;
   }
   
   addSubtitle(text: string, fontSize: number = 14) {
-    this.doc.setFontSize(fontSize);
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text(text, this.marginLeft, this.currentY);
+    this.currentY = PdfTextManager.addSubtitle(this.doc, text, this.marginLeft, this.currentY, fontSize);
     this.currentY += this.lineHeight;
     return this;
   }
   
   addText(text: string, fontSize: number = 10) {
-    this.doc.setFontSize(fontSize);
-    this.doc.setFont('helvetica', 'normal');
-    this.doc.text(text, this.marginLeft, this.currentY);
+    this.currentY = PdfTextManager.addText(this.doc, text, this.marginLeft, this.currentY, fontSize);
     this.currentY += this.lineHeight;
     return this;
   }
@@ -144,10 +102,11 @@ export class PDFGeneratorCore {
   }
   
   addHorizontalLine() {
-    this.doc.line(
+    this.currentY = PdfElementManager.addHorizontalLine(
+      this.doc,
       this.marginLeft,
-      this.currentY,
-      this.pageWidth - this.marginRight,
+      this.marginRight,
+      this.pageWidth,
       this.currentY
     );
     this.currentY += this.lineHeight / 2;
@@ -155,16 +114,14 @@ export class PDFGeneratorCore {
   }
   
   addTable(headers: string[], data: any[][]) {
-    this.doc.autoTable({
-      startY: this.currentY,
-      head: [headers],
-      body: data,
-      margin: { left: this.marginLeft, right: this.marginRight },
-      styles: { overflow: 'linebreak' },
-      headStyles: { fillColor: [66, 66, 66] }
-    });
-    
-    this.currentY = (this.doc as any).lastAutoTable.finalY + 10;
+    this.currentY = PdfElementManager.addTable(
+      this.doc,
+      headers,
+      data,
+      this.marginLeft,
+      this.marginRight,
+      this.currentY
+    );
     return this;
   }
   
@@ -174,8 +131,8 @@ export class PDFGeneratorCore {
     const _width = width || 40;
     const _height = height || 20;
     
-    this.doc.addImage(imgData, 'PNG', _x, _y, _width, _height);
-    this.currentY += _height + this.lineHeight;
+    this.currentY = PdfElementManager.addLogo(this.doc, imgData, _x, _y, _width, _height);
+    this.currentY += this.lineHeight;
     return this;
   }
   
@@ -183,12 +140,8 @@ export class PDFGeneratorCore {
     const _x = x || this.marginLeft;
     const _y = y || this.currentY;
     
-    this.doc.setFontSize(10);
-    this.doc.text(label, _x, _y);
-    this.doc.line(_x, _y + 5, _x + 60, _y + 5);
-    this.doc.text('Date: _____________', _x + 80, _y);
-    
-    this.currentY = _y + this.lineHeight * 2;
+    this.currentY = PdfElementManager.addSignatureField(this.doc, label, _x, _y);
+    this.currentY += this.lineHeight * 2;
     return this;
   }
   
