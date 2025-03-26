@@ -14,6 +14,7 @@ import AssociationAmenities from '@/components/associations/AssociationAmenities
 import AssociationTabs from '@/components/associations/AssociationTabs';
 import { CriticalDatesCard } from '@/components/associations/tabs/details';
 import { QuickContactCard } from '@/components/associations/tabs/details';
+import CalendarView from '@/components/calendar/CalendarView';
 
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,6 +83,10 @@ const AssociationProfile = () => {
   const hasPool = association.settings?.hasPool;
   const hasElevator = association.settings?.hasElevator;
 
+  // Example user and access level for calendar
+  const userId = 'current-user';
+  const userAccessLevel = 'admin' as const;
+
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-6">
@@ -104,10 +109,23 @@ const AssociationProfile = () => {
           </div>
         </div>
 
+        {/* Association Calendar Section */}
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Association Calendar</h2>
+          <div className="bg-white rounded-md shadow">
+            <CalendarView 
+              userId={userId}
+              userAccessLevel={userAccessLevel}
+              associationId={association.id}
+              isGlobalAdmin={false}
+            />
+          </div>
+        </div>
+
         <AssociationTabs 
           association={association} 
           properties={properties} 
-          className="mt-0" // Remove top margin
+          className="mt-6" 
         />
       </div>
     </div>
