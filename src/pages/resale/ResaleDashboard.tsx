@@ -9,6 +9,8 @@ import ResaleCertificate from '@/components/resale/ResaleCertificate';
 import CondoQuestionnaire from '@/components/resale/CondoQuestionnaire';
 import PropertyInspection from '@/components/resale/PropertyInspection';
 import AccountStatement from '@/components/resale/AccountStatement';
+import TrecForms from '@/components/resale/TrecForms';
+import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
 
 const ResaleDashboard = () => {
   const navigate = useNavigate();
@@ -23,14 +25,16 @@ const ResaleDashboard = () => {
               Streamline the resale process for HOA and condominium properties in Texas
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/resale/wizard')}
-            className="flex items-center gap-2"
-          >
-            <span>Start Wizard</span>
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <ResaleRbacWrapper requiredPermission="create">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/resale/wizard')}
+              className="flex items-center gap-2"
+            >
+              <span>Start Wizard</span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </ResaleRbacWrapper>
         </div>
 
         {/* Status Overview Cards */}
@@ -77,7 +81,7 @@ const ResaleDashboard = () => {
         </div>
 
         <Tabs defaultValue="certificate">
-          <TabsList className="grid w-full max-w-4xl grid-cols-4">
+          <TabsList className="grid w-full max-w-5xl grid-cols-5">
             <TabsTrigger value="certificate" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Resale Certificate</span>
@@ -98,22 +102,41 @@ const ResaleDashboard = () => {
               <span className="hidden sm:inline">Account Statement</span>
               <span className="sm:hidden">Statement</span>
             </TabsTrigger>
+            <TabsTrigger value="trec-forms" className="flex items-center gap-2">
+              <FileCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">TREC Forms</span>
+              <span className="sm:hidden">Forms</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="certificate" className="mt-4">
-            <ResaleCertificate />
+            <ResaleRbacWrapper requiredPermission="view">
+              <ResaleCertificate />
+            </ResaleRbacWrapper>
           </TabsContent>
           
           <TabsContent value="questionnaire" className="mt-4">
-            <CondoQuestionnaire />
+            <ResaleRbacWrapper requiredPermission="view">
+              <CondoQuestionnaire />
+            </ResaleRbacWrapper>
           </TabsContent>
           
           <TabsContent value="inspection" className="mt-4">
-            <PropertyInspection />
+            <ResaleRbacWrapper requiredPermission="view">
+              <PropertyInspection />
+            </ResaleRbacWrapper>
           </TabsContent>
           
           <TabsContent value="statement" className="mt-4">
-            <AccountStatement />
+            <ResaleRbacWrapper requiredPermission="view">
+              <AccountStatement />
+            </ResaleRbacWrapper>
+          </TabsContent>
+          
+          <TabsContent value="trec-forms" className="mt-4">
+            <ResaleRbacWrapper requiredPermission="view">
+              <TrecForms />
+            </ResaleRbacWrapper>
           </TabsContent>
         </Tabs>
       </div>

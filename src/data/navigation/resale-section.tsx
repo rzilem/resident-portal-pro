@@ -1,5 +1,5 @@
 
-import { FileText, ClipboardList, Calendar, DollarSign, FileSpreadsheet } from 'lucide-react';
+import { FileText, ClipboardList, Calendar, DollarSign, FileSpreadsheet, FileCheck } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getResaleSection = (currentPath: string): NavItem => ({
@@ -31,6 +31,12 @@ export const getResaleSection = (currentPath: string): NavItem => ({
       icon: DollarSign,
       href: "/resale/statements",
       active: currentPath === "/resale/statements"
+    },
+    {
+      label: "TREC Forms",
+      icon: FileCheck,
+      href: "/resale/trec-forms",
+      active: currentPath === "/resale/trec-forms"
     }
   ]
 });
