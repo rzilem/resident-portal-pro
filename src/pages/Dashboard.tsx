@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Widget } from '@/types/dashboard';
 import { useSettings } from '@/hooks/use-settings';
 import { toast } from 'sonner';
@@ -45,17 +46,31 @@ const Dashboard = () => {
           },
           {
             id: 'widget-3',
-            type: 'weather',
-            title: 'Weather',
-            size: 'small',
+            type: 'financials',
+            title: 'Financial Snapshot',
+            size: 'medium',
             position: 2,
           },
           {
             id: 'widget-4',
             type: 'tasks',
             title: 'Tasks',
-            size: 'small',
+            size: 'medium',
             position: 3,
+          },
+          {
+            id: 'widget-5',
+            type: 'calendar',
+            title: 'Calendar',
+            size: 'medium',
+            position: 4,
+          },
+          {
+            id: 'widget-6',
+            type: 'notifications',
+            title: 'Notifications',
+            size: 'small',
+            position: 5,
           },
         ]);
       }
@@ -107,22 +122,10 @@ const Dashboard = () => {
         />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {dashboardWidgets.filter(widget => !widget.hidden).map((widget) => (
-          <div
-            key={widget.id}
-            className={widget.size === 'large' ? 'col-span-2' : 'col-span-1'}
-          >
-            {/* Widget content would be rendered here */}
-            <Card className={cardClass}>
-              <CardContent className="p-4">
-                <h3 className="font-medium mb-2">{widget.title}</h3>
-                <p className="text-muted-foreground text-sm">Widget content for {widget.type}</p>
-              </CardContent>
-            </Card>
-          </div>
-        ))}
-      </div>
+      <DashboardLayout 
+        widgets={dashboardWidgets}
+        columns={columns}
+      />
     </div>
   );
 };
