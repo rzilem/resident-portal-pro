@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -94,7 +95,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
               <Badge variant="outline" className="capitalize bg-gray-100">
                 <Tag className="h-3 w-3 mr-1" /> {event.type}
               </Badge>
-              {event.isRecurring && (
+              {event.recurring && (
                 <Badge variant="outline" className="bg-amber-100">
                   <CalendarOff className="h-3 w-3 mr-1" /> Recurring
                 </Badge>

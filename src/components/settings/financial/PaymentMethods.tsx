@@ -8,6 +8,19 @@ import { CreditCard, CheckSquare, Building, Plus } from "lucide-react";
 import { Association } from '@/components/settings/associations/types';
 import { toast } from 'sonner';
 
+interface PaymentMethodConfig {
+  enabled: boolean;
+  fee: number;
+  feeType: 'percentage' | 'flat';
+}
+
+interface PaymentMethods {
+  creditCard: PaymentMethodConfig;
+  ach: PaymentMethodConfig;
+  check: PaymentMethodConfig;
+  [key: string]: PaymentMethodConfig;
+}
+
 interface PaymentMethodsProps {
   association: Association;
   handleSettingChange: (key: string, value: any) => Promise<void>;
@@ -19,7 +32,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
   handleSettingChange, 
   getSetting 
 }) => {
-  const [paymentMethods, setPaymentMethods] = useState(() => {
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethods>(() => {
     return getSetting('paymentMethods', {
       creditCard: { enabled: true, fee: 2.9, feeType: 'percentage' },
       ach: { enabled: true, fee: 0.5, feeType: 'flat' },

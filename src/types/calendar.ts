@@ -38,6 +38,9 @@ export interface CalendarEvent {
   };
   workflowId?: string;
   metadata?: Record<string, any>;
+  
+  // Add missing properties
+  attendees?: string[];
 }
 
 export interface CalendarViewSettings {
