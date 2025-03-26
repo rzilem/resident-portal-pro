@@ -1,4 +1,3 @@
-
 /**
  * Resident type definitions
  */
@@ -58,8 +57,8 @@ export type Document = {
   size: string;
 }
 
-// New tag types for homeowners
-export type TagType = 'board' | 'committee' | 'delinquent' | 'custom';
+// Updated tag types to include association-specific types
+export type TagType = 'board' | 'committee' | 'delinquent' | 'custom' | 'property' | 'amenity' | 'service';
 
 export type Tag = {
   id: string;

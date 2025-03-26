@@ -125,56 +125,56 @@ const RESIDENT_DEFAULT_TAGS: Tag[] = [
 const ASSOCIATION_DEFAULT_TAGS: Tag[] = [
   {
     id: uuidv4(),
-    type: 'property',
+    type: 'property' as TagType,
     label: 'On-site',
     color: '#2563eb',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'property',
+    type: 'property' as TagType,
     label: 'Off-site',
     color: '#4f46e5',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'amenity',
+    type: 'amenity' as TagType,
     label: 'Pool',
     color: '#0ea5e9',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'amenity',
+    type: 'amenity' as TagType,
     label: 'Gym',
     color: '#16a34a',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'amenity',
+    type: 'amenity' as TagType,
     label: 'Tennis Court',
     color: '#ca8a04',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'service',
+    type: 'service' as TagType,
     label: 'Gate',
     color: '#9333ea',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'service',
+    type: 'service' as TagType,
     label: 'Pedestrian Gate',
     color: '#7c3aed',
     createdAt: '2023-01-01'
   },
   {
     id: uuidv4(),
-    type: 'service',
+    type: 'service' as TagType,
     label: 'Security',
     color: '#dc2626',
     createdAt: '2023-01-01'
@@ -211,7 +211,7 @@ const TagManagement: React.FC<TagManagementProps> = ({
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   
   // Set default type based on scope
-  const defaultType = isAssociation ? 'property' : 'custom';
+  const defaultType = isAssociation ? ('property' as TagType) : 'custom';
   
   const [newTag, setNewTag] = useState<Partial<Tag>>({
     type: defaultType,
@@ -342,7 +342,7 @@ const TagManagement: React.FC<TagManagementProps> = ({
                 <div className="space-y-2">
                   <Label htmlFor="tag-type">Tag Type</Label>
                   <Select 
-                    value={newTag.type}
+                    value={newTag.type as string}
                     onValueChange={(value) => setNewTag({ ...newTag, type: value as TagType })}
                   >
                     <SelectTrigger>
