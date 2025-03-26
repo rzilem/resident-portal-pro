@@ -70,7 +70,7 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
         <TabsContent 
           key={tab.id} 
           value={tab.id} 
-          className="mt-0 space-y-4"
+          className="mt-0"
         >
           {tab.requiresProperties ? (
             <tab.content association={association} properties={properties} />
