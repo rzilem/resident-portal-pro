@@ -4,6 +4,7 @@ import { User, UserRole } from '@/types/user';
 import { userService } from '@/services/userService';
 import { emailService } from '@/services/emailService';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseUserFormProps {
   editingUser: User | null;
@@ -69,7 +70,7 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
     setFormData(prev => ({ ...prev, role: value }));
   };
 
-  const validateEmail = () => {
+  const validateEmail = async () => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
@@ -77,13 +78,18 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
       return false;
     }
     
-    // Check for duplicates, but exclude the current user being edited
-    const existingUser = userService.getUserByEmail(formData.email);
-    if (existingUser && (!editingUser || existingUser.id !== editingUser.id)) {
-      setEmailError('A user with this email already exists');
+    try {
+      // Check for duplicates, but exclude the current user being edited
+      const existingUser = await userService.getUserByEmail(formData.email);
+      if (existingUser && (!editingUser || existingUser.id !== editingUser.id)) {
+        setEmailError('A user with this email already exists');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error validating email:", error);
       return false;
     }
-    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,14 +104,15 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
         return;
       }
       
-      if (!validateEmail()) {
+      const isEmailValid = await validateEmail();
+      if (!isEmailValid) {
         setIsSubmitting(false);
         return;
       }
       
       if (editingUser) {
         // Update existing user
-        const updatedUser = userService.updateUser({
+        const updatedUser = await userService.updateUser({
           ...editingUser,
           name: formData.name,
           email: formData.email.trim(),
@@ -120,7 +127,7 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
       } else {
         try {
           // Create new user - this will throw an error if the email already exists
-          const newUser = userService.createUser({
+          const newUser = await userService.createUser({
             name: formData.name,
             email: formData.email.trim(),
             role: formData.role,
@@ -143,9 +150,11 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
               console.log(`Welcome email successfully sent to ${newUser.email}`);
             } else {
               console.error(`Failed to send welcome email to ${newUser.email}`);
+              toast.warning("User created but welcome email could not be sent");
             }
           } catch (emailError) {
             console.error("Error sending welcome email:", emailError);
+            toast.warning("User created but welcome email could not be sent");
             // Don't throw - we still want to create the user even if email fails
           }
           
