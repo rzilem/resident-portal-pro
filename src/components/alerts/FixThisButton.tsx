@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, Check, Loader2, MoreHorizontal, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Check, Loader2, X } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
@@ -10,7 +10,14 @@ import {
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog';
-import { Alert, AlertSolution, implementSolution, updateAlertStatus } from '@/utils/alertUtils';
+import { 
+  Alert, 
+  AlertSolution
+} from '@/types/alert';
+import { 
+  implementSolution, 
+  updateAlertStatus 
+} from '@/utils/alerts';
 import { Badge } from '@/components/ui/badge';
 import { 
   DropdownMenu, 

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { Alert as AlertType } from '@/utils/alertUtils';
+import { Alert as AlertType } from '@/types/alert';
 import FixThisButton from './FixThisButton';
 
 interface AnalysisAlertProps {

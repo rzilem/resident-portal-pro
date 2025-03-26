@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Alert as AlertType, updateAlertStatus } from '@/utils/alertUtils';
+import { Alert as AlertType } from '@/types/alert';
+import { updateAlertStatus } from '@/utils/alerts';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock, DollarSign, FileCog, FileWarning, Info } from 'lucide-react';
 import FixThisButton from './FixThisButton';

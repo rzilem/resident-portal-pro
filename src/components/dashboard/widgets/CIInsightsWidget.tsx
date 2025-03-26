@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, Bell, Info, TrendingDown, TrendingUp, DollarSign, BarChart2 } from 'lucide-react';
 import { useAssociations } from '@/hooks/use-associations';
 import { Badge } from '@/components/ui/badge';
-import { getAlerts, Alert as AlertType, updateAlertStatus } from '@/utils/alertUtils';
+import { getAlerts, Alert as AlertType, updateAlertStatus } from '@/utils/alerts';
 import AlertItem from '@/components/alerts/AlertItem';
 import FixThisButton from '@/components/alerts/FixThisButton';
 
