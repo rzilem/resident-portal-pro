@@ -52,14 +52,23 @@ export const APIConfigForm: React.FC<APIConfigFormProps> = ({
     const shape: Record<string, z.ZodTypeAny> = {};
     
     fields.forEach(field => {
-      let validator: z.ZodTypeAny = z.string();
+      let validator: z.ZodTypeAny;
       
       if (field.type === 'url') {
         validator = z.string().url({ message: "Please enter a valid URL" });
+      } else {
+        validator = z.string();
       }
       
       if (field.required) {
-        validator = validator.min(1, { message: `${field.label} is required` });
+        // Check if it's a string type before applying min
+        if (field.type !== 'url') {
+          validator = z.string().min(1, { message: `${field.label} is required` });
+        } else {
+          // For URL fields, use refine to check if it's not empty
+          validator = z.string().url({ message: "Please enter a valid URL" })
+            .refine(val => val.length > 0, { message: `${field.label} is required` });
+        }
       } else {
         validator = z.string().optional();
       }
