@@ -1,4 +1,46 @@
-import { ResidentProfiles } from '@/types/resident';
+import { ResidentProfiles, Tag } from '@/types/resident';
+import { v4 as uuidv4 } from 'uuid';
+
+// Sample tags
+const boardMemberTag: Tag = {
+  id: uuidv4(),
+  type: 'board',
+  label: 'Board Member',
+  color: '#0ea5e9', // sky-500
+  createdAt: '2023-01-01'
+};
+
+const treasurerTag: Tag = {
+  id: uuidv4(),
+  type: 'board',
+  label: 'Treasurer',
+  color: '#0d9488', // teal-600
+  createdAt: '2023-01-01'
+};
+
+const landscapingCommitteeTag: Tag = {
+  id: uuidv4(),
+  type: 'committee',
+  label: 'Landscaping Committee',
+  color: '#65a30d', // lime-600
+  createdAt: '2023-01-01'
+};
+
+const delinquentTag: Tag = {
+  id: uuidv4(),
+  type: 'delinquent',
+  label: 'Delinquent',
+  color: '#dc2626', // red-600
+  createdAt: '2023-01-01'
+};
+
+const newResidentTag: Tag = {
+  id: uuidv4(),
+  type: 'custom',
+  label: 'New Resident',
+  color: '#7c3aed', // violet-600
+  createdAt: '2023-02-15'
+};
 
 // Mock data for resident profiles
 const residentProfiles: ResidentProfiles = {
@@ -55,7 +97,8 @@ const residentProfiles: ResidentProfiles = {
       deposit: '$1,800.00',
       taxDistrict: 'North Seattle',
       taxId: 'TX-10145-A'
-    }
+    },
+    tags: [boardMemberTag, newResidentTag]
   },
   102: {
     id: 102,
@@ -105,7 +148,8 @@ const residentProfiles: ResidentProfiles = {
       deposit: '$2,175.00',
       taxDistrict: 'Portland Metro',
       taxId: 'PDX-2367'
-    }
+    },
+    tags: [treasurerTag, landscapingCommitteeTag]
   },
   103: {
     id: 103,
@@ -141,7 +185,8 @@ const residentProfiles: ResidentProfiles = {
       leaseEnd: '2023-12-31',
       monthlyAssessment: '$1,575.00',
       deposit: '$2,000.00'
-    }
+    },
+    tags: [delinquentTag]
   },
   201: {
     id: 201,

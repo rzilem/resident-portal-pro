@@ -58,6 +58,17 @@ export type Document = {
   size: string;
 }
 
+// New tag types for homeowners
+export type TagType = 'board' | 'committee' | 'delinquent' | 'custom';
+
+export type Tag = {
+  id: string;
+  type: TagType;
+  label: string;
+  color?: string; // CSS color or class
+  createdAt: string;
+}
+
 export type ResidentProfile = {
   id: number;
   name: string;
@@ -77,6 +88,8 @@ export type ResidentProfile = {
   activityLogs?: ActivityLog[];
   documents: Document[];
   propertyDetails: PropertyDetails;
+  // New tags field
+  tags?: Tag[];
 }
 
 export type ResidentProfiles = Record<number, ResidentProfile>;

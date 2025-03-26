@@ -1,74 +1,73 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, Bell, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { User, Mail, Phone, Calendar, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-// Helper function to get badge variant
-const getStatusBadgeVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
-  switch (status) {
-    case "Active":
-      return "default"; // Using default instead of success
-    case "Pending":
-      return "secondary"; // Using secondary instead of warning
-    default:
-      return "outline";
-  }
-};
+import { ResidentProfile } from '@/types/resident';
+import ResidentTags from './ResidentTags';
+import { toast } from 'sonner';
 
 interface ProfileHeaderProps {
-  resident: {
-    name: string;
-    property: string;
-    unit: string;
-    status: string;
-    email: string;
-    phone: string;
-  };
+  resident: ResidentProfile;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
+  const [tags, setTags] = useState(resident.tags || []);
+
+  const handleTagsChange = (newTags) => {
+    setTags(newTags);
+    // In a real application, this would save to a database
+    toast.success('Tags updated successfully');
+  };
+
   return (
-    <div className="mb-6">
-      <Link to="/residents" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
-        <ArrowLeft className="mr-1 h-4 w-4" />
-        Back to Residents
-      </Link>
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 className="text-2xl font-bold">{resident.name}</h1>
+        
+        <div className="mt-4">
+          <ResidentTags tags={tags} onTagsChange={handleTagsChange} />
+        </div>
+        
+        <div className="flex flex-col gap-2 mt-4">
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <User className="h-4 w-4" />
+            ID: {resident.id}
+          </p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mail className="h-4 w-4" />
+            {resident.email}
+          </p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Phone className="h-4 w-4" />
+            {resident.phone}
+          </p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            Move in: {resident.moveInDate}
+            {resident.moveOutDate && (
+              <>
+                <ArrowRight className="h-4 w-4" />
+                Move out: {resident.moveOutDate}
+              </>
+            )}
+          </p>
+        </div>
+      </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{resident.name}</h1>
-          <div className="flex items-center gap-2 text-muted-foreground mt-1">
-            <Badge variant={getStatusBadgeVariant(resident.status)}>
-              {resident.status}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <a href={`mailto:${resident.email}`}>
-              <Mail className="mr-2 h-4 w-4" />
-              Email
-            </a>
-          </Button>
-          <Button variant="outline" asChild>
-            <a href={`tel:${resident.phone}`}>
-              <Phone className="mr-2 h-4 w-4" />
-              Call
-            </a>
-          </Button>
-          <Button variant="outline" asChild>
-            <a href={`sms:${resident.phone}`}>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Text
-            </a>
-          </Button>
-          <Button>
-            <Bell className="mr-2 h-4 w-4" />
-            Send Notice
-          </Button>
-        </div>
+      <div className="flex items-center space-x-2">
+        <Badge 
+          className={`px-3 py-1 text-sm ${
+            resident.status === 'Active' 
+              ? 'bg-green-100 text-green-800 hover:bg-green-100'
+              : resident.status === 'Inactive' 
+                ? 'bg-gray-100 text-gray-800 hover:bg-gray-100'
+                : resident.status === 'Pending' 
+                  ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
+                  : ''
+          }`}
+        >
+          {resident.status}
+        </Badge>
       </div>
     </div>
   );
