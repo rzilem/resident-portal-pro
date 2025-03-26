@@ -30,7 +30,8 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
     }
     
     if (isExpiringSoon) {
-      return <Badge variant="warning" className="ml-2 bg-amber-500">Expiring Soon</Badge>;
+      // Changed from variant="warning" to variant="outline" with custom colors
+      return <Badge variant="outline" className="ml-2 bg-amber-500 text-white border-amber-600">Expiring Soon</Badge>;
     }
     
     return <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-300">Active</Badge>;
