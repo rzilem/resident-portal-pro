@@ -1,12 +1,25 @@
 
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, XCircle, Check, Filter } from 'lucide-react';
+import React from 'react';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { 
+  Eye, 
+  FileEdit, 
+  Trash2,
+  FileText,
+  CheckCircle,
+  XCircle
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ViolationTemplate, ViolationTemplateFilter } from '@/types/compliance';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TemplateListProps {
   templates: ViolationTemplate[];
@@ -14,24 +27,20 @@ interface TemplateListProps {
   filters: ViolationTemplateFilter;
 }
 
-const TemplateList = ({ templates, onToggleUsage, filters }: TemplateListProps) => {
-  const [expandedGroups, setExpandedGroups] = useState<{ [key: string]: boolean }>({});
-
-  const toggleGroup = (group: string) => {
-    setExpandedGroups((prev) => ({
-      ...prev,
-      [group]: !prev[group]
-    }));
-  };
-
+const TemplateList: React.FC<TemplateListProps> = ({ 
+  templates, 
+  onToggleUsage,
+  filters
+}) => {
+  // Apply filters
   const filteredTemplates = templates.filter(template => {
-    // If showUnused is true, only show unused templates
-    if (filters.showUnused === true && template.isUsed) {
+    // Filter by showUnused
+    if (filters.showUnused && template.isUsed) {
       return false;
     }
     
     // Filter by group
-    if (filters.group && !template.group.toLowerCase().includes(filters.group.toLowerCase())) {
+    if (filters.group && template.group !== filters.group) {
       return false;
     }
     
@@ -47,123 +56,96 @@ const TemplateList = ({ templates, onToggleUsage, filters }: TemplateListProps) 
     
     return true;
   });
-  
-  // Group templates by their group
-  const groupedTemplates: { [key: string]: ViolationTemplate[] } = {};
-  filteredTemplates.forEach(template => {
-    if (!groupedTemplates[template.group]) {
-      groupedTemplates[template.group] = [];
-    }
-    groupedTemplates[template.group].push(template);
-  });
 
-  // Ensure all groups are expanded by default
-  Object.keys(groupedTemplates).forEach(group => {
-    if (expandedGroups[group] === undefined) {
-      expandedGroups[group] = true;
+  if (filteredTemplates.length === 0) {
+    return (
+      <div className="text-center py-10 text-muted-foreground">
+        <FileText className="mx-auto h-12 w-12 opacity-30 mb-3" />
+        <h3 className="text-lg font-medium mb-2">No templates found</h3>
+        <p>Adjust your filters or create a new template.</p>
+      </div>
+    );
+  }
+
+  const getSeverityColor = (severity?: string) => {
+    switch (severity) {
+      case 'low': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'high': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  });
+  };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="rounded-md border mt-6">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[200px]">
-              <div className="flex items-center gap-2">
-                Group
-                <Button variant="ghost" size="icon" className="h-5 w-5">
-                  <Filter className="h-3 w-3" />
-                </Button>
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center gap-2">
-                CCR Item
-                <Button variant="ghost" size="icon" className="h-5 w-5">
-                  <Filter className="h-3 w-3" />
-                </Button>
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center gap-2">
-                Letter Description
-                <Button variant="ghost" size="icon" className="h-5 w-5">
-                  <Filter className="h-3 w-3" />
-                </Button>
-              </div>
-            </TableHead>
-            <TableHead className="w-[100px] text-right">Status</TableHead>
+            <TableHead className="w-[50px]">Active</TableHead>
+            <TableHead>Template</TableHead>
+            <TableHead>Group</TableHead>
+            <TableHead>Item</TableHead>
+            <TableHead>Severity</TableHead>
+            <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
+        <TableBody>
+          {filteredTemplates.map(template => (
+            <TableRow key={template.id}>
+              <TableCell>
+                <Switch 
+                  checked={template.isUsed}
+                  onCheckedChange={() => onToggleUsage(template.id)}
+                />
+              </TableCell>
+              <TableCell>
+                <div className="font-medium">{template.title || template.description}</div>
+                <div className="text-sm text-muted-foreground truncate max-w-[300px]">
+                  {template.description}
+                </div>
+                <div className="flex gap-2 mt-1">
+                  {template.isUsed ? (
+                    <Badge variant="outline" className="flex items-center gap-1 text-green-600">
+                      <CheckCircle className="h-3 w-3" />
+                      Active
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 text-gray-500">
+                      <XCircle className="h-3 w-3" />
+                      Inactive
+                    </Badge>
+                  )}
+                  {template.articleNumber && (
+                    <Badge variant="outline">Article {template.articleNumber}</Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{template.group}</TableCell>
+              <TableCell>{template.item}</TableCell>
+              <TableCell>
+                {template.severity && (
+                  <Badge className={getSeverityColor(template.severity)}>
+                    {template.severity.charAt(0).toUpperCase() + template.severity.slice(1)}
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon">
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <FileEdit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
       </Table>
-
-      <ScrollArea className="h-[400px]">
-        <Table>
-          <TableBody>
-            {Object.entries(groupedTemplates).length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  No templates found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              Object.entries(groupedTemplates).map(([group, templates]) => (
-                <React.Fragment key={group}>
-                  <TableRow 
-                    className="bg-muted/50 cursor-pointer hover:bg-muted"
-                    onClick={() => toggleGroup(group)}
-                  >
-                    <TableCell colSpan={4}>
-                      <div className="flex items-center font-medium">
-                        {expandedGroups[group] ? (
-                          <ChevronDown className="h-4 w-4 mr-2" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 mr-2" />
-                        )}
-                        {group}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  {expandedGroups[group] && templates.map((template) => (
-                    <TableRow key={template.id}>
-                      <TableCell>{template.group}</TableCell>
-                      <TableCell>{template.item}</TableCell>
-                      <TableCell className="max-w-xl">{template.description}</TableCell>
-                      <TableCell className="text-right">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onToggleUsage(template.id);
-                                }}
-                              >
-                                {template.isUsed ? (
-                                  <XCircle className="h-5 w-5 text-red-500" />
-                                ) : (
-                                  <Check className="h-5 w-5 text-green-500" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{template.isUsed ? 'Mark as Not Used' : 'Mark as Used'}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </React.Fragment>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
     </div>
   );
 };

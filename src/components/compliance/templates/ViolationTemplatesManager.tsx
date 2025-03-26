@@ -10,7 +10,11 @@ import TemplateFilters from './TemplateFilters';
 import TemplateList from './TemplateList';
 import { useToast } from '@/components/ui/use-toast';
 
-const ViolationTemplatesManager = () => {
+interface ViolationTemplatesManagerProps {
+  associationId?: string;
+}
+
+const ViolationTemplatesManager: React.FC<ViolationTemplatesManagerProps> = ({ associationId }) => {
   const { toast } = useToast();
   const { activeAssociation } = useAssociations();
   const [templates, setTemplates] = useState<ViolationTemplate[]>([]);
@@ -18,12 +22,15 @@ const ViolationTemplatesManager = () => {
   const [filters, setFilters] = useState<ViolationTemplateFilter>({});
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Use the passed associationId if available, otherwise use activeAssociation
+  const currentAssociationId = associationId || (activeAssociation?.id || '');
+
   useEffect(() => {
-    if (activeAssociation) {
-      const associationTemplates = getViolationTemplatesByAssociation(activeAssociation.id);
+    if (currentAssociationId) {
+      const associationTemplates = getViolationTemplatesByAssociation(currentAssociationId);
       setTemplates(associationTemplates);
     }
-  }, [activeAssociation]);
+  }, [currentAssociationId]);
 
   useEffect(() => {
     if (activeTab === 'unused') {
@@ -50,8 +57,8 @@ const ViolationTemplatesManager = () => {
 
   const handleCancelChanges = () => {
     // Reset the templates to the original state
-    if (activeAssociation) {
-      const associationTemplates = getViolationTemplatesByAssociation(activeAssociation.id);
+    if (currentAssociationId) {
+      const associationTemplates = getViolationTemplatesByAssociation(currentAssociationId);
       setTemplates(associationTemplates);
     }
     setHasChanges(false);
@@ -70,15 +77,15 @@ const ViolationTemplatesManager = () => {
     });
   };
 
-  if (!activeAssociation) {
-    return <div>Please select an association</div>;
+  if (!currentAssociationId) {
+    return <div className="p-4 text-center">Please select an association</div>;
   }
 
   return (
     <Card>
       <CardContent className="p-6">
         <TemplateHeader 
-          association={activeAssociation}
+          associationId={currentAssociationId}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />

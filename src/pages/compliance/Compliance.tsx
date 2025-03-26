@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,9 +13,19 @@ import ViolationTemplatesManager from '@/components/compliance/templates/Violati
 const Compliance = () => {
   const { associations, activeAssociation, selectAssociation } = useAssociations();
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedAssociationId, setSelectedAssociationId] = useState<string>('');
+
+  // Initialize selectedAssociationId when activeAssociation becomes available
+  useEffect(() => {
+    if (activeAssociation && !selectedAssociationId) {
+      setSelectedAssociationId(activeAssociation.id);
+    }
+  }, [activeAssociation, selectedAssociationId]);
 
   const handleAssociationChange = (value: string) => {
     const association = associations.find(a => a.id === value);
+    setSelectedAssociationId(value);
+    
     if (association) {
       selectAssociation(association);
     }
@@ -32,7 +42,7 @@ const Compliance = () => {
         </div>
         <div className="flex items-center gap-4">
           <Select 
-            value={activeAssociation?.id} 
+            value={selectedAssociationId} 
             onValueChange={handleAssociationChange}
           >
             <SelectTrigger className="w-[250px]">
@@ -63,7 +73,7 @@ const Compliance = () => {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6 mt-6">
-          <ComplianceOverview />
+          <ComplianceOverview associationId={selectedAssociationId} />
         </TabsContent>
         
         <TabsContent value="violations" className="space-y-6 mt-6">
@@ -75,17 +85,17 @@ const Compliance = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ViolationsTable />
+              <ViolationsTable associationId={selectedAssociationId} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6 mt-6">
-          <ViolationTemplatesManager />
+          <ViolationTemplatesManager associationId={selectedAssociationId} />
         </TabsContent>
         
         <TabsContent value="metrics" className="space-y-6 mt-6">
-          <ComplianceMetrics />
+          <ComplianceMetrics associationId={selectedAssociationId} />
         </TabsContent>
       </Tabs>
     </div>

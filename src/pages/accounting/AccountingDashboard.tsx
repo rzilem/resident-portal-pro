@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import InvoiceQueue from '@/components/accounting/InvoiceQueue';
 import BudgetManagement from '@/components/accounting/BudgetManagement';
@@ -17,19 +18,27 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Building } from 'lucide-react';
+import { toast } from 'sonner';
 
 const AccountingDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { associations, activeAssociation, selectAssociation } = useAssociations();
-  const [selectedAssociationId, setSelectedAssociationId] = useState<string>(
-    activeAssociation?.id || ''
-  );
+  const [selectedAssociationId, setSelectedAssociationId] = useState<string>('');
+
+  // Initialize selectedAssociationId when activeAssociation becomes available
+  useEffect(() => {
+    if (activeAssociation && !selectedAssociationId) {
+      setSelectedAssociationId(activeAssociation.id);
+    }
+  }, [activeAssociation, selectedAssociationId]);
 
   const handleAssociationChange = (associationId: string) => {
     setSelectedAssociationId(associationId);
     const association = associations.find(a => a.id === associationId);
+    
     if (association) {
       selectAssociation(association);
+      toast.success(`Switched to ${association.name}`);
     }
   };
 
