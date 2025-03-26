@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { DocumentFile } from '@/types/documents';
+import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
 import { getDocuments, formatFileSize } from '@/utils/documents/documentUtils';
 import DocumentPreview from './DocumentPreview';
 import DocumentActions from './DocumentActions';
@@ -82,7 +82,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     const loadDocuments = async () => {
       setIsLoading(true);
       try {
-        const filters = {
+        // Create a filters object that matches DocumentSearchFilters type
+        const filters: DocumentSearchFilters = {
           query: searchQuery || localSearchQuery,
           categories: category ? [category] : [],
           tags: tagFilter ? [tagFilter] : []

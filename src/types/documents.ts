@@ -1,4 +1,3 @@
-
 export interface DocumentCategory {
   id: string;
   name: string;
@@ -58,6 +57,22 @@ export interface DocumentTemplate {
   lastUsed?: string;
   mergeTags?: string[];
   associationId?: string;
+}
+
+export interface DocumentSearchFilters {
+  query?: string;
+  categories?: string[];
+  fileTypes?: string[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  uploadedBy?: string[];
+  tags?: string[];
+  associations?: string[];
+  properties?: string[];
+  isPublic?: boolean;
+  isArchived?: boolean;
 }
 
 export interface DocumentPermission {
