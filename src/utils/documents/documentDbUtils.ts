@@ -23,7 +23,30 @@ export const getDocuments = async (
     // Apply association filter if provided
     if (associationId) {
       console.log(`Filtering by association ID: ${associationId}`);
-      query = query.eq('association_id', associationId);
+      try {
+        // Validate if this is a UUID
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(associationId)) {
+          // If it's a simple numeric ID, try to fetch the actual UUID first
+          const { data: associationData } = await supabase
+            .from('associations')
+            .select('id')
+            .eq('id', associationId)
+            .maybeSingle();
+            
+          if (associationData) {
+            query = query.eq('association_id', associationData.id);
+          } else {
+            // If we can't find it, still use the original ID (will likely return no results)
+            query = query.eq('association_id', associationId);
+          }
+        } else {
+          // It's already a valid UUID
+          query = query.eq('association_id', associationId);
+        }
+      } catch (error) {
+        console.error('Error validating association ID:', error);
+        query = query.eq('association_id', associationId);
+      }
     }
     
     // Apply search query if provided
@@ -103,7 +126,7 @@ export const deleteDocument = async (documentId: string): Promise<boolean> => {
       .from('documents')
       .select('url')
       .eq('id', documentId)
-      .single();
+      .maybeSingle();
     
     if (fetchError) {
       console.error('Error fetching document for deletion:', fetchError);

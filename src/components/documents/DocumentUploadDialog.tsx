@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
@@ -32,7 +32,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   
   // Hooks
   const { activeAssociation } = useAssociations();
-  const { bucketReady } = useDocumentsBucket();
+  const { bucketReady, isLoading } = useDocumentsBucket();
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -56,6 +63,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     }
 
     setIsUploading(true);
+    console.log('Starting upload with association ID:', activeAssociation.id);
     
     try {
       const success = await uploadDocument({
@@ -71,7 +79,12 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         if (refreshDocuments) refreshDocuments();
         resetForm();
         onClose();
+      } else {
+        console.error('Upload returned false');
       }
+    } catch (error) {
+      console.error('Upload error caught in component:', error);
+      toast.error('Failed to upload document. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -84,6 +97,8 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setTags([]);
   };
 
+  const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
@@ -95,20 +110,36 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <FileUploader 
-            onFileSelected={handleFileChange}
-            currentFile={selectedFile}
-          />
-          
-          {selectedFile && (
-            <DocumentMetadataForm
-              description={description}
-              setDescription={setDescription}
-              category={category}
-              setCategory={setCategory}
-              tags={tags}
-              setTags={setTags}
-            />
+          {isLoading ? (
+            <div className="flex items-center justify-center p-6">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              <span className="ml-3">Preparing document storage...</span>
+            </div>
+          ) : !bucketReady ? (
+            <div className="text-center p-6">
+              <div className="text-red-500 mb-2">Document storage is not available</div>
+              <p className="text-sm text-muted-foreground">
+                There was a problem connecting to document storage. Please try again later or contact support.
+              </p>
+            </div>
+          ) : (
+            <>
+              <FileUploader 
+                onFileSelected={handleFileChange}
+                currentFile={selectedFile}
+              />
+              
+              {selectedFile && (
+                <DocumentMetadataForm
+                  description={description}
+                  setDescription={setDescription}
+                  category={category}
+                  setCategory={setCategory}
+                  tags={tags}
+                  setTags={setTags}
+                />
+              )}
+            </>
           )}
         </div>
         
@@ -116,7 +147,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
           <Button variant="outline" onClick={onClose} disabled={isUploading}>
             Cancel
           </Button>
-          <Button onClick={handleUpload} disabled={!selectedFile || isUploading}>
+          <Button 
+            onClick={handleUpload} 
+            disabled={isButtonDisabled}
+            className="relative"
+          >
             {isUploading ? (
               <>
                 <span className="mr-2">Uploading...</span>
