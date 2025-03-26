@@ -109,13 +109,23 @@ export const testBucketAccess = async (): Promise<boolean> => {
     const testFile = new Blob(['test'], { type: 'text/plain' });
     const testFilePath = `test-${Date.now()}.txt`;
     
-    // Try to upload it
-    const { data, error } = await supabase.storage
+    // Try to upload it with a timeout of 5 seconds
+    const uploadPromise = supabase.storage
       .from('documents')
       .upload(testFilePath, testFile, {
         cacheControl: '3600',
         upsert: true
       });
+    
+    // Add a timeout
+    const timeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => {
+      setTimeout(() => {
+        reject({ data: null, error: new Error('Upload test timed out after 5 seconds') });
+      }, 5000);
+    });
+    
+    // Race the upload against the timeout
+    const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
     
     if (error) {
       console.error('Error testing bucket access:', error);

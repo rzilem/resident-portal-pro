@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, RefreshCw, AlertTriangle, Info } from 'lucide-react';
+import { Upload, RefreshCw, AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssociations } from '@/hooks/use-associations';
 import FileUploader from './FileUploader';
@@ -32,7 +32,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   
   // Hooks
   const { activeAssociation } = useAssociations();
-  const { bucketReady, isLoading, isCreating, retryCheck, checkStorageStatus } = useDocumentsBucket();
+  const { bucketReady, isLoading, isCreating, errorMessage, retryCheck, checkStorageStatus } = useDocumentsBucket();
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -118,23 +118,28 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         
         <div className="space-y-4 py-4">
           {isLoading ? (
-            <div className="flex items-center justify-center p-6">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-              <span className="ml-3">Preparing document storage...</span>
+            <div className="flex flex-col items-center justify-center p-6">
+              <div className="relative">
+                <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
+              </div>
+              <span className="text-lg font-medium">Preparing document storage...</span>
+              <p className="text-sm text-muted-foreground mt-2 text-center">
+                This may take a moment. If it takes too long, you can try refreshing or initializing storage manually.
+              </p>
             </div>
           ) : !bucketReady ? (
             <div className="text-center p-6">
               <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
               <div className="text-red-500 mb-2">Document storage is not available</div>
               <p className="text-sm text-muted-foreground mb-4">
-                There was a problem connecting to document storage. This might be due to permissions or configuration issues.
+                {errorMessage || 'There was a problem connecting to document storage. This might be due to permissions or configuration issues.'}
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 text-left">
                 <div className="flex items-start">
                   <Info className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
                   <p className="text-sm text-amber-800">
                     Technical note: The system is encountering permission errors when trying to create or access the document storage. 
-                    This may require administrator attention.
+                    This may be due to Row Level Security (RLS) policies in Supabase. Please contact an administrator if the problem persists.
                   </p>
                 </div>
               </div>
@@ -146,7 +151,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
               >
                 {isCreating ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Initializing...</span>
                   </>
                 ) : (
@@ -190,7 +195,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
             {isUploading ? (
               <>
                 <span className="mr-2">Uploading...</span>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               </>
             ) : (
               <>
