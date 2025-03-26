@@ -3,9 +3,11 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PermissionSettings from '@/components/settings/PermissionSettings';
 import RolesPermissionManagement from '@/components/settings/permissions/RolesPermissionManagement';
+import DocumentSecuritySettings from '@/components/settings/permissions/DocumentSecuritySettings';
+import DocumentAccess from '@/components/settings/permissions/DocumentAccess';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Shield, Info, Users, Lock, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Shield, Info, Users, Lock, ShieldCheck, ShieldAlert, FolderIcon } from "lucide-react";
 
 const PermissionsPage = () => {
   return (
@@ -30,7 +32,7 @@ const PermissionsPage = () => {
       </Alert>
       
       <Tabs defaultValue="roles">
-        <TabsList className="grid grid-cols-3 mb-6">
+        <TabsList className="grid grid-cols-4 mb-6">
           <TabsTrigger value="roles">
             <Shield className="h-4 w-4 mr-2" />
             Role Permissions
@@ -42,6 +44,10 @@ const PermissionsPage = () => {
           <TabsTrigger value="documents">
             <Lock className="h-4 w-4 mr-2" />
             Document Access
+          </TabsTrigger>
+          <TabsTrigger value="folders">
+            <FolderIcon className="h-4 w-4 mr-2" />
+            Folder Security
           </TabsTrigger>
         </TabsList>
         
@@ -87,17 +93,13 @@ const PermissionsPage = () => {
         
         <TabsContent value="documents">
           <div className="py-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Document Access Control</CardTitle>
-                <CardDescription>
-                  Manage which roles can view and edit different document types
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* We're using the document permissions from the existing PermissionSettings component */}
-              </CardContent>
-            </Card>
+            <DocumentAccess />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="folders">
+          <div className="py-4">
+            <DocumentSecuritySettings />
           </div>
         </TabsContent>
       </Tabs>
