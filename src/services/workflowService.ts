@@ -1,7 +1,6 @@
-
 import { Workflow, WorkflowStep, WorkflowTemplate } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
-import { checkWorkflowProgressForAlert } from '@/utils/alertUtils';
+import { checkWorkflowProgressForAlert } from '@/utils/alerts/alertSolutions';
 
 // Simulated database of workflows
 let workflows: Workflow[] = [];

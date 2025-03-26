@@ -1,10 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Association } from '@/types/association';
 import { AlertCircle, BarChart2, Calendar, CheckCircle2, Clock, Droplet, FileWarning, Lightbulb, TrendingUp, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/utils/formatters';
-import { Alert as AlertType, getAlerts } from '@/utils/alertUtils';
+import { Alert as AlertType } from '@/types/alert';
+import { getAlerts } from '@/utils/alerts';
 import AnalysisAlert from '@/components/alerts/AnalysisAlert';
 
 interface AIAnalysisCardProps {
