@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
@@ -84,7 +83,8 @@ export class PdfGenerator {
     const { text, fontSize = 8, color = '#666666' } = this.options.footer;
     
     const addFooterToPages = () => {
-      const pageCount = this.doc.internal.getNumberOfPages();
+      const pageCount = this.doc.getNumberOfPages();
+      
       for (let i = 1; i <= pageCount; i++) {
         this.doc.setPage(i);
         this.doc.setFontSize(fontSize);
