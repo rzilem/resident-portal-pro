@@ -8,6 +8,7 @@ import ComplianceOverview from '@/components/compliance/ComplianceOverview';
 import ViolationsTable from '@/components/compliance/ViolationsTable';
 import ComplianceMetrics from '@/components/compliance/ComplianceMetrics';
 import ComplianceColumnsSelector from '@/components/compliance/ComplianceColumnsSelector';
+import ViolationTemplatesManager from '@/components/compliance/templates/ViolationTemplatesManager';
 
 const Compliance = () => {
   const { associations, activeAssociation, selectAssociation } = useAssociations();
@@ -54,9 +55,10 @@ const Compliance = () => {
         onValueChange={setActiveTab} 
         className="w-full"
       >
-        <TabsList className="grid w-full md:w-auto grid-cols-3">
+        <TabsList className="grid w-full md:w-auto grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="violations">Active Violations</TabsTrigger>
+          <TabsTrigger value="templates">Violation Templates</TabsTrigger>
           <TabsTrigger value="metrics">Metrics</TabsTrigger>
         </TabsList>
         
@@ -76,6 +78,10 @@ const Compliance = () => {
               <ViolationsTable />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6 mt-6">
+          <ViolationTemplatesManager />
         </TabsContent>
         
         <TabsContent value="metrics" className="space-y-6 mt-6">
