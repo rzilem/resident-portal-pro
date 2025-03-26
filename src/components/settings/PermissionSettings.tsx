@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import UserManagement from './permissions/UserManagement';
 import DocumentAccess from './permissions/DocumentAccess';
 import DocumentSecuritySettings from './permissions/DocumentSecuritySettings';
-import { roles } from './permissions/roles';
 import { userService } from '@/services/userService';
 import { User } from '@/types/user';
 
@@ -42,21 +40,6 @@ const PermissionSettings = () => {
     
     loadUsers();
   }, []);
-  
-  const [documentPermissions, setDocumentPermissions] = useState({
-    financialReports: {
-      owner: true, admin: true, manager: true, board: true, resident: false, vendor: false
-    },
-    bylaws: {
-      owner: true, admin: true, manager: true, board: true, resident: true, vendor: false
-    },
-    boardMinutes: {
-      owner: true, admin: true, manager: true, board: true, resident: true, vendor: false
-    },
-    vendorContracts: {
-      owner: true, admin: true, manager: true, board: false, resident: false, vendor: true
-    }
-  });
 
   if (isLoading) {
     return (
@@ -85,11 +68,7 @@ const PermissionSettings = () => {
         </TabsContent>
         
         <TabsContent value="document-access">
-          <DocumentAccess 
-            documentPermissions={documentPermissions}
-            setDocumentPermissions={setDocumentPermissions}
-            roles={roles}
-          />
+          <DocumentAccess />
         </TabsContent>
         
         <TabsContent value="document-security">

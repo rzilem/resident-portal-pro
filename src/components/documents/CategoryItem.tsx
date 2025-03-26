@@ -5,9 +5,7 @@ import { Pencil, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DocumentCategory } from '@/types/documents';
 import { 
-  getAccessLevelLabel, 
-  getSecurityLevelColor,
-  getFolderIconColor 
+  getFolderIconColor
 } from './utils/categoryUtils';
 
 interface CategoryItemProps {
