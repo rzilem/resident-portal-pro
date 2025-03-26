@@ -180,7 +180,7 @@ const AssociationProfile = () => {
                       <div className="flex flex-wrap gap-2">
                         {association.tags.map((tag) => (
                           <Badge key={tag.id} variant="outline" className="bg-muted">
-                            {tag.name}
+                            {tag.label}
                           </Badge>
                         ))}
                       </div>
