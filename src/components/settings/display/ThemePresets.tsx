@@ -22,6 +22,9 @@ const ThemePresets: React.FC = () => {
           if (selectedPresetId) {
             const selectedPreset = allPresets.find(preset => preset.id === selectedPresetId);
             if (selectedPreset) {
+              // Remove any custom colors classes
+              document.body.classList.remove('custom-colors-applied');
+              
               // We don't want to trigger a toast on initial load, so we just apply the theme to DOM
               applyThemePresetToDOM(selectedPreset.id, selectedPreset);
             }
@@ -72,3 +75,4 @@ const ThemePresets: React.FC = () => {
 };
 
 export default ThemePresets;
+

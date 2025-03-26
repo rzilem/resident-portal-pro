@@ -13,7 +13,9 @@
   color-scheme: light;
 }
 
-/* Custom theme colors */
+/* Theme variables - priority order is important here */
+
+/* First, check for custom colors */
 :root {
   --theme-primary: var(--color-primary, #8B5CF6);
   --theme-secondary: var(--color-secondary, #A78BFA);
@@ -23,19 +25,35 @@
   --theme-border: var(--color-border, #E5E7EB);
 }
 
-/* Apply theme colors to UI components */
+/* Custom theme colors take precedence */
+.custom-colors-applied button.btn-primary,
+.custom-colors-applied .bg-primary,
+.custom-colors-applied [data-variant="default"] {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+.custom-colors-applied .text-primary {
+  color: var(--color-primary) !important;
+}
+
+.custom-colors-applied .border-primary {
+  border-color: var(--color-primary) !important;
+}
+
+/* Theme preset colors */
 .theme-applied button.btn-primary,
 .theme-applied .bg-primary,
-button[data-variant="default"] {
+.theme-applied [data-variant="default"]:not(.custom-colors-applied [data-variant="default"]) {
   background-color: var(--theme-primary) !important;
   color: white !important;
 }
 
-.theme-applied .text-primary {
+.theme-applied .text-primary:not(.custom-colors-applied .text-primary) {
   color: var(--theme-primary) !important;
 }
 
-.theme-applied .border-primary {
+.theme-applied .border-primary:not(.custom-colors-applied .border-primary) {
   border-color: var(--theme-primary) !important;
 }
 
@@ -45,7 +63,8 @@ button[data-variant="default"] {
 }
 
 /* Add a class to indicate that a theme has been applied */
-body.theme-applied {
+body.theme-applied,
+body.custom-colors-applied {
   position: relative;
 }
 
@@ -58,5 +77,17 @@ body.theme-applied::after {
   right: 0;
   height: 3px;
   background: var(--theme-primary);
+  z-index: 9999;
+}
+
+/* Visual indicator for custom colors */
+body.custom-colors-applied::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
   z-index: 9999;
 }

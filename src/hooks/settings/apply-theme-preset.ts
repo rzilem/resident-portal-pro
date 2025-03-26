@@ -5,7 +5,10 @@ import { ThemePreset } from "@/components/settings/display/ThemePresetsData";
  * Apply theme preset to DOM elements
  */
 export const applyThemePresetToDOM = (presetId: string | null, preset?: ThemePreset) => {
-  if (!presetId) return;
+  if (!presetId) {
+    resetThemePreset();
+    return;
+  }
   
   // Remove all possible theme preset classes
   const allThemeClasses = [
@@ -39,12 +42,21 @@ export const applyThemePresetToDOM = (presetId: string | null, preset?: ThemePre
   if (preset) {
     applyThemeColorsFromPreset(preset);
   }
+  
+  // Mark that a theme has been applied
+  document.body.classList.add('theme-applied');
 };
 
 /**
  * Apply theme colors from a preset
  */
 export const applyThemeColorsFromPreset = (preset: ThemePreset) => {
+  // Clear any existing custom colors first
+  document.documentElement.style.removeProperty('--color-primary');
+  document.documentElement.style.removeProperty('--color-secondary');
+  document.documentElement.style.removeProperty('--color-accent');
+  document.documentElement.style.removeProperty('--color-background');
+  
   // Apply theme colors to CSS variables
   document.documentElement.style.setProperty('--theme-primary', preset.primaryColor);
   document.documentElement.style.setProperty('--theme-secondary', preset.secondaryColor);
@@ -59,6 +71,12 @@ export const applyThemeColorsFromPreset = (preset: ThemePreset) => {
  * Apply a preset to the UI 
  */
 export const applyPresetToUI = (preset: ThemePreset) => {
+  // Clear any custom colors that might be persisting
+  document.documentElement.style.removeProperty('--color-primary');
+  document.documentElement.style.removeProperty('--color-secondary');
+  document.documentElement.style.removeProperty('--color-accent');
+  document.documentElement.style.removeProperty('--color-background');
+  
   // Remove existing theme classes
   document.body.classList.forEach(className => {
     if (className.startsWith('theme-preset-')) {
@@ -71,6 +89,9 @@ export const applyPresetToUI = (preset: ThemePreset) => {
   
   // Apply theme colors
   applyThemeColorsFromPreset(preset);
+  
+  // Mark that a theme has been applied
+  document.body.classList.add('theme-applied');
 };
 
 /**
@@ -91,3 +112,4 @@ export const resetThemePreset = () => {
   document.documentElement.style.removeProperty('--theme-background');
   document.documentElement.style.removeProperty('--primary');
 };
+

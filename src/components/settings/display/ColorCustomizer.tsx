@@ -40,16 +40,40 @@ const ColorCustomizer: React.FC = () => {
       setIsApplied(true);
       
       // Apply saved colors to CSS variables
-      document.documentElement.style.setProperty('--color-primary', preferences.customColors.primary);
-      document.documentElement.style.setProperty('--color-secondary', preferences.customColors.secondary);
-      document.documentElement.style.setProperty('--color-accent', preferences.customColors.accent);
-      document.documentElement.style.setProperty('--color-background', preferences.customColors.background);
-      document.documentElement.style.setProperty('--color-text', preferences.customColors.text);
-      document.documentElement.style.setProperty('--color-border', preferences.customColors.border);
+      applyColorsToDOM(preferences.customColors);
     } else {
       setIsApplied(false);
     }
   }, [preferences?.customColors]);
+
+  const applyColorsToDOM = (colorState: ColorState) => {
+    // Clear any theme preset first
+    document.body.classList.forEach(className => {
+      if (className.startsWith('theme-preset-')) {
+        document.body.classList.remove(className);
+      }
+    });
+    
+    // Remove any theme-specific variables
+    document.documentElement.style.removeProperty('--theme-primary');
+    document.documentElement.style.removeProperty('--theme-secondary');
+    document.documentElement.style.removeProperty('--theme-accent');
+    document.documentElement.style.removeProperty('--theme-background');
+    
+    // Apply custom colors
+    document.documentElement.style.setProperty('--color-primary', colorState.primary);
+    document.documentElement.style.setProperty('--color-secondary', colorState.secondary);
+    document.documentElement.style.setProperty('--color-accent', colorState.accent);
+    document.documentElement.style.setProperty('--color-background', colorState.background);
+    document.documentElement.style.setProperty('--color-text', colorState.text);
+    document.documentElement.style.setProperty('--color-border', colorState.border);
+    
+    // Update primary color for immediate feedback
+    document.documentElement.style.setProperty('--primary', colorState.primary);
+    
+    // Mark that custom colors have been applied
+    document.body.classList.add('custom-colors-applied');
+  };
 
   const updateColor = (color: string) => {
     setColors(prev => ({
@@ -59,24 +83,11 @@ const ColorCustomizer: React.FC = () => {
   };
 
   const applyColors = () => {
-    // Apply colors to CSS variables
-    document.documentElement.style.setProperty('--color-primary', colors.primary);
-    document.documentElement.style.setProperty('--color-secondary', colors.secondary);
-    document.documentElement.style.setProperty('--color-accent', colors.accent);
-    document.documentElement.style.setProperty('--color-background', colors.background);
-    document.documentElement.style.setProperty('--color-text', colors.text);
-    document.documentElement.style.setProperty('--color-border', colors.border);
+    // Apply colors to DOM
+    applyColorsToDOM(colors);
     
     // Clear theme preset if one is active
     if (preferences?.themePreset) {
-      document.body.classList.remove(
-        'theme-preset-ocean',
-        'theme-preset-forest',
-        'theme-preset-sunset',
-        'theme-preset-lavender',
-        'theme-preset-cherry',
-        'theme-preset-midnight'
-      );
       updatePreference('themePreset', null);
     }
     
@@ -97,6 +108,10 @@ const ColorCustomizer: React.FC = () => {
     document.documentElement.style.removeProperty('--color-background');
     document.documentElement.style.removeProperty('--color-text');
     document.documentElement.style.removeProperty('--color-border');
+    document.documentElement.style.removeProperty('--primary');
+    
+    // Remove custom colors class
+    document.body.classList.remove('custom-colors-applied');
     
     // Clear from preferences
     updatePreference('customColors', null);
@@ -244,3 +259,4 @@ const ColorCustomizer: React.FC = () => {
 };
 
 export default ColorCustomizer;
+
