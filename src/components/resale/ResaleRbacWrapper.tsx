@@ -30,7 +30,7 @@ const ResaleRbacWrapper = ({
   // Split the permission if it contains a dot notation (e.g., "resale.certificate.view")
   const permissionParts = requiredPermission.split('.');
   const actualPermission = permissionParts.length > 1 
-    ? permissionParts[permissionParts.length - 1] as Permission 
+    ? permissionParts[permissionParts.length - 1] 
     : requiredPermission;
   
   // If the permission has module prefix (e.g., "resale.certificate.view"), 
@@ -39,7 +39,7 @@ const ResaleRbacWrapper = ({
     ? permissionParts.slice(0, permissionParts.length - 1).join('.') 
     : module;
   
-  const authorized = hasPermission(actualModule, actualPermission);
+  const authorized = hasPermission(actualModule, actualPermission as Permission);
   
   if (!authorized) {
     return fallback || (
