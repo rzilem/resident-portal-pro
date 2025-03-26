@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { userPreferencesService } from '@/services/userPreferencesService';
@@ -104,14 +103,32 @@ export function useSettings(userId: string = 'current-user') {
     
     // Apply theme preset
     if (prefs.themePreset) {
-      document.body.classList.remove(
+      // Remove all possible theme preset classes
+      const allThemeClasses = [
+        // Original themes
         'theme-preset-ocean', 
         'theme-preset-forest', 
         'theme-preset-sunset', 
         'theme-preset-lavender', 
         'theme-preset-cherry', 
-        'theme-preset-midnight'
-      );
+        'theme-preset-midnight',
+        'theme-preset-emerald',
+        'theme-preset-ruby',
+        'theme-preset-graphite',
+        // Christmas themes
+        'theme-preset-christmas-traditional',
+        'theme-preset-christmas-frost',
+        // Summer themes
+        'theme-preset-summer-beach',
+        'theme-preset-summer-tropical',
+        // Gradient themes
+        'theme-preset-gradient-sunset',
+        'theme-preset-gradient-cosmic',
+        'theme-preset-gradient-emerald',
+        'theme-preset-gradient-dusk'
+      ];
+      
+      document.body.classList.remove(...allThemeClasses);
       document.body.classList.add(`theme-preset-${prefs.themePreset}`);
     }
     
@@ -192,14 +209,32 @@ export function useSettings(userId: string = 'current-user') {
         break;
         
       case 'themePreset':
-        document.body.classList.remove(
+        // Remove all possible theme preset classes
+        const allThemeClasses = [
+          // Original themes
           'theme-preset-ocean', 
           'theme-preset-forest', 
           'theme-preset-sunset', 
           'theme-preset-lavender', 
           'theme-preset-cherry', 
-          'theme-preset-midnight'
-        );
+          'theme-preset-midnight',
+          'theme-preset-emerald',
+          'theme-preset-ruby',
+          'theme-preset-graphite',
+          // Christmas themes
+          'theme-preset-christmas-traditional',
+          'theme-preset-christmas-frost',
+          // Summer themes
+          'theme-preset-summer-beach',
+          'theme-preset-summer-tropical',
+          // Gradient themes
+          'theme-preset-gradient-sunset',
+          'theme-preset-gradient-cosmic',
+          'theme-preset-gradient-emerald',
+          'theme-preset-gradient-dusk'
+        ];
+        
+        document.body.classList.remove(...allThemeClasses);
         if (value) {
           document.body.classList.add(`theme-preset-${value}`);
         }

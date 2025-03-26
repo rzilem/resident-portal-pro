@@ -84,7 +84,7 @@ button[data-variant="default"] {
   border-color: var(--theme-primary) !important;
 }
 
-/* Custom theme preset effects */
+/* Original theme preset effects */
 .theme-preset-ocean {
   --color-primary: #0EA5E9;
   --color-secondary: #38BDF8;
@@ -139,6 +139,57 @@ button[data-variant="default"] {
   --color-accent: #9CA3AF;
 }
 
+/* Christmas Themes */
+.theme-preset-christmas-traditional {
+  --color-primary: #C01F1F;
+  --color-secondary: #146B3A;
+  --color-accent: #F8B229;
+}
+
+.theme-preset-christmas-frost {
+  --color-primary: #4A6FA5;
+  --color-secondary: #85C1E9;
+  --color-accent: #FFFFFF;
+}
+
+/* Summer Themes */
+.theme-preset-summer-beach {
+  --color-primary: #00B4D8;
+  --color-secondary: #FFB703;
+  --color-accent: #FF9500;
+}
+
+.theme-preset-summer-tropical {
+  --color-primary: #FF6B6B;
+  --color-secondary: #4ECDC4;
+  --color-accent: #FFE66D;
+}
+
+/* Gradient Themes */
+.theme-preset-gradient-sunset {
+  --color-primary: #FF9966;
+  --color-secondary: #FF5E62;
+  --color-accent: #FFC371;
+}
+
+.theme-preset-gradient-cosmic {
+  --color-primary: #8E2DE2;
+  --color-secondary: #4A00E0;
+  --color-accent: #C9D6FF;
+}
+
+.theme-preset-gradient-emerald {
+  --color-primary: #11998e;
+  --color-secondary: #38ef7d;
+  --color-accent: #C9F9E9;
+}
+
+.theme-preset-gradient-dusk {
+  --color-primary: #2C3E50;
+  --color-secondary: #FD746C;
+  --color-accent: #FE8A7A;
+}
+
 /* Make theme effects more prominent */
 .theme-preset-ocean button[data-variant="default"],
 .theme-preset-ocean .bg-primary {
@@ -185,6 +236,49 @@ button[data-variant="default"] {
   background-color: #4B5563 !important;
 }
 
+/* Christmas Themes */
+.theme-preset-christmas-traditional button[data-variant="default"],
+.theme-preset-christmas-traditional .bg-primary {
+  background-color: #C01F1F !important;
+}
+
+.theme-preset-christmas-frost button[data-variant="default"],
+.theme-preset-christmas-frost .bg-primary {
+  background-color: #4A6FA5 !important;
+}
+
+/* Summer Themes */
+.theme-preset-summer-beach button[data-variant="default"],
+.theme-preset-summer-beach .bg-primary {
+  background-color: #00B4D8 !important;
+}
+
+.theme-preset-summer-tropical button[data-variant="default"],
+.theme-preset-summer-tropical .bg-primary {
+  background-color: #FF6B6B !important;
+}
+
+/* Gradient Themes */
+.theme-preset-gradient-sunset button[data-variant="default"],
+.theme-preset-gradient-sunset .bg-primary {
+  background-color: #FF9966 !important;
+}
+
+.theme-preset-gradient-cosmic button[data-variant="default"],
+.theme-preset-gradient-cosmic .bg-primary {
+  background-color: #8E2DE2 !important;
+}
+
+.theme-preset-gradient-emerald button[data-variant="default"],
+.theme-preset-gradient-emerald .bg-primary {
+  background-color: #11998e !important;
+}
+
+.theme-preset-gradient-dusk button[data-variant="default"],
+.theme-preset-gradient-dusk .bg-primary {
+  background-color: #2C3E50 !important;
+}
+
 /* Custom background styles */
 body.custom-background {
   background-repeat: no-repeat;
@@ -215,4 +309,26 @@ body.theme-applied::after {
   height: 3px;
   background: var(--theme-primary);
   z-index: 9999;
+}
+
+/* Seasonal theme indicators */
+.theme-preset-christmas-traditional body.theme-applied::after,
+.theme-preset-christmas-frost body.theme-applied::after {
+  background: linear-gradient(to right, #C01F1F, #146B3A, #F8B229, #C01F1F);
+  height: 4px;
+}
+
+.theme-preset-summer-beach body.theme-applied::after,
+.theme-preset-summer-tropical body.theme-applied::after {
+  background: linear-gradient(to right, #00B4D8, #FFB703, #FF9500, #00B4D8);
+  height: 4px;
+}
+
+/* Gradient theme indicators */
+.theme-preset-gradient-sunset body.theme-applied::after,
+.theme-preset-gradient-cosmic body.theme-applied::after,
+.theme-preset-gradient-emerald body.theme-applied::after,
+.theme-preset-gradient-dusk body.theme-applied::after {
+  background: var(--theme-background);
+  height: 4px;
 }
