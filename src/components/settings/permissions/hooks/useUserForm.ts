@@ -224,7 +224,7 @@ const getRoleLabel = (roleValue: string): string => {
   return role ? role.label : roleValue.charAt(0).toUpperCase() + roleValue.slice(1).replace('_', ' ');
 };
 
-const roles: { value: UserRole; label: string }[] = [
+export const roles: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Administrator" },
   { value: "manager", label: "Property Manager" },
   { value: "board_member", label: "Board Member" },
@@ -234,5 +234,3 @@ const roles: { value: UserRole; label: string }[] = [
   { value: "resident", label: "Resident" },
   { value: "guest", label: "Guest" }
 ];
-
-export { roles };
