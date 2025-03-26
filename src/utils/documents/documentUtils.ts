@@ -196,10 +196,13 @@ export const getDocuments = async (
   associationId?: string,
   userRole?: UserRole
 ): Promise<DocumentFile[]> => {
+  console.log('Fetching documents with filters:', { filters, associationId, userRole });
+  
   let filteredDocs = [...mockDocuments];
   
   // Filter by association if provided
   if (associationId) {
+    console.log('Filtering by association:', associationId);
     filteredDocs = filteredDocs.filter(doc => 
       doc.associations?.includes(associationId)
     );
@@ -210,6 +213,7 @@ export const getDocuments = async (
     // Filter by search query
     if (filters.query) {
       const query = filters.query.toLowerCase();
+      console.log('Filtering by query:', query);
       filteredDocs = filteredDocs.filter(doc => 
         doc.name.toLowerCase().includes(query) || 
         doc.description?.toLowerCase().includes(query) ||
@@ -219,6 +223,7 @@ export const getDocuments = async (
     
     // Filter by categories
     if (filters.categories && filters.categories.length > 0) {
+      console.log('Filtering by categories:', filters.categories);
       filteredDocs = filteredDocs.filter(doc => 
         filters.categories?.includes(doc.category)
       );
@@ -226,6 +231,7 @@ export const getDocuments = async (
     
     // Filter by file types
     if (filters.fileTypes && filters.fileTypes.length > 0) {
+      console.log('Filtering by file types:', filters.fileTypes);
       filteredDocs = filteredDocs.filter(doc => 
         filters.fileTypes?.includes(doc.fileType)
       );
@@ -233,6 +239,7 @@ export const getDocuments = async (
     
     // Filter by tags
     if (filters.tags && filters.tags.length > 0) {
+      console.log('Filtering by tags:', filters.tags);
       filteredDocs = filteredDocs.filter(doc => 
         doc.tags?.some(tag => filters.tags?.includes(tag))
       );
@@ -240,12 +247,14 @@ export const getDocuments = async (
     
     // Filter by public/archived status
     if (filters.isPublic !== undefined) {
+      console.log('Filtering by public status:', filters.isPublic);
       filteredDocs = filteredDocs.filter(doc => 
         doc.isPublic === filters.isPublic
       );
     }
     
     if (filters.isArchived !== undefined) {
+      console.log('Filtering by archived status:', filters.isArchived);
       filteredDocs = filteredDocs.filter(doc => 
         doc.isArchived === filters.isArchived
       );
@@ -254,6 +263,7 @@ export const getDocuments = async (
   
   // Apply security filtering based on categories and user role
   if (userRole) {
+    console.log('Applying security filtering for role:', userRole);
     const accessibleCategories = mockCategories
       .filter(cat => hasAccessToCategory(userRole, cat.accessLevel))
       .map(cat => cat.id);
@@ -263,6 +273,7 @@ export const getDocuments = async (
     );
   }
   
+  console.log('Returning filtered documents:', filteredDocs.length);
   return filteredDocs;
 };
 

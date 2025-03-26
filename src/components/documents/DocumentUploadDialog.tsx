@@ -16,12 +16,14 @@ interface DocumentUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  refreshDocuments?: () => void; // Added new prop for refreshing documents
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  refreshDocuments
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
@@ -96,6 +98,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       // Call success callback
       if (onSuccess) {
         onSuccess();
+      }
+      
+      // Added: Refresh documents list after successful upload
+      if (refreshDocuments) {
+        refreshDocuments();
       }
     } catch (error) {
       console.error('Error uploading document:', error);

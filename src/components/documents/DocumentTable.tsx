@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
   TableHeader, TableRow, TableCaption 
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   FileText, Download, Eye, Share2, Star, 
   MoreVertical, FileIcon, BarChart2, File,
-  Calendar, User, Clock, Tag, Filter
+  Calendar, User, Clock, Tag, Filter, RefreshCw
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,35 +37,16 @@ interface DocumentTableProps {
   filter?: 'recent' | 'shared' | 'important';
   associationId?: string;
   caption?: string;
+  refreshTrigger?: number;
 }
-
-const getDocumentIcon = (name: string) => {
-  const extension = name.split('.').pop()?.toLowerCase();
-  
-  switch (extension) {
-    case 'pdf':
-      return <FileText className="h-5 w-5 text-red-500" />;
-    case 'xlsx':
-    case 'xls':
-      return <BarChart2 className="h-5 w-5 text-green-500" />;
-    case 'docx':
-    case 'doc':
-      return <FileText className="h-5 w-5 text-blue-500" />;
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-      return <File className="h-5 w-5 text-purple-500" />;
-    default:
-      return <FileIcon className="h-5 w-5 text-gray-500" />;
-  }
-};
 
 const DocumentTable: React.FC<DocumentTableProps> = ({ 
   category, 
   searchQuery = '',
   filter,
   associationId,
-  caption
+  caption,
+  refreshTrigger = 0
 }) => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,64 +56,65 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   const [tagFilter, setTagFilter] = useState('');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
+  const [loadKey, setLoadKey] = useState(0);
   
-  // Load documents when component mounts or filters change
   React.useEffect(() => {
-    const loadDocuments = async () => {
-      setIsLoading(true);
-      try {
-        // Create a filters object that matches DocumentSearchFilters type
-        const filters: DocumentSearchFilters = {
-          query: searchQuery || localSearchQuery,
-          categories: category ? [category] : [],
-          tags: tagFilter ? [tagFilter] : []
-        };
-        
-        // Add date range filter
-        if (dateFilter === 'today') {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          filters.dateRange = {
-            start: today.toISOString(),
-            end: new Date().toISOString()
-          };
-        } else if (dateFilter === 'week') {
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          filters.dateRange = {
-            start: weekAgo.toISOString(),
-            end: new Date().toISOString()
-          };
-        } else if (dateFilter === 'month') {
-          const monthAgo = new Date();
-          monthAgo.setMonth(monthAgo.getMonth() - 1);
-          filters.dateRange = {
-            start: monthAgo.toISOString(),
-            end: new Date().toISOString()
-          };
-        }
-        
-        // Add specific filter type
-        if (filter === 'shared') {
-          filters.isPublic = true;
-        } else if (filter === 'important') {
-          // This would typically use a custom field like 'isImportant'
-          // For now, we'll just filter by important tags
-          filters.tags = ['important'];
-        }
-        
-        const docs = await getDocuments(filters, associationId);
-        setDocuments(docs);
-      } catch (error) {
-        console.error('Error loading documents:', error);
-        toast.error('Failed to load documents. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     loadDocuments();
+  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, refreshTrigger, loadKey]);
+  
+  const loadDocuments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const filters: DocumentSearchFilters = {
+        query: searchQuery || localSearchQuery,
+        categories: category ? [category] : [],
+        tags: tagFilter ? [tagFilter] : []
+      };
+      
+      if (dateFilter === 'today') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        filters.dateRange = {
+          start: today.toISOString(),
+          end: new Date().toISOString()
+        };
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        filters.dateRange = {
+          start: weekAgo.toISOString(),
+          end: new Date().toISOString()
+        };
+      } else if (dateFilter === 'month') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        filters.dateRange = {
+          start: monthAgo.toISOString(),
+          end: new Date().toISOString()
+        };
+      }
+      
+      if (filter === 'shared') {
+        filters.isPublic = true;
+      } else if (filter === 'important') {
+        filters.tags = ['important'];
+      }
+      
+      console.log('Loading documents with filters:', filters);
+      const docs = await getDocuments(filters, associationId);
+      console.log('Loaded documents:', docs);
+      setDocuments(docs);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      toast.error('Failed to load documents. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter]);
+  
+  const refreshDocuments = () => {
+    setLoadKey(prevKey => prevKey + 1);
+  };
   
   const handleViewDocument = (doc: DocumentFile) => {
     setSelectedDocument(doc);
@@ -141,13 +122,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   };
   
   const handleDownloadDocument = (doc: DocumentFile) => {
-    // Simulate a download
     toast.success(`Downloading ${doc.name}`);
-    // In a real app, this would trigger a file download
   };
   
   const handleDeleteDocument = (doc: DocumentFile) => {
-    // Simulate deletion
     toast.success(`Document "${doc.name}" deleted`);
     setDocuments(documents.filter(d => d.id !== doc.id));
   };
@@ -193,6 +171,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               ? 'No documents available for this association'
               : 'No documents match the current filters'}
         </p>
+        <Button variant="outline" className="mt-4" onClick={refreshDocuments}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh Documents
+        </Button>
       </div>
     );
   }
@@ -211,6 +193,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         </div>
         
         <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={refreshDocuments} title="Refresh documents">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          
           <Select value={tagFilter} onValueChange={setTagFilter}>
             <SelectTrigger className="w-[160px]">
               <Tag className="h-4 w-4 mr-2" />

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +27,7 @@ const AssociationDocuments = () => {
   const [advancedFilters, setAdvancedFilters] = useState<DocumentSearchFilters>({});
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Added for refreshing documents
   
   const { activeAssociation } = useAssociations();
   const { toast } = useToast();
@@ -47,6 +48,12 @@ const AssociationDocuments = () => {
         description: "Failed to load document categories"
       });
     }
+  };
+  
+  // Added function to trigger document refresh
+  const refreshDocuments = () => {
+    console.log('Refreshing documents list');
+    setRefreshTrigger(prev => prev + 1);
   };
   
   const handleSearch = (query: string) => {
@@ -75,6 +82,8 @@ const AssociationDocuments = () => {
       title: "Upload Successful",
       description: "Document has been uploaded successfully"
     });
+    // Refresh documents after successful upload
+    refreshDocuments();
   };
   
   const getCategoryName = () => {
@@ -176,6 +185,7 @@ const AssociationDocuments = () => {
                         category={activeCategory} 
                         searchQuery={searchQuery}
                         associationId={activeAssociation?.id}
+                        refreshTrigger={refreshTrigger}
                       />
                     </TabsContent>
                     
@@ -185,6 +195,7 @@ const AssociationDocuments = () => {
                         searchQuery={searchQuery}
                         filter="recent"
                         associationId={activeAssociation?.id}
+                        refreshTrigger={refreshTrigger}
                       />
                     </TabsContent>
                     
@@ -194,6 +205,7 @@ const AssociationDocuments = () => {
                         searchQuery={searchQuery}
                         filter="shared"
                         associationId={activeAssociation?.id}
+                        refreshTrigger={refreshTrigger}
                       />
                     </TabsContent>
                     
@@ -203,6 +215,7 @@ const AssociationDocuments = () => {
                         searchQuery={searchQuery}
                         filter="important"
                         associationId={activeAssociation?.id}
+                        refreshTrigger={refreshTrigger}
                       />
                     </TabsContent>
                     
@@ -221,6 +234,7 @@ const AssociationDocuments = () => {
         isOpen={showUploadDialog}
         onClose={() => setShowUploadDialog(false)}
         onSuccess={handleUploadSuccess}
+        refreshDocuments={refreshDocuments} // Pass the refresh function
       />
       
       <DocumentPreview
