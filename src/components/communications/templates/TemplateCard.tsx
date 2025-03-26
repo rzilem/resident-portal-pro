@@ -47,20 +47,20 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
         <p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
       </CardContent>
       <CardFooter className="flex justify-between pt-2">
-        <div className="flex space-x-1">
-          <Button variant="ghost" size="icon" onClick={handlePreview}>
+        <div className="flex space-x-1 items-center">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreview}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(template)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(template)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(template.id)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDelete(template.id)}>
             <Trash className="h-4 w-4" />
           </Button>
         </div>
-        <Button variant="default" size="sm" onClick={handleUseTemplate}>
-          <Send className="mr-2 h-4 w-4" />
-          Use Template
+        <Button variant="default" size="sm" className="h-8 px-3" onClick={handleUseTemplate}>
+          <Send className="mr-1 h-4 w-4" />
+          Use
         </Button>
       </CardFooter>
     </Card>
