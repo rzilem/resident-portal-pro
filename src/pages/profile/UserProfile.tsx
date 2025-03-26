@@ -26,6 +26,7 @@ import { User } from '@/types/user';
 // Mock user data - in a real app this would come from your auth system
 const mockUser: User = {
   id: "user-1",
+  name: "Jane Smith",
   firstName: "Jane",
   lastName: "Smith",
   email: "jane.smith@example.com",
@@ -66,7 +67,8 @@ const mockUser: User = {
     allowSmsNotifications: true,
     allowPushNotifications: false,
     emailFrequency: "daily",
-    subscribedTopics: ["maintenance", "announcements", "events"]
+    subscribedTopics: ["maintenance", "announcements", "events"],
+    notificationTopics: ["maintenance", "announcements", "events"]
   },
   customFields: [
     {

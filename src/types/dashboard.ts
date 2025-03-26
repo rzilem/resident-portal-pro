@@ -16,7 +16,8 @@ export type WidgetType =
   | 'calendar'
   | 'documents'
   | 'announcements'
-  | 'directory';
+  | 'directory'
+  | string; // Add string to make it compatible with the User Widget type
 
 export interface Widget {
   id: string;

@@ -1,7 +1,7 @@
 
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
-  cardStyle: 'default' | 'flat' | 'rounded';
+  cardStyle: 'default' | 'flat' | 'rounded' | 'glass';
   density: 'comfortable' | 'compact' | 'spacious';
   animations: boolean;
   notifications: {
@@ -41,7 +41,22 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  address?: string;
+  bio?: string;
+  createdAt?: string;
+  lastLogin?: string;
+  status?: string;
+  type?: string;
+  associationIds?: string[];
+  committees?: string[];
+  profileImageUrl?: string;
   customFields?: CustomField[];
+  emergencyContacts?: EmergencyContact[];
+  vehicleInfo?: VehicleInfo[];
+  communicationPreferences?: CommunicationPreferences;
 }
 
 export interface CustomField {
@@ -55,34 +70,40 @@ export interface EmergencyContact {
   id: string;
   name: string;
   relationship: string;
-  phone: string;
+  phoneNumber: string;
   email?: string;
+  isAuthorized?: boolean;
 }
 
 export interface VehicleInfo {
   id: string;
   make: string;
   model: string;
-  year: string;
+  year: string | number;
   color: string;
   licensePlate: string;
+  parkingSpot?: string;
 }
 
 export interface CommunicationPreferences {
-  emailFrequency: string;
+  emailFrequency: 'immediate' | 'daily' | 'weekly';
   notificationTopics: string[];
-  channels: {
+  channels?: {
     email: boolean;
     sms: boolean;
     app: boolean;
   };
+  allowEmailNotifications: boolean;
+  allowSmsNotifications: boolean;
+  allowPushNotifications: boolean;
+  subscribedTopics?: string[];
 }
 
-export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member';
+export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member' | 'board' | 'committee' | 'guest';
 
-export type SecurityLevel = 'full_access' | 'moderate_access' | 'limited_access' | 'view_only';
+export type SecurityLevel = 'full_access' | 'moderate_access' | 'limited_access' | 'view_only' | 'full' | 'advanced' | 'basic' | 'restricted';
 
-export type GlobalPermission = 'create' | 'read' | 'update' | 'delete';
+export type GlobalPermission = 'create' | 'read' | 'update' | 'delete' | 'admin' | 'manage';
 
 export interface ModulePermissions {
   accounting: GlobalPermission[];
@@ -91,4 +112,5 @@ export interface ModulePermissions {
   residents: GlobalPermission[];
   vendors: GlobalPermission[];
   settings: GlobalPermission[];
+  calendar?: GlobalPermission[];
 }
