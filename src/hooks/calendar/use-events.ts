@@ -129,14 +129,14 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   }, [selectedEvent]);
 
   // Create a workflow event
-  const createWorkflowEvent = useCallback((workflowId: string, title: string, start: Date) => {
+  const createWorkflowEvent = useCallback(async (workflowId: string, title: string, start: Date) => {
     if (!associationId) {
       toast.error('Association ID is required to create a workflow event');
       return null;
     }
     
     try {
-      const newEvent = calendarService.createWorkflowEvent(workflowId, title, start, associationId);
+      const newEvent = await calendarService.createWorkflowEvent(workflowId, title, start, associationId);
       setEvents(prev => [...prev, newEvent]);
       toast.success('Workflow scheduled successfully');
       return newEvent;
