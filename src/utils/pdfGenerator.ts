@@ -1,8 +1,9 @@
 
-import { PDFGeneratorCore, PdfOptions } from './pdf/PDFGeneratorCore';
+import { PDFGeneratorCore } from './pdf/PDFGeneratorCore';
 import { ResaleCertificateGenerator, ResaleCertificateData } from './pdf/ResaleCertificateGenerator';
 import { CondoQuestionnaireGenerator, CondoQuestionnaireData } from './pdf/CondoQuestionnaireGenerator';
 import { AccountStatementGenerator, AccountStatementData } from './pdf/AccountStatementGenerator';
+import { PdfOptions } from './pdf/types/PdfTypes';
 
 export class PdfGenerator extends PDFGeneratorCore {
   // Factory methods for specific document types
