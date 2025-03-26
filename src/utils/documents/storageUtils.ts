@@ -6,7 +6,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Check and create documents bucket if it doesn't exist
-export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
+export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<boolean> => {
   try {
     console.log('Checking if documents bucket exists...');
     
@@ -20,15 +20,11 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
     
     const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
     
-    if (!documentsBucket) {
-      console.log('Documents bucket not found, attempting to create it...');
+    if (!documentsBucket || forceCreate) {
+      console.log('Documents bucket not found or force create requested, attempting to create it...');
       
       // Get the current user to ensure we're authenticated
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('User is not authenticated. Authentication is required to create storage buckets.');
-        return false;
-      }
       
       // Create the documents bucket with public access
       const { error } = await supabase.storage.createBucket('documents', {
@@ -38,20 +34,38 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
       
       if (error) {
         console.error('Error creating documents bucket:', error);
-        console.log('Attempting to use existing bucket instead...');
         
-        // Try to access the bucket again
-        const { data: checkBuckets } = await supabase.storage.listBuckets();
-        if (checkBuckets?.some(b => b.name === 'documents')) {
-          console.log('Found existing documents bucket on second check');
-          return true;
+        // Check if error is due to bucket already existing
+        if (error.message && error.message.includes('already exists')) {
+          console.log('Bucket already exists but was not found in initial check');
+          
+          // Try to fetch the buckets again to confirm it exists now
+          const { data: checkBuckets } = await supabase.storage.listBuckets();
+          if (checkBuckets?.some(b => b.name === 'documents')) {
+            console.log('Confirmed documents bucket exists on second check');
+            return true;
+          }
         }
         
+        // If here, bucket could not be confirmed to exist
+        console.log('Attempting to use existing bucket instead...');
         return false;
       }
       
       console.log('Documents bucket created successfully');
-      return true;
+      
+      // Add a slight delay to allow bucket creation to propagate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Verify the bucket was created successfully
+      const { data: verifyBuckets, error: verifyError } = await supabase.storage.listBuckets();
+      
+      if (verifyError) {
+        console.error('Error verifying bucket creation:', verifyError);
+        return false;
+      }
+      
+      return verifyBuckets?.some(b => b.name === 'documents') || false;
     } else {
       console.log('Documents bucket already exists');
       return true;

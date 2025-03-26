@@ -2,6 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ensureDocumentsBucketExists } from '@/utils/documents/storageUtils';
 
 interface UploadDocumentParams {
   file: File;
@@ -28,41 +29,20 @@ export const uploadDocument = async ({
       // We'll proceed as anonymous since the bucket is public
     }
     
+    // First make sure the bucket exists
+    const bucketExists = await ensureDocumentsBucketExists();
+    if (!bucketExists) {
+      console.error('Document storage not available');
+      toast.error('Document storage is not available. Please try again later.');
+      return false;
+    }
+    
     // Create a unique file name using uuid
     const fileExtension = file.name.split('.').pop();
     const fileName = `${uuidv4()}.${fileExtension}`;
     const filePath = fileName;
 
     console.log(`Uploading file to path: ${filePath}`);
-    
-    // Check if the documents bucket exists and is accessible
-    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-    
-    if (bucketError) {
-      console.error('Error checking buckets:', bucketError);
-      toast.error('Failed to access document storage');
-      return false;
-    }
-    
-    const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
-    
-    if (!documentsBucket) {
-      console.error('Documents bucket does not exist or is not accessible');
-      
-      // Try to create the bucket
-      const { error: createError } = await supabase.storage.createBucket('documents', {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-      });
-      
-      if (createError) {
-        console.error('Failed to create documents bucket:', createError);
-        toast.error('Document storage is not available. Please contact support.');
-        return false;
-      }
-      
-      console.log('Successfully created documents bucket');
-    }
     
     // Upload file to storage
     const { data: storageData, error: storageError } = await supabase.storage

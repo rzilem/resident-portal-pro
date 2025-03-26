@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, RefreshCw } from 'lucide-react';
+import { Upload, RefreshCw, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssociations } from '@/hooks/use-associations';
 import FileUploader from './FileUploader';
@@ -32,7 +32,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   
   // Hooks
   const { activeAssociation } = useAssociations();
-  const { bucketReady, isLoading, retryCheck } = useDocumentsBucket();
+  const { bucketReady, isLoading, isCreating, retryCheck } = useDocumentsBucket();
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -58,7 +58,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     }
 
     if (!bucketReady) {
-      toast.error('Document storage is not available. Please try again later.');
+      toast.error('Document storage is not available. Please initialize it first.');
       return;
     }
 
@@ -98,6 +98,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   };
   
   const handleRetryBucketCreation = () => {
+    console.log('Retrying bucket creation...');
     retryCheck();
   };
 
@@ -121,17 +122,28 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
             </div>
           ) : !bucketReady ? (
             <div className="text-center p-6">
+              <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
               <div className="text-red-500 mb-2">Document storage is not available</div>
               <p className="text-sm text-muted-foreground mb-4">
-                There was a problem connecting to document storage. Please try again later or contact support.
+                There was a problem connecting to document storage. Please initialize it by clicking the button below.
               </p>
               <Button 
-                variant="outline" 
+                variant="default" 
                 onClick={handleRetryBucketCreation}
                 className="gap-2"
+                disabled={isCreating}
               >
-                <RefreshCw className="h-4 w-4" />
-                Retry Connection
+                {isCreating ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <span>Initializing...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Initialize Storage</span>
+                  </>
+                )}
               </Button>
             </div>
           ) : (
