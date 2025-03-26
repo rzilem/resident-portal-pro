@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import { DocumentCategory } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
-import { renderAccessLevelBadge } from '../../documents/utils/categoryUtils';
+import { renderAccessLevelBadge } from '../../documents/utils/categoryUtils.tsx';
 
 const DocumentSecuritySettings = () => {
   const [isLoading, setIsLoading] = useState(true);
