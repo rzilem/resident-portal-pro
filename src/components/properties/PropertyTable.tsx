@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, X, CalendarClock, DollarSign, MapPin, MapPinned, Building2, FileText, Briefcase, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
 import { PropertyColumn } from './PropertyColumnsSelector';
@@ -11,6 +11,7 @@ interface PropertyTableProps {
 }
 
 const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
+  const navigate = useNavigate();
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -25,38 +26,9 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
     }
   };
 
-  const sortedProperties = [...properties].sort((a, b) => {
-    // Handle properties that might not have the sort field
-    const valueA = a[sortField as keyof Property];
-    const valueB = b[sortField as keyof Property];
-    
-    // Return early if either value is undefined
-    if (valueA === undefined || valueB === undefined) return 0;
-    
-    // Handle different data types
-    if (typeof valueA === 'number' && typeof valueB === 'number') {
-      return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
-    } else if (typeof valueA === 'boolean' && typeof valueB === 'boolean') {
-      return sortDirection === 'asc' 
-        ? (valueA === valueB ? 0 : valueA ? -1 : 1)
-        : (valueA === valueB ? 0 : valueA ? 1 : -1);
-    } else if (sortField === 'foundedDate') {
-      // Special handling for dates
-      const dateA = new Date(valueA as string);
-      const dateB = new Date(valueB as string);
-      return sortDirection === 'asc' 
-        ? dateA.getTime() - dateB.getTime() 
-        : dateB.getTime() - dateA.getTime();
-    } else {
-      // Convert to string for comparison
-      const strA = String(valueA).toLowerCase();
-      const strB = String(valueB).toLowerCase();
-      
-      return sortDirection === 'asc' 
-        ? strA.localeCompare(strB)
-        : strB.localeCompare(strA);
-    }
-  });
+  const navigateToAssociation = (associationId: string) => {
+    navigate(`/associations/${associationId}`);
+  };
 
   const SortIcon = ({ field }: { field: string }) => {
     if (sortField !== field) return null;
@@ -133,12 +105,17 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sortedProperties.map((property, i) => (
-          <TableRow key={i} className="cursor-pointer hover:bg-muted">
+        {properties.map((property, i) => (
+          <TableRow key={i} className="hover:bg-muted">
             {columns.map(col => col.checked && (
               <TableCell key={col.id}>
                 {col.id === 'name' ? (
-                  <span className="font-medium">{property.name}</span>
+                  <button 
+                    onClick={() => navigateToAssociation(property.associationId || 'unknown')}
+                    className="font-medium text-primary hover:underline text-left cursor-pointer"
+                  >
+                    {property.name}
+                  </button>
                 ) : col.id === 'status' ? (
                   <span className={`px-2 py-1 rounded-full text-xs ${
                     property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'

@@ -1,43 +1,89 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CalendarDays, MapPin, Users } from "lucide-react";
 import { PropertyColumn } from './PropertyColumnsSelector';
+import { Property } from './PropertyHelpers';
 
 interface PropertyCardListProps {
-  properties: any[];
+  properties: Property[];
   columns: PropertyColumn[];
 }
 
 const PropertyCardList = ({ properties, columns }: PropertyCardListProps) => {
+  const navigate = useNavigate();
+
+  const navigateToAssociation = (associationId: string) => {
+    navigate(`/associations/${associationId}`);
+  };
+
   return (
-    <div className="space-y-4 md:hidden">
-      {properties.map((property, i) => (
-        <Card key={i} className="p-4 border">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">{property.name}</h3>
-            <span className={`px-2 py-1 rounded-full text-xs ${
-              property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-            }`}>
-              {property.status}
-            </span>
-          </div>
-          <div className="space-y-1 text-sm">
-            {columns.filter(col => col.checked && col.id !== 'name' && col.id !== 'status').map(col => (
-              <div key={col.id} className="flex justify-between">
-                <span className="text-muted-foreground">{col.label}:</span>
-                <span>
-                  {typeof property[col.id as keyof typeof property] === 'boolean' 
-                    ? (property[col.id as keyof typeof property] ? 'Yes' : 'No')
-                    : property[col.id as keyof typeof property]}
-                </span>
+    <div className="space-y-4">
+      {properties.map((property, index) => (
+        <Card key={index} className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle 
+              className="text-primary cursor-pointer hover:underline"
+              onClick={() => navigateToAssociation(property.associationId || 'unknown')}
+            >
+              {property.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3 space-y-3">
+            <div className="flex justify-between items-start">
+              <Badge variant={property.status === 'Active' ? 'default' : 'secondary'}>
+                {property.status}
+              </Badge>
+              <div className="text-sm text-muted-foreground">
+                Founded: {new Date(property.foundedDate).toLocaleDateString()}
               </div>
-            ))}
-          </div>
-          <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
-            View Details <ChevronRight className="h-4 w-4" />
-          </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center text-sm">
+                <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                {property.location}
+              </div>
+              <div className="flex items-center text-sm">
+                <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                {property.units} Units
+              </div>
+              {columns.find(col => col.id === 'assessmentFrequency' && col.checked) && (
+                <div className="flex items-center text-sm">
+                  <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
+                  {property.assessmentFrequency}
+                </div>
+              )}
+            </div>
+            
+            {/* Show extra fields based on columns selection */}
+            <div className="mt-2 pt-2 border-t border-border">
+              {columns
+                .filter(col => 
+                  col.checked && 
+                  !['name', 'location', 'units', 'status', 'foundedDate', 'assessmentFrequency'].includes(col.id)
+                )
+                .map(col => {
+                  const value = property[col.id as keyof typeof property];
+                  if (value === undefined) return null;
+                  
+                  return (
+                    <div key={col.id} className="flex justify-between text-sm py-1">
+                      <span className="text-muted-foreground">{col.label}:</span>
+                      <span className="font-medium">
+                        {typeof value === 'boolean' 
+                          ? (value ? 'Yes' : 'No') 
+                          : (col.id === 'annualFees' ? `$${value}` : value)
+                        }
+                      </span>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </CardContent>
         </Card>
       ))}
     </div>

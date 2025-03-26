@@ -11,6 +11,7 @@ import Dashboard from '@/pages/Dashboard';
 import Properties from '@/pages/Properties';
 import Residents from '@/pages/Residents';
 import ResidentProfile from '@/pages/ResidentProfile';
+import AssociationProfile from '@/pages/AssociationProfile'; // New import
 import Calendar from '@/pages/Calendar';
 import Integrations from '@/pages/Integrations';
 import Reports from '@/pages/Reports';
@@ -88,6 +89,7 @@ const App = () => {
           <Route path="/properties" element={<Properties />} />
           <Route path="/residents" element={<Residents />} />
           <Route path="/residents/:id" element={<ResidentProfile />} />
+          <Route path="/associations/:id" element={<AssociationProfile />} /> {/* New route */}
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/reports" element={<Reports />} />
@@ -114,7 +116,7 @@ const App = () => {
           <Route path="/accounting/journal-entries" element={<JournalEntries />} />
           <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
           <Route path="/accounting/invoice-coding" element={<InvoiceCoding />} />
-          <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} /> {/* Add new route */}
+          <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} />
           
           {/* Communications routes */}
           <Route path="/communications/messaging" element={<CommunityMessaging />} />
