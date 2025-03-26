@@ -1,6 +1,7 @@
 
-// Email service utility to handle sending emails
-// Note: In a real application, this would connect to a backend email service API
+// Email service utility to handle sending emails through Supabase Edge Function
+
+import { supabase } from "@/integrations/supabase/client";
 
 export interface EmailOptions {
   to: string;
@@ -12,25 +13,51 @@ export interface EmailOptions {
 
 export const emailService = {
   /**
-   * Send an email (simulated in this example)
-   * In a real application, this would call a backend API endpoint
+   * Send an email using Supabase Edge Function
    */
   sendEmail: async (options: EmailOptions): Promise<boolean> => {
-    // In a real application, this would make an API call to your backend
-    console.log('Sending email:', options);
+    if (!options.to) {
+      console.error('Cannot send email: Recipient email is missing');
+      return false;
+    }
+
+    if (!options.subject) {
+      console.error('Cannot send email: Subject is missing');
+      return false;
+    }
+
+    if (!options.body) {
+      console.error('Cannot send email: Email body is missing');
+      return false;
+    }
     
-    // Log additional details about the email for debugging
+    console.log('Sending email:', options);
     console.log(`To: ${options.to}`);
     console.log(`Subject: ${options.subject}`);
-    console.log(`From: ${options.from || 'default-sender'}`);
+    console.log(`From: ${options.from || 'noreply@residentpro.com'}`);
     
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Email sent successfully to:', options.to);
-        resolve(true);
-      }, 500);
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: options.to,
+          subject: options.subject,
+          html: options.body,
+          from: options.from,
+          replyTo: options.replyTo
+        }
+      });
+      
+      if (error) {
+        console.error('Error sending email:', error);
+        return false;
+      }
+      
+      console.log('Email sent successfully to:', options.to, data);
+      return true;
+    } catch (err) {
+      console.error('Exception while sending email:', err);
+      return false;
+    }
   },
   
   /**
