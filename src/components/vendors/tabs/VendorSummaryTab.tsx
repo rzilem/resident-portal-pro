@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, FileText, CalendarClock, CreditCard } from 'lucide
 import { format } from 'date-fns';
 import { Vendor } from '@/types/vendor';
 import TagBadge from '@/components/residents/tags/TagBadge';
+import { Tag } from '@/types/resident';
 
 interface VendorSummaryTabProps {
   vendor: Vendor;
@@ -82,7 +83,7 @@ const VendorSummaryTab: React.FC<VendorSummaryTabProps> = ({ vendor }) => {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {vendor.tags?.map((tag) => (
-                <TagBadge key={tag.id} tag={tag} />
+                <TagBadge key={tag.id} tag={tag as Tag} />
               ))}
               {!vendor.tags?.length && (
                 <p className="text-sm text-muted-foreground">No tags applied</p>

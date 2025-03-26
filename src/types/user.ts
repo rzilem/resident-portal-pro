@@ -7,6 +7,7 @@ import { DashboardLayout } from './dashboard';
 import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 import { DatabaseColumn } from '@/components/database/DatabaseColumnsSelector';
 import { ResidentColumn } from '@/pages/Residents';
+import { VendorColumn } from '@/components/vendors/VendorColumnsSelector';
 
 export interface User {
   id: string;
@@ -103,6 +104,7 @@ export interface UserPreferences {
   databaseUnitColumns?: DatabaseColumn[];
   databaseHomeownerColumns?: DatabaseColumn[];
   databaseTransactionColumns?: DatabaseColumn[];
+  vendorTableColumns?: VendorColumn[]; // Add vendorTableColumns property
 }
 
 export interface PermissionSet {

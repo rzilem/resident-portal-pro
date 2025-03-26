@@ -57,8 +57,8 @@ export type Document = {
   size: string;
 }
 
-// Updated tag types to include association-specific types
-export type TagType = 'board' | 'committee' | 'delinquent' | 'custom' | 'property' | 'amenity' | 'service';
+// Updated tag types to include vendor-specific types
+export type TagType = 'board' | 'committee' | 'delinquent' | 'custom' | 'property' | 'amenity' | 'service' | 'reliability' | 'pricing';
 
 export type Tag = {
   id: string;

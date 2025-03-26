@@ -1,4 +1,3 @@
-
 export interface Vendor {
   id: string;
   name: string;
@@ -19,15 +18,14 @@ export interface Vendor {
   lastInvoiceDate?: string;
 }
 
-export type VendorTag = {
-  id: string;
-  label: string;
-  color: string;
-  type: VendorTagType;
-  createdAt: string;
-};
+// Use type from resident.ts
+import { Tag, TagType } from '@/types/resident';
 
-export type VendorTagType = 'service' | 'reliability' | 'pricing' | 'custom';
+export type VendorTag = Tag;
+
+// Keep for backward compatibility but mark as deprecated
+/** @deprecated Use TagType from resident.ts instead */
+export type VendorTagType = TagType;
 
 export interface VendorInvoice {
   id: string;
