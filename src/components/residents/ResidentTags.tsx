@@ -19,6 +19,9 @@ const ResidentTags: React.FC<ResidentTagsProps> = ({
   onTagsChange,
   editable = true 
 }) => {
+  // Debug - log what tags are received by this component
+  console.log('Tags received by ResidentTags:', tags);
+  
   const {
     tags: currentTags,
     open,
@@ -36,6 +39,9 @@ const ResidentTags: React.FC<ResidentTagsProps> = ({
     initialTags: tags, 
     onTagsChange 
   });
+
+  // Debug - log the processed tags
+  console.log('Processed tags in ResidentTags:', currentTags);
 
   return (
     <div>

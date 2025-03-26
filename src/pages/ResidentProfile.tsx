@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import ProfileHeader from '@/components/residents/ProfileHeader';
@@ -16,6 +16,12 @@ const ResidentProfile = () => {
   // Use state to manage resident data so tags can be updated
   const [resident, setResident] = useState(residentProfiles[residentId]);
 
+  // Debug - log the resident data to see if tags are included
+  useEffect(() => {
+    console.log('Resident data loaded:', resident);
+    console.log('Tags available:', resident?.tags);
+  }, [resident]);
+
   if (!resident) {
     return <NotFoundState />;
   }
@@ -29,7 +35,7 @@ const ResidentProfile = () => {
     }));
     
     // In a real app, you would save this to the backend
-    // console.log('Tags updated:', updatedTags);
+    console.log('Tags updated in parent component:', updatedTags);
   };
 
   return (

@@ -11,6 +11,9 @@ interface TagBadgeProps {
 }
 
 const TagBadge: React.FC<TagBadgeProps> = ({ tag, editable = false, onRemove }) => {
+  // Debug - log each tag that's being rendered
+  console.log('Rendering tag:', tag);
+  
   return (
     <Badge 
       key={tag.id}
