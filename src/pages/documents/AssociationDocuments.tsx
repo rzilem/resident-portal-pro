@@ -12,7 +12,7 @@ import { DOCUMENT_CATEGORIES } from '@/components/database/DocumentCategoryStruc
 import AssociationSelector from '@/components/documents/AssociationSelector';
 import { useAssociations } from '@/hooks/use-associations';
 import { DocumentFile, DocumentCategory, DocumentSearchFilters } from '@/types/documents';
-import { getDocuments, getDocumentCategories } from '@/utils/documents/documentUtils';
+import { getDocuments, getDocumentCategories } from '@/utils/documents/index';
 import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
 import { Button } from '@/components/ui/button';

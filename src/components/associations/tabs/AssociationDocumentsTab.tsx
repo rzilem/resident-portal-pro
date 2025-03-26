@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -15,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Association } from '@/types/association';
 import { DocumentFile, DocumentAccessLevel } from '@/types/documents';
-import { getDocuments } from '@/utils/documents/documentUtils';
+import { getDocuments } from '@/utils/documents/documentDbUtils';
 import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import DocumentActions from '@/components/documents/DocumentActions';
@@ -23,6 +22,7 @@ import DocumentTemplates from '@/components/documents/templates/DocumentTemplate
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthRole } from '@/hooks/use-auth-role';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatDate, formatFileSize } from '@/utils/documents/fileUtils';
 
 interface AssociationDocumentsTabProps {
   association: Association;
@@ -57,8 +57,8 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showDocumentPreview, setShowDocumentPreview] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
-  
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   const accessibleCategories = documentCategories.filter(category => {
     switch(category.accessLevel) {
       case 'admin':
@@ -88,7 +88,6 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   const loadDocuments = async () => {
     setIsLoading(true);
     try {
-      // Convert ID to string to ensure proper comparison
       const associationIdString = String(association.id);
       console.log(`Loading documents for association ID: ${associationIdString}, category: ${activeCategory}, role: ${role}`);
       
@@ -113,7 +112,6 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
     }
   };
   
-  // Add refreshDocuments function
   const refreshDocuments = () => {
     console.log("Refreshing documents in AssociationDocumentsTab");
     setRefreshTrigger(prev => prev + 1);
@@ -131,7 +129,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
     });
     
     setDocuments(documents.filter(doc => doc.id !== document.id));
-    refreshDocuments(); // Refresh after deletion
+    refreshDocuments();
   };
   
   const getAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
@@ -178,7 +176,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
       title: "Upload Successful",
       description: "Document has been uploaded successfully."
     });
-    refreshDocuments(); // Refresh after successful upload
+    refreshDocuments();
   };
   
   const getCategoryName = () => {
@@ -346,7 +344,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
                                   document={doc}
                                   onView={handleDocumentView}
                                   onDelete={handleDocumentDelete}
-                                  refreshDocuments={refreshDocuments} // Pass refreshDocuments to DocumentActions
+                                  refreshDocuments={refreshDocuments}
                                 />
                               </div>
                             </td>
@@ -382,7 +380,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
         isOpen={showUploadDialog}
         onClose={() => setShowUploadDialog(false)}
         onSuccess={handleUploadSuccess}
-        refreshDocuments={refreshDocuments} // Pass refreshDocuments to upload dialog
+        refreshDocuments={refreshDocuments}
       />
       
       <DocumentPreview

@@ -5,7 +5,7 @@ import {
   TableHeader, TableRow, TableCaption 
 } from "@/components/ui/table";
 import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
-import { getDocuments } from '@/utils/documents/documentUtils';
+import { getDocuments } from '@/utils/documents/documentDbUtils';
 import DocumentPreview from './DocumentPreview';
 import { toast } from 'sonner';
 import DocumentTableFilters from './DocumentTableFilters';

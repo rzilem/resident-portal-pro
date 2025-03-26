@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists } from '@/utils/documents/documentUtils';
+import { ensureDocumentsBucketExists } from '@/utils/documents/storageUtils';
 
 export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
