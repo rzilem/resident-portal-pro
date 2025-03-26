@@ -62,9 +62,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      if (mounted) {
-        localStorage.setItem(storageKey, theme);
-      }
+      localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
   };

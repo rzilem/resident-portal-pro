@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import DashboardLayout from '@/components/DashboardLayout';
 
@@ -74,7 +73,7 @@ import ResaleWizard from "@/pages/resale/wizard/ResaleWizard";
 
 const App = () => {
   return (
-    <ThemeProvider>
+    <>
       <Routes>
         {/* Public routes without dashboard layout */}
         <Route path="/" element={<Index />} />
@@ -149,7 +148,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
-    </ThemeProvider>
+    </>
   );
 };
 
