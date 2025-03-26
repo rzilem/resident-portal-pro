@@ -19,6 +19,11 @@ export const emailService = {
     // In a real application, this would make an API call to your backend
     console.log('Sending email:', options);
     
+    // Log additional details about the email for debugging
+    console.log(`To: ${options.to}`);
+    console.log(`Subject: ${options.subject}`);
+    console.log(`From: ${options.from || 'default-sender'}`);
+    
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -36,6 +41,11 @@ export const emailService = {
     firstName: string, 
     role: string
   ): Promise<boolean> => {
+    if (!userEmail) {
+      console.error('Cannot send welcome email: Email address is missing');
+      return false;
+    }
+    
     const subject = 'Welcome to ResidentPro!';
     
     const body = `
@@ -49,6 +59,8 @@ export const emailService = {
         </div>
       </div>
     `;
+    
+    console.log(`Attempting to send welcome email to ${userEmail} with role ${role}`);
     
     return emailService.sendEmail({
       to: userEmail,
@@ -68,6 +80,11 @@ export const emailService = {
     newUserEmail: string,
     role: string
   ): Promise<boolean> => {
+    if (!adminEmail || !newUserEmail) {
+      console.error('Cannot send notification: Email address is missing');
+      return false;
+    }
+    
     const subject = 'New User Invited';
     
     const body = `
@@ -84,6 +101,8 @@ export const emailService = {
         </div>
       </div>
     `;
+    
+    console.log(`Attempting to send admin notification to ${adminEmail} about new user ${newUserEmail}`);
     
     return emailService.sendEmail({
       to: adminEmail,
