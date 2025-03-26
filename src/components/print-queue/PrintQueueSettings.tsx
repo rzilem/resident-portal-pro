@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PrinterIcon, Envelope, Ship, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { PrinterIcon, Mail, Ship, Settings } from 'lucide-react';
 
 const PrintQueueSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('printers');
@@ -35,7 +36,7 @@ const PrintQueueSettings: React.FC = () => {
               <span>Printers</span>
             </TabsTrigger>
             <TabsTrigger value="mailing" className="flex items-center gap-2">
-              <Envelope className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
               <span>Mailing</span>
             </TabsTrigger>
             <TabsTrigger value="shipping" className="flex items-center gap-2">
