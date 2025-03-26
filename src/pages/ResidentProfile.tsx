@@ -19,16 +19,22 @@ const ResidentProfile = () => {
 
   return (
     <div className="container mx-auto p-4 md:p-6 animate-fade-in">
-      <ProfileHeader resident={resident} />
-      
-      <div className="flex items-center gap-2 text-muted-foreground mt-1 mb-4">
-        <MapPin className="h-4 w-4" />
-        <span>{resident.property} • Unit {resident.unit}</span>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6">
+        <div>
+          <ProfileHeader resident={resident} />
+          
+          <div className="flex items-center gap-2 text-muted-foreground mt-1 mb-4">
+            <MapPin className="h-4 w-4" />
+            <span>{resident.property} • Unit {resident.unit}</span>
+          </div>
+          
+          <ResidentTabs resident={resident} />
+        </div>
+        
+        <div>
+          <CriticalInfoArea resident={resident} />
+        </div>
       </div>
-      
-      <CriticalInfoArea resident={resident} />
-      
-      <ResidentTabs resident={resident} />
     </div>
   );
 };
