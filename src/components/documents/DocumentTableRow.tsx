@@ -5,9 +5,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, FileText, FileSpreadsheet } from "lucide-react";
+import { Eye, Download } from "lucide-react";
 import { DocumentFile } from '@/types/documents';
 import DocumentActions from './DocumentActions';
+import { getDocumentIcon, formatDate, formatFileSize } from './utils/documentIconUtils';
 
 interface DocumentTableRowProps {
   doc: DocumentFile;
@@ -24,40 +25,6 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
   onDelete,
   refreshDocuments
 }) => {
-  // Helper function to format date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  // Helper function to format file size
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    
-    return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  // Get appropriate icon based on file type
-  const getDocumentIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    
-    if (extension === 'pdf') {
-      return <FileText className="h-4 w-4 text-red-500" />;
-    } else if (['doc', 'docx'].includes(extension || '')) {
-      return <FileText className="h-4 w-4 text-blue-500" />;
-    } else if (['xls', 'xlsx', 'csv'].includes(extension || '')) {
-      return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
-    }
-    
-    return <FileText className="h-4 w-4 text-gray-500" />;
-  };
-
   return (
     <TableRow>
       <TableCell>

@@ -1,397 +1,174 @@
 
-import { DocumentFile, DocumentCategory, DocumentSearchFilters, DocumentAccessLevel } from '@/types/documents';
-import { UserRole } from '@/types/user';
+import { supabase } from '@/integrations/supabase/client';
+import { DocumentFile, DocumentCategory, DocumentSearchFilters } from '@/types/documents';
 
-// Sample document data for development purposes
-const mockDocuments: DocumentFile[] = [
-  {
-    id: "doc-001",
-    name: "Annual Budget 2023.pdf",
-    description: "Financial budget for the 2023 fiscal year",
-    fileSize: 1243000,
-    fileType: "application/pdf",
-    url: "/mock-documents/budget.pdf",
-    category: "financial",
-    tags: ["budget", "2023", "financial"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2023-01-15T10:30:00Z",
-    lastModified: "2023-01-15T10:30:00Z",
-    version: 1,
-    isPublic: true,
-    isArchived: false,
-    associations: ["assoc-001", "assoc-002"]
-  },
-  {
-    id: "doc-002",
-    name: "CC&Rs.pdf",
-    description: "Covenants, Conditions & Restrictions document",
-    fileSize: 3560000,
-    fileType: "application/pdf",
-    url: "/mock-documents/ccr.pdf",
-    category: "governing",
-    tags: ["legal", "governing", "rules"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2022-05-10T09:15:00Z",
-    lastModified: "2022-05-10T09:15:00Z",
-    version: 1,
-    isPublic: true,
-    isArchived: false,
-    associations: ["assoc-001"]
-  },
-  {
-    id: "doc-003",
-    name: "Meeting Minutes - January.docx",
-    description: "Board meeting minutes from January 2023",
-    fileSize: 450000,
-    fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    url: "/mock-documents/minutes.docx",
-    category: "meetings",
-    tags: ["meeting", "minutes", "board", "2023"],
-    uploadedBy: "board-secretary",
-    uploadedDate: "2023-02-05T14:20:00Z",
-    lastModified: "2023-02-05T14:20:00Z",
-    version: 1,
-    isPublic: false,
-    isArchived: false,
-    associations: ["assoc-001"]
-  },
-  {
-    id: "doc-004",
-    name: "Insurance Policy 2023-2024.pdf",
-    description: "Association insurance policy document",
-    fileSize: 2780000,
-    fileType: "application/pdf",
-    url: "/mock-documents/insurance.pdf",
-    category: "legal",
-    tags: ["insurance", "policy", "legal"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2023-03-01T11:45:00Z",
-    lastModified: "2023-03-01T11:45:00Z",
-    version: 1,
-    isPublic: true,
-    isArchived: false,
-    associations: ["assoc-001", "assoc-003"]
-  },
-  {
-    id: "doc-005",
-    name: "Pool Rules.pdf",
-    description: "Rules for using the community pool",
-    fileSize: 320000,
-    fileType: "application/pdf",
-    url: "/mock-documents/pool.pdf",
-    category: "rules",
-    tags: ["pool", "rules", "amenities"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2023-04-15T10:00:00Z",
-    lastModified: "2023-05-10T09:30:00Z",
-    version: 2,
-    previousVersions: [
-      {
-        version: 1,
-        url: "/mock-documents/pool-v1.pdf",
-        lastModified: "2023-04-15T10:00:00Z",
-        modifiedBy: "admin-user"
-      }
-    ],
-    isPublic: true,
-    isArchived: false,
-    associations: ["assoc-002"]
-  },
-  {
-    id: "doc-006",
-    name: "Vendor Contract - Landscaping.pdf",
-    description: "Service contract with landscaping company",
-    fileSize: 1650000,
-    fileType: "application/pdf",
-    url: "/mock-documents/contract.pdf",
-    category: "contracts",
-    tags: ["vendor", "contract", "landscaping", "maintenance"],
-    uploadedBy: "property-manager",
-    uploadedDate: "2023-05-20T13:10:00Z",
-    lastModified: "2023-05-20T13:10:00Z",
-    version: 1,
-    expirationDate: "2024-05-19",
-    isPublic: false,
-    isArchived: false,
-    associations: ["assoc-001", "assoc-002"]
-  },
-  // Adding more documents with broader association coverage for testing
-  {
-    id: "doc-007",
-    name: "Community Newsletter - Q1 2023.pdf",
-    description: "First quarter newsletter for residents",
-    fileSize: 1250000,
-    fileType: "application/pdf",
-    url: "/mock-documents/newsletter.pdf",
-    category: "communications",
-    tags: ["newsletter", "community", "2023"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2023-03-25T10:30:00Z",
-    lastModified: "2023-03-25T10:30:00Z",
-    version: 1,
-    isPublic: true,
-    isArchived: false,
-    associations: ["assoc-001", "assoc-002", "assoc-003", "1"]
-  },
-  {
-    id: "doc-008",
-    name: "Board Election Results 2023.pdf",
-    description: "Results of the annual board election",
-    fileSize: 520000,
-    fileType: "application/pdf",
-    url: "/mock-documents/election.pdf",
-    category: "meetings",
-    tags: ["board", "election", "voting", "2023"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2023-06-10T15:45:00Z",
-    lastModified: "2023-06-10T15:45:00Z",
-    version: 1,
-    isPublic: true,
-    isArchived: false,
-    associations: ["1", "assoc-001"]
-  },
-  {
-    id: "doc-009",
-    name: "Maintenance Schedule - 2023.xlsx",
-    description: "Annual maintenance schedule for common areas",
-    fileSize: 780000,
-    fileType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    url: "/mock-documents/maintenance.xlsx",
-    category: "maintenance",
-    tags: ["maintenance", "schedule", "planning"],
-    uploadedBy: "property-manager",
-    uploadedDate: "2023-01-20T09:15:00Z",
-    lastModified: "2023-01-20T09:15:00Z",
-    version: 1,
-    isPublic: false,
-    isArchived: false,
-    associations: ["1", "assoc-002"]
-  },
-  {
-    id: "doc-010",
-    name: "Reserve Study - 2023-2033.pdf",
-    description: "Ten-year reserve study and financial planning",
-    fileSize: 4250000,
-    fileType: "application/pdf",
-    url: "/mock-documents/reserve.pdf",
-    category: "financial",
-    tags: ["reserve", "financial", "planning", "long-term"],
-    uploadedBy: "admin-user",
-    uploadedDate: "2023-05-05T11:30:00Z",
-    lastModified: "2023-05-05T11:30:00Z",
-    version: 1,
-    isPublic: false,
-    isArchived: false,
-    associations: ["1", "assoc-001"]
-  }
-];
-
-// Sample document categories for development with security levels
-const mockCategories: DocumentCategory[] = [
-  {
-    id: "financial",
-    name: "Financial Documents",
-    description: "Budgets, financial statements, and other financial records",
-    sortOrder: 1,
-    accessLevel: "board"
-  },
-  {
-    id: "governing",
-    name: "Governing Documents",
-    description: "Bylaws, CC&Rs, and other governing documents",
-    sortOrder: 2,
-    accessLevel: "homeowner"
-  },
-  {
-    id: "meetings",
-    name: "Meeting Documents",
-    description: "Meeting minutes, agendas, and related documents",
-    sortOrder: 3,
-    accessLevel: "homeowner"
-  },
-  {
-    id: "legal",
-    name: "Legal Documents",
-    description: "Insurance policies, legal notices, and other legal documents",
-    sortOrder: 4,
-    accessLevel: "management"
-  },
-  {
-    id: "rules",
-    name: "Rules & Regulations",
-    description: "Community rules and regulations documents",
-    sortOrder: 5,
-    accessLevel: "all"
-  },
-  {
-    id: "contracts",
-    name: "Contracts & Agreements",
-    description: "Service contracts and other agreements",
-    sortOrder: 6,
-    accessLevel: "management",
-    isRestricted: true,
-    requiredPermission: "admin"
-  },
-  {
-    id: "communications",
-    name: "Communications",
-    description: "Newsletters, announcements, and other communications",
-    sortOrder: 7,
-    accessLevel: "all"
-  }
-];
-
-// Helper function to check if user role has access to a document category
-const hasAccessToCategory = (userRole: UserRole | undefined | null, accessLevel?: DocumentAccessLevel): boolean => {
-  if (!accessLevel || accessLevel === 'all') return true;
-  if (!userRole) return false;
-  
-  switch(accessLevel) {
-    case 'admin':
-      return userRole === 'admin';
-    case 'management':
-      return ['admin', 'manager', 'staff'].includes(userRole);
-    case 'board':
-      return ['admin', 'manager', 'staff', 'board', 'board_member'].includes(userRole);
-    case 'homeowner':
-      return ['admin', 'manager', 'staff', 'board', 'board_member', 'resident'].includes(userRole);
-    default:
-      return false;
-  }
-};
-
-// Get documents from a mock database with security filtering
 export const getDocuments = async (
-  filters?: DocumentSearchFilters,
+  filters: DocumentSearchFilters = {}, 
   associationId?: string,
-  userRole?: UserRole
+  userRole?: string
 ): Promise<DocumentFile[]> => {
-  console.log('Fetching documents with filters:', { filters, associationId, userRole });
-  
-  let filteredDocs = [...mockDocuments];
-  
-  // Filter by association if provided
-  if (associationId) {
-    console.log('Filtering by association:', associationId);
-    // Important fix: Convert associationId to string for comparison
-    const strAssociationId = String(associationId);
-    filteredDocs = filteredDocs.filter(doc => 
-      doc.associations?.some(assocId => String(assocId) === strAssociationId)
-    );
-  }
-  
-  // Apply additional filters if provided
-  if (filters) {
-    // Filter by search query
-    if (filters.query) {
-      const query = filters.query.toLowerCase();
-      console.log('Filtering by query:', query);
-      filteredDocs = filteredDocs.filter(doc => 
-        doc.name.toLowerCase().includes(query) || 
-        doc.description?.toLowerCase().includes(query) ||
-        doc.tags?.some(tag => tag.toLowerCase().includes(query))
-      );
+  try {
+    console.log('Fetching documents with filters:', { filters, associationId, userRole });
+    
+    // Start query builder
+    let query = supabase
+      .from('documents')
+      .select('*');
+    
+    // Apply association filter if provided
+    if (associationId) {
+      console.log(`Filtering by association ID: ${associationId}`);
+      query = query.eq('association_id', associationId);
     }
     
-    // Filter by categories
+    // Apply search query if provided
+    if (filters.query && filters.query.trim() !== '') {
+      const searchTerm = `%${filters.query.toLowerCase()}%`;
+      query = query.or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`);
+    }
+    
+    // Apply category filter
     if (filters.categories && filters.categories.length > 0) {
-      console.log('Filtering by categories:', filters.categories);
-      filteredDocs = filteredDocs.filter(doc => 
-        filters.categories?.includes(doc.category)
-      );
+      query = query.in('category', filters.categories);
     }
     
-    // Filter by file types
-    if (filters.fileTypes && filters.fileTypes.length > 0) {
-      console.log('Filtering by file types:', filters.fileTypes);
-      filteredDocs = filteredDocs.filter(doc => 
-        filters.fileTypes?.includes(doc.fileType)
-      );
-    }
-    
-    // Filter by tags
+    // Apply tags filter
     if (filters.tags && filters.tags.length > 0) {
-      console.log('Filtering by tags:', filters.tags);
-      filteredDocs = filteredDocs.filter(doc => 
-        doc.tags?.some(tag => filters.tags?.includes(tag))
-      );
+      // For array columns, we need to check if any of the tags are in the array
+      for (const tag of filters.tags) {
+        query = query.contains('tags', [tag]);
+      }
     }
     
-    // Filter by public/archived status
-    if (filters.isPublic !== undefined) {
-      console.log('Filtering by public status:', filters.isPublic);
-      filteredDocs = filteredDocs.filter(doc => 
-        doc.isPublic === filters.isPublic
-      );
-    }
-    
-    if (filters.isArchived !== undefined) {
-      console.log('Filtering by archived status:', filters.isArchived);
-      filteredDocs = filteredDocs.filter(doc => 
-        doc.isArchived === filters.isArchived
-      );
-    }
-    
-    // Filter by date range if provided
+    // Apply date range filter
     if (filters.dateRange) {
-      const startDate = new Date(filters.dateRange.start).getTime();
-      const endDate = new Date(filters.dateRange.end).getTime();
-      
-      filteredDocs = filteredDocs.filter(doc => {
-        const docDate = new Date(doc.uploadedDate).getTime();
-        return docDate >= startDate && docDate <= endDate;
-      });
+      if (filters.dateRange.start) {
+        query = query.gte('uploaded_date', filters.dateRange.start);
+      }
+      if (filters.dateRange.end) {
+        query = query.lte('uploaded_date', filters.dateRange.end);
+      }
     }
+    
+    // Execute query
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching documents:', error);
+      throw error;
+    }
+    
+    console.log(`Found ${data.length} documents`);
+    
+    // Transform the data to match our DocumentFile interface
+    const documents: DocumentFile[] = data.map(doc => ({
+      id: doc.id,
+      name: doc.name,
+      description: doc.description || undefined,
+      fileSize: doc.file_size,
+      fileType: doc.file_type,
+      url: doc.url,
+      category: doc.category,
+      tags: doc.tags || [],
+      uploadedBy: doc.uploaded_by,
+      uploadedDate: doc.uploaded_date,
+      lastModified: doc.last_modified || undefined,
+      version: doc.version,
+      previousVersions: [], // We'll implement version history later
+      expirationDate: undefined,
+      isPublic: doc.is_public,
+      isArchived: doc.is_archived,
+      properties: [],
+      associations: [doc.association_id],
+      metadata: {}
+    }));
+    
+    return documents;
+  } catch (error) {
+    console.error('Error in getDocuments:', error);
+    return [];
   }
-  
-  // Apply security filtering based on categories and user role
-  if (userRole) {
-    console.log('Applying security filtering for role:', userRole);
-    const accessibleCategories = mockCategories
-      .filter(cat => hasAccessToCategory(userRole, cat.accessLevel))
-      .map(cat => cat.id);
-      
-    filteredDocs = filteredDocs.filter(doc => 
-      accessibleCategories.includes(doc.category)
-    );
+};
+
+export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
+  // For now, return mock categories
+  // Later this could be fetched from a database
+  return [
+    { id: 'financial', name: 'Financial Documents', description: 'Budget, financial statements, etc.', accessLevel: 'board' },
+    { id: 'legal', name: 'Legal Documents', description: 'Contracts, bylaws, etc.', accessLevel: 'board' },
+    { id: 'meetings', name: 'Meeting Minutes', description: 'Board and association meeting minutes', accessLevel: 'homeowner' },
+    { id: 'rules', name: 'Rules & Regulations', description: 'HOA rules and guidelines', accessLevel: 'all' },
+    { id: 'maintenance', name: 'Maintenance', description: 'Maintenance schedules and records', accessLevel: 'homeowner' },
+    { id: 'general', name: 'General', description: 'General association documents', accessLevel: 'all' },
+    { id: 'uncategorized', name: 'Uncategorized', description: 'Documents not yet categorized', accessLevel: 'all' },
+  ];
+};
+
+export const deleteDocument = async (documentId: string): Promise<boolean> => {
+  try {
+    // First get the document to get the URL
+    const { data: document, error: fetchError } = await supabase
+      .from('documents')
+      .select('url')
+      .eq('id', documentId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Error fetching document for deletion:', fetchError);
+      throw fetchError;
+    }
+    
+    if (!document) {
+      throw new Error('Document not found');
+    }
+    
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('documents')
+      .remove([document.url]);
+    
+    if (storageError) {
+      console.error('Error deleting document from storage:', storageError);
+      // Continue with database deletion even if storage deletion fails
+    }
+    
+    // Delete from database
+    const { error: dbError } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', documentId);
+    
+    if (dbError) {
+      console.error('Error deleting document from database:', dbError);
+      throw dbError;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in deleteDocument:', error);
+    return false;
   }
-  
-  console.log('Returning filtered documents:', filteredDocs.length);
-  return filteredDocs;
 };
 
-// Get document categories with security filtering
-export const getDocumentCategories = async (userRole?: UserRole): Promise<DocumentCategory[]> => {
-  if (!userRole) return mockCategories;
-  
-  return mockCategories.filter(cat => hasAccessToCategory(userRole, cat.accessLevel));
-};
-
-// Format file size for display
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  
-  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-// Get file icon based on file type
-export const getFileTypeIcon = (fileType: string): string => {
-  if (fileType.includes('pdf')) return 'pdf';
-  if (fileType.includes('word') || fileType.includes('docx')) return 'word';
-  if (fileType.includes('excel') || fileType.includes('xlsx')) return 'excel';
-  if (fileType.includes('powerpoint') || fileType.includes('pptx')) return 'powerpoint';
-  if (fileType.includes('image')) return 'image';
-  if (fileType.includes('video')) return 'video';
-  if (fileType.includes('audio')) return 'audio';
-  if (fileType.includes('zip') || fileType.includes('rar')) return 'archive';
-  
-  return 'generic';
-};
-
-// Get document by ID
-export const getDocumentById = async (documentId: string): Promise<DocumentFile | undefined> => {
-  return mockDocuments.find(doc => doc.id === documentId);
+export const downloadDocument = async (document: DocumentFile): Promise<string> => {
+  try {
+    // Get download URL
+    const { data, error } = await supabase.storage
+      .from('documents')
+      .createSignedUrl(document.url, 60); // 60 seconds expiry
+    
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      throw error;
+    }
+    
+    if (!data || !data.signedUrl) {
+      throw new Error('Failed to generate download URL');
+    }
+    
+    return data.signedUrl;
+  } catch (error) {
+    console.error('Error in downloadDocument:', error);
+    throw error;
+  }
 };
