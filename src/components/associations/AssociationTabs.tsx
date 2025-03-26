@@ -7,8 +7,8 @@ import AssociationDetailsTab from './tabs/AssociationDetailsTab';
 import AssociationFinancialsTab from './tabs/AssociationFinancialsTab';
 import AssociationPropertiesTab from './tabs/AssociationPropertiesTab';
 import AssociationDocumentsTab from './tabs/AssociationDocumentsTab';
-import AssociationSettingsTab from './tabs/AssociationSettingsTab';
 import AssociationMembersTab from './tabs/AssociationMembersTab';
+import AssociationSettingsTab from './tabs/AssociationSettingsTab';
 
 interface AssociationTabsProps {
   association: Association;
@@ -17,7 +17,7 @@ interface AssociationTabsProps {
 
 const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properties }) => {
   return (
-    <Tabs defaultValue="details" className="w-full mt-4">
+    <Tabs defaultValue="details" className="w-full">
       <TabsList className="grid grid-cols-6 md:w-[600px]">
         <TabsTrigger value="details">Details</TabsTrigger>
         <TabsTrigger value="financials">Financials</TabsTrigger>
@@ -27,27 +27,27 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
         <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="details">
+      <TabsContent value="details" className="mt-2">
         <AssociationDetailsTab association={association} />
       </TabsContent>
 
-      <TabsContent value="financials">
+      <TabsContent value="financials" className="mt-2">
         <AssociationFinancialsTab association={association} />
       </TabsContent>
 
-      <TabsContent value="properties">
+      <TabsContent value="properties" className="mt-2">
         <AssociationPropertiesTab properties={properties} association={association} />
       </TabsContent>
 
-      <TabsContent value="documents">
+      <TabsContent value="documents" className="mt-2">
         <AssociationDocumentsTab association={association} />
       </TabsContent>
       
-      <TabsContent value="members">
+      <TabsContent value="members" className="mt-2">
         <AssociationMembersTab association={association} />
       </TabsContent>
 
-      <TabsContent value="settings">
+      <TabsContent value="settings" className="mt-2">
         <AssociationSettingsTab association={association} />
       </TabsContent>
     </Tabs>
@@ -55,4 +55,3 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
 };
 
 export default AssociationTabs;
-
