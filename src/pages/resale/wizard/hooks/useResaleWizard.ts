@@ -43,6 +43,12 @@ export const useResaleWizard = () => {
     policyNumber: '',
     expirationDate: '',
     
+    // Inspection Details
+    inspectionDate: '',
+    inspectionTime: 'morning',
+    inspectionType: 'standard',
+    inspectionNotes: '',
+    
     // Account Statement
     accountNumber: '',
     statementDate: '',
@@ -91,6 +97,20 @@ export const useResaleWizard = () => {
         insuranceCarrier: 'Texas Insurance Group',
         policyNumber: 'HOA-12345-TX',
         expirationDate: '2024-12-31'
+      }));
+    }
+    
+    if (currentStep === 3 && formData.propertyAddress) {
+      // Simulate fetching data for the inspection
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      
+      setFormData(prev => ({
+        ...prev,
+        inspectionDate: nextWeek.toISOString().split('T')[0],
+        inspectionTime: 'morning',
+        inspectionType: 'standard',
+        inspectionNotes: 'Please be prepared to inspect all common areas and the property exterior.'
       }));
     }
     

@@ -4,8 +4,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FormData } from '../types';
 
-const PropertyInspectionStep: React.FC = () => {
+interface PropertyInspectionStepProps {
+  formData: FormData;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSelectChange: (name: string, value: string) => void;
+}
+
+const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
+  formData,
+  onInputChange,
+  onSelectChange
+}) => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground mb-4">
@@ -16,15 +27,21 @@ const PropertyInspectionStep: React.FC = () => {
         <div className="space-y-2">
           <Label htmlFor="inspectionDate">Preferred Inspection Date</Label>
           <Input 
-            id="inspectionDate" 
+            id="inspectionDate"
+            name="inspectionDate" 
             type="date" 
             min={new Date().toISOString().split('T')[0]}
+            value={formData.inspectionDate || ''}
+            onChange={onInputChange}
           />
         </div>
         
         <div className="space-y-2">
           <Label htmlFor="inspectionTime">Preferred Time</Label>
-          <Select defaultValue="morning">
+          <Select 
+            value={formData.inspectionTime || 'morning'}
+            onValueChange={(value) => onSelectChange('inspectionTime', value)}
+          >
             <SelectTrigger id="inspectionTime">
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
@@ -38,7 +55,10 @@ const PropertyInspectionStep: React.FC = () => {
         
         <div className="space-y-2">
           <Label htmlFor="inspectionType">Inspection Type</Label>
-          <Select defaultValue="standard">
+          <Select 
+            value={formData.inspectionType || 'standard'}
+            onValueChange={(value) => onSelectChange('inspectionType', value)}
+          >
             <SelectTrigger id="inspectionType">
               <SelectValue placeholder="Select inspection type" />
             </SelectTrigger>
@@ -53,8 +73,11 @@ const PropertyInspectionStep: React.FC = () => {
         <div className="space-y-2">
           <Label htmlFor="inspectionNotes">Notes for Inspector</Label>
           <Textarea 
-            id="inspectionNotes" 
+            id="inspectionNotes"
+            name="inspectionNotes"
             placeholder="Any special instructions or concerns"
+            value={formData.inspectionNotes || ''}
+            onChange={onInputChange}
           />
         </div>
       </div>

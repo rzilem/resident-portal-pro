@@ -30,6 +30,12 @@ export interface FormData {
   policyNumber: string;
   expirationDate: string;
   
+  // Inspection Details
+  inspectionDate?: string;
+  inspectionTime?: string;
+  inspectionType?: string;
+  inspectionNotes?: string;
+  
   // Account Statement
   accountNumber: string;
   statementDate: string;

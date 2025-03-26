@@ -64,7 +64,13 @@ const ResaleWizard = () => {
           />
         );
       case 3:
-        return <PropertyInspectionStep />;
+        return (
+          <PropertyInspectionStep 
+            formData={formData}
+            onInputChange={handleInputChange}
+            onSelectChange={handleSelectChange}
+          />
+        );
       case 4:
         return (
           <AccountStatementStep 
@@ -74,7 +80,12 @@ const ResaleWizard = () => {
           />
         );
       case 5:
-        return <TrecFormsStep />;
+        return (
+          <TrecFormsStep 
+            formData={formData}
+            onInputChange={handleInputChange}
+          />
+        );
       default:
         return null;
     }
