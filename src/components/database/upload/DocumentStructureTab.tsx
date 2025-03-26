@@ -1,113 +1,104 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FolderIcon, AlertCircle, CheckCircle2, Upload } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { PlusCircle, FolderPlus, FileText, MoreHorizontal } from 'lucide-react';
 
 interface DocumentStructureTabProps {
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: () => void;
 }
 
-// Document categories constant
-const DOCUMENT_CATEGORIES = [
-  { id: 'bankStatements', name: 'Bank Statements' },
-  { id: 'communityDocuments', name: 'Community Documents' },
-  { id: 'communityMeetings', name: 'Community Meetings' },
-  { id: 'financials', name: 'Financials' },
-  { id: 'forms', name: 'Forms' },
-  { id: 'invoiceImages', name: 'Invoice Images' },
-  { id: 'leases', name: 'Leases' },
-  { id: 'maintenance', name: 'Maintenance' },
-  { id: 'monthlyFinancialReports', name: 'Monthly Financial Reports' },
-  { id: 'violations', name: 'Violations' },
-];
-
-const DocumentStructureTab = ({ onOpenChange }: DocumentStructureTabProps) => {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const { toast } = useToast();
-
-  const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryId) 
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
-  const handleCreateStructure = () => {
-    toast({
-      title: "Document structure created",
-      description: `Created ${selectedCategories.length} document folders for your association`,
-    });
-    // In a real implementation, you would create the folders on the server
-    onOpenChange(false);
-  };
-
+const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChange }) => {
   return (
     <div className="space-y-6">
-      <div className="text-sm text-muted-foreground mb-4">
-        Select document categories to include in your association setup:
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">Document Categories</h3>
+        <Button size="sm" onClick={onOpenChange}>
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Add Category
+        </Button>
       </div>
       
-      <div className="space-y-4 max-h-[300px] overflow-y-auto border rounded-md p-4">
-        {DOCUMENT_CATEGORIES.map((category) => (
-          <div key={category.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
-            <Checkbox 
-              id={category.id} 
-              checked={selectedCategories.includes(category.id)}
-              onCheckedChange={() => handleCategoryToggle(category.id)}
-            />
-            <Label htmlFor={category.id} className="flex-1 flex items-center cursor-pointer">
-              <FolderIcon className="h-5 w-5 text-yellow-400 mr-2" />
-              <span>{category.name}</span>
-            </Label>
-            <span className="text-sm text-muted-foreground">File folder</span>
+      <div className="border rounded-lg divide-y">
+        {categories.map((category) => (
+          <div key={category.id} className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <FolderPlus className="h-5 w-5 text-blue-500" />
+                <span className="font-medium">{category.name}</span>
+                {category.isRestricted && (
+                  <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full">
+                    Restricted
+                  </span>
+                )}
+              </div>
+              <Button variant="ghost" size="icon" onClick={onOpenChange}>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {category.children && category.children.length > 0 && (
+              <div className="ml-8 mt-2 space-y-2">
+                {category.children.map((child) => (
+                  <div key={child.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm">{child.name}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onOpenChange}>
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
-      </div>
-
-      <div className="bg-muted rounded-md p-4">
-        <div className="text-sm flex items-start gap-3">
-          <div className="text-muted-foreground mt-0.5">
-            <AlertCircle className="h-4 w-4" />
-          </div>
-          <div>
-            <p className="font-medium mb-1">Document Uploads</p>
-            <p className="text-muted-foreground">
-              After completing the initial setup, you'll be able to upload documents to the selected 
-              categories. The folder structure will be created automatically.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-4 flex justify-between">
-        <Button 
-          variant="outline" 
-          className="gap-2"
-          onClick={() => setSelectedCategories(DOCUMENT_CATEGORIES.map(c => c.id))}
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          Select All
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            disabled={selectedCategories.length === 0} 
-            className="gap-2"
-            onClick={handleCreateStructure}
-          >
-            <Upload className="h-4 w-4" />
-            Create Document Structure
-          </Button>
-        </div>
       </div>
     </div>
   );
 };
+
+const categories = [
+  {
+    id: 1,
+    name: 'Board Documents',
+    isRestricted: true,
+    children: [
+      { id: 101, name: 'Meeting Minutes' },
+      { id: 102, name: 'Resolutions' },
+      { id: 103, name: 'Election Results' }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Architectural',
+    isRestricted: false,
+    children: [
+      { id: 201, name: 'Requests' },
+      { id: 202, name: 'Approvals' },
+      { id: 203, name: 'Denials' }
+    ]
+  },
+  {
+    id: 3,
+    name: 'Financial',
+    isRestricted: true,
+    children: [
+      { id: 301, name: 'Budgets' },
+      { id: 302, name: 'Financial Statements' },
+      { id: 303, name: 'Tax Returns' }
+    ]
+  },
+  {
+    id: 4,
+    name: 'Compliance',
+    isRestricted: false,
+    children: [
+      { id: 401, name: 'Violations' },
+      { id: 402, name: 'Hearings' },
+      { id: 403, name: 'Appeals' }
+    ]
+  }
+];
 
 export default DocumentStructureTab;

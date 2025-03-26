@@ -22,25 +22,29 @@ const EmailWorkflowDialog = ({
   editingRule
 }: EmailWorkflowDialogProps) => {
   const [formData, setFormData] = useState<Omit<EmailWorkflowRule, 'id' | 'createdAt'>>({
+    name: '',
     inboundEmail: '',
     workflowType: 'General Inquiry',
-    association: '',
+    forwardTo: '',
+    isActive: true,
     forwardingEmail: '',
-    isActive: true
+    association: ''
   });
 
   // Reset form when dialog opens or editingRule changes
   useEffect(() => {
     if (editingRule) {
-      const { id, createdAt, lastModified, ...restRule } = editingRule;
+      const { id, createdAt, ...restRule } = editingRule;
       setFormData(restRule);
     } else {
       setFormData({
+        name: '',
         inboundEmail: '',
         workflowType: 'General Inquiry',
-        association: '',
+        forwardTo: '',
+        isActive: true,
         forwardingEmail: '',
-        isActive: true
+        association: ''
       });
     }
   }, [editingRule, open]);
@@ -104,8 +108,8 @@ const EmailWorkflowDialog = ({
                 </SelectTrigger>
                 <SelectContent>
                   {workflowTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -125,13 +129,13 @@ const EmailWorkflowDialog = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="forwardingEmail" className="text-right">
+              <Label htmlFor="forwardTo" className="text-right">
                 Forwarding Email
               </Label>
               <Input
-                id="forwardingEmail"
-                name="forwardingEmail"
-                value={formData.forwardingEmail}
+                id="forwardTo"
+                name="forwardTo"
+                value={formData.forwardTo}
                 onChange={handleChange}
                 className="col-span-3"
                 placeholder="forward-to@domain.com"

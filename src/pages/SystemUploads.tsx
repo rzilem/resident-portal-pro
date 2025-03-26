@@ -27,6 +27,10 @@ const SystemUploads = () => {
     setUploadStep('initial');
   };
 
+  const handleDialogClose = () => {
+    // Placeholder for dialog close function
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
@@ -60,22 +64,18 @@ const SystemUploads = () => {
             
             <TabsContent value="upload">
               {uploadStep === 'success' ? (
-                <SuccessState onReset={handleReset} />
+                <SuccessState onReset={handleReset} onClose={handleDialogClose} />
               ) : (
-                <UploadDataTab 
-                  step={uploadStep}
-                  onStepChange={setUploadStep}
-                  onComplete={handleUploadComplete}
-                />
+                <UploadDataTab onComplete={handleUploadComplete} />
               )}
             </TabsContent>
             
             <TabsContent value="templates">
-              <TemplatesTab />
+              <TemplatesTab onOpenChange={handleDialogClose} />
             </TabsContent>
             
             <TabsContent value="structure">
-              <DocumentStructureTab />
+              <DocumentStructureTab onOpenChange={handleDialogClose} />
             </TabsContent>
           </Tabs>
         </CardContent>

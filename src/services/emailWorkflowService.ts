@@ -10,6 +10,8 @@ export interface EmailWorkflowRule {
   isActive: boolean;
   createdAt: string;
   description?: string;
+  association?: string;
+  forwardingEmail?: string;
 }
 
 export interface CreateEmailWorkflowParams {
@@ -19,6 +21,8 @@ export interface CreateEmailWorkflowParams {
   forwardTo: string;
   isActive?: boolean;
   description?: string;
+  association?: string;
+  forwardingEmail?: string;
 }
 
 export interface UpdateEmailWorkflowParams {
@@ -28,6 +32,8 @@ export interface UpdateEmailWorkflowParams {
   forwardTo?: string;
   isActive?: boolean;
   description?: string;
+  association?: string;
+  forwardingEmail?: string;
 }
 
 // Available workflow types

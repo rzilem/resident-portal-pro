@@ -1,9 +1,10 @@
 
 import React, { ReactNode } from 'react';
 import { useAuthRole } from '@/hooks/use-auth-role';
-import { Permission } from '@/services/roleService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
+
+type Permission = string;
 
 interface ResaleRbacWrapperProps {
   children: ReactNode;

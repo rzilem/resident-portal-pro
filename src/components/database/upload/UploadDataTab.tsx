@@ -1,170 +1,105 @@
 
 import React, { useState } from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DialogFooter } from '@/components/ui/dialog';
-import { DownloadCloud, FileUp, Upload, X, AlertCircle, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 interface UploadDataTabProps {
-  onOpenChange: (open: boolean) => void;
+  onComplete: () => void;
 }
 
-const UploadDataTab = ({ onOpenChange }: UploadDataTabProps) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
-  const { toast } = useToast();
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      setSelectedFile(files[0]);
-      setUploadState('idle');
-    }
-  };
-
-  const resetUpload = () => {
-    setSelectedFile(null);
-    setUploadState('idle');
-  };
-
-  const handleDownloadTemplate = (type: string) => {
-    toast({
-      title: "Template downloaded",
-      description: `${type} template has been downloaded to your device`,
-    });
-  };
+const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
+  const [step, setStep] = useState<'initial' | 'mapping' | 'validation'>('initial');
 
   const handleUpload = () => {
-    if (!selectedFile) {
-      toast({
-        title: "No file selected",
-        description: "Please select a file to upload",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setUploadState('uploading');
-    
     // Simulate upload process
+    setStep('mapping');
+    
+    // After mapping is done, move to validation
     setTimeout(() => {
-      setUploadState('success');
-      toast({
-        title: "Upload successful",
-        description: `Successfully processed ${selectedFile.name}`,
-      });
+      setStep('validation');
+      
+      // Finally complete the process
+      setTimeout(() => {
+        onComplete();
+      }, 2000);
     }, 2000);
   };
 
-  if (uploadState === 'success') {
-    return (
-      <div className="space-y-4">
-        <div className="bg-muted rounded-lg p-6 text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-            <Check className="h-6 w-6 text-green-600" />
-          </div>
-          <h3 className="font-medium text-lg">Upload Complete!</h3>
-          <p className="text-muted-foreground mt-1">
-            Your association data has been successfully imported.
-          </p>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={resetUpload}>
-            Upload Another
-          </Button>
-          <Button onClick={() => onOpenChange(false)}>
-            Done
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <div className="grid gap-4">
-        <Label htmlFor="file-upload">Select Association Spreadsheet</Label>
-        
-        <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer">
-          <Input
-            id="file-upload"
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
-          <Label htmlFor="file-upload" className="cursor-pointer">
-            {selectedFile ? (
-              <div className="flex flex-col items-center">
-                <FileUp className="h-8 w-8 text-primary mb-2" />
-                <p className="font-medium">{selectedFile.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {(selectedFile.size / 1024).toFixed(1)} KB
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
-                <DownloadCloud className="h-10 w-10 text-muted-foreground mb-2" />
-                <p className="font-medium">Click to upload or drag and drop</p>
-                <p className="text-sm text-muted-foreground">
-                  Supports Excel files (.xlsx, .xls) and CSV
-                </p>
-              </div>
-            )}
-          </Label>
+    <div className="space-y-6">
+      {step === 'initial' && (
+        <div className="border-2 border-dashed rounded-lg p-12 text-center">
+          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium mb-2">Drag and drop files here</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            or click to select files for upload (Excel, CSV)
+          </p>
+          <Button onClick={handleUpload}>Select Files</Button>
         </div>
-      </div>
-
-      {selectedFile && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Make sure your file follows the required format. <a href="#" className="underline" onClick={(e) => {
-              e.preventDefault();
-              handleDownloadTemplate('Association');
-            }}>Download template</a> if you're unsure.
-          </AlertDescription>
-        </Alert>
       )}
-
-      <DialogFooter className="flex justify-between">
-        {selectedFile && (
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={resetUpload}
-          >
-            <X className="h-4 w-4" />
-            Clear
-          </Button>
-        )}
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            disabled={!selectedFile || uploadState === 'uploading'} 
-            onClick={handleUpload}
-            className="gap-2"
-          >
-            {uploadState === 'uploading' ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4" />
-                Upload Data
-              </>
-            )}
-          </Button>
+      
+      {step === 'mapping' && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Field Mapping</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Map your source data fields to system fields
+          </p>
+          <div className="grid gap-4">
+            {/* Example mapping UI */}
+            <div className="flex items-center justify-between p-3 border rounded-md">
+              <div className="flex items-center">
+                <span className="font-medium">Source: First Name</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium">→</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium">Target: firstName</span>
+              </div>
+            </div>
+            {/* More mappings would go here */}
+          </div>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline">Back</Button>
+            <Button onClick={() => setStep('validation')}>Continue</Button>
+          </div>
         </div>
-      </DialogFooter>
-    </>
+      )}
+      
+      {step === 'validation' && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Validation</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Check your data for errors before finalizing
+          </p>
+          <div className="border rounded-md p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Total Records</span>
+              <span className="bg-primary/10 text-primary font-medium py-1 px-3 rounded-full">143</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Valid Records</span>
+              <span className="bg-green-100 text-green-800 font-medium py-1 px-3 rounded-full">139</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Records with Warnings</span>
+              <span className="bg-amber-100 text-amber-800 font-medium py-1 px-3 rounded-full">4</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Records with Errors</span>
+              <span className="bg-red-100 text-red-800 font-medium py-1 px-3 rounded-full">0</span>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline">Back</Button>
+            <Button onClick={onComplete}>Finalize Upload</Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

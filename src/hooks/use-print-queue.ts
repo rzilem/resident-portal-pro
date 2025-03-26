@@ -1,220 +1,201 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useToast } from '@/components/ui/use-toast';
-
-export interface PrintJob {
-  id: string;
-  name: string;
-  createdAt: string;
-  status: 'pending' | 'printing' | 'completed' | 'error';
-  type: 'letter' | 'report' | 'statement' | 'certificate' | 'notice';
-  recipient?: string;
-  pages: number;
-  documentId?: string;
-  error?: string;
-}
+import { PrintJob, PrintQueueStats } from '@/services/printQueueService';
 
 export const usePrintQueue = () => {
-  const [jobs, setJobs] = useState<PrintJob[]>(SAMPLE_PRINT_JOBS);
-  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [printJobs, setPrintJobs] = useState<PrintJob[]>([]);
+  const [stats, setStats] = useState<PrintQueueStats>({
+    totalJobs: 0,
+    pendingJobs: 0,
+    printingJobs: 0,
+    completedJobs: 0,
+    failedJobs: 0,
+    totalPagesQueued: 0,
+    averageWaitTime: '0m'
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock job creation
-  const createJob = useCallback((job: Omit<PrintJob, 'id' | 'createdAt' | 'status'>) => {
+  // Mock print jobs data
+  const mockPrintJobs: PrintJob[] = [
+    {
+      id: uuidv4(),
+      name: 'HOA Meeting Minutes - March 2023.pdf',
+      status: 'pending',
+      createdAt: '2023-03-15T14:30:00Z',
+      pageCount: 12,
+      copies: 25,
+      paperSize: 'Letter',
+      paperType: 'Standard',
+      duplexPrinting: true,
+      color: false,
+      priority: 'high',
+      printer: 'Main Office Printer',
+      user: 'Administrator',
+      documentType: 'Meeting Minutes',
+      associationId: '1',
+      associationName: 'Sunset Heights HOA',
+      category: 'Board Documents',
+      description: 'Monthly board meeting minutes for distribution'
+    },
+    {
+      id: uuidv4(),
+      name: 'Annual Budget Report 2023.pdf',
+      status: 'printing',
+      createdAt: '2023-03-14T09:15:00Z',
+      pageCount: 35,
+      copies: 15,
+      paperSize: 'Letter',
+      paperType: 'Premium',
+      duplexPrinting: true,
+      color: true,
+      priority: 'normal',
+      printer: 'Main Office Printer',
+      user: 'Finance Manager',
+      documentType: 'Financial Report',
+      estimatedCompletionTime: '2023-03-15T15:45:00Z',
+      associationId: '1',
+      associationName: 'Sunset Heights HOA',
+      category: 'Financial Documents',
+      description: 'Annual budget report for homeowner review'
+    },
+    {
+      id: uuidv4(),
+      name: 'Community Newsletter - Spring 2023.pdf',
+      status: 'completed',
+      createdAt: '2023-03-10T11:20:00Z',
+      updatedAt: '2023-03-10T12:30:00Z',
+      pageCount: 8,
+      copies: 200,
+      paperSize: 'Letter',
+      paperType: 'Glossy',
+      duplexPrinting: true,
+      color: true,
+      priority: 'normal',
+      printer: 'Production Printer',
+      user: 'Communications Coordinator',
+      documentType: 'Newsletter',
+      associationId: '1',
+      associationName: 'Sunset Heights HOA',
+      category: 'Communications',
+      description: 'Quarterly newsletter for all residents'
+    },
+    {
+      id: uuidv4(),
+      name: 'Violation Notices - Batch March 15.pdf',
+      status: 'failed',
+      createdAt: '2023-03-15T10:45:00Z',
+      updatedAt: '2023-03-15T10:50:00Z',
+      pageCount: 45,
+      copies: 1,
+      paperSize: 'Letter',
+      paperType: 'Standard',
+      duplexPrinting: false,
+      color: false,
+      priority: 'high',
+      printer: 'Office Printer 2',
+      user: 'Compliance Manager',
+      documentType: 'Violation Notices',
+      associationId: '1',
+      associationName: 'Sunset Heights HOA',
+      category: 'Compliance',
+      description: 'Batch of compliance violation letters'
+    }
+  ];
+
+  // Mock stats calculation based on the mockPrintJobs
+  const calculateStats = (jobs: PrintJob[]): PrintQueueStats => {
+    const pendingJobs = jobs.filter(job => job.status === 'pending').length;
+    const printingJobs = jobs.filter(job => job.status === 'printing').length;
+    const completedJobs = jobs.filter(job => job.status === 'completed').length;
+    const failedJobs = jobs.filter(job => job.status === 'failed').length;
+    
+    const totalPagesQueued = jobs.reduce((total, job) => {
+      if (job.status === 'pending' || job.status === 'printing') {
+        return total + (job.pageCount * job.copies);
+      }
+      return total;
+    }, 0);
+    
+    return {
+      totalJobs: jobs.length,
+      pendingJobs,
+      printingJobs,
+      completedJobs,
+      failedJobs,
+      totalPagesQueued,
+      averageWaitTime: '15m' // Mock value
+    };
+  };
+
+  useEffect(() => {
+    // Simulate API call with setTimeout
+    setLoading(true);
+    setTimeout(() => {
+      setPrintJobs(mockPrintJobs);
+      setStats(calculateStats(mockPrintJobs));
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  const addPrintJob = (job: Omit<PrintJob, 'id' | 'createdAt' | 'status'>) => {
     const newJob: PrintJob = {
       ...job,
       id: uuidv4(),
       createdAt: new Date().toISOString(),
       status: 'pending'
     };
-
-    setJobs(prev => [newJob, ...prev]);
     
-    toast({
-      title: "Job added to queue",
-      description: `${newJob.name} has been added to the print queue.`
-    });
-
+    setPrintJobs(prev => [...prev, newJob]);
+    setStats(calculateStats([...printJobs, newJob]));
+    
     return newJob;
-  }, [toast]);
+  };
 
-  // Mock job deletion
-  const deleteJob = useCallback((id: string) => {
-    setJobs(prev => prev.filter(job => job.id !== id));
-    setSelectedJobs(prev => prev.filter(jobId => jobId !== id));
-    
-    toast({
-      title: "Job removed",
-      description: "The job has been removed from the print queue."
-    });
-  }, [toast]);
-
-  // Mock bulk job deletion
-  const deleteSelectedJobs = useCallback(() => {
-    if (selectedJobs.length === 0) return;
-    
-    setJobs(prev => prev.filter(job => !selectedJobs.includes(job.id)));
-    setSelectedJobs([]);
-    
-    toast({
-      title: "Jobs removed",
-      description: `${selectedJobs.length} jobs have been removed from the print queue.`
-    });
-  }, [selectedJobs, toast]);
-
-  // Toggle job selection
-  const toggleJobSelection = useCallback((id: string) => {
-    setSelectedJobs(prev => 
-      prev.includes(id) 
-        ? prev.filter(jobId => jobId !== id) 
-        : [...prev, id]
+  const cancelPrintJob = (id: string) => {
+    setPrintJobs(prev => 
+      prev.map(job => 
+        job.id === id 
+          ? { ...job, status: 'failed', updatedAt: new Date().toISOString() } 
+          : job
+      )
     );
-  }, []);
+    setStats(calculateStats(printJobs.map(job => 
+      job.id === id 
+        ? { ...job, status: 'failed', updatedAt: new Date().toISOString() } 
+        : job
+    )));
+  };
 
-  // Select all jobs
-  const selectAllJobs = useCallback(() => {
-    const allJobIds = jobs.map(job => job.id);
-    setSelectedJobs(allJobIds);
-  }, [jobs]);
-
-  // Clear selection
-  const clearSelection = useCallback(() => {
-    setSelectedJobs([]);
-  }, []);
-
-  // Mock print function
-  const printJobs = useCallback(() => {
-    if (selectedJobs.length === 0) return;
+  const reprintJob = (id: string) => {
+    const jobToReprint = printJobs.find(job => job.id === id);
+    if (!jobToReprint) return null;
     
-    setIsLoading(true);
+    const newJob: PrintJob = {
+      ...jobToReprint,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+      updatedAt: undefined
+    };
     
-    // Simulate print process
-    setTimeout(() => {
-      setJobs(prev => 
-        prev.map(job => 
-          selectedJobs.includes(job.id) 
-            ? { ...job, status: 'printing' } 
-            : job
-        )
-      );
-      
-      setIsLoading(false);
-      
-      toast({
-        title: "Printing started",
-        description: `${selectedJobs.length} jobs sent to printer.`
-      });
-      
-      // Simulate completion after some time
-      setTimeout(() => {
-        setJobs(prev => 
-          prev.map(job => 
-            selectedJobs.includes(job.id) && job.status === 'printing'
-              ? { ...job, status: 'completed' } 
-              : job
-          )
-        );
-        
-        setSelectedJobs([]);
-      }, 3000);
-    }, 1000);
-  }, [selectedJobs, toast]);
-
-  // Mock send to HOA Mailers function
-  const sendToHOAMailers = useCallback(() => {
-    if (selectedJobs.length === 0) return;
+    setPrintJobs(prev => [...prev, newJob]);
+    setStats(calculateStats([...printJobs, newJob]));
     
-    setIsLoading(true);
-    
-    // Simulate sending process
-    setTimeout(() => {
-      setJobs(prev => 
-        prev.map(job => 
-          selectedJobs.includes(job.id) 
-            ? { ...job, status: 'completed' } 
-            : job
-        )
-      );
-      
-      setIsLoading(false);
-      
-      toast({
-        title: "Jobs sent to HOA Mailers",
-        description: `${selectedJobs.length} jobs sent to HOA Mailers service.`
-      });
-      
-      setSelectedJobs([]);
-    }, 1500);
-  }, [selectedJobs, toast]);
+    return newJob;
+  };
 
   return {
-    jobs,
-    selectedJobs,
-    isLoading,
-    createJob,
-    deleteJob,
-    deleteSelectedJobs,
-    toggleJobSelection,
-    selectAllJobs,
-    clearSelection,
     printJobs,
-    sendToHOAMailers
+    stats,
+    loading,
+    error,
+    addPrintJob,
+    cancelPrintJob,
+    reprintJob
   };
 };
 
-// Sample print jobs for demonstration
-const SAMPLE_PRINT_JOBS: PrintJob[] = [
-  {
-    id: '1',
-    name: 'Monthly HOA Statement - Unit 101',
-    createdAt: '2023-06-12T09:30:00Z',
-    status: 'pending',
-    type: 'statement',
-    recipient: 'Alice Johnson',
-    pages: 3,
-    documentId: 'doc-1'
-  },
-  {
-    id: '2',
-    name: 'Violation Notice - Unit 203',
-    createdAt: '2023-06-12T10:15:00Z',
-    status: 'pending',
-    type: 'notice',
-    recipient: 'Michael Wilson',
-    pages: 2,
-    documentId: 'doc-2'
-  },
-  {
-    id: '3',
-    name: 'Annual Financial Report',
-    createdAt: '2023-06-11T14:45:00Z',
-    status: 'completed',
-    type: 'report',
-    recipient: 'Board Members',
-    pages: 12,
-    documentId: 'doc-3'
-  },
-  {
-    id: '4',
-    name: 'Resale Certificate - Unit 156',
-    createdAt: '2023-06-11T11:20:00Z',
-    status: 'error',
-    type: 'certificate',
-    recipient: 'David Lee',
-    pages: 5,
-    documentId: 'doc-4',
-    error: 'Insufficient printer toner'
-  },
-  {
-    id: '5',
-    name: 'Welcome Letter - Unit 118',
-    createdAt: '2023-06-10T16:05:00Z',
-    status: 'completed',
-    type: 'letter',
-    recipient: 'Sarah Brown',
-    pages: 1,
-    documentId: 'doc-5'
-  }
-];
+export type { PrintJob } from '@/services/printQueueService';
+export type { PrintQueueStats } from '@/services/printQueueService';

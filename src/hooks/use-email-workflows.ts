@@ -2,17 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/components/ui/use-toast';
-
-export interface EmailWorkflowRule {
-  id: string;
-  name: string;
-  inboundEmail: string;
-  workflowType: string;
-  forwardTo: string;
-  isActive: boolean;
-  createdAt: string;
-  description?: string;
-}
+import { EmailWorkflowRule } from '@/services/emailWorkflowService';
 
 export const useEmailWorkflows = () => {
   const [workflowRules, setWorkflowRules] = useState<EmailWorkflowRule[]>([]);
@@ -161,5 +151,3 @@ export const useEmailWorkflows = () => {
     toggleWorkflowRuleStatus
   };
 };
-
-export type { EmailWorkflowRule } from '@/services/emailWorkflowService';

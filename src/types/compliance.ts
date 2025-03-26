@@ -19,15 +19,28 @@ export interface ViolationStatus {
   isCancelled?: boolean;
 }
 
+export interface ViolationTemplateFilter {
+  item?: string;
+  group?: string;
+  description?: string;
+  showUnused?: boolean;
+}
+
+export interface ViolationGroup {
+  id: string;
+  name: string;
+  associationId: string;
+}
+
 export interface ViolationTemplate {
   id: string;
-  title: string;
-  category: string;
+  title?: string;
+  category?: string;
   description: string;
-  content: string;
-  severity: 'low' | 'medium' | 'high';
-  isActive: boolean;
-  createdAt: string;
+  content?: string;
+  severity?: 'low' | 'medium' | 'high';
+  isActive?: boolean;
+  createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
   defaultComplianceDays?: number;
@@ -35,6 +48,12 @@ export interface ViolationTemplate {
   lastUsed?: string;
   usageCount?: number;
   relatedType?: string;
+  // Additional fields needed for violation templates
+  group: string;
+  item: string;
+  articleNumber?: string;
+  associationId: string;
+  isUsed: boolean;
 }
 
 export interface Violation {
