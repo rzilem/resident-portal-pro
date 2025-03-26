@@ -85,7 +85,7 @@ const AssociationProfile = () => {
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-6">
-        <AssociationHeader association={association} />
+        <AssociationHeader association={association} fullAddress={fullAddress} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-6 lg:col-span-2">

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Mail, Calendar, Clipboard, FileText, Info } from 'lucide-react';
+import { Phone, Mail, Calendar, Clipboard, FileText, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -28,14 +28,6 @@ const QuickContactCard: React.FC<QuickContactCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 space-y-3">
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-            Address
-          </h4>
-          <p className="text-sm">{fullAddress}</p>
-        </div>
-        
         <div>
           <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
             <Phone className="h-3.5 w-3.5 text-muted-foreground" />

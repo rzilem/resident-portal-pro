@@ -1,16 +1,20 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building } from 'lucide-react';
+import { Building, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Association } from '@/types/association';
 
 interface AssociationHeaderProps {
   association: Association;
+  fullAddress?: string;
 }
 
-const AssociationHeader: React.FC<AssociationHeaderProps> = ({ association }) => {
+const AssociationHeader: React.FC<AssociationHeaderProps> = ({ 
+  association,
+  fullAddress
+}) => {
   const navigate = useNavigate();
   const associationCode = association.settings?.code || association.id;
   
@@ -20,11 +24,16 @@ const AssociationHeader: React.FC<AssociationHeaderProps> = ({ association }) =>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Building className="h-6 w-6" />
           {association.name}
-          <span className="text-sm font-normal text-muted-foreground ml-2">
-            Code: {associationCode}
-          </span>
         </h1>
-        <p className="text-muted-foreground">ID: {association.id}</p>
+        <div className="flex items-center text-sm text-muted-foreground">
+          <span>Code: {associationCode}</span>
+          {fullAddress && (
+            <div className="flex items-center ml-3">
+              <MapPin className="h-3.5 w-3.5 mr-1.5" />
+              <span>{fullAddress}</span>
+            </div>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Badge variant={association.status === 'active' ? 'secondary' : 'outline'}>
