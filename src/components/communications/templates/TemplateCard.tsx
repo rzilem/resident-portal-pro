@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,7 +45,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
       <CardContent className="py-2 flex-grow">
         <p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
       </CardContent>
-      <CardFooter className="flex justify-between pt-2">
+      <CardFooter className="flex justify-between pt-2 px-4">
         <div className="flex space-x-1 items-center">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreview}>
             <Eye className="h-4 w-4" />
