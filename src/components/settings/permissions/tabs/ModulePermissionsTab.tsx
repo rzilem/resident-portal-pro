@@ -2,6 +2,14 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 import { UserRole } from "@/types/user";
 
 interface ModulePermissionsTabProps {
@@ -10,9 +18,10 @@ interface ModulePermissionsTabProps {
     globalPermission: string,
     modules: Record<string, string>
   }>;
+  onPermissionChange?: (role: UserRole, module: string, permission: string) => void;
 }
 
-const ModulePermissionsTab = ({ rolePermissions }: ModulePermissionsTabProps) => {
+const ModulePermissionsTab = ({ rolePermissions, onPermissionChange }: ModulePermissionsTabProps) => {
   const getPermissionBadge = (permission: string) => {
     switch(permission) {
       case 'admin':
@@ -32,6 +41,8 @@ const ModulePermissionsTab = ({ rolePermissions }: ModulePermissionsTabProps) =>
         return <Badge variant="outline" className="text-muted-foreground">None</Badge>;
     }
   };
+
+  const permissions = ['admin', 'approve', 'delete', 'edit', 'create', 'view', 'none'];
   
   return (
     <div className="rounded-md border">
@@ -40,7 +51,7 @@ const ModulePermissionsTab = ({ rolePermissions }: ModulePermissionsTabProps) =>
           <TableRow>
             <TableHead className="w-[180px]">Module</TableHead>
             {Object.keys(rolePermissions).map(role => (
-              <TableHead key={role} className="text-center capitalize">{role}</TableHead>
+              <TableHead key={role} className="text-center capitalize">{role.replace('_', ' ')}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -53,7 +64,29 @@ const ModulePermissionsTab = ({ rolePermissions }: ModulePermissionsTabProps) =>
               </TableCell>
               {Object.entries(rolePermissions).map(([role, data]) => (
                 <TableCell key={role} className="text-center">
-                  {getPermissionBadge(data.modules[module] || 'none')}
+                  {onPermissionChange ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 flex items-center gap-1">
+                          {getPermissionBadge(data.modules[module] || 'none')}
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="center">
+                        {permissions.map(permission => (
+                          <DropdownMenuItem 
+                            key={permission}
+                            onClick={() => onPermissionChange(role as UserRole, module, permission)}
+                            className="justify-center"
+                          >
+                            {getPermissionBadge(permission)}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    getPermissionBadge(data.modules[module] || 'none')
+                  )}
                 </TableCell>
               ))}
             </TableRow>

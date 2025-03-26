@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 import { UserRole, SecurityLevel } from "@/types/user";
 import SecurityLevelsTab from './tabs/SecurityLevelsTab';
 import ModulePermissionsTab from './tabs/ModulePermissionsTab';
+import RoleEditDialog from './dialogs/RoleEditDialog';
 import { 
   securityLevelIcons,
   securityLevelDescriptions,
@@ -16,6 +18,7 @@ import {
 const RolesPermissionManagement = () => {
   const [rolePermissions, setRolePermissions] = useState(rolePermissionsData);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const handleSecurityLevelChange = (role: UserRole, level: SecurityLevel) => {
     setRolePermissions(prev => ({
@@ -28,6 +31,26 @@ const RolesPermissionManagement = () => {
     
     // In a real app, you'd save this to your backend
     toast.success(`Security level for ${role} updated to ${level}`);
+  };
+
+  const handleModulePermissionChange = (role: UserRole, module: string, permission: string) => {
+    setRolePermissions(prev => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        modules: {
+          ...prev[role].modules,
+          [module]: permission
+        }
+      }
+    }));
+    
+    toast.success(`Module permission for ${role} updated`);
+  };
+  
+  const openEditDialog = (role: UserRole) => {
+    setEditingRole(role);
+    setIsEditDialogOpen(true);
   };
   
   // Updated to call the function to get the ReactNode
@@ -69,12 +92,15 @@ const RolesPermissionManagement = () => {
               rolePermissions={rolePermissions}
               securityLevelDescriptions={securityLevelDescriptions}
               renderSecurityLevel={renderSecurityLevel}
-              setEditingRole={setEditingRole}
+              setEditingRole={openEditDialog}
             />
           </TabsContent>
           
           <TabsContent value="module-permissions">
-            <ModulePermissionsTab rolePermissions={rolePermissions} />
+            <ModulePermissionsTab 
+              rolePermissions={rolePermissions}
+              onPermissionChange={handleModulePermissionChange}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -86,6 +112,21 @@ const RolesPermissionManagement = () => {
           Save Changes
         </Button>
       </CardFooter>
+
+      {/* Role edit dialog */}
+      <RoleEditDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        role={editingRole}
+        roleData={editingRole ? rolePermissions[editingRole] : undefined}
+        onSave={(role, securityLevel, globalPermission) => {
+          if (role) {
+            handleSecurityLevelChange(role, securityLevel as SecurityLevel);
+            setIsEditDialogOpen(false);
+            toast.success(`Role "${role}" updated successfully`);
+          }
+        }}
+      />
     </Card>
   );
 };

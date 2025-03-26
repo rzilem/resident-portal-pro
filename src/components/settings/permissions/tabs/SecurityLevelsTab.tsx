@@ -13,7 +13,7 @@ interface SecurityLevelsTabProps {
   }>;
   securityLevelDescriptions: Record<SecurityLevel, string>;
   renderSecurityLevel: (level: SecurityLevel) => JSX.Element;
-  setEditingRole: (role: UserRole | null) => void;
+  setEditingRole: (role: UserRole) => void;
 }
 
 const SecurityLevelsTab = ({ 
@@ -38,18 +38,23 @@ const SecurityLevelsTab = ({
             <TableCell className="font-medium capitalize">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                {role}
+                {role.replace('_', ' ')}
               </div>
             </TableCell>
             <TableCell>
-              {renderSecurityLevel(data.securityLevel)}
+              {renderSecurityLevel(data.securityLevel as SecurityLevel)}
             </TableCell>
             <TableCell className="max-w-md">
-              {securityLevelDescriptions[data.securityLevel]}
+              {securityLevelDescriptions[data.securityLevel as SecurityLevel]}
             </TableCell>
             <TableCell>
-              <Button variant="ghost" size="sm" onClick={() => setEditingRole(role as UserRole)}>
-                <Edit className="h-4 w-4 mr-2" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setEditingRole(role as UserRole)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
                 Customize
               </Button>
             </TableCell>
