@@ -53,7 +53,13 @@ export const HoaSidebar = ({
     >
       <div className="h-full flex flex-col">
         <div className="p-4 flex items-center justify-between border-b">
-          {!collapsed && <h2 className="text-xl font-bold text-blue-600">HOA Manager</h2>}
+          {!collapsed && (
+            <img 
+              src="/lovable-uploads/75230129-3746-4768-9d0c-a4c8ebdb352e.png" 
+              alt="CI Logo" 
+              className="h-8 w-auto object-contain"
+            />
+          )}
           <Button 
             variant="ghost" 
             size="sm" 
