@@ -1,12 +1,20 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarEventType } from '@/types/calendar';
+import { calendarStyles } from '@/components/ui/calendar';
+import { Search, RotateCcw } from 'lucide-react';
 
-const CalendarFilters = () => {
+interface CalendarFiltersProps {
+  onFiltersChange?: (filters: any) => void;
+}
+
+const CalendarFilters: React.FC<CalendarFiltersProps> = ({ onFiltersChange }) => {
   const [filters, setFilters] = useState({
     eventTypes: {
       meeting: true,
@@ -17,191 +25,185 @@ const CalendarFilters = () => {
       community: true,
       custom: true
     },
+    keyword: '',
+    dateRange: 'all',
     accessLevels: {
       public: true,
       residents: true,
-      board: true,
       committee: true,
+      board: true,
       admin: true
     }
   });
-  
-  const handleEventTypeChange = (type: string) => {
-    setFilters(prev => ({
-      ...prev,
+
+  const eventTypes: { value: CalendarEventType; label: string }[] = [
+    { value: 'meeting', label: 'Meetings' },
+    { value: 'maintenance', label: 'Maintenance' },
+    { value: 'holiday', label: 'Holidays' },
+    { value: 'deadline', label: 'Deadlines' },
+    { value: 'workflow', label: 'Workflows' },
+    { value: 'community', label: 'Community Events' },
+    { value: 'custom', label: 'Custom Events' }
+  ];
+
+  const accessLevels = [
+    { value: 'public', label: 'Public Events' },
+    { value: 'residents', label: 'Resident Events' },
+    { value: 'committee', label: 'Committee Events' },
+    { value: 'board', label: 'Board Events' },
+    { value: 'admin', label: 'Admin Only Events' }
+  ];
+
+  const handleTypeToggle = (type: CalendarEventType) => {
+    const updatedFilters = {
+      ...filters,
       eventTypes: {
-        ...prev.eventTypes,
-        [type]: !prev.eventTypes[type as keyof typeof prev.eventTypes]
+        ...filters.eventTypes,
+        [type]: !filters.eventTypes[type]
       }
-    }));
+    };
+    setFilters(updatedFilters);
+    if (onFiltersChange) onFiltersChange(updatedFilters);
   };
-  
-  const handleAccessLevelChange = (level: string) => {
-    setFilters(prev => ({
-      ...prev,
+
+  const handleAccessLevelToggle = (level: string) => {
+    const updatedFilters = {
+      ...filters,
       accessLevels: {
-        ...prev.accessLevels,
-        [level]: !prev.accessLevels[level as keyof typeof prev.accessLevels]
+        ...filters.accessLevels,
+        [level]: !filters.accessLevels[level]
       }
-    }));
+    };
+    setFilters(updatedFilters);
+    if (onFiltersChange) onFiltersChange(updatedFilters);
   };
-  
+
+  const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const updatedFilters = {
+      ...filters,
+      keyword: e.target.value
+    };
+    setFilters(updatedFilters);
+    if (onFiltersChange) onFiltersChange(updatedFilters);
+  };
+
+  const handleDateRangeChange = (value: string) => {
+    const updatedFilters = {
+      ...filters,
+      dateRange: value
+    };
+    setFilters(updatedFilters);
+    if (onFiltersChange) onFiltersChange(updatedFilters);
+  };
+
+  const resetFilters = () => {
+    const defaultFilters = {
+      eventTypes: {
+        meeting: true,
+        maintenance: true,
+        holiday: true,
+        deadline: true,
+        workflow: true,
+        community: true,
+        custom: true
+      },
+      keyword: '',
+      dateRange: 'all',
+      accessLevels: {
+        public: true,
+        residents: true,
+        committee: true,
+        board: true,
+        admin: true
+      }
+    };
+    setFilters(defaultFilters);
+    if (onFiltersChange) onFiltersChange(defaultFilters);
+  };
+
   return (
-    <Card>
+    <Card className="mb-4">
       <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h3 className="text-lg font-medium mb-3">Event Types</h3>
+            <h3 className="font-medium mb-3">Event Types</h3>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="meeting" 
-                  checked={filters.eventTypes.meeting}
-                  onCheckedChange={() => handleEventTypeChange('meeting')}
-                />
-                <Label htmlFor="meeting" className="flex items-center space-x-2">
-                  <span>Meetings</span>
-                  <Badge variant="outline" className="bg-blue-100">Meeting</Badge>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="maintenance" 
-                  checked={filters.eventTypes.maintenance}
-                  onCheckedChange={() => handleEventTypeChange('maintenance')}
-                />
-                <Label htmlFor="maintenance" className="flex items-center space-x-2">
-                  <span>Maintenance</span>
-                  <Badge variant="outline" className="bg-amber-100">Maintenance</Badge>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="holiday" 
-                  checked={filters.eventTypes.holiday}
-                  onCheckedChange={() => handleEventTypeChange('holiday')}
-                />
-                <Label htmlFor="holiday" className="flex items-center space-x-2">
-                  <span>Holidays</span>
-                  <Badge variant="outline" className="bg-red-100">Holiday</Badge>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="deadline" 
-                  checked={filters.eventTypes.deadline}
-                  onCheckedChange={() => handleEventTypeChange('deadline')}
-                />
-                <Label htmlFor="deadline" className="flex items-center space-x-2">
-                  <span>Deadlines</span>
-                  <Badge variant="outline" className="bg-indigo-100">Deadline</Badge>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="workflow" 
-                  checked={filters.eventTypes.workflow}
-                  onCheckedChange={() => handleEventTypeChange('workflow')}
-                />
-                <Label htmlFor="workflow" className="flex items-center space-x-2">
-                  <span>Workflows</span>
-                  <Badge variant="outline" className="bg-purple-100">Workflow</Badge>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="community" 
-                  checked={filters.eventTypes.community}
-                  onCheckedChange={() => handleEventTypeChange('community')}
-                />
-                <Label htmlFor="community" className="flex items-center space-x-2">
-                  <span>Community Events</span>
-                  <Badge variant="outline" className="bg-green-100">Community</Badge>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="custom" 
-                  checked={filters.eventTypes.custom}
-                  onCheckedChange={() => handleEventTypeChange('custom')}
-                />
-                <Label htmlFor="custom" className="flex items-center space-x-2">
-                  <span>Custom Events</span>
-                  <Badge variant="outline" className="bg-gray-100">Custom</Badge>
-                </Label>
-              </div>
+              {eventTypes.map((type) => (
+                <div key={type.value} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`type-${type.value}`}
+                    checked={filters.eventTypes[type.value]}
+                    onCheckedChange={() => handleTypeToggle(type.value)}
+                    className={calendarStyles.eventColors[type.value] || calendarStyles.eventColors.default}
+                  />
+                  <Label htmlFor={`type-${type.value}`} className="cursor-pointer">
+                    {type.label}
+                  </Label>
+                </div>
+              ))}
             </div>
           </div>
-          
+
           <div>
-            <h3 className="text-lg font-medium mb-3">Access Levels</h3>
+            <h3 className="font-medium mb-3">Access Level</h3>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="public" 
-                  checked={filters.accessLevels.public}
-                  onCheckedChange={() => handleAccessLevelChange('public')}
-                />
-                <Label htmlFor="public">Public</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="residents" 
-                  checked={filters.accessLevels.residents}
-                  onCheckedChange={() => handleAccessLevelChange('residents')}
-                />
-                <Label htmlFor="residents">Residents Only</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="committee" 
-                  checked={filters.accessLevels.committee}
-                  onCheckedChange={() => handleAccessLevelChange('committee')}
-                />
-                <Label htmlFor="committee">Committee Members</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="board" 
-                  checked={filters.accessLevels.board}
-                  onCheckedChange={() => handleAccessLevelChange('board')}
-                />
-                <Label htmlFor="board">Board Members</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="admin" 
-                  checked={filters.accessLevels.admin}
-                  onCheckedChange={() => handleAccessLevelChange('admin')}
-                />
-                <Label htmlFor="admin">Administrators</Label>
-              </div>
+              {accessLevels.map((level) => (
+                <div key={level.value} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`level-${level.value}`}
+                    checked={filters.accessLevels[level.value]}
+                    onCheckedChange={() => handleAccessLevelToggle(level.value)}
+                  />
+                  <Label htmlFor={`level-${level.value}`} className="cursor-pointer">
+                    {level.label}
+                  </Label>
+                </div>
+              ))}
             </div>
-            
-            <Separator className="my-4" />
-            
-            <div>
-              <h3 className="text-lg font-medium mb-3">Calendar Sources</h3>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="association" checked />
-                  <Label htmlFor="association">Association Calendar</Label>
+          </div>
+
+          <div>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-3">Search</h3>
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input 
+                    placeholder="Search events..." 
+                    value={filters.keyword}
+                    onChange={handleKeywordChange}
+                  />
+                  <Button size="icon" type="submit">
+                    <Search className="h-4 w-4" />
+                  </Button>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="global" checked />
-                  <Label htmlFor="global">Global Holidays</Label>
-                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-3">Date Range</h3>
+                <Select 
+                  value={filters.dateRange}
+                  onValueChange={handleDateRangeChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Date Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Events</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                    <SelectItem value="thisWeek">This Week</SelectItem>
+                    <SelectItem value="nextWeek">Next Week</SelectItem>
+                    <SelectItem value="thisMonth">This Month</SelectItem>
+                    <SelectItem value="nextMonth">Next Month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="pt-4">
+                <Button variant="outline" className="w-full" onClick={resetFilters}>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reset Filters
+                </Button>
               </div>
             </div>
           </div>

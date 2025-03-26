@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
-import { CalendarEvent, CalendarEventType } from '@/types/calendar';
+import { Calendar, Clock, MapPin, Users, Tag } from 'lucide-react';
+import { CalendarEvent } from '@/types/calendar';
+import { calendarStyles } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface EventsListProps {
   selectedDate: Date;
@@ -12,69 +14,96 @@ interface EventsListProps {
   onSelectEvent: (event: CalendarEvent) => void;
 }
 
-// Event type color mapping
-const eventTypeColors: Record<CalendarEventType, string> = {
-  meeting: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-  maintenance: 'bg-amber-100 text-amber-800 hover:bg-amber-200',
-  holiday: 'bg-red-100 text-red-800 hover:bg-red-200',
-  deadline: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
-  workflow: 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200',
-  community: 'bg-green-100 text-green-800 hover:bg-green-200',
-  custom: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-};
-
-// Badge variant mapping
-const badgeVariants: Record<CalendarEventType, string> = {
-  meeting: 'blue',
-  maintenance: 'amber',
-  holiday: 'destructive',
-  deadline: 'purple',
-  workflow: 'indigo',
-  community: 'green',
-  custom: 'default'
-};
-
-const EventsList = ({ selectedDate, events, isLoading, onSelectEvent }: EventsListProps) => {
+const EventsList: React.FC<EventsListProps> = ({
+  selectedDate,
+  events,
+  isLoading,
+  onSelectEvent
+}) => {
+  const formatEventTime = (event: CalendarEvent) => {
+    const start = typeof event.start === 'string' ? parseISO(event.start) : event.start;
+    
+    if (event.allDay) {
+      return 'All Day';
+    }
+    
+    let timeString = format(start, 'h:mm a');
+    
+    if (event.end) {
+      const end = typeof event.end === 'string' ? parseISO(event.end) : event.end;
+      timeString += ` - ${format(end, 'h:mm a')}`;
+    }
+    
+    return timeString;
+  };
+  
+  const getEventTypeColor = (type: string): string => {
+    return calendarStyles.eventColors[type as keyof typeof calendarStyles.eventColors] || calendarStyles.eventColors.default;
+  };
+  
+  const sortedEvents = [...events].sort((a, b) => {
+    const aStart = typeof a.start === 'string' ? parseISO(a.start) : a.start;
+    const bStart = typeof b.start === 'string' ? parseISO(b.start) : b.start;
+    return aStart.getTime() - bStart.getTime();
+  });
+  
   return (
     <Card className="h-full">
-      <CardContent className="pt-6 h-full">
-        <h3 className="text-lg font-medium mb-4">
-          {format(selectedDate, 'MMMM d, yyyy')} - Events
-        </h3>
-        
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">
+          Events for {format(selectedDate, 'MMMM d, yyyy')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         {isLoading ? (
-          <div className="text-center py-4">Loading events...</div>
-        ) : events.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground">No events scheduled</div>
+          <div className="flex items-center justify-center h-[200px]">
+            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : sortedEvents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
+            <Calendar className="h-12 w-12 text-muted-foreground opacity-20 mb-2" />
+            <p className="text-muted-foreground">No events scheduled for this date</p>
+            <p className="text-xs text-muted-foreground mt-1">Double-click on the calendar to add an event</p>
+          </div>
         ) : (
-          <div className="space-y-3 overflow-auto max-h-[400px] pr-1">
-            {events.map((event) => (
+          <div className="space-y-3">
+            {sortedEvents.map((event) => (
               <div 
-                key={event.id} 
-                className={`p-3 rounded-md border cursor-pointer transition-colors ${eventTypeColors[event.type]}`}
+                key={event.id}
+                className="p-3 border rounded-md hover:bg-accent/50 transition-colors cursor-pointer"
                 onClick={() => onSelectEvent(event)}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{event.title}</h4>
-                    {!event.allDay && (
-                      <p className="text-sm text-muted-foreground">
-                        {typeof event.start === 'string'
-                          ? format(parseISO(event.start), 'h:mm a')
-                          : format(event.start, 'h:mm a')}
-                        {event.end && ` - ${typeof event.end === 'string'
-                          ? format(parseISO(event.end), 'h:mm a')
-                          : format(event.end, 'h:mm a')}`}
-                      </p>
-                    )}
-                    {event.location && (
-                      <p className="text-sm text-muted-foreground truncate">{event.location}</p>
-                    )}
+                <div className="flex items-start gap-3">
+                  <div className={cn("w-1 self-stretch rounded-full", getEventTypeColor(event.type))} />
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-medium">{event.title}</h4>
+                    
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 mr-1" />
+                        <span>{formatEventTime(event)}</span>
+                      </div>
+                      
+                      {event.location && (
+                        <div className="flex items-center text-muted-foreground">
+                          <MapPin className="h-3.5 w-3.5 mr-1" />
+                          <span>{event.location}</span>
+                        </div>
+                      )}
+                      
+                      {event.attendees && event.attendees.length > 0 && (
+                        <div className="flex items-center text-muted-foreground">
+                          <Users className="h-3.5 w-3.5 mr-1" />
+                          <span>{event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center text-muted-foreground">
+                        <Tag className="h-3.5 w-3.5 mr-1" />
+                        <span className="capitalize">{event.type}</span>
+                      </div>
+                    </div>
                   </div>
-                  <Badge variant={event.type === 'holiday' ? 'destructive' : 'default'} 
-                         className={`${event.type !== 'holiday' ? 'bg-opacity-90' : ''}`}>
-                    {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                  </Badge>
                 </div>
               </div>
             ))}

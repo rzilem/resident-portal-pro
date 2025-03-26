@@ -1,86 +1,109 @@
 
-import React from 'react';
-import { Calendar, calendarStyles } from '@/components/ui/calendar';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { format, isSameDay, parseISO } from 'date-fns';
+import { Calendar, calendarStyles } from '@/components/ui/calendar';
+import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { CalendarEvent, CalendarEventType } from '@/types/calendar';
+import { cn } from '@/lib/utils';
 
 interface CalendarDisplayProps {
   currentDate: Date;
   selectedDate: Date;
-  onSelectDate: (date: Date | undefined) => void;
+  onSelectDate: (date: Date) => void;
   events: CalendarEvent[];
-  getEventTypeForDay: (date: Date) => CalendarEventType | undefined;
+  getEventTypeForDay?: (date: Date) => CalendarEventType | undefined;
   onDayDoubleClick?: (date: Date) => void;
 }
 
-const CalendarDisplay = ({
+const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
   currentDate,
   selectedDate,
   onSelectDate,
   events,
   getEventTypeForDay,
   onDayDoubleClick
-}: CalendarDisplayProps) => {
-  const handleDayDoubleClick = (date: Date) => {
-    if (onDayDoubleClick) {
-      onDayDoubleClick(date);
-    }
+}) => {
+  const [calendarEvents, setCalendarEvents] = useState<{[key: string]: CalendarEvent[]}>({});
+  
+  // Process events into a date-indexed object
+  useEffect(() => {
+    const eventsByDate: {[key: string]: CalendarEvent[]} = {};
+    
+    events.forEach(event => {
+      const eventDate = typeof event.start === 'string' ? parseISO(event.start) : event.start;
+      const dateKey = format(eventDate, 'yyyy-MM-dd');
+      
+      if (!eventsByDate[dateKey]) {
+        eventsByDate[dateKey] = [];
+      }
+      
+      eventsByDate[dateKey].push(event);
+    });
+    
+    setCalendarEvents(eventsByDate);
+  }, [events]);
+  
+  // Get events for a specific date
+  const getEventsForDate = (date: Date): CalendarEvent[] => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return calendarEvents[dateKey] || [];
   };
-
+  
+  // Custom day renderer to show event indicators
+  const renderDay = (day: Date) => {
+    const dateEvents = getEventsForDate(day);
+    const hasEvents = dateEvents.length > 0;
+    const eventType = getEventTypeForDay ? getEventTypeForDay(day) : undefined;
+    const eventColorClass = eventType 
+      ? calendarStyles.eventColors[eventType] 
+      : calendarStyles.eventColors.default;
+    
+    return (
+      <div 
+        onClick={() => onSelectDate(day)} 
+        onDoubleClick={() => onDayDoubleClick && onDayDoubleClick(day)}
+        className={cn(
+          "w-full h-full flex flex-col items-center justify-center relative",
+          isSameDay(day, selectedDate) && "font-bold text-primary"
+        )}
+      >
+        {day.getDate()}
+        {hasEvents && (
+          <div 
+            className={cn(
+              "absolute bottom-0 w-[60%] h-1 rounded-full", 
+              eventColorClass
+            )} 
+          />
+        )}
+      </div>
+    );
+  };
+  
+  // Generate date range for the current month
+  const monthDates = () => {
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
+    return eachDayOfInterval({ start, end });
+  };
+  
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-semibold">
-            {format(currentDate, 'MMMM yyyy')}
-          </h2>
-        </div>
-        
+      <CardContent className="p-4">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={(date) => date && onSelectDate(date)}
-          className="w-full border-none max-w-none"
           month={currentDate}
-          showOutsideDays
-          modifiers={{
-            hasEvent: (date) => 
-              events.some(event => {
-                const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-                return isSameDay(eventStart, date);
-              })
-          }}
-          styles={{
-            day: { width: '2.25rem', height: '2.25rem' }
-          }}
+          weekStartsOn={0}
           components={{
-            DayContent: ({ date }) => {
-              const hasEvents = events.some(event => {
-                const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-                return isSameDay(eventStart, date);
-              });
-              
-              // Add double-click functionality to each day
-              return (
-                <div 
-                  className="relative flex h-full w-full items-center justify-center cursor-pointer"
-                  onDoubleClick={() => handleDayDoubleClick(date)}
-                >
-                  <div>{date.getDate()}</div>
-                  {hasEvents && (
-                    <div 
-                      className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${
-                        getEventTypeForDay(date) 
-                          ? calendarStyles.eventColors[getEventTypeForDay(date)!] 
-                          : calendarStyles.eventColors.default
-                      }`} 
-                    />
-                  )}
-                </div>
-              );
-            }
+            Day: ({ date, ...props }) => (
+              <button {...props} className="w-full h-full">
+                {renderDay(date)}
+              </button>
+            )
           }}
+          className="rounded-md border"
         />
       </CardContent>
     </Card>
