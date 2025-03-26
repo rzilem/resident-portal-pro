@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DocumentCategory } from '@/types/documents';
-import { getAccessLevelIcon, getAccessLevelLabel, getSecurityLevelColor, getFolderIconColor } from './utils/categoryUtils';
+import { getAccessLevelIcon, getAccessLevelLabel, getSecurityLevelColor, getFolderIconColor } from './utils/categoryUtils.tsx';
 
 interface CategoryItemProps {
   category: DocumentCategory;
