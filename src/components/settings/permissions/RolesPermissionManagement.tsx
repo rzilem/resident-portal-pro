@@ -13,7 +13,7 @@ import {
   securityLevelIcons,
   securityLevelDescriptions,
   rolePermissionsData 
-} from './constants/securityLevels.tsx';
+} from './constants/securityLevels';
 
 const RolesPermissionManagement = () => {
   const [rolePermissions, setRolePermissions] = useState(rolePermissionsData);
