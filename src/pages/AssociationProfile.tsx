@@ -11,10 +11,9 @@ import AssociationHeader from '@/components/associations/AssociationHeader';
 import AssociationStats from '@/components/associations/AssociationStats';
 import AssociationPhotos from '@/components/associations/AssociationPhotos';
 import AssociationAmenities from '@/components/associations/AssociationAmenities';
-import AssociationQuickReference from '@/components/associations/AssociationQuickReference';
-import AssociationContactInfo from '@/components/associations/AssociationContactInfo';
-import AssociationDetailsCard from '@/components/associations/AssociationDetailsCard';
 import AssociationTabs from '@/components/associations/AssociationTabs';
+import { CriticalDatesCard } from '@/components/associations/tabs/details';
+import { QuickContactCard } from '@/components/associations/tabs/details';
 
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -72,6 +71,17 @@ const AssociationProfile = () => {
     'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6'
   ];
 
+  const mockCriticalDates = {
+    insuranceExpiration: '2025-06-15',
+    poolPermitExpiration: '2024-05-30',
+    elevatorInspection: '2024-08-10',
+    fireInspection: '2024-07-22',
+    buildingPermit: '2025-03-15',
+  };
+
+  const hasPool = association.settings?.hasPool;
+  const hasElevator = association.settings?.hasElevator;
+
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-6">
@@ -85,9 +95,12 @@ const AssociationProfile = () => {
           </div>
           
           <div className="space-y-6">
-            <AssociationQuickReference association={association} fullAddress={fullAddress} />
-            <AssociationContactInfo association={association} />
-            <AssociationDetailsCard association={association} />
+            <QuickContactCard association={association} fullAddress={fullAddress} />
+            <CriticalDatesCard 
+              criticalDates={mockCriticalDates}
+              hasPool={hasPool}
+              hasElevator={hasElevator}
+            />
           </div>
         </div>
 

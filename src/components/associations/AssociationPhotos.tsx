@@ -1,8 +1,14 @@
 
 import React from 'react';
-import { Image } from 'lucide-react';
+import { Image, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import PropertyImage from '@/components/associations/PropertyImage';
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselPrevious, 
+  CarouselNext
+} from '@/components/ui/carousel';
 
 interface AssociationPhotosProps {
   associationName: string;
@@ -12,32 +18,31 @@ interface AssociationPhotosProps {
 const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationName, propertyImages }) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-xl">
           <Image className="h-5 w-5" />
           Property Photos
         </CardTitle>
         <CardDescription>{associationName} property images</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <PropertyImage 
-            url={propertyImages[0]} 
-            alt={`${associationName} property`} 
-            aspectRatio="video"
-            className="md:col-span-2"
-          />
-          <PropertyImage 
-            url={propertyImages[1]} 
-            alt={`${associationName} property detail`} 
-            aspectRatio="square"
-          />
-          <PropertyImage 
-            url={propertyImages[2]} 
-            alt={`${associationName} property view`} 
-            aspectRatio="square"
-          />
-        </div>
+        <Carousel className="w-full">
+          <CarouselContent>
+            {propertyImages.map((url, index) => (
+              <CarouselItem key={index}>
+                <div className="overflow-hidden rounded-md">
+                  <img 
+                    src={url} 
+                    alt={`${associationName} property ${index + 1}`} 
+                    className="h-[250px] w-full object-cover"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="-left-3" />
+          <CarouselNext className="-right-3" />
+        </Carousel>
       </CardContent>
     </Card>
   );
