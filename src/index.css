@@ -1,4 +1,3 @@
-
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -146,7 +145,7 @@
 
   /* HOA Management specific styles */
   .hoa-button-primary {
-    @apply bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors;
+    @apply bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors;
   }
 
   .hoa-card {
