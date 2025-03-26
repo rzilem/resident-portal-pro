@@ -83,3 +83,4 @@ export const WizardProgress: React.FC<WizardProgressProps> = ({
     </Card>
   );
 };
+
