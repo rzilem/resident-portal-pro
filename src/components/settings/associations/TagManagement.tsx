@@ -52,8 +52,18 @@ const TAG_COLORS = [
   { label: 'Rose', value: '#e11d48' },   // rose-600
 ];
 
-// Mock data for association tags
-const DEFAULT_TAGS: Tag[] = [
+// Default tag types
+export type AssociationTagType = 'board' | 'committee' | 'property' | 'amenity' | 'service' | 'custom';
+
+interface TagManagementProps {
+  tagScope?: 'resident' | 'association';
+  initialTags?: Tag[];
+  onTagsChange?: (tags: Tag[]) => void;
+  availableTypes?: Record<string, string>;
+}
+
+// Mock data for association tags (with association-specific types)
+const RESIDENT_DEFAULT_TAGS: Tag[] = [
   {
     id: uuidv4(),
     type: 'board',
@@ -112,12 +122,99 @@ const DEFAULT_TAGS: Tag[] = [
   }
 ];
 
-const TagManagement: React.FC = () => {
-  const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
+const ASSOCIATION_DEFAULT_TAGS: Tag[] = [
+  {
+    id: uuidv4(),
+    type: 'property',
+    label: 'On-site',
+    color: '#2563eb',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'property',
+    label: 'Off-site',
+    color: '#4f46e5',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'amenity',
+    label: 'Pool',
+    color: '#0ea5e9',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'amenity',
+    label: 'Gym',
+    color: '#16a34a',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'amenity',
+    label: 'Tennis Court',
+    color: '#ca8a04',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'service',
+    label: 'Gate',
+    color: '#9333ea',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'service',
+    label: 'Pedestrian Gate',
+    color: '#7c3aed',
+    createdAt: '2023-01-01'
+  },
+  {
+    id: uuidv4(),
+    type: 'service',
+    label: 'Security',
+    color: '#dc2626',
+    createdAt: '2023-01-01'
+  }
+];
+
+const RESIDENT_TAG_TYPES = {
+  'board': 'Board',
+  'committee': 'Committee', 
+  'delinquent': 'Delinquent',
+  'custom': 'Custom'
+};
+
+const ASSOCIATION_TAG_TYPES = {
+  'property': 'Property',
+  'amenity': 'Amenity',
+  'service': 'Service',
+  'custom': 'Custom'
+};
+
+const TagManagement: React.FC<TagManagementProps> = ({ 
+  tagScope = 'association',
+  initialTags,
+  onTagsChange,
+  availableTypes
+}) => {
+  const isAssociation = tagScope === 'association';
+  
+  const defaultTags = isAssociation ? ASSOCIATION_DEFAULT_TAGS : RESIDENT_DEFAULT_TAGS;
+  const tagTypes = isAssociation ? ASSOCIATION_TAG_TYPES : RESIDENT_TAG_TYPES;
+  
+  const [tags, setTags] = useState<Tag[]>(initialTags || defaultTags);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  
+  // Set default type based on scope
+  const defaultType = isAssociation ? 'property' : 'custom';
+  
   const [newTag, setNewTag] = useState<Partial<Tag>>({
-    type: 'custom',
+    type: defaultType,
     label: '',
     color: '#71717a'
   });
@@ -136,6 +233,11 @@ const TagManagement: React.FC = () => {
           : tag
       );
       setTags(updatedTags);
+      
+      if (onTagsChange) {
+        onTagsChange(updatedTags);
+      }
+      
       toast.success('Tag updated successfully');
     } else {
       // Check if tag already exists
@@ -152,7 +254,13 @@ const TagManagement: React.FC = () => {
         createdAt: new Date().toISOString()
       };
 
-      setTags([...tags, tagToAdd]);
+      const updatedTags = [...tags, tagToAdd];
+      setTags(updatedTags);
+      
+      if (onTagsChange) {
+        onTagsChange(updatedTags);
+      }
+      
       toast.success('Tag added successfully');
     }
     
@@ -171,14 +279,20 @@ const TagManagement: React.FC = () => {
   };
 
   const handleDeleteTag = (tagId: string) => {
-    setTags(tags.filter(tag => tag.id !== tagId));
+    const updatedTags = tags.filter(tag => tag.id !== tagId);
+    setTags(updatedTags);
+    
+    if (onTagsChange) {
+      onTagsChange(updatedTags);
+    }
+    
     toast.success('Tag deleted');
   };
 
   const resetForm = () => {
     setEditingTag(null);
     setNewTag({
-      type: 'custom',
+      type: defaultType,
       label: '',
       color: '#71717a'
     });
@@ -195,9 +309,9 @@ const TagManagement: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Resident Tags</CardTitle>
+        <CardTitle>Manage {isAssociation ? 'Association' : 'Resident'} Tags</CardTitle>
         <CardDescription>
-          Create and manage tags that can be assigned to residents
+          Create and manage tags that can be applied to {isAssociation ? 'associations' : 'residents'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -219,8 +333,8 @@ const TagManagement: React.FC = () => {
                 </DialogTitle>
                 <DialogDescription>
                   {editingTag 
-                    ? 'Update this tag for your association.' 
-                    : 'Create a new tag for your association.'}
+                    ? `Update this ${isAssociation ? 'association' : 'resident'} tag.` 
+                    : `Create a new ${isAssociation ? 'association' : 'resident'} tag.`}
                 </DialogDescription>
               </DialogHeader>
               
@@ -235,10 +349,9 @@ const TagManagement: React.FC = () => {
                       <SelectValue placeholder="Select a tag type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="board">Board</SelectItem>
-                      <SelectItem value="committee">Committee</SelectItem>
-                      <SelectItem value="delinquent">Delinquent</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
+                      {Object.entries(availableTypes || tagTypes).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -290,7 +403,7 @@ const TagManagement: React.FC = () => {
         <div className="space-y-6">
           {Object.entries(groupedTags).map(([type, typeTags]) => (
             <div key={type} className="rounded-lg border p-4">
-              <h3 className="text-lg font-medium capitalize mb-4">{type} Tags</h3>
+              <h3 className="text-lg font-medium capitalize mb-4">{tagTypes[type] || type} Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {typeTags.map((tag: Tag) => (
                   <div 

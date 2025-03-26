@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import TagManagement from '../TagManagement';
@@ -17,9 +16,22 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
   getSetting,
   updateAssociation
 }) => {
+  // Handle tag changes for the association
+  const handleTagsChange = async (tags) => {
+    try {
+      await updateAssociation(activeAssociation.id, { tags });
+    } catch (error) {
+      console.error("Failed to update association tags", error);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <TagManagement />
+      <TagManagement 
+        tagScope="association" 
+        initialTags={activeAssociation.tags} 
+        onTagsChange={handleTagsChange}
+      />
       {/* Other basic settings would be here */}
     </div>
   );

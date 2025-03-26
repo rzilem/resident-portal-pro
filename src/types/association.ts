@@ -1,7 +1,8 @@
-
 /**
  * Association type definitions for the application
  */
+
+import { Tag } from "@/types/resident";
 
 export interface Association {
   id: string;
@@ -26,6 +27,7 @@ export interface Association {
   settings?: AssociationSettings;
   communicationTemplates?: CommunicationTemplate[];
   customMergeTags?: CustomMergeTag[];
+  tags?: Tag[]; // Association tags
 }
 
 export interface CustomMergeTag {
