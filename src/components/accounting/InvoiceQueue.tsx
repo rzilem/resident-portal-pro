@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FileText } from "lucide-react";
+import { FileText, AlertTriangle } from "lucide-react";
 import { Invoice } from '@/components/settings/associations/types';
+import { toast } from "@/components/ui/use-toast";
 import InvoiceFilters from './invoices/InvoiceFilters';
 import InvoiceActionButtons from './invoices/InvoiceActionButtons';
 import InvoiceTabs from './invoices/InvoiceTabs';
 import InvoiceTabContent from './invoices/InvoiceTabContent';
 import InvoiceColumnsSelector, { InvoiceColumn } from './invoices/InvoiceColumnsSelector';
 import { useSettings } from '@/hooks/use-settings';
+import { InvoiceFilterState } from '@/components/settings/financial/payment-methods/types';
+import { format } from 'date-fns';
 
 interface InvoiceQueueProps {
   className?: string;
@@ -19,6 +22,8 @@ interface InvoiceQueueProps {
 const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId }) => {
   const [activeTab, setActiveTab] = useState('all');
   const { preferences, updatePreference } = useSettings();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Define default columns
   const defaultColumns: InvoiceColumn[] = [
@@ -39,9 +44,17 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
     preferences?.invoiceTableColumns || defaultColumns
   );
   
+  const [filters, setFilters] = useState<InvoiceFilterState>({
+    isFiltered: false
+  });
+  
   const handleColumnsChange = (updatedColumns: InvoiceColumn[]) => {
     setColumns(updatedColumns);
     updatePreference('invoiceTableColumns', updatedColumns);
+    toast({
+      title: "Column preferences saved",
+      description: "Your invoice table column preferences have been updated."
+    });
   };
   
   const [invoices, setInvoices] = useState<Invoice[]>([
@@ -158,6 +171,133 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
       updatedAt: "2023-06-12T15:45:00Z"
     }
   ]);
+
+  // Generate 10 more random invoices for better demo content
+  useEffect(() => {
+    const generateRandomInvoices = () => {
+      const statuses = ['draft', 'sent', 'paid', 'overdue'];
+      const vendors = ['ABC Maintenance', 'City Water Services', 'Elite Security', 'Green Landscaping', 'Tech Solutions'];
+      const associations = ['Evergreen HOA', 'Sunset Estates', 'Mountain View', 'Lakeside Community', 'Oak Meadows'];
+      const categories = ['maintenance', 'utilities', 'security', 'landscaping', 'technology', 'administrative'];
+      
+      const newInvoices: Invoice[] = [];
+      
+      for (let i = 0; i < 10; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 60));
+        
+        const dueDate = new Date(date);
+        dueDate.setDate(date.getDate() + 30);
+        
+        const amount = Math.floor(Math.random() * 1000) + 100;
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        const vendor = vendors[Math.floor(Math.random() * vendors.length)];
+        const association = associations[Math.floor(Math.random() * associations.length)];
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        
+        newInvoices.push({
+          id: `INV-00${i + 5}`,
+          invoiceNumber: `INV2023-00${i + 5}`,
+          date: format(date, 'yyyy-MM-dd'),
+          dueDate: format(dueDate, 'yyyy-MM-dd'),
+          amount: amount,
+          status: status,
+          recipientId: `VEN-00${i + 2}`,
+          recipientType: Math.random() > 0.5 ? 'vendor' : 'resident',
+          vendorName: vendor,
+          associationName: association,
+          items: [
+            {
+              id: `ITEM-00${i + 7}`,
+              description: `${category.charAt(0).toUpperCase() + category.slice(1)} service`,
+              quantity: 1,
+              unitPrice: amount,
+              total: amount,
+              category: category
+            }
+          ],
+          createdAt: date.toISOString(),
+          updatedAt: date.toISOString()
+        });
+      }
+      
+      return newInvoices;
+    };
+    
+    setInvoices(prevInvoices => [...prevInvoices, ...generateRandomInvoices()]);
+  }, []);
+  
+  // Filter invoices based on current filters
+  const filteredInvoices = invoices.filter(invoice => {
+    if (!filters.isFiltered) return true;
+    
+    // Search query filtering
+    if (filters.query && !invoice.invoiceNumber.toLowerCase().includes(filters.query.toLowerCase()) &&
+        !invoice.vendorName?.toLowerCase().includes(filters.query.toLowerCase()) &&
+        !invoice.associationName?.toLowerCase().includes(filters.query.toLowerCase())) {
+      return false;
+    }
+    
+    // Date range filtering
+    if (filters.dateRange?.from && new Date(invoice.date) < filters.dateRange.from) {
+      return false;
+    }
+    
+    if (filters.dateRange?.to && new Date(invoice.date) > filters.dateRange.to) {
+      return false;
+    }
+    
+    // Status filtering
+    if (filters.status && filters.status.length > 0 && !filters.status.includes(invoice.status)) {
+      return false;
+    }
+    
+    // Amount filtering
+    if (filters.minAmount !== undefined && invoice.amount < filters.minAmount) {
+      return false;
+    }
+    
+    if (filters.maxAmount !== undefined && invoice.amount > filters.maxAmount) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  // Handle invoice actions like pay, view, etc.
+  const handleInvoiceAction = (action: string, invoiceId: string) => {
+    const invoice = invoices.find(inv => inv.id === invoiceId);
+    if (!invoice) return;
+    
+    switch (action) {
+      case 'view':
+        toast({
+          title: "Viewing Invoice",
+          description: `Viewing details for invoice ${invoice.invoiceNumber}`
+        });
+        break;
+      case 'pay':
+        toast({
+          title: "Processing Payment",
+          description: `Initiating payment process for invoice ${invoice.invoiceNumber}`
+        });
+        // Update status if paying
+        const updatedInvoices = invoices.map(inv => 
+          inv.id === invoiceId ? { ...inv, status: 'paid' } : inv
+        );
+        setInvoices(updatedInvoices);
+        break;
+      case 'delete':
+        toast({
+          title: "Invoice Deleted",
+          description: `Invoice ${invoice.invoiceNumber} has been removed`
+        });
+        setInvoices(invoices.filter(inv => inv.id !== invoiceId));
+        break;
+      default:
+        break;
+    }
+  };
   
   return (
     <Card className={className}>
@@ -184,53 +324,73 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
             </div>
           </div>
           
-          <InvoiceFilters />
+          <InvoiceFilters 
+            filters={filters} 
+            onFilterChange={setFilters} 
+          />
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center mb-4">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              <p>{error}</p>
+            </div>
+          )}
           
           {/* All Invoices Tab */}
           <TabsContent value="all" className="m-0">
             <InvoiceTabContent 
-              invoices={invoices} 
+              invoices={filteredInvoices} 
               columns={columns}
+              onAction={handleInvoiceAction}
+              loading={loading}
             />
           </TabsContent>
           
           {/* Draft Invoices Tab */}
           <TabsContent value="draft" className="m-0">
             <InvoiceTabContent 
-              invoices={invoices} 
+              invoices={filteredInvoices} 
               status="draft" 
               showCaption={true} 
               columns={columns}
+              onAction={handleInvoiceAction}
+              loading={loading}
             />
           </TabsContent>
           
           {/* Sent Invoices Tab */}
           <TabsContent value="sent" className="m-0">
             <InvoiceTabContent 
-              invoices={invoices} 
+              invoices={filteredInvoices} 
               status="sent" 
               showCaption={true} 
               columns={columns}
+              onAction={handleInvoiceAction}
+              loading={loading}
             />
           </TabsContent>
           
           {/* Overdue Invoices Tab */}
           <TabsContent value="overdue" className="m-0">
             <InvoiceTabContent 
-              invoices={invoices} 
+              invoices={filteredInvoices} 
               status="overdue" 
               showCaption={true} 
               columns={columns}
+              onAction={handleInvoiceAction}
+              loading={loading}
             />
           </TabsContent>
           
           {/* Paid Invoices Tab */}
           <TabsContent value="paid" className="m-0">
             <InvoiceTabContent 
-              invoices={invoices} 
+              invoices={filteredInvoices} 
               status="paid" 
               showCaption={true} 
               columns={columns}
+              onAction={handleInvoiceAction}
+              loading={loading}
             />
           </TabsContent>
         </Tabs>

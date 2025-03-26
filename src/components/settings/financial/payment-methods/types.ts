@@ -13,3 +13,20 @@ export interface PaymentMethods {
   check: PaymentMethodConfig;
   [key: string]: PaymentMethodConfig;
 }
+
+export interface InvoiceSearchParams {
+  query?: string;
+  dateRange?: {
+    from: Date | null;
+    to: Date | null;
+  };
+  status?: string[];
+  vendor?: string[];
+  association?: string[];
+  minAmount?: number;
+  maxAmount?: number;
+}
+
+export interface InvoiceFilterState extends InvoiceSearchParams {
+  isFiltered: boolean;
+}
