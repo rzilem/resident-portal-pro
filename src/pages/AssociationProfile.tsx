@@ -61,13 +61,10 @@ const AssociationProfile = () => {
     );
   }
 
-  // Get properties associated with this association
   const properties = getPropertiesFromAssociations([association]);
   
-  // Format full address for map
   const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
   
-  // Sample property images - in a real app, these would come from your database
   const propertyImages = [
     'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
     'https://images.unsplash.com/photo-1523217582562-09d0def993a6',
@@ -77,7 +74,6 @@ const AssociationProfile = () => {
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-6">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -96,11 +92,8 @@ const AssociationProfile = () => {
           </div>
         </div>
 
-        {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Key info and photo area */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Overview Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -148,7 +141,6 @@ const AssociationProfile = () => {
               </Card>
             </div>
 
-            {/* Property Photos - replacing the map */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -179,7 +171,6 @@ const AssociationProfile = () => {
               </CardContent>
             </Card>
             
-            {/* Amenities */}
             <Card>
               <CardHeader>
                 <CardTitle>Amenities & Features</CardTitle>
@@ -204,12 +195,12 @@ const AssociationProfile = () => {
             </Card>
           </div>
           
-          {/* Right column - Contact info, type, image */}
           <div className="space-y-6">
-            {/* Property Image */}
-            <PropertyImage url={samplePropertyImage} alt={`${association.name} property`} />
+            <PropertyImage 
+              url={propertyImages[0]} 
+              alt={`${association.name} property`} 
+            />
             
-            {/* Contact Information */}
             <Card>
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
@@ -239,7 +230,6 @@ const AssociationProfile = () => {
               </CardContent>
             </Card>
             
-            {/* Association Type */}
             <Card>
               <CardHeader>
                 <CardTitle>Association Details</CardTitle>
@@ -286,7 +276,6 @@ const AssociationProfile = () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="details" className="w-full mt-6">
           <TabsList className="grid grid-cols-5 md:w-[500px]">
             <TabsTrigger value="details">Details</TabsTrigger>
