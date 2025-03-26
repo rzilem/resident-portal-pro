@@ -52,5 +52,5 @@ export interface FormData {
 export interface Step {
   id: string;
   label: string;
-  icon: React.ComponentType;
+  icon: React.ComponentType<{ className?: string }>;
 }
