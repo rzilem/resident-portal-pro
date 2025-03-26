@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import ProfileHeader from '@/components/residents/ProfileHeader';
@@ -7,15 +7,31 @@ import ResidentTabs from '@/components/residents/ResidentTabs';
 import NotFoundState from '@/components/residents/NotFoundState';
 import CriticalInfoArea from '@/components/residents/CriticalInfoArea';
 import residentProfiles from '@/data/residentProfiles';
+import { Tag } from '@/types/resident';
+import { toast } from 'sonner';
 
 const ResidentProfile = () => {
   const { id } = useParams<{ id: string }>();
   const residentId = parseInt(id || '0');
-  const resident = residentProfiles[residentId];
+  
+  // Use state to manage resident data so tags can be updated
+  const [resident, setResident] = useState(residentProfiles[residentId]);
 
   if (!resident) {
     return <NotFoundState />;
   }
+
+  // Handle tag changes
+  const handleTagsChange = (updatedTags: Tag[]) => {
+    // Update the resident state with the new tags
+    setResident(prevResident => ({
+      ...prevResident,
+      tags: updatedTags
+    }));
+    
+    // In a real app, you would save this to the backend
+    // console.log('Tags updated:', updatedTags);
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-6 animate-fade-in">
@@ -26,7 +42,7 @@ const ResidentProfile = () => {
         <span>{resident.property} • Unit {resident.unit}</span>
       </div>
       
-      <CriticalInfoArea resident={resident} />
+      <CriticalInfoArea resident={resident} onTagsChange={handleTagsChange} />
       
       <ResidentTabs resident={resident} />
     </div>

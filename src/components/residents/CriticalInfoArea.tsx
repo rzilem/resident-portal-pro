@@ -1,24 +1,76 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CircleDollarSign, AlertTriangle, FileText, Phone, Mail } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ResidentProfile } from '@/types/resident';
+import { ResidentProfile, Tag } from '@/types/resident';
 import { Badge } from '@/components/ui/badge';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 
 interface CriticalInfoAreaProps {
   resident: ResidentProfile;
+  onTagsChange?: (tags: Tag[]) => void;
 }
 
-const CriticalInfoArea: React.FC<CriticalInfoAreaProps> = ({ resident }) => {
-  // Calculate if there are recent violations (mock data for now)
-  const hasRecentViolations = resident.tags?.some(tag => tag.type === 'delinquent');
+const CriticalInfoArea: React.FC<CriticalInfoAreaProps> = ({ resident, onTagsChange }) => {
+  // Calculate if there are recent violations (based on resident.violations data)
+  const hasRecentViolations = resident.violations?.some(v => v.status === 'Open');
   
-  // Mock data for recent ARC application - would come from API in real implementation
-  const recentArcApplication = {
-    exists: resident.id === 101, // Just for demo purposes
-    date: '2023-05-15',
-    status: 'Pending'
-  };
+  // Check for recent ARC application from resident data
+  const hasRecentArcApplication = resident.arcApplications?.some(app => 
+    app.status === 'Pending' || app.status === 'More Info Needed'
+  );
+
+  // Tag management
+  useEffect(() => {
+    if (!resident.tags || !onTagsChange) return;
+    
+    let updatedTags = [...resident.tags];
+    let hasChanged = false;
+    
+    // Handle violation tag
+    const existingViolationTag = updatedTags.find(tag => tag.type === 'delinquent' && tag.label === 'Open Violation');
+    
+    if (hasRecentViolations && !existingViolationTag) {
+      // Add violation tag
+      updatedTags.push({
+        id: uuidv4(),
+        type: 'delinquent',
+        label: 'Open Violation',
+        color: '#dc2626', // red-600
+        createdAt: new Date().toISOString()
+      });
+      hasChanged = true;
+    } else if (!hasRecentViolations && existingViolationTag) {
+      // Remove violation tag when no longer applicable
+      updatedTags = updatedTags.filter(tag => tag.id !== existingViolationTag.id);
+      hasChanged = true;
+    }
+    
+    // Handle ARC application tag
+    const existingArcTag = updatedTags.find(tag => tag.type === 'custom' && tag.label === 'Pending ARC Request');
+    
+    if (hasRecentArcApplication && !existingArcTag) {
+      // Add ARC tag
+      updatedTags.push({
+        id: uuidv4(),
+        type: 'custom',
+        label: 'Pending ARC Request',
+        color: '#0ea5e9', // sky-500
+        createdAt: new Date().toISOString()
+      });
+      hasChanged = true;
+    } else if (!hasRecentArcApplication && existingArcTag) {
+      // Remove ARC tag when no longer applicable
+      updatedTags = updatedTags.filter(tag => tag.id !== existingArcTag.id);
+      hasChanged = true;
+    }
+    
+    // Update tags if changes were made
+    if (hasChanged) {
+      onTagsChange(updatedTags);
+    }
+  }, [resident.violations, resident.arcApplications, resident.tags, hasRecentViolations, hasRecentArcApplication, onTagsChange]);
   
   // Mock data for last contact - would come from API in real implementation
   const lastContactInfo = {
@@ -55,7 +107,9 @@ const CriticalInfoArea: React.FC<CriticalInfoAreaProps> = ({ resident }) => {
               <p className="text-sm font-medium">Violations (Last 30 Days)</p>
               {hasRecentViolations ? (
                 <>
-                  <p className="text-sm text-amber-600 font-bold">1 Open Violation</p>
+                  <p className="text-sm text-amber-600 font-bold">
+                    {resident.violations?.filter(v => v.status === 'Open').length || 1} Open Violation(s)
+                  </p>
                   <Badge variant="outline" className="mt-1 text-xs bg-amber-100 text-amber-800 border-amber-200">
                     Action Required
                   </Badge>
@@ -68,16 +122,16 @@ const CriticalInfoArea: React.FC<CriticalInfoAreaProps> = ({ resident }) => {
           
           {/* Recent ARC Application */}
           <div className="flex items-start gap-2">
-            <FileText className={`h-5 w-5 mt-0.5 ${recentArcApplication.exists ? 'text-blue-500' : 'text-gray-400'}`} />
+            <FileText className={`h-5 w-5 mt-0.5 ${hasRecentArcApplication ? 'text-blue-500' : 'text-gray-400'}`} />
             <div>
               <p className="text-sm font-medium">ARC Request (Last 60 Days)</p>
-              {recentArcApplication.exists ? (
+              {hasRecentArcApplication ? (
                 <>
                   <p className="text-sm text-blue-600 font-bold">
-                    Submitted on {recentArcApplication.date}
+                    Pending Request
                   </p>
                   <Badge variant="outline" className="mt-1 text-xs bg-blue-100 text-blue-800 border-blue-200">
-                    {recentArcApplication.status}
+                    {resident.arcApplications?.find(app => app.status === 'Pending' || app.status === 'More Info Needed')?.status || 'Pending'}
                   </Badge>
                 </>
               ) : (
