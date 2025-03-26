@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { FileIcon, PencilIcon, CheckIcon } from 'lucide-react';
-import { DocumentCategory } from '@/types/documents';
+import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
 import { useDocumentPermissions } from '@/hooks/use-document-permissions';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
