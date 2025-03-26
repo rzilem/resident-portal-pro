@@ -2,7 +2,7 @@
 import { User, UserRole, SecurityLevel } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
 import { users, updateUserInCache, profileToUser } from './types';
-import { defaultRolePermissions } from '@/components/settings/permissions/constants/securityLevels';
+import { defaultRolePermissions } from '@/components/settings/permissions/constants/securityLevels.tsx';
 import { userRetrievalService } from './userRetrievalService';
 
 export const userUpdateService = {

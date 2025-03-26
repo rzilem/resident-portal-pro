@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import {
   securityLevelIcons,
   securityLevelDescriptions,
   rolePermissionsData 
-} from './constants/securityLevels';
+} from './constants/securityLevels.tsx';
 
 const RolesPermissionManagement = () => {
   const [rolePermissions, setRolePermissions] = useState(rolePermissionsData);
