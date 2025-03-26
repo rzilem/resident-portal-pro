@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Calendar, Users, Building, Hash, Globe, Mail, Phone, AlertTriangle, Droplet, Lift, Shield } from 'lucide-react';
+import { MapPin, Calendar, Users, Building, Hash, Globe, Mail, Phone, AlertTriangle, Droplet, Elevator, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Association } from '@/types/association';
@@ -176,7 +176,7 @@ const AssociationDetailsTab: React.FC<AssociationDetailsTabProps> = ({ associati
               {hasElevator && (
                 <div className="bg-muted/50 rounded-lg p-4">
                   <div className="flex items-center gap-2">
-                    <Lift className="h-5 w-5 text-violet-500" />
+                    <Elevator className="h-5 w-5 text-violet-500" />
                     <div className="text-muted-foreground text-sm mb-1">Elevator Inspection Due</div>
                   </div>
                   <div className="font-medium mt-1">
