@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists } from '@/utils/documents/storageUtils';
+import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/storageUtils';
 
 interface UploadDocumentParams {
   file: File;
@@ -37,6 +37,14 @@ export const uploadDocument = async ({
       return false;
     }
     
+    // Test if we can actually upload to the bucket
+    const canUpload = await testBucketAccess();
+    if (!canUpload) {
+      console.error('Document storage not accessible for uploads');
+      toast.error('Cannot upload to document storage. Please contact support.');
+      return false;
+    }
+    
     // Create a unique file name using uuid
     const fileExtension = file.name.split('.').pop();
     const fileName = `${uuidv4()}.${fileExtension}`;
@@ -49,7 +57,7 @@ export const uploadDocument = async ({
       .from('documents')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: true // Use upsert to overwrite if file exists
       });
 
     if (storageError) {
@@ -65,7 +73,8 @@ export const uploadDocument = async ({
     
     try {
       // Check if the input is already a valid UUID
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(associationId)) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(associationId)) {
         console.log('AssociationId is not a valid UUID format:', associationId);
         
         // Try to fetch the association by ID
@@ -94,37 +103,47 @@ export const uploadDocument = async ({
     console.log(`Using association ID: ${validAssociationId}`);
     
     // Save document metadata to the documents table
-    const { data: documentData, error: documentError } = await supabase
-      .from('documents')
-      .insert({
-        name: file.name,
-        description: description,
-        file_size: file.size,
-        file_type: file.type,
-        url: filePath,
-        category: category,
-        tags: tags.length > 0 ? tags : null,
-        uploaded_by: user?.id || null,
-        association_id: validAssociationId,
-        is_public: false,
-        version: 1
-      })
-      .select()
-      .single();
+    try {
+      const { data: documentData, error: documentError } = await supabase
+        .from('documents')
+        .insert({
+          name: file.name,
+          description: description,
+          file_size: file.size,
+          file_type: file.type,
+          url: filePath,
+          category: category,
+          tags: tags.length > 0 ? tags : null,
+          uploaded_by: user?.id || null,
+          association_id: validAssociationId,
+          is_public: false,
+          version: 1
+        })
+        .select()
+        .single();
 
-    if (documentError) {
-      console.error('Error saving document metadata:', documentError);
+      if (documentError) {
+        console.error('Error saving document metadata:', documentError);
+        
+        // If there was an error saving metadata, try to delete the uploaded file
+        await supabase.storage.from('documents').remove([filePath]);
+        
+        toast.error(`Document uploaded but metadata couldn't be saved: ${documentError.message}`);
+        return false;
+      }
+
+      console.log('Document metadata saved:', documentData);
+      toast.success(`Document "${file.name}" uploaded successfully`);
+      return true;
+    } catch (dbError) {
+      console.error('Database error saving document metadata:', dbError);
       
-      // If there was an error saving metadata, try to delete the uploaded file
+      // Try to delete the uploaded file
       await supabase.storage.from('documents').remove([filePath]);
       
-      toast.error(`Document uploaded but metadata couldn't be saved: ${documentError.message}`);
+      toast.error('Error saving document information');
       return false;
     }
-
-    console.log('Document metadata saved:', documentData);
-    toast.success(`Document "${file.name}" uploaded successfully`);
-    return true;
   } catch (error) {
     console.error('Unexpected upload error:', error);
     toast.error('An unexpected error occurred during upload');

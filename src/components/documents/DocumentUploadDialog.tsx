@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Upload, RefreshCw, AlertTriangle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssociations } from '@/hooks/use-associations';
 import FileUploader from './FileUploader';
@@ -32,14 +32,16 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   
   // Hooks
   const { activeAssociation } = useAssociations();
-  const { bucketReady, isLoading, isCreating, retryCheck } = useDocumentsBucket();
+  const { bucketReady, isLoading, isCreating, retryCheck, checkStorageStatus } = useDocumentsBucket();
 
   // Reset form when dialog opens
   useEffect(() => {
     if (isOpen) {
       resetForm();
+      // Check storage status when dialog opens
+      checkStorageStatus();
     }
-  }, [isOpen]);
+  }, [isOpen, checkStorageStatus]);
 
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -125,8 +127,17 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
               <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
               <div className="text-red-500 mb-2">Document storage is not available</div>
               <p className="text-sm text-muted-foreground mb-4">
-                There was a problem connecting to document storage. Please initialize it by clicking the button below.
+                There was a problem connecting to document storage. This might be due to permissions or configuration issues.
               </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 text-left">
+                <div className="flex items-start">
+                  <Info className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                  <p className="text-sm text-amber-800">
+                    Technical note: The system is encountering permission errors when trying to create or access the document storage. 
+                    This may require administrator attention.
+                  </p>
+                </div>
+              </div>
               <Button 
                 variant="default" 
                 onClick={handleRetryBucketCreation}
