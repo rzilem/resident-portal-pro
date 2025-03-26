@@ -1,37 +1,87 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { UserRound, Mail, Phone, MapPin, Building } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import ProfilePhotoUploader from './profile/ProfilePhotoUploader';
 
 const ProfileSettings = () => {
+  const { user, profile, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    phone: "(555) 123-4567",
-    jobTitle: "Property Manager",
-    address: "123 Main St, Anytown, CA 12345",
-    bio: "Experienced property manager with 10+ years in residential community management."
+    name: "",
+    email: "",
+    phone: "",
+    jobTitle: "",
+    address: "",
+    bio: ""
   });
+
+  useEffect(() => {
+    // Initialize form with user data
+    if (user && profile) {
+      setFormData({
+        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+        email: user.email || "",
+        phone: profile.phone_number || "",
+        jobTitle: "",  // Replace with actual field from profile when available
+        address: "",   // Replace with actual field from profile when available
+        bio: ""        // Replace with actual field from profile when available
+      });
+    }
+  }, [user, profile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Split name into first and last name
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: formData.phone
+          // Add other fields when available
+        })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      // Refresh profile data
+      await refreshProfile();
+      
       toast.success("Profile updated successfully!");
-    }, 1000);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhotoChange = (url: string | null) => {
+    // The ProfilePhotoUploader component handles the Supabase update
+    // This is just a callback for any additional state updates if needed
+    refreshProfile();
   };
 
   return (
@@ -68,7 +118,8 @@ const ProfileSettings = () => {
                     type="email" 
                     value={formData.email} 
                     onChange={handleChange} 
-                    className="pl-10" 
+                    className="pl-10"
+                    disabled
                   />
                 </div>
               </div>
@@ -140,23 +191,11 @@ const ProfileSettings = () => {
             <CardTitle>Profile Photo</CardTitle>
             <CardDescription>Update your profile picture</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row gap-6 items-center">
-            <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center text-muted-foreground border">
-              <UserRound className="w-16 h-16" />
-            </div>
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Upload a new photo in JPG, PNG or GIF format. Maximum size 2MB.
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm">
-                  Upload New Picture
-                </Button>
-                <Button type="button" variant="outline" size="sm" className="text-destructive">
-                  Remove
-                </Button>
-              </div>
-            </div>
+          <CardContent>
+            <ProfilePhotoUploader 
+              initialPhotoUrl={profile?.profile_image_url} 
+              onPhotoChange={handlePhotoChange}
+            />
           </CardContent>
         </Card>
       </div>
