@@ -1,9 +1,13 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import AnimatedImage from './AnimatedImage';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Hero = () => {
+  const { user } = useAuth();
+  
   return (
     <section className="relative pt-24 pb-20 md:pt-36 md:pb-32 overflow-hidden">
       {/* Background elements */}
@@ -27,9 +31,9 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-2 animate-slide-in" style={{ animationDelay: '200ms' }}>
-              <Link to="/login">
+              <Link to={user ? "/dashboard" : "/auth"}>
                 <Button size="lg" className="w-full sm:w-auto">
-                  Get Started
+                  {user ? 'Go to Dashboard' : 'Get Started'}
                 </Button>
               </Link>
               <a href="#features">

@@ -9,7 +9,243 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      associations: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          state: string | null
+          updated_at: string | null
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          state?: string | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          state?: string | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone_number: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone_number?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone_number?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          association_id: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string | null
+          created_at: string | null
+          id: string
+          property_type: string | null
+          square_feet: number | null
+          state: string | null
+          unit_number: string | null
+          updated_at: string | null
+          zip: string | null
+        }
+        Insert: {
+          address: string
+          association_id?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          property_type?: string | null
+          square_feet?: number | null
+          state?: string | null
+          unit_number?: string | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address?: string
+          association_id?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          property_type?: string | null
+          square_feet?: number | null
+          state?: string | null
+          unit_number?: string | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resale_certificates: {
+        Row: {
+          assessment_frequency: string | null
+          association_name: string
+          closing_date: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          litigation: string | null
+          outstanding_balance: number | null
+          owner_name: string
+          property_id: string | null
+          regular_assessment: number | null
+          special_assessment: string | null
+          status: string | null
+          transfer_fee: number | null
+          updated_at: string | null
+          violations: string | null
+        }
+        Insert: {
+          assessment_frequency?: string | null
+          association_name: string
+          closing_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          litigation?: string | null
+          outstanding_balance?: number | null
+          owner_name: string
+          property_id?: string | null
+          regular_assessment?: number | null
+          special_assessment?: string | null
+          status?: string | null
+          transfer_fee?: number | null
+          updated_at?: string | null
+          violations?: string | null
+        }
+        Update: {
+          assessment_frequency?: string | null
+          association_name?: string
+          closing_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          litigation?: string | null
+          outstanding_balance?: number | null
+          owner_name?: string
+          property_id?: string | null
+          regular_assessment?: number | null
+          special_assessment?: string | null
+          status?: string | null
+          transfer_fee?: number | null
+          updated_at?: string | null
+          violations?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resale_certificates_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      residents: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          move_in_date: string | null
+          move_out_date: string | null
+          property_id: string | null
+          resident_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          move_in_date?: string | null
+          move_out_date?: string | null
+          property_id?: string | null
+          resident_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          move_in_date?: string | null
+          move_out_date?: string | null
+          property_id?: string | null
+          resident_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "residents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
