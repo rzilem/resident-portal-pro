@@ -21,7 +21,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <div className="md:w-1/3">
+      <div className="md:w-2/5">
         <h1 className="text-2xl font-bold">{resident.name}</h1>
         
         <div className="mt-4">
@@ -54,8 +54,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
         </div>
       </div>
       
-      {/* Financial and Contact Info */}
-      <div className="md:w-1/3">
+      {/* Spacer div */}
+      <div className="hidden md:block md:flex-grow"></div>
+      
+      {/* Financial and Contact Info - moved further right */}
+      <div className="md:w-1/4">
         <div className="border p-4 rounded-md bg-slate-50 dark:bg-slate-900">
           <h3 className="text-sm font-semibold mb-2">Account & Contact Info</h3>
           
@@ -99,7 +102,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
         </div>
       </div>
       
-      <div className="flex items-center space-x-2 md:w-1/6 md:justify-end">
+      {/* Status badge */}
+      <div className="flex items-center space-x-2 md:w-1/12 md:justify-end">
         <Badge 
           className={`px-3 py-1 text-sm ${
             resident.status === 'Active' 
