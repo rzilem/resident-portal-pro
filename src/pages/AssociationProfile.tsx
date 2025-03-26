@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Building, Users, MapPin, CalendarDays, DollarSign, 
-  FileText, Phone, Mail, Globe, Image, Swimming, Shield, 
-  Landmark, Building2, Gate, Footprints 
+  FileText, Phone, Mail, Globe, Image, Ship, Shield, 
+  Landmark, Building2, Lock, Footprints 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
