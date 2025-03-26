@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tag as TagIcon, Plus, X } from 'lucide-react';
-import { Tag } from '@/types/resident';
+import { Tag, TagType } from '@/types/resident';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tag as TagIcon, Plus, Edit, Trash2 } from 'lucide-react';
-import { Tag } from '@/types/resident';
+import { Tag, TagType } from '@/types/resident';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   Card, 
   CardContent, 
   CardDescription, 
@@ -146,7 +146,7 @@ const TagManagement: React.FC = () => {
 
       const tagToAdd: Tag = {
         id: uuidv4(),
-        type: newTag.type as 'board' | 'committee' | 'delinquent' | 'custom',
+        type: newTag.type as TagType,
         label: newTag.label || 'New Tag',
         color: newTag.color,
         createdAt: new Date().toISOString()
@@ -190,7 +190,7 @@ const TagManagement: React.FC = () => {
     }
     acc[tag.type].push(tag);
     return acc;
-  }, {});
+  }, {} as Record<string, Tag[]>);
 
   return (
     <Card>
@@ -229,7 +229,7 @@ const TagManagement: React.FC = () => {
                   <Label htmlFor="tag-type">Tag Type</Label>
                   <Select 
                     value={newTag.type}
-                    onValueChange={(value) => setNewTag({ ...newTag, type: value })}
+                    onValueChange={(value) => setNewTag({ ...newTag, type: value as TagType })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a tag type" />
