@@ -22,7 +22,7 @@ const WorkflowBuilder = () => {
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
   const [workflowCategory, setWorkflowCategory] = useState('');
-  const [workflowStatus, setWorkflowStatus] = useState<'active' | 'inactive' | 'draft'>('draft');
+  const [workflowStatus, setWorkflowStatus] = useState<'active' | 'inactive' | 'draft' | 'completed'>('draft');
   
   // Get steps from the hook
   const { 
@@ -83,7 +83,7 @@ const WorkflowBuilder = () => {
     setWorkflowCategory(category);
   };
   
-  const handleWorkflowStatusChange = (status: 'active' | 'inactive' | 'draft') => {
+  const handleWorkflowStatusChange = (status: 'active' | 'inactive' | 'draft' | 'completed') => {
     setWorkflowStatus(status);
   };
   

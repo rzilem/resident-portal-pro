@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +32,7 @@ interface WorkflowHeaderProps {
   onNameChange: (name: string) => void;
   onDescriptionChange: (description: string) => void;
   onCategoryChange: (category: string) => void;
-  onStatusChange: (status: 'active' | 'inactive' | 'draft') => void;
+  onStatusChange: (status: 'active' | 'inactive' | 'draft' | 'completed') => void;
   onSave: () => void;
 }
 
@@ -57,6 +56,8 @@ const WorkflowHeader = ({
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700/50 dark:text-gray-400';
       case 'draft':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400';
+      case 'completed':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-500/20 dark:text-purple-400';
       default:
         return '';
     }
@@ -218,7 +219,6 @@ const WorkflowHeader = ({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                // This would integrate with the calendar service in a real app
                 console.log(`Scheduling workflow for ${schedulingDate?.toISOString()}`);
                 setShowScheduleDialog(false);
               }}
