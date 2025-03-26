@@ -2,7 +2,7 @@
 import React from 'react';
 import { DocumentAccessLevel } from '@/types/documents';
 import { Badge } from '@/components/ui/badge';
-import { LockIcon, Shield, Users, UserIcon, FolderIcon } from 'lucide-react';
+import { FolderIcon } from 'lucide-react';
 import { getSecurityLevelColor } from './categoryUtils';
 
 // Get a colored folder icon for a document access level
@@ -24,24 +24,6 @@ export const getAccessLevelBadge = (accessLevel: DocumentAccessLevel): JSX.Eleme
       return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Management</Badge>;
     case 'admin':
       return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Administrators</Badge>;
-    default:
-      return <Badge variant="outline">Unknown</Badge>;
-  }
-};
-
-// Render a badge for document access level with icon
-export const renderAccessLevelBadge = (accessLevel: DocumentAccessLevel): JSX.Element => {
-  switch (accessLevel) {
-    case 'admin':
-      return <Badge variant="destructive" className="flex items-center gap-1"><LockIcon className="h-3 w-3" /> Admin Only</Badge>;
-    case 'management':
-      return <Badge variant="secondary" className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> Management</Badge>;
-    case 'board':
-      return <Badge variant="default" className="flex items-center gap-1"><Shield className="h-3 w-3" /> Board</Badge>;
-    case 'homeowner':
-      return <Badge variant="outline" className="flex items-center gap-1"><Users className="h-3 w-3" /> Homeowner</Badge>;
-    case 'all':
-      return <Badge variant="outline" className="flex items-center gap-1">All Users</Badge>;
     default:
       return <Badge variant="outline">Unknown</Badge>;
   }

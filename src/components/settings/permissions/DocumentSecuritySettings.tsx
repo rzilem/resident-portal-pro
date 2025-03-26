@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import { DocumentCategory } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
-import { renderAccessLevelBadge } from '../../documents/utils/categoryUtils.tsx';
+import { renderAccessLevelBadge } from '../../documents/utils/categoryUtils';
 
 const DocumentSecuritySettings = () => {
   const [isLoading, setIsLoading] = useState(true);
