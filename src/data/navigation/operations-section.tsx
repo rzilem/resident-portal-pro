@@ -1,5 +1,13 @@
 
-import { Calendar, FileText, MessageSquare, AlertTriangle, Printer, ClipboardCheck, Home } from "lucide-react";
+import { 
+  Calendar, 
+  FileText, 
+  MessageSquare, 
+  AlertTriangle, 
+  Printer, 
+  ClipboardCheck, 
+  Home 
+} from "lucide-react";
 import { NavItem } from "./types";
 
 export const getOperationsSection = (currentPath: string): NavItem => {

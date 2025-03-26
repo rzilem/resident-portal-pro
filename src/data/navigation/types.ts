@@ -1,17 +1,17 @@
 
-import React from 'react';
+import { LucideIcon } from 'lucide-react';
 
 // Define the NavItem type with proper structure
 export type NavItem = {
   label: string;
-  icon: React.ReactNode;
+  icon: LucideIcon; // Updated to LucideIcon type
   active: boolean;
   href?: string; // Make href optional
   items?: {
     label: string;
     href: string;
     active: boolean;
-    icon?: React.ReactNode; // Add optional icon support for sub-items
+    icon?: LucideIcon; // Updated to LucideIcon type for sub-items
   }[];
 };
 
