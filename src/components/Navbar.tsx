@@ -49,7 +49,7 @@ const Navbar = () => {
           to="/"
           className="text-2xl font-bold text-gradient"
         >
-          ResidentPro
+          Community Intelligence
         </Link>
 
         {/* Desktop Menu */}

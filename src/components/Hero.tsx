@@ -16,15 +16,15 @@ const Hero = () => {
           <div className="flex flex-col gap-6 max-w-xl">
             <div className="inline-flex items-center rounded-full border border-border bg-background/50 backdrop-blur-sm px-3 py-1 text-sm text-muted-foreground animate-fade-in">
               <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
-              Next-Generation Property Management
+              Community Intelligence Platform
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight animate-slide-in">
-              Streamlined <span className="text-gradient">HOA & Condo</span> Management
+              Intelligent <span className="text-gradient">Community</span> Management
             </h1>
             
             <p className="text-lg text-muted-foreground animate-slide-in" style={{ animationDelay: '100ms' }}>
-              The all-in-one platform that simplifies financial management, enhances resident engagement, and automates workflows for modern community living.
+              An all-in-one platform that leverages advanced analytics and AI to empower community engagement, streamline operations, and provide actionable insights.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-2 animate-slide-in" style={{ animationDelay: '200ms' }}>
@@ -41,14 +41,14 @@ const Hero = () => {
             </div>
             
             <div className="mt-4 text-sm text-muted-foreground animate-slide-in" style={{ animationDelay: '300ms' }}>
-              Trusted by over 500+ communities across the country
+              Transforming community management with intelligent solutions
             </div>
           </div>
           
           <div className="relative md:h-[540px] flex items-center">
             <AnimatedImage 
-              src="https://images.unsplash.com/photo-1517292987719-0369a794ec0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-              alt="Dashboard preview" 
+              src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" 
+              alt="Community Intelligence Dashboard" 
               className="rounded-xl border shadow-2xl w-full"
               animation="scale-in"
               delay={300}
@@ -62,8 +62,8 @@ const Hero = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium">Payments Processed</p>
-                  <p className="text-sm text-muted-foreground">97.8% on-time this month</p>
+                  <p className="font-medium">Insights Generated</p>
+                  <p className="text-sm text-muted-foreground">AI-powered analytics activated</p>
                 </div>
               </div>
             </div>
