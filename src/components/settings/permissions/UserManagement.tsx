@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,9 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
     const loadUsers = async () => {
       try {
         const fetchedUsers = userService.getUsers();
-        setUsers(fetchedUsers);
+        // Ensure all users have unique IDs to avoid rendering issues
+        const uniqueUsers = removeDuplicateUsers(fetchedUsers);
+        setUsers(uniqueUsers);
       } catch (error) {
         toast.error("Failed to load users");
         console.error(error);
@@ -36,6 +37,26 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
 
     loadUsers();
   }, [setUsers]);
+  
+  // Helper function to remove duplicate users by email
+  const removeDuplicateUsers = (userList: User[]): User[] => {
+    const emailMap = new Map<string, User>();
+    
+    // Keep only the most recently created user for each email
+    userList.forEach(user => {
+      const email = user.email.toLowerCase();
+      const existingUser = emailMap.get(email);
+      
+      // If this is the first user with this email, or if this one is newer, keep it
+      if (!existingUser || 
+          (user.createdAt && existingUser.createdAt && 
+           new Date(user.createdAt) > new Date(existingUser.createdAt))) {
+        emailMap.set(email, user);
+      }
+    });
+    
+    return Array.from(emailMap.values());
+  };
   
   const openNewUserDialog = () => {
     setEditingUser(null);

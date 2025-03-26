@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import UserManagement from './permissions/UserManagement';
@@ -15,7 +14,21 @@ const PermissionSettings = () => {
     const loadUsers = () => {
       try {
         const fetchedUsers = userService.getUsers();
-        setUsers(fetchedUsers);
+        
+        // Deduplicate users by email (keep most recent)
+        const emailMap = new Map<string, User>();
+        fetchedUsers.forEach(user => {
+          const email = user.email.toLowerCase();
+          const existingUser = emailMap.get(email);
+          
+          if (!existingUser || 
+              (user.createdAt && existingUser.createdAt && 
+               new Date(user.createdAt) > new Date(existingUser.createdAt))) {
+            emailMap.set(email, user);
+          }
+        });
+        
+        setUsers(Array.from(emailMap.values()));
       } catch (error) {
         console.error("Failed to load users:", error);
         toast.error("Failed to load users");

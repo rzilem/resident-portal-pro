@@ -91,7 +91,9 @@ export const userService = {
     }
     
     // Generate a unique ID with timestamp and random string to make it truly unique
-    const uniqueId = Date.now().toString() + '-' + Math.random().toString(36).substring(2, 11);
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 11);
+    const uniqueId = `${timestamp}-${randomString}`;
     
     // Get default permissions based on role
     const roleDefaults = defaultRolePermissions[user.role as UserRole];

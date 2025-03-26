@@ -114,64 +114,77 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
           lastName: formData.lastName,
         });
         
-        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+        // Update the users array with the updated user
+        setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
         toast.success("User updated successfully");
       } else {
-        // Create new user
-        const newUser = userService.createUser({
-          name: formData.name,
-          email: formData.email.trim(),
-          role: formData.role,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        });
-        
-        // Important: Add the new user to the state
-        setUsers(prevUsers => [...prevUsers, newUser]);
-        
-        // Send welcome email with better error handling
         try {
-          const emailSent = await emailService.sendWelcomeEmail(
-            newUser.email,
-            newUser.firstName || newUser.name,
-            getRoleLabel(newUser.role)
-          );
+          // Create new user - this will throw an error if the email already exists
+          const newUser = userService.createUser({
+            name: formData.name,
+            email: formData.email.trim(),
+            role: formData.role,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+          });
           
-          if (emailSent) {
-            console.log(`Welcome email successfully sent to ${newUser.email}`);
-          } else {
-            console.error(`Failed to send welcome email to ${newUser.email}`);
-          }
-        } catch (emailError) {
-          console.error("Error sending welcome email:", emailError);
-          // Don't throw - we still want to create the user even if email fails
-        }
-        
-        // Send admin notification
-        try {
-          const adminUser = users.find(user => user.role === 'admin');
-          if (adminUser && adminUser.email) {
-            const notificationSent = await emailService.sendNewUserNotification(
-              adminUser.email,
-              newUser.name,
+          // Important: Only add the new user to the state if creation was successful
+          setUsers(prevUsers => [...prevUsers, newUser]);
+          
+          // Send welcome email with better error handling
+          try {
+            const emailSent = await emailService.sendWelcomeEmail(
               newUser.email,
+              newUser.firstName || newUser.name,
               getRoleLabel(newUser.role)
             );
             
-            if (notificationSent) {
-              console.log(`Admin notification email sent to ${adminUser.email}`);
+            if (emailSent) {
+              console.log(`Welcome email successfully sent to ${newUser.email}`);
             } else {
-              console.error(`Failed to send admin notification to ${adminUser.email}`);
+              console.error(`Failed to send welcome email to ${newUser.email}`);
             }
-          } else {
-            console.log("No admin user found to notify about new user");
+          } catch (emailError) {
+            console.error("Error sending welcome email:", emailError);
+            // Don't throw - we still want to create the user even if email fails
           }
-        } catch (notificationError) {
-          console.error("Error sending admin notification:", notificationError);
-          // Don't throw - we still want to create the user even if notification fails
+          
+          // Send admin notification
+          try {
+            const adminUser = users.find(user => user.role === 'admin');
+            if (adminUser && adminUser.email) {
+              const notificationSent = await emailService.sendNewUserNotification(
+                adminUser.email,
+                newUser.name,
+                newUser.email,
+                getRoleLabel(newUser.role)
+              );
+              
+              if (notificationSent) {
+                console.log(`Admin notification email sent to ${adminUser.email}`);
+              } else {
+                console.error(`Failed to send admin notification to ${adminUser.email}`);
+              }
+            } else {
+              console.log("No admin user found to notify about new user");
+            }
+          } catch (notificationError) {
+            console.error("Error sending admin notification:", notificationError);
+            // Don't throw - we still want to create the user even if notification fails
+          }
+          
+          toast.success("User invited successfully and welcome email sent");
+        } catch (createError) {
+          // Handle user creation errors
+          if (createError instanceof Error) {
+            toast.error(createError.message);
+          } else {
+            toast.error("Failed to create user");
+          }
+          console.error("Error creating user:", createError);
+          setIsSubmitting(false);
+          return;
         }
-        
-        toast.success("User invited successfully and welcome email sent");
       }
       
       onSuccess();
