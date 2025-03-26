@@ -83,7 +83,7 @@ const AssociationProfile = () => {
   const hasPool = association.settings?.hasPool;
   const hasElevator = association.settings?.hasElevator;
 
-  // Example user and access level for calendar
+  // Standard user ID and access level for calendar - same as in Calendar.tsx
   const userId = 'current-user';
   const userAccessLevel = 'admin' as const;
 
@@ -109,7 +109,7 @@ const AssociationProfile = () => {
           </div>
         </div>
 
-        {/* Association Calendar Section */}
+        {/* Association Calendar Section - Using same implementation as in Calendar.tsx */}
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-4">Association Calendar</h2>
           <div className="bg-white rounded-md shadow">
