@@ -6,23 +6,25 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User as UserManagementUser } from './UserManagement';
-import { UserRole } from '@/types/user';
+import { User, UserRole } from '@/types/user';
+import { userService } from '@/services/userService';
 
 interface UserDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  editingUser: UserManagementUser | null;
-  users: UserManagementUser[];
-  setUsers: React.Dispatch<React.SetStateAction<UserManagementUser[]>>;
+  editingUser: User | null;
+  users: User[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 }
 
 // Get the role options from the UserRole type
 const roles: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Administrator" },
   { value: "manager", label: "Property Manager" },
-  { value: "board", label: "Board Member" },
+  { value: "board_member", label: "Board Member" },
+  { value: "board", label: "Board" },
   { value: "committee", label: "Committee Member" },
+  { value: "staff", label: "Staff" },
   { value: "resident", label: "Resident" },
   { value: "guest", label: "Guest" }
 ];
@@ -31,21 +33,29 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'resident' as UserRole
+    role: 'resident' as UserRole,
+    firstName: '',
+    lastName: '',
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (editingUser) {
       setFormData({
         name: editingUser.name,
         email: editingUser.email,
-        role: editingUser.role as UserRole
+        role: editingUser.role as UserRole,
+        firstName: editingUser.firstName || '',
+        lastName: editingUser.lastName || '',
       });
     } else {
       setFormData({
         name: '',
         email: '',
-        role: 'resident' as UserRole
+        role: 'resident' as UserRole,
+        firstName: '',
+        lastName: '',
       });
     }
   }, [editingUser]);
@@ -53,48 +63,68 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Update the full name when first or last name changes
+    if (name === 'firstName' || name === 'lastName') {
+      const fullName = name === 'firstName' 
+        ? `${value} ${formData.lastName}`.trim()
+        : `${formData.firstName} ${value}`.trim();
+      
+      if (fullName) {
+        setFormData(prev => ({ ...prev, name: fullName }));
+      }
+    }
   };
   
   const handleRoleChange = (value: UserRole) => {
     setFormData(prev => ({ ...prev, role: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    if (!formData.name || !formData.email || !formData.role) {
-      toast.error("Please fill in all fields");
-      return;
+    try {
+      if (!formData.name || !formData.email || !formData.role) {
+        toast.error("Please fill in all required fields");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (editingUser) {
+        // Update existing user
+        const updatedUser = userService.updateUser({
+          ...editingUser,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        });
+        
+        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+        toast.success("User updated successfully");
+      } else {
+        // Add new user
+        const newUser = userService.createUser({
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        });
+        
+        setUsers([...users, newUser]);
+        toast.success("User invited successfully");
+      }
+      
+      setOpen(false);
+    } catch (error) {
+      console.error("Error saving user:", error);
+      toast.error(editingUser ? "Failed to update user" : "Failed to invite user");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    if (editingUser) {
-      // Update existing user
-      const updatedUsers = users.map(u => 
-        u.id === editingUser.id 
-          ? { 
-              ...u, 
-              name: formData.name, 
-              email: formData.email, 
-              role: formData.role 
-            } 
-          : u
-      );
-      setUsers(updatedUsers);
-      toast.success("User updated successfully");
-    } else {
-      // Add new user
-      const newUser: UserManagementUser = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        status: 'pending'
-      };
-      setUsers([...users, newUser]);
-      toast.success("User invited successfully");
-    }
-    
-    setOpen(false);
   };
 
   return (
@@ -112,15 +142,28 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input 
-                id="name" 
-                name="name" 
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input 
+                  id="firstName" 
+                  name="firstName" 
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input 
+                  id="lastName" 
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -155,8 +198,12 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              {editingUser ? "Save Changes" : "Send Invitation"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting 
+                ? "Saving..." 
+                : editingUser 
+                  ? "Save Changes" 
+                  : "Send Invitation"}
             </Button>
           </DialogFooter>
         </form>

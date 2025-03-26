@@ -1,4 +1,3 @@
-
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   cardStyle: 'default' | 'flat' | 'rounded' | 'glass';
@@ -57,6 +56,8 @@ export interface User {
   emergencyContacts?: EmergencyContact[];
   vehicleInfo?: VehicleInfo[];
   communicationPreferences?: CommunicationPreferences;
+  permissions?: ModulePermissions;
+  securityLevel?: SecurityLevel;
 }
 
 export interface CustomField {
