@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -56,6 +57,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showDocumentPreview, setShowDocumentPreview] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
   
   const accessibleCategories = documentCategories.filter(category => {
     switch(category.accessLevel) {
@@ -81,7 +83,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   
   useEffect(() => {
     loadDocuments();
-  }, [association.id, activeCategory, searchQuery, tagFilter, role]);
+  }, [association.id, activeCategory, searchQuery, tagFilter, role, refreshTrigger]); // Add refreshTrigger dependency
   
   const loadDocuments = async () => {
     setIsLoading(true);
@@ -106,6 +108,12 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
     }
   };
   
+  // Add refreshDocuments function
+  const refreshDocuments = () => {
+    console.log("Refreshing documents in AssociationDocumentsTab");
+    setRefreshTrigger(prev => prev + 1);
+  };
+  
   const handleDocumentView = (document: DocumentFile) => {
     setSelectedDocument(document);
     setShowDocumentPreview(true);
@@ -118,6 +126,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
     });
     
     setDocuments(documents.filter(doc => doc.id !== document.id));
+    refreshDocuments(); // Refresh after deletion
   };
   
   const getAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
@@ -164,7 +173,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
       title: "Upload Successful",
       description: "Document has been uploaded successfully."
     });
-    loadDocuments();
+    refreshDocuments(); // Refresh after successful upload
   };
   
   const getCategoryName = () => {
@@ -332,6 +341,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
                                   document={doc}
                                   onView={handleDocumentView}
                                   onDelete={handleDocumentDelete}
+                                  refreshDocuments={refreshDocuments} // Pass refreshDocuments to DocumentActions
                                 />
                               </div>
                             </td>
@@ -367,6 +377,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
         isOpen={showUploadDialog}
         onClose={() => setShowUploadDialog(false)}
         onSuccess={handleUploadSuccess}
+        refreshDocuments={refreshDocuments} // Pass refreshDocuments to upload dialog
       />
       
       <DocumentPreview

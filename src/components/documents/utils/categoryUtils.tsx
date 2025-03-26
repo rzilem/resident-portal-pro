@@ -1,69 +1,63 @@
 
 import React from 'react';
-import { ShieldIcon, LockIcon, Users2Icon, UserCircleIcon } from 'lucide-react';
+import { 
+  LockIcon, 
+  Users, 
+  ShieldCheck, 
+  Building, 
+  User
+} from 'lucide-react';
 import { DocumentAccessLevel } from '@/types/documents';
+import { Badge } from '@/components/ui/badge';
 
-// Function to get the appropriate security level icon
-export const getAccessLevelIcon = (accessLevel?: DocumentAccessLevel) => {
+export const getAccessLevelIcon = (accessLevel: DocumentAccessLevel) => {
   switch (accessLevel) {
     case 'admin':
-      return <LockIcon className="h-3 w-3" />;
+      return <LockIcon className="h-4 w-4" />;
     case 'management':
-      return <UserCircleIcon className="h-3 w-3" />;
+      return <Building className="h-4 w-4" />;
     case 'board':
-      return <Users2Icon className="h-3 w-3" />;
+      return <ShieldCheck className="h-4 w-4" />;
     case 'homeowner':
-      return <ShieldIcon className="h-3 w-3" />;
-    default:
-      return null;
-  }
-};
-
-// Function to get the human-readable label for an access level
-export const getAccessLevelLabel = (accessLevel?: DocumentAccessLevel) => {
-  switch (accessLevel) {
-    case 'admin':
-      return 'Administrators Only';
-    case 'management':
-      return 'Management Staff Only';
-    case 'board':
-      return 'Board Members & Above';
-    case 'homeowner':
-      return 'Homeowners & Above';
+      return <User className="h-4 w-4" />;
     case 'all':
     default:
-      return 'All Users';
+      return <Users className="h-4 w-4" />;
   }
 };
 
-// Function to get the CSS class for the security level
-export const getSecurityLevelColor = (accessLevel?: DocumentAccessLevel) => {
+export const getAccessLevelBadge = (accessLevel: DocumentAccessLevel) => {
   switch (accessLevel) {
     case 'admin':
-      return 'text-red-600 border-red-200 bg-red-50';
+      return (
+        <Badge variant="destructive" className="ml-1 flex items-center gap-1">
+          <LockIcon className="h-3 w-3" /> Admin
+        </Badge>
+      );
     case 'management':
-      return 'text-amber-600 border-amber-200 bg-amber-50';
+      return (
+        <Badge variant="secondary" className="ml-1 flex items-center gap-1">
+          <Building className="h-3 w-3" /> Management
+        </Badge>
+      );
     case 'board':
-      return 'text-blue-600 border-blue-200 bg-blue-50';
+      return (
+        <Badge variant="outline" className="ml-1 flex items-center gap-1 border-amber-500 text-amber-700">
+          <ShieldCheck className="h-3 w-3" /> Board
+        </Badge>
+      );
     case 'homeowner':
-      return 'text-green-600 border-green-200 bg-green-50';
+      return (
+        <Badge variant="outline" className="ml-1 flex items-center gap-1">
+          <User className="h-3 w-3" /> Homeowners
+        </Badge>
+      );
+    case 'all':
     default:
-      return 'text-muted-foreground';
-  }
-};
-
-// Function to get folder icon color based on access level
-export const getFolderIconColor = (accessLevel?: DocumentAccessLevel) => {
-  switch (accessLevel) {
-    case 'admin':
-      return 'text-red-500';
-    case 'management':
-      return 'text-amber-500';
-    case 'board':
-      return 'text-blue-500';
-    case 'homeowner':
-      return 'text-green-500';
-    default:
-      return 'text-yellow-400';
+      return (
+        <Badge variant="outline" className="ml-1 flex items-center gap-1 border-green-500 text-green-700">
+          <Users className="h-3 w-3" /> Public
+        </Badge>
+      );
   }
 };
