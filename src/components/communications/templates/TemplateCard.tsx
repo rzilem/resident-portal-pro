@@ -21,6 +21,13 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   onDelete,
   onSelect
 }) => {
+  const handlePreview = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Preview clicked for template:", template.name);
+    onPreview(template);
+  };
+
   const handleUseTemplate = () => {
     onSelect(template);
   };
@@ -41,7 +48,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
       </CardContent>
       <CardFooter className="flex justify-between pt-2">
         <div className="flex space-x-1">
-          <Button variant="ghost" size="icon" onClick={() => onPreview(template)}>
+          <Button variant="ghost" size="icon" onClick={handlePreview}>
             <Eye className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => onEdit(template)}>

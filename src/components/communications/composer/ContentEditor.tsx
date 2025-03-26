@@ -22,9 +22,14 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   const { content, setContent, format, setPreviewContent, setShowMergeTagPreview } = useComposer();
 
   const handlePreviewWithMergeTags = async () => {
-    const processed = await mergeTagService.processMergeTags(content, {});
-    setPreviewContent(processed);
-    setShowMergeTagPreview(true); // Open the preview dialog after setting the content
+    try {
+      const processed = await mergeTagService.processMergeTags(content, {});
+      setPreviewContent(processed);
+      setShowMergeTagPreview(true); // Open the preview dialog after setting the content
+      console.log("Preview dialog should open with content:", processed);
+    } catch (error) {
+      console.error("Error processing merge tags for preview:", error);
+    }
   };
 
   return (

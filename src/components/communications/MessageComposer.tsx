@@ -75,8 +75,10 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
     setContent(newContent);
   };
 
+  console.log("ComposerContent rendering with showMergeTagPreview:", showMergeTagPreview);
+
   return (
-    <form className="space-y-6">
+    <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-6">
           <CommunitySelector />

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Info, Download, FileText, HelpCircle } from 'lucide-react';
 import AssociationTemplateInfo from './AssociationTemplateInfo';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -28,19 +28,24 @@ const SampleTemplatePreview = () => {
     setOpen(false);
   };
 
+  const handleOpenChange = (newState: boolean) => {
+    console.log("Dialog open state changing to:", newState);
+    setOpen(newState);
+  };
+
   return (
     <>
       <Button 
         variant="outline" 
         size="sm" 
         className="gap-2" 
-        onClick={() => setOpen(true)}
+        onClick={() => handleOpenChange(true)}
       >
         <Info className="h-4 w-4" />
         View Template Format
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Association Import Template Format</DialogTitle>
@@ -50,7 +55,7 @@ const SampleTemplatePreview = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="preview" onValueChange={setActiveTab}>
+          <Tabs defaultValue="preview" onValueChange={setActiveTab} value={activeTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="preview">Template Preview</TabsTrigger>
               <TabsTrigger value="instructions">Import Instructions</TabsTrigger>
@@ -96,7 +101,7 @@ const SampleTemplatePreview = () => {
           <DialogFooter className="flex justify-end gap-2 mt-4">
             <Button 
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpenChange(false)}
             >
               Close
             </Button>
