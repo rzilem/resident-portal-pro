@@ -1,4 +1,3 @@
-
 import { User, UserRole, SecurityLevel } from '@/types/user';
 import { defaultRolePermissions } from '@/components/settings/permissions/constants/securityLevels';
 import { supabase } from '@/integrations/supabase/client';
@@ -327,29 +326,17 @@ export const userService = {
 
   activateUser: async (id: string): Promise<User> => {
     try {
-      // Instead of using RPC, update the profile directly with the status
-      const { error } = await supabase
-        .from('profiles')
-        .update({ status: 'active' })
-        .eq('id', id);
+      // Since the profiles table doesn't have a status field, we'll update 
+      // the metadata in our local user cache but won't update Supabase
+      // In a real app, you might store this in a separate table or user_metadata
       
-      if (error) {
-        console.error('Error activating user in Supabase:', error);
-        // Fallback to local implementation
-        const index = users.findIndex(user => user.id === id);
-        if (index !== -1) {
-          users[index].status = 'active';
-          return users[index];
-        }
-        throw new Error('User not found');
-      }
-      
+      // Get the user from Supabase if possible
       const updatedUser = await userService.getUserById(id);
       if (!updatedUser) {
         throw new Error('User not found');
       }
       
-      // Also update in local cache
+      // Update in local cache
       const index = users.findIndex(user => user.id === id);
       if (index !== -1) {
         users[index].status = 'active';
@@ -373,29 +360,17 @@ export const userService = {
 
   deactivateUser: async (id: string): Promise<User> => {
     try {
-      // Instead of using RPC, update the profile directly with the status
-      const { error } = await supabase
-        .from('profiles')
-        .update({ status: 'inactive' })
-        .eq('id', id);
+      // Since the profiles table doesn't have a status field, we'll update 
+      // the metadata in our local user cache but won't update Supabase
+      // In a real app, you might store this in a separate table or user_metadata
       
-      if (error) {
-        console.error('Error deactivating user in Supabase:', error);
-        // Fallback to local implementation
-        const index = users.findIndex(user => user.id === id);
-        if (index !== -1) {
-          users[index].status = 'inactive';
-          return users[index];
-        }
-        throw new Error('User not found');
-      }
-      
+      // Get the user from Supabase if possible
       const updatedUser = await userService.getUserById(id);
       if (!updatedUser) {
         throw new Error('User not found');
       }
       
-      // Also update in local cache
+      // Update in local cache
       const index = users.findIndex(user => user.id === id);
       if (index !== -1) {
         users[index].status = 'inactive';
