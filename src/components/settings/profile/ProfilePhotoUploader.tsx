@@ -21,7 +21,10 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user) {
+      console.log("No file selected or user not logged in");
+      return;
+    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -38,6 +41,7 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
     setIsUploading(true);
 
     try {
+      console.log("Starting file upload process");
       // Create a unique file path with user ID to enforce ownership
       const filePath = `${user.id}/${Date.now()}-${file.name}`;
 
@@ -49,7 +53,12 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
           upsert: true
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
+      }
+
+      console.log("File uploaded successfully:", data);
 
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
@@ -57,6 +66,7 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
+      console.log("Public URL generated:", publicUrl);
 
       // Update profile with new photo URL
       const { error: updateError } = await supabase
@@ -64,7 +74,10 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         .update({ profile_image_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+        throw updateError;
+      }
 
       // Update local state
       setPhotoUrl(publicUrl);
@@ -93,13 +106,17 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       if (!filePathMatch) throw new Error('Invalid file path');
       
       const filePath = filePathMatch[1];
+      console.log("Removing file:", filePath);
 
       // Remove the file from storage
       const { error: removeError } = await supabase.storage
         .from('profile_photos')
         .remove([filePath]);
 
-      if (removeError) throw removeError;
+      if (removeError) {
+        console.error("Storage remove error:", removeError);
+        throw removeError;
+      }
 
       // Update profile to remove the photo URL
       const { error: updateError } = await supabase
@@ -107,7 +124,10 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         .update({ profile_image_url: null })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+        throw updateError;
+      }
 
       // Update local state
       setPhotoUrl(null);

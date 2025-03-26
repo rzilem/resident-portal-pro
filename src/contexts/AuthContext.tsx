@@ -76,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
+      console.log("Fetched profile data:", data);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -84,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (user) {
+      console.log("Refreshing profile for user:", user.id);
       await fetchProfile(user.id);
     }
   };

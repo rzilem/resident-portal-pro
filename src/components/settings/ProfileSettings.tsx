@@ -23,6 +23,7 @@ const ProfileSettings = () => {
   });
 
   useEffect(() => {
+    console.log("Profile data:", profile);
     // Initialize form with user data
     if (user && profile) {
       setFormData({
@@ -48,6 +49,7 @@ const ProfileSettings = () => {
     setLoading(true);
     
     try {
+      console.log("Updating profile with data:", formData);
       // Split name into first and last name
       const nameParts = formData.name.trim().split(' ');
       const firstName = nameParts[0] || '';
@@ -64,7 +66,10 @@ const ProfileSettings = () => {
         })
         .eq('id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error:", error);
+        throw error;
+      }
       
       // Refresh profile data
       await refreshProfile();
