@@ -4,7 +4,8 @@ import { useAuthRole } from '@/hooks/use-auth-role';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
 
-type Permission = string;
+// Define the Permission type to match the one in roleService.ts
+type Permission = 'view' | 'edit' | 'create' | 'delete' | 'approve' | 'admin';
 
 interface ResaleRbacWrapperProps {
   children: ReactNode;

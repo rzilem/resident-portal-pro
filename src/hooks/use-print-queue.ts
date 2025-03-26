@@ -218,7 +218,8 @@ export const usePrintQueue = () => {
     return newJob;
   };
 
-  const printJobs = () => {
+  // Renamed to avoid variable name conflict
+  const printSelectedJobs = () => {
     console.log('Printing selected jobs:', selectedJobs);
     // In a real app, this would handle actual printing
   };
@@ -229,9 +230,9 @@ export const usePrintQueue = () => {
   };
 
   return {
-    jobs: printJobs,
+    printJobs,
     selectedJobs,
-    isLoading: loading,
+    loading,
     error,
     addPrintJob,
     cancelPrintJob,
@@ -240,7 +241,7 @@ export const usePrintQueue = () => {
     selectAllJobs,
     clearSelection,
     deleteJob,
-    printJobs,
+    printSelectedJobs,
     sendToHOAMailers,
     stats
   };

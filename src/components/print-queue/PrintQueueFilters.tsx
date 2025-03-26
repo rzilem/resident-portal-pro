@@ -3,7 +3,6 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PrintCategory } from '@/services/printQueueService';
 
 interface FilterBadgeProps {
   label: string;
@@ -26,7 +25,7 @@ const FilterBadge: React.FC<FilterBadgeProps> = ({ label, onRemove }) => (
 );
 
 interface PrintQueueFiltersProps {
-  categoryFilter?: PrintCategory;
+  categoryFilter?: string;
   associationFilter?: string;
   associationName?: string;
   onClearCategoryFilter: () => void;

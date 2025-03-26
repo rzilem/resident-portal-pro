@@ -20,14 +20,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { PrintJob, PrintCategory } from '@/services/printQueueService';
+import { PrintJob } from '@/services/printQueueService';
 
 interface PrintQueueTableProps {
   jobs: PrintJob[];
   selectedJobs: string[];
   onToggleSelect: (id: string) => void;
   onSelectAll: () => void;
-  onSetCategoryFilter: (category: PrintCategory) => void;
+  onSetCategoryFilter: (category: string) => void;
   onSetAssociationFilter: (id: string, name: string) => void;
 }
 
@@ -40,7 +40,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
   onSetAssociationFilter,
 }) => {
   // Group jobs by category for expandable rows
-  const jobsByCategory: Record<PrintCategory, PrintJob[]> = {} as Record<PrintCategory, PrintJob[]>;
+  const jobsByCategory: Record<string, PrintJob[]> = {} as Record<string, PrintJob[]>;
   jobs.forEach(job => {
     if (!jobsByCategory[job.category]) {
       jobsByCategory[job.category] = [];
@@ -48,7 +48,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
     jobsByCategory[job.category].push(job);
   });
 
-  const categories = Object.keys(jobsByCategory) as PrintCategory[];
+  const categories = Object.keys(jobsByCategory);
   
   const [expandedCategories, setExpandedCategories] = React.useState<Record<string, boolean>>({});
 
@@ -85,7 +85,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
                       {['Bank Return', 'Statement', 'Notice', 'Invoice', 'Welcome Letter', 'Violation', 'Election Material', 'Other'].map((category) => (
                         <DropdownMenuItem 
                           key={category}
-                          onClick={() => onSetCategoryFilter(category as PrintCategory)}
+                          onClick={() => onSetCategoryFilter(category)}
                         >
                           {category}
                         </DropdownMenuItem>

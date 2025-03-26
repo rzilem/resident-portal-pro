@@ -8,14 +8,14 @@ import { usePrintQueue } from '@/hooks/use-print-queue';
 
 const PrintQueue = () => {
   const {
-    jobs,
+    printJobs,
     selectedJobs,
-    isLoading,
+    loading,
     toggleJobSelection,
     selectAllJobs,
     clearSelection,
     deleteJob,
-    printJobs,
+    printSelectedJobs,
     sendToHOAMailers
   } = usePrintQueue();
   
@@ -69,7 +69,7 @@ const PrintQueue = () => {
         <CardContent className="space-y-6">
           <PrintQueueToolbar
             selectedJobs={selectedJobs}
-            onPrint={printJobs}
+            onPrint={printSelectedJobs}
             onSendToHOAMailers={sendToHOAMailers}
             onIncludeMailingLabelsChange={handleIncludeMailingLabelsChange}
             onPrintPreviewChange={handlePrintPreviewChange}
@@ -81,7 +81,7 @@ const PrintQueue = () => {
           
           {activeTab === 'queue' && (
             <PrintQueueTable
-              jobs={jobs}
+              jobs={printJobs}
               selectedJobs={selectedJobs}
               onToggleSelect={toggleJobSelection}
               onSelectAll={selectAllJobs}
