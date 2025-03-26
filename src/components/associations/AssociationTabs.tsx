@@ -17,7 +17,7 @@ interface AssociationTabsProps {
 
 const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properties }) => {
   return (
-    <Tabs defaultValue="details" className="w-full mt-6">
+    <Tabs defaultValue="details" className="w-full mt-4">
       <TabsList className="grid grid-cols-6 md:w-[600px]">
         <TabsTrigger value="details">Details</TabsTrigger>
         <TabsTrigger value="financials">Financials</TabsTrigger>
@@ -55,3 +55,4 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
 };
 
 export default AssociationTabs;
+
