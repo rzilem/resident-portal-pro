@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { User, UserRole } from '@/types/user';
 import { userService } from '@/services/userService';
+import { emailService } from '@/services/emailService';
 import { AlertCircle } from 'lucide-react';
 
 interface UserDialogProps {
@@ -18,7 +18,6 @@ interface UserDialogProps {
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 }
 
-// Get the role options from the UserRole type
 const roles: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Administrator" },
   { value: "manager", label: "Property Manager" },
@@ -68,12 +67,10 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Clear email error when email is changed
     if (name === 'email') {
       setEmailError('');
     }
     
-    // Update the full name when first or last name changes
     if (name === 'firstName' || name === 'lastName') {
       const fullName = name === 'firstName' 
         ? `${value} ${formData.lastName}`.trim()
@@ -90,7 +87,6 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
   };
 
   const validateEmail = () => {
-    // Only check for duplicate email when creating a new user (not editing)
     if (!editingUser) {
       const existingUser = userService.getUserByEmail(formData.email);
       if (existingUser) {
@@ -112,14 +108,12 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
         return;
       }
       
-      // Validate email before proceeding
       if (!validateEmail()) {
         setIsSubmitting(false);
         return;
       }
       
       if (editingUser) {
-        // Update existing user
         const updatedUser = userService.updateUser({
           ...editingUser,
           name: formData.name,
@@ -132,26 +126,33 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
         setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
         toast.success("User updated successfully");
       } else {
-        // Add new user
-        try {
-          const newUser = userService.createUser({
-            name: formData.name,
-            email: formData.email,
-            role: formData.role,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-          });
-          
-          setUsers([...users, newUser]);
-          toast.success("User invited successfully");
-        } catch (error) {
-          if (error instanceof Error) {
-            setEmailError(error.message);
-            setIsSubmitting(false);
-            return;
-          }
-          throw error;
+        const newUser = userService.createUser({
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        });
+        
+        setUsers([...users, newUser]);
+        
+        await emailService.sendWelcomeEmail(
+          newUser.email,
+          newUser.firstName || newUser.name,
+          getRoleLabel(newUser.role)
+        );
+        
+        const adminUser = users.find(user => user.role === 'admin');
+        if (adminUser) {
+          await emailService.sendNewUserNotification(
+            adminUser.email,
+            newUser.name,
+            newUser.email,
+            getRoleLabel(newUser.role)
+          );
         }
+        
+        toast.success("User invited successfully and welcome email sent");
       }
       
       setOpen(false);
@@ -161,6 +162,11 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getRoleLabel = (roleValue: string): string => {
+    const role = roles.find(r => r.value === roleValue);
+    return role ? role.label : roleValue.charAt(0).toUpperCase() + roleValue.slice(1).replace('_', ' ');
   };
 
   return (
