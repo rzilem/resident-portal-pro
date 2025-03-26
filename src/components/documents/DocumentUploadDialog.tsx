@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
+import { Upload, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssociations } from '@/hooks/use-associations';
 import FileUploader from './FileUploader';
@@ -32,7 +32,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   
   // Hooks
   const { activeAssociation } = useAssociations();
-  const { bucketReady, isLoading } = useDocumentsBucket();
+  const { bucketReady, isLoading, retryCheck } = useDocumentsBucket();
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -96,6 +96,10 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setCategory('uncategorized');
     setTags([]);
   };
+  
+  const handleRetryBucketCreation = () => {
+    retryCheck();
+  };
 
   const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady;
 
@@ -118,9 +122,17 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
           ) : !bucketReady ? (
             <div className="text-center p-6">
               <div className="text-red-500 mb-2">Document storage is not available</div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 There was a problem connecting to document storage. Please try again later or contact support.
               </p>
+              <Button 
+                variant="outline" 
+                onClick={handleRetryBucketCreation}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry Connection
+              </Button>
             </div>
           ) : (
             <>

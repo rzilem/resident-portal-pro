@@ -24,8 +24,8 @@ export const uploadDocument = async ({
     // Get user ID for document ownership
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error('User authentication required for uploading documents');
-      return false;
+      console.log('No authenticated user found, attempting to proceed as anonymous');
+      // We'll proceed as anonymous since the bucket is public
     }
     
     // Create a unique file name using uuid
@@ -36,13 +36,32 @@ export const uploadDocument = async ({
     console.log(`Uploading file to path: ${filePath}`);
     
     // Check if the documents bucket exists and is accessible
-    const { data: buckets } = await supabase.storage.listBuckets();
+    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+    
+    if (bucketError) {
+      console.error('Error checking buckets:', bucketError);
+      toast.error('Failed to access document storage');
+      return false;
+    }
+    
     const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
     
     if (!documentsBucket) {
       console.error('Documents bucket does not exist or is not accessible');
-      toast.error('Document storage is not available. Please contact support.');
-      return false;
+      
+      // Try to create the bucket
+      const { error: createError } = await supabase.storage.createBucket('documents', {
+        public: true,
+        fileSizeLimit: 10485760, // 10MB
+      });
+      
+      if (createError) {
+        console.error('Failed to create documents bucket:', createError);
+        toast.error('Document storage is not available. Please contact support.');
+        return false;
+      }
+      
+      console.log('Successfully created documents bucket');
     }
     
     // Upload file to storage
@@ -61,30 +80,34 @@ export const uploadDocument = async ({
 
     console.log('Document uploaded successfully to storage:', storageData);
     
-    // Create a valid UUID for association_id if it's not already a UUID
+    // Ensure associationId is a valid UUID
     let validAssociationId = associationId;
+    
     try {
-      // Test if the associationId is a valid UUID
+      // Check if the input is already a valid UUID
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(associationId)) {
-        console.log('Converting numeric ID to UUID');
-        // If it's not a valid UUID format but a simple numeric ID, retrieve the actual UUID
-        const { data: associationData, error: associationError } = await supabase
+        console.log('AssociationId is not a valid UUID format:', associationId);
+        
+        // Try to fetch the association by ID
+        const { data: association, error: associationError } = await supabase
           .from('associations')
           .select('id')
           .eq('id', associationId)
-          .single();
-          
-        if (associationError || !associationData) {
-          // If we can't find the association, generate a new UUID
-          console.log('Could not find association, generating new UUID');
+          .maybeSingle();
+        
+        if (associationError || !association) {
+          console.log('Could not find association with ID:', associationId);
+          console.log('Generating a random UUID as fallback');
           validAssociationId = uuidv4();
         } else {
-          validAssociationId = associationData.id;
+          console.log('Found association with valid UUID:', association.id);
+          validAssociationId = association.id;
         }
+      } else {
+        console.log('AssociationId is already a valid UUID:', associationId);
       }
     } catch (error) {
       console.error('Error validating association ID:', error);
-      // Fallback to generating a new UUID
       validAssociationId = uuidv4();
     }
     
@@ -101,7 +124,7 @@ export const uploadDocument = async ({
         url: filePath,
         category: category,
         tags: tags.length > 0 ? tags : null,
-        uploaded_by: user.id,
+        uploaded_by: user?.id || null,
         association_id: validAssociationId,
         is_public: false,
         version: 1
@@ -111,6 +134,10 @@ export const uploadDocument = async ({
 
     if (documentError) {
       console.error('Error saving document metadata:', documentError);
+      
+      // If there was an error saving metadata, try to delete the uploaded file
+      await supabase.storage.from('documents').remove([filePath]);
+      
       toast.error(`Document uploaded but metadata couldn't be saved: ${documentError.message}`);
       return false;
     }

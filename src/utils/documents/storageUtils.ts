@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 // Check and create documents bucket if it doesn't exist
 export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
   try {
+    console.log('Checking if documents bucket exists...');
+    
     // Check if bucket exists
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
@@ -19,8 +21,16 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
     const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
     
     if (!documentsBucket) {
-      console.log('Documents bucket not found, creating it...');
-      // Create the documents bucket
+      console.log('Documents bucket not found, attempting to create it...');
+      
+      // Get the current user to ensure we're authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User is not authenticated. Authentication is required to create storage buckets.');
+        return false;
+      }
+      
+      // Create the documents bucket with public access
       const { error } = await supabase.storage.createBucket('documents', {
         public: true, // Make the bucket public so documents can be accessed
         fileSizeLimit: 10485760, // 10MB
@@ -28,22 +38,24 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
       
       if (error) {
         console.error('Error creating documents bucket:', error);
+        console.log('Attempting to use existing bucket instead...');
+        
+        // Try to access the bucket again
+        const { data: checkBuckets } = await supabase.storage.listBuckets();
+        if (checkBuckets?.some(b => b.name === 'documents')) {
+          console.log('Found existing documents bucket on second check');
+          return true;
+        }
+        
         return false;
       }
       
-      // Apply RLS policy to allow authenticated users to upload
-      try {
-        // This is handled by Supabase default policies
-        console.log('Documents bucket created successfully');
-      } catch (policyError) {
-        console.error('Error setting bucket policy:', policyError);
-        // Continue even if policy setting fails
-      }
+      console.log('Documents bucket created successfully');
+      return true;
     } else {
       console.log('Documents bucket already exists');
+      return true;
     }
-    
-    return true;
   } catch (error) {
     console.error('Error checking/creating documents bucket:', error);
     return false;
@@ -53,10 +65,19 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
 // Generate download URL for a document
 export const getDownloadUrl = async (filePath: string): Promise<string> => {
   try {
-    // Get download URL
+    // Get public URL if bucket is public
+    const { data: publicUrlData } = await supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath);
+    
+    if (publicUrlData && publicUrlData.publicUrl) {
+      return publicUrlData.publicUrl;
+    }
+    
+    // Fall back to signed URL if not public
     const { data, error } = await supabase.storage
       .from('documents')
-      .createSignedUrl(filePath, 60); // 60 seconds expiry
+      .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
     
     if (error) {
       console.error('Error creating signed URL:', error);
