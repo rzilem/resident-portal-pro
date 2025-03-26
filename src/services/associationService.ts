@@ -54,7 +54,13 @@ let associations: Association[] = [
       lateFeeAmount: '25',
       lateFeeType: 'fixed',
       allowOnlinePayments: true,
-      isDefault: true
+      isDefault: true,
+      hasPool: true,
+      hasGate: true,
+      hasPedestrianGate: false,
+      hasElevator: false,
+      hasAmenityCenter: true,
+      annualFees: '3600'
     }
   },
   { 
@@ -100,7 +106,13 @@ let associations: Association[] = [
         documents: true,
         calendar: true
       },
-      isDefault: false
+      isDefault: false,
+      hasPool: true,
+      hasGate: false,
+      hasPedestrianGate: false,
+      hasElevator: true,
+      hasAmenityCenter: true,
+      annualFees: '4800'
     }
   },
   { 
@@ -146,7 +158,13 @@ let associations: Association[] = [
         documents: true,
         calendar: false
       },
-      isDefault: false
+      isDefault: false,
+      hasPool: false,
+      hasGate: true,
+      hasPedestrianGate: true,
+      hasElevator: false,
+      hasAmenityCenter: false,
+      annualFees: '2400'
     }
   }
 ];

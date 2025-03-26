@@ -1,3 +1,4 @@
+
 /**
  * Association type definitions for the application
  */
@@ -160,6 +161,8 @@ export interface AssociationSettings {
   hasPool?: boolean;
   hasGate?: boolean;
   hasPedestrianGate?: boolean;
+  hasElevator?: boolean;
+  hasAmenityCenter?: boolean;
   annualFees?: string;
   manager?: string;
   residents?: string;

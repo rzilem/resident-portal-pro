@@ -1,8 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Building, Users, MapPin, CalendarDays, DollarSign, FileText, Phone, Mail, Globe } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  Building, Users, MapPin, CalendarDays, DollarSign, 
+  FileText, Phone, Mail, Globe, Image, Pool, Shield, 
+  Landmark, Elevator, Parkway 
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +14,9 @@ import { useAssociations } from '@/hooks/use-associations';
 import { Association } from '@/types/association';
 import PropertyListReport from '@/components/reports/property/PropertyListReport';
 import { getPropertiesFromAssociations } from '@/components/properties/PropertyHelpers';
+import GoogleMap from '@/components/map/GoogleMap';
+import PropertyImage from '@/components/associations/PropertyImage';
+import AmenityBadge from '@/components/associations/AmenityBadge';
 
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,6 +63,12 @@ const AssociationProfile = () => {
 
   // Get properties associated with this association
   const properties = getPropertiesFromAssociations([association]);
+  
+  // Format full address for map
+  const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
+  
+  // Sample property image - in a real app, this would come from your database
+  const samplePropertyImage = 'https://images.unsplash.com/photo-1487958449943-2429e8be8625';
 
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
@@ -80,58 +92,186 @@ const AssociationProfile = () => {
           </div>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                <MapPin className="h-4 w-4 inline mr-1" /> Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="font-medium">
-                {association.address.street}<br />
-                {association.address.city}, {association.address.state} {association.address.zipCode}<br />
-                {association.address.country}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Main content grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - Key info and map */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    <Users className="h-4 w-4 inline mr-1" /> Units
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{association.units}</div>
+                  <p className="text-muted-foreground">Total residential units</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                <Users className="h-4 w-4 inline mr-1" /> Units
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{association.units}</div>
-              <p className="text-muted-foreground">Total residential units</p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    <CalendarDays className="h-4 w-4 inline mr-1" /> Founded
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-medium">
+                    {new Date(association.foundedDate).toLocaleDateString()}
+                  </div>
+                  <p className="text-muted-foreground">
+                    {new Date().getFullYear() - new Date(association.foundedDate).getFullYear()} years ago
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                <CalendarDays className="h-4 w-4 inline mr-1" /> Founded
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-medium">
-                {new Date(association.foundedDate).toLocaleDateString()}
-              </div>
-              <p className="text-muted-foreground">
-                {new Date().getFullYear() - new Date(association.foundedDate).getFullYear()} years ago
-              </p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    <DollarSign className="h-4 w-4 inline mr-1" /> {association.settings?.feesFrequency || 'Monthly'} Fee
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-medium">
+                    {association.settings?.currencySymbol || '$'}{association.settings?.annualFees ? 
+                      (Number(association.settings.annualFees) / (association.settings?.feesFrequency === 'quarterly' ? 4 : 
+                                                                   association.settings?.feesFrequency === 'annually' ? 1 : 12)).toFixed(2) : 
+                      'N/A'}
+                  </div>
+                  <p className="text-muted-foreground">Per unit average</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Location and Map */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location
+                </CardTitle>
+                <CardDescription>{fullAddress}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GoogleMap address={fullAddress} />
+              </CardContent>
+            </Card>
+            
+            {/* Amenities */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Amenities & Features</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  <AmenityBadge type="pool" active={association.settings?.hasPool === true} />
+                  <AmenityBadge type="gate" active={association.settings?.hasGate === true} />
+                  <AmenityBadge type="pedestrianGate" active={association.settings?.hasPedestrianGate === true} />
+                  <AmenityBadge type="elevator" active={association.settings?.hasElevator === true} />
+                  <AmenityBadge type="amenityCenter" active={association.settings?.hasAmenityCenter === true} />
+                </div>
+                
+                {(!association.settings?.hasPool && 
+                  !association.settings?.hasGate && 
+                  !association.settings?.hasPedestrianGate && 
+                  !association.settings?.hasElevator && 
+                  !association.settings?.hasAmenityCenter) && (
+                  <p className="text-muted-foreground text-sm mt-2">No amenities information available</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Right column - Contact info, type, image */}
+          <div className="space-y-6">
+            {/* Property Image */}
+            <PropertyImage url={samplePropertyImage} alt={`${association.name} property`} />
+            
+            {/* Contact Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{association.contactInfo.email}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{association.contactInfo.phone}</span>
+                </div>
+                {association.contactInfo.website && (
+                  <div className="flex items-center gap-3">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <a 
+                      href={association.contactInfo.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {association.contactInfo.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Association Type */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Association Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Type:</span>
+                  <Badge variant="outline" className="capitalize">
+                    {association.type}
+                  </Badge>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge variant={association.status === 'active' ? 'secondary' : 'outline'}>
+                    {association.status === 'active' ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                
+                {association.managementCompanyId && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Management ID:</span>
+                    <span>{association.managementCompanyId}</span>
+                  </div>
+                )}
+                
+                {association.tags && association.tags.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-medium mb-2">Tags</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {association.tags.map((tag) => (
+                          <Badge key={tag.id} variant="outline" className="bg-muted">
+                            {tag.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid grid-cols-4 md:w-[400px]">
+        <Tabs defaultValue="details" className="w-full mt-6">
+          <TabsList className="grid grid-cols-5 md:w-[500px]">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="financials">Financials</TabsTrigger>
             <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -286,6 +426,26 @@ const AssociationProfile = () => {
                   timeRange="All Time"
                   association={association.name}
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Association Documents</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Document Management</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Access governing documents, meeting minutes, and other important files
+                  </p>
+                  <Button variant="outline" onClick={() => navigate('/documents/AssociationDocuments')}>
+                    View All Documents
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
