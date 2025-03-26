@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Users, CalendarDays, DollarSign } from 'lucide-react';
+import { Users, CalendarDays, Building } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Association } from '@/types/association';
 
@@ -9,6 +9,26 @@ interface AssociationStatsProps {
 }
 
 const AssociationStats: React.FC<AssociationStatsProps> = ({ association }) => {
+  // Function to get the formatted legal property description
+  const getLegalPropertyDescription = (type: string): string => {
+    switch (type.toLowerCase()) {
+      case 'hoa':
+        return 'Homeowners Association';
+      case 'coa':
+        return 'Condominium Owners Association';
+      case 'condo':
+        return 'Condominium Association';
+      case 'poa':
+        return 'Property Owners Association';
+      case 'roa':
+        return 'Residential Owners Association';
+      case 'sfh-condo':
+        return 'Single Family Homes within a Condo Regime';
+      default:
+        return 'Homeowners Association';
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <Card>
@@ -42,17 +62,14 @@ const AssociationStats: React.FC<AssociationStatsProps> = ({ association }) => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            <DollarSign className="h-4 w-4 inline mr-1" /> {association.settings?.feesFrequency || 'Monthly'} Fee
+            <Building className="h-4 w-4 inline mr-1" /> Legal Property Type
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-lg font-medium">
-            {association.settings?.currencySymbol || '$'}{association.settings?.annualFees ? 
-              (Number(association.settings.annualFees) / (association.settings?.feesFrequency === 'quarterly' ? 4 : 
-                                                         association.settings?.feesFrequency === 'annually' ? 1 : 12)).toFixed(2) : 
-              'N/A'}
+            {getLegalPropertyDescription(association.type)}
           </div>
-          <p className="text-muted-foreground">Per unit average</p>
+          <p className="text-muted-foreground">Property classification</p>
         </CardContent>
       </Card>
     </div>
