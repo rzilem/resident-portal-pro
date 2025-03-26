@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Pool, Parkway, Building, Elevator, Landmark } from 'lucide-react';
+import { Swimming, Gate, Building, Footprints, Landmark } from 'lucide-react';
 
 interface AmenityBadgeProps {
   type: 'pool' | 'gate' | 'pedestrianGate' | 'elevator' | 'amenityCenter';
@@ -13,19 +13,19 @@ const AmenityBadge: React.FC<AmenityBadgeProps> = ({ type, active }) => {
 
   const amenities = {
     pool: {
-      icon: <Pool className="h-3 w-3 mr-1" />,
+      icon: <Swimming className="h-3 w-3 mr-1" />,
       label: 'Pool',
     },
     gate: {
-      icon: <Parkway className="h-3 w-3 mr-1" />,
+      icon: <Gate className="h-3 w-3 mr-1" />,
       label: 'Gate',
     },
     pedestrianGate: {
-      icon: <Parkway className="h-3 w-3 mr-1" />,
+      icon: <Footprints className="h-3 w-3 mr-1" />,
       label: 'Pedestrian Gate',
     },
     elevator: {
-      icon: <Elevator className="h-3 w-3 mr-1" />,
+      icon: <Building className="h-3 w-3 mr-1" />,
       label: 'Elevator',
     },
     amenityCenter: {
