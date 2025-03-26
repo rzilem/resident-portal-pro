@@ -1,14 +1,4 @@
-
 import { UserPreferences } from "@/types/user";
-import { applyThemePresetToDOM } from "./apply-theme-preset";
-
-/**
- * Apply theme preset to DOM elements
- * @deprecated Use applyThemePresetToDOM from apply-theme-preset.ts instead
- */
-export const applyThemePresetToDOM = (presetId: string | null) => {
-  return import('./apply-theme-preset').then(module => module.applyThemePresetToDOM(presetId));
-};
 
 /**
  * Apply custom colors to DOM elements
