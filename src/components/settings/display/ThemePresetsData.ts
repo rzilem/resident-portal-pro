@@ -1,3 +1,5 @@
+
+import React from 'react';
 import { Snowflake, Sun, Sparkles } from 'lucide-react';
 
 export interface ThemePreset {
@@ -116,7 +118,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(90deg, #146B3A 0%, #C01F1F 100%)',
     description: 'Traditional red and green Christmas colors',
     category: 'seasonal',
-    icon: <Snowflake className="h-4 w-4 text-white absolute top-2 right-2" />
+    icon: React.createElement(Snowflake, { className: "h-4 w-4 text-white absolute top-2 right-2" })
   },
   {
     id: 'christmas-frost',
@@ -127,7 +129,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(90deg, #C9D6DF 0%, #F0F5F9 100%)',
     description: 'Frosty blue and white winter theme',
     category: 'seasonal',
-    icon: <Snowflake className="h-4 w-4 text-blue-500 absolute top-2 right-2" />
+    icon: React.createElement(Snowflake, { className: "h-4 w-4 text-blue-500 absolute top-2 right-2" })
   },
   
   // Summer themes
@@ -140,7 +142,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(90deg, #00B4D8 0%, #90E0EF 100%)',
     description: 'Bright and sunny beach vibes',
     category: 'seasonal',
-    icon: <Sun className="h-4 w-4 text-yellow-400 absolute top-2 right-2" />
+    icon: React.createElement(Sun, { className: "h-4 w-4 text-yellow-400 absolute top-2 right-2" })
   },
   {
     id: 'summer-tropical',
@@ -151,7 +153,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(90deg, #FF6B6B 0%, #4ECDC4 100%)',
     description: 'Vibrant tropical summer colors',
     category: 'seasonal',
-    icon: <Sun className="h-4 w-4 text-yellow-400 absolute top-2 right-2" />
+    icon: React.createElement(Sun, { className: "h-4 w-4 text-yellow-400 absolute top-2 right-2" })
   },
   
   // Gradient themes
@@ -164,7 +166,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(to right, #ee9ca7, #ffdde1)',
     description: 'Smooth sunset gradient palette',
     category: 'gradient',
-    icon: <Sparkles className="h-4 w-4 text-yellow-200 absolute top-2 right-2" />
+    icon: React.createElement(Sparkles, { className: "h-4 w-4 text-yellow-200 absolute top-2 right-2" })
   },
   {
     id: 'gradient-cosmic',
@@ -175,7 +177,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(102.3deg, rgba(147,39,143,1) 5.9%, rgba(234,172,232,1) 64%, rgba(246,219,245,1) 89%)',
     description: 'Deep space purple gradient',
     category: 'gradient',
-    icon: <Sparkles className="h-4 w-4 text-purple-200 absolute top-2 right-2" />
+    icon: React.createElement(Sparkles, { className: "h-4 w-4 text-purple-200 absolute top-2 right-2" })
   },
   {
     id: 'gradient-emerald',
@@ -186,7 +188,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(90deg, hsla(59, 86%, 68%, 1) 0%, hsla(134, 36%, 53%, 1) 100%)',
     description: 'Refreshing green gradient',
     category: 'gradient',
-    icon: <Sparkles className="h-4 w-4 text-green-200 absolute top-2 right-2" />
+    icon: React.createElement(Sparkles, { className: "h-4 w-4 text-green-200 absolute top-2 right-2" })
   },
   {
     id: 'gradient-dusk',
@@ -197,7 +199,7 @@ export const getAllPresets = (): ThemePreset[] => [
     background: 'linear-gradient(to right, #243949 0%, #517fa4 100%)',
     description: 'Evening sky gradient',
     category: 'gradient',
-    icon: <Sparkles className="h-4 w-4 text-blue-200 absolute top-2 right-2" />
+    icon: React.createElement(Sparkles, { className: "h-4 w-4 text-blue-200 absolute top-2 right-2" })
   }
 ];
 
@@ -210,4 +212,3 @@ export const getPresetsByCategory = () => {
     gradient: allPresets.filter(preset => preset.category === 'gradient')
   };
 };
-
