@@ -1,7 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import UserManagement from './permissions/UserManagement';
 import DocumentAccess from './permissions/DocumentAccess';
+import DocumentSecuritySettings from './permissions/DocumentSecuritySettings';
 import { roles } from './permissions/roles';
 import { userService } from '@/services/userService';
 import { User } from '@/types/user';
@@ -70,12 +73,29 @@ const PermissionSettings = () => {
 
   return (
     <div className="grid gap-6">
-      <UserManagement users={users} setUsers={setUsers} />
-      <DocumentAccess 
-        documentPermissions={documentPermissions}
-        setDocumentPermissions={setDocumentPermissions}
-        roles={roles}
-      />
+      <Tabs defaultValue="users">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="document-access">Document Access</TabsTrigger>
+          <TabsTrigger value="document-security">Document Security</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users">
+          <UserManagement users={users} setUsers={setUsers} />
+        </TabsContent>
+        
+        <TabsContent value="document-access">
+          <DocumentAccess 
+            documentPermissions={documentPermissions}
+            setDocumentPermissions={setDocumentPermissions}
+            roles={roles}
+          />
+        </TabsContent>
+        
+        <TabsContent value="document-security">
+          <DocumentSecuritySettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

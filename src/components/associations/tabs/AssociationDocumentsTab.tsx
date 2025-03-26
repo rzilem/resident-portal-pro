@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, FolderOpen, Shield, Gavel, 
   FileSpreadsheet, Calendar, Plus, 
   Download, Search, Tag, Filter, 
-  ArrowUpDown, Info
+  ArrowUpDown, Info, LockIcon, Users
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,13 +13,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Association } from '@/types/association';
-import { DocumentFile } from '@/types/documents';
+import { DocumentFile, DocumentAccessLevel } from '@/types/documents';
 import { getDocuments } from '@/utils/documents/documentUtils';
 import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import DocumentActions from '@/components/documents/DocumentActions';
 import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuthRole } from '@/hooks/use-auth-role';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AssociationDocumentsTabProps {
   association: Association;
@@ -30,20 +31,22 @@ interface DocumentCategory {
   name: string;
   icon: React.ElementType;
   id: string;
+  accessLevel: DocumentAccessLevel;
 }
 
 const documentCategories: DocumentCategory[] = [
-  { name: "Governing Documents", icon: Shield, id: "governing" },
-  { name: "Financial Documents", icon: FileSpreadsheet, id: "financial" },
-  { name: "Meeting Minutes", icon: Calendar, id: "meetings" },
-  { name: "Legal Documents", icon: Gavel, id: "legal" },
-  { name: "Rules & Regulations", icon: Shield, id: "rules" },
-  { name: "Contracts", icon: Gavel, id: "contracts" }
+  { name: "Governing Documents", icon: Shield, id: "governing", accessLevel: "homeowner" as DocumentAccessLevel },
+  { name: "Financial Documents", icon: FileSpreadsheet, id: "financial", accessLevel: "board" as DocumentAccessLevel },
+  { name: "Meeting Minutes", icon: Calendar, id: "meetings", accessLevel: "homeowner" as DocumentAccessLevel },
+  { name: "Legal Documents", icon: Gavel, id: "legal", accessLevel: "management" as DocumentAccessLevel },
+  { name: "Rules & Regulations", icon: Shield, id: "rules", accessLevel: "all" as DocumentAccessLevel },
+  { name: "Contracts", icon: Gavel, id: "contracts", accessLevel: "management" as DocumentAccessLevel }
 ];
 
 const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ association }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { role } = useAuthRole();
   const [activeCategory, setActiveCategory] = useState(documentCategories[0].id);
   const [searchQuery, setSearchQuery] = useState('');
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
@@ -54,9 +57,31 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showDocumentPreview, setShowDocumentPreview] = useState(false);
   
+  const accessibleCategories = documentCategories.filter(category => {
+    switch(category.accessLevel) {
+      case 'admin':
+        return role === 'admin';
+      case 'management':
+        return ['admin', 'manager', 'staff'].includes(role || '');
+      case 'board':
+        return ['admin', 'manager', 'staff', 'board', 'board_member'].includes(role || '');
+      case 'homeowner':
+        return ['admin', 'manager', 'staff', 'board', 'board_member', 'resident'].includes(role || '');
+      case 'all':
+      default:
+        return true;
+    }
+  });
+  
+  useEffect(() => {
+    if (accessibleCategories.length > 0) {
+      setActiveCategory(accessibleCategories[0].id);
+    }
+  }, [role]);
+  
   useEffect(() => {
     loadDocuments();
-  }, [association.id, activeCategory, searchQuery, tagFilter]);
+  }, [association.id, activeCategory, searchQuery, tagFilter, role]);
   
   const loadDocuments = async () => {
     setIsLoading(true);
@@ -67,7 +92,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
         tags: tagFilter ? [tagFilter] : []
       };
       
-      const docs = await getDocuments(filters, association.id);
+      const docs = await getDocuments(filters, association.id, role);
       setDocuments(docs);
     } catch (error) {
       console.error('Error loading documents:', error);
@@ -87,26 +112,28 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   };
   
   const handleDocumentDelete = (document: DocumentFile) => {
-    // In a real app, this would call the API to delete the document
     toast({
       title: "Document Deleted",
       description: `"${document.name}" has been deleted.`
     });
     
-    // Remove from the local state
     setDocuments(documents.filter(doc => doc.id !== document.id));
   };
   
-  const sortedDocuments = [...documents].sort((a, b) => {
-    if (sortOrder === 'name') {
-      return a.name.localeCompare(b.name);
-    } else if (sortOrder === 'date') {
-      return new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime();
-    } else if (sortOrder === 'size') {
-      return b.fileSize - a.fileSize;
+  const getAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
+    switch (accessLevel) {
+      case 'admin':
+        return <Badge variant="destructive" className="ml-1 flex items-center gap-1"><LockIcon className="h-3 w-3" /> Admin</Badge>;
+      case 'management': 
+        return <Badge variant="secondary" className="ml-1 flex items-center gap-1"><LockIcon className="h-3 w-3" /> Management</Badge>;
+      case 'board':
+        return <Badge variant="outline" className="ml-1 flex items-center gap-1"><Users className="h-3 w-3" /> Board</Badge>;
+      case 'homeowner':
+        return <Badge variant="outline" className="ml-1 flex items-center gap-1"><Users className="h-3 w-3" /> Homeowners</Badge>;
+      default:
+        return null;
     }
-    return 0;
-  });
+  };
   
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -126,7 +153,6 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
   };
   
   const getFileIcon = (fileType: string) => {
-    // Simplified icon selection based on file type
     if (fileType.includes('pdf')) return <FileText className="h-4 w-4 text-red-500" />;
     if (fileType.includes('word') || fileType.includes('docx')) return <FileText className="h-4 w-4 text-blue-500" />;
     if (fileType.includes('excel') || fileType.includes('xlsx')) return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
@@ -140,6 +166,23 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
     });
     loadDocuments();
   };
+  
+  const getCategoryName = () => {
+    if (!activeCategory) return 'All Documents';
+    const category = documentCategories.find(c => c.id === activeCategory);
+    return category ? category.name : 'Documents';
+  };
+  
+  const sortedDocuments = [...documents].sort((a, b) => {
+    if (sortOrder === 'name') {
+      return a.name.localeCompare(b.name);
+    } else if (sortOrder === 'date') {
+      return new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime();
+    } else if (sortOrder === 'size') {
+      return b.fileSize - a.fileSize;
+    }
+    return 0;
+  });
   
   return (
     <div className="mt-4 space-y-6">
@@ -199,16 +242,35 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
         <CardContent>
           <Tabs defaultValue={activeCategory} onValueChange={setActiveCategory} className="w-full">
             <TabsList className="w-full flex overflow-auto mb-4">
-              {documentCategories.map(category => (
-                <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1">
-                  <category.icon className="h-4 w-4" />
-                  <span>{category.name}</span>
-                </TabsTrigger>
+              {accessibleCategories.map(category => (
+                <TooltipProvider key={category.id}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value={category.id} className="flex items-center gap-1">
+                        <category.icon className="h-4 w-4" />
+                        <span>{category.name}</span>
+                        {category.accessLevel !== 'all' && (
+                          <LockIcon className="h-3 w-3 ml-1" />
+                        )}
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Access Level: {category.accessLevel || 'All'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               ))}
             </TabsList>
             
-            {documentCategories.map(category => (
+            {accessibleCategories.map(category => (
               <TabsContent key={category.id} value={category.id} className="pt-0">
+                <div className="flex items-center mb-4">
+                  <h3 className="text-lg font-medium flex items-center">
+                    {category.name}
+                    {getAccessLevelBadge(category.accessLevel)}
+                  </h3>
+                </div>
+                
                 {isLoading ? (
                   <div className="animate-pulse space-y-3">
                     {[1, 2, 3].map(i => (

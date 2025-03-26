@@ -6,7 +6,10 @@ export interface DocumentCategory {
   isRestricted?: boolean;
   requiredPermission?: string;
   sortOrder?: number;
+  accessLevel?: DocumentAccessLevel;
 }
+
+export type DocumentAccessLevel = 'all' | 'homeowner' | 'board' | 'management' | 'admin';
 
 export interface DocumentFile {
   id: string;
@@ -85,20 +88,4 @@ export interface DocumentPermission {
     delete: boolean;
     share: boolean;
   };
-}
-
-export interface DocumentSearchFilters {
-  query?: string;
-  categories?: string[];
-  fileTypes?: string[];
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-  uploadedBy?: string[];
-  tags?: string[];
-  associations?: string[];
-  properties?: string[];
-  isPublic?: boolean;
-  isArchived?: boolean;
 }

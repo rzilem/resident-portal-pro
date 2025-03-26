@@ -1,5 +1,5 @@
-
-import { DocumentFile, DocumentCategory, DocumentSearchFilters } from '@/types/documents';
+import { DocumentFile, DocumentCategory, DocumentSearchFilters, DocumentAccessLevel } from '@/types/documents';
+import { UserRole } from '@/types/user';
 
 // Sample document data for development purposes
 const mockDocuments: DocumentFile[] = [
@@ -116,43 +116,49 @@ const mockDocuments: DocumentFile[] = [
   }
 ];
 
-// Sample document categories for development
+// Sample document categories for development with security levels
 const mockCategories: DocumentCategory[] = [
   {
     id: "financial",
     name: "Financial Documents",
     description: "Budgets, financial statements, and other financial records",
-    sortOrder: 1
+    sortOrder: 1,
+    accessLevel: "board"
   },
   {
     id: "governing",
     name: "Governing Documents",
     description: "Bylaws, CC&Rs, and other governing documents",
-    sortOrder: 2
+    sortOrder: 2,
+    accessLevel: "homeowner"
   },
   {
     id: "meetings",
     name: "Meeting Documents",
     description: "Meeting minutes, agendas, and related documents",
-    sortOrder: 3
+    sortOrder: 3,
+    accessLevel: "homeowner"
   },
   {
     id: "legal",
     name: "Legal Documents",
     description: "Insurance policies, legal notices, and other legal documents",
-    sortOrder: 4
+    sortOrder: 4,
+    accessLevel: "management"
   },
   {
     id: "rules",
     name: "Rules & Regulations",
     description: "Community rules and regulations documents",
-    sortOrder: 5
+    sortOrder: 5,
+    accessLevel: "all"
   },
   {
     id: "contracts",
     name: "Contracts & Agreements",
     description: "Service contracts and other agreements",
     sortOrder: 6,
+    accessLevel: "management",
     isRestricted: true,
     requiredPermission: "admin"
   },
@@ -160,14 +166,35 @@ const mockCategories: DocumentCategory[] = [
     id: "communications",
     name: "Communications",
     description: "Newsletters, announcements, and other communications",
-    sortOrder: 7
+    sortOrder: 7,
+    accessLevel: "all"
   }
 ];
 
-// Get documents from a mock database
+// Helper function to check if user role has access to a document category
+const hasAccessToCategory = (userRole: UserRole | undefined | null, accessLevel?: DocumentAccessLevel): boolean => {
+  if (!accessLevel || accessLevel === 'all') return true;
+  if (!userRole) return false;
+  
+  switch(accessLevel) {
+    case 'admin':
+      return userRole === 'admin';
+    case 'management':
+      return ['admin', 'manager', 'staff'].includes(userRole);
+    case 'board':
+      return ['admin', 'manager', 'staff', 'board', 'board_member'].includes(userRole);
+    case 'homeowner':
+      return ['admin', 'manager', 'staff', 'board', 'board_member', 'resident'].includes(userRole);
+    default:
+      return false;
+  }
+};
+
+// Get documents from a mock database with security filtering
 export const getDocuments = async (
   filters?: DocumentSearchFilters,
-  associationId?: string
+  associationId?: string,
+  userRole?: UserRole
 ): Promise<DocumentFile[]> => {
   let filteredDocs = [...mockDocuments];
   
@@ -225,12 +252,25 @@ export const getDocuments = async (
     }
   }
   
+  // Apply security filtering based on categories and user role
+  if (userRole) {
+    const accessibleCategories = mockCategories
+      .filter(cat => hasAccessToCategory(userRole, cat.accessLevel))
+      .map(cat => cat.id);
+      
+    filteredDocs = filteredDocs.filter(doc => 
+      accessibleCategories.includes(doc.category)
+    );
+  }
+  
   return filteredDocs;
 };
 
-// Get document categories
-export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
-  return mockCategories;
+// Get document categories with security filtering
+export const getDocumentCategories = async (userRole?: UserRole): Promise<DocumentCategory[]> => {
+  if (!userRole) return mockCategories;
+  
+  return mockCategories.filter(cat => hasAccessToCategory(userRole, cat.accessLevel));
 };
 
 // Format file size for display
