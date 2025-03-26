@@ -1,39 +1,13 @@
 
 import { UserPreferences } from "@/types/user";
+import { applyThemePresetToDOM } from "./apply-theme-preset";
 
 /**
  * Apply theme preset to DOM elements
+ * @deprecated Use applyThemePresetToDOM from apply-theme-preset.ts instead
  */
 export const applyThemePresetToDOM = (presetId: string | null) => {
-  if (!presetId) return;
-  
-  // Remove all possible theme preset classes
-  const allThemeClasses = [
-    // Original themes
-    'theme-preset-ocean', 
-    'theme-preset-forest', 
-    'theme-preset-sunset', 
-    'theme-preset-lavender', 
-    'theme-preset-cherry', 
-    'theme-preset-midnight',
-    'theme-preset-emerald',
-    'theme-preset-ruby',
-    'theme-preset-graphite',
-    // Christmas themes
-    'theme-preset-christmas-traditional',
-    'theme-preset-christmas-frost',
-    // Summer themes
-    'theme-preset-summer-beach',
-    'theme-preset-summer-tropical',
-    // Gradient themes
-    'theme-preset-gradient-sunset',
-    'theme-preset-gradient-cosmic',
-    'theme-preset-gradient-emerald',
-    'theme-preset-gradient-dusk'
-  ];
-  
-  document.body.classList.remove(...allThemeClasses);
-  document.body.classList.add(`theme-preset-${presetId}`);
+  return import('./apply-theme-preset').then(module => module.applyThemePresetToDOM(presetId));
 };
 
 /**
@@ -125,6 +99,7 @@ export const applyThemeColors = (
 
 /**
  * Reset theme colors on document root
+ * @deprecated Use resetThemePreset from apply-theme-preset.ts instead
  */
 export const resetThemeColors = () => {
   document.documentElement.style.removeProperty('--theme-primary');

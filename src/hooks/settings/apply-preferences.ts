@@ -2,10 +2,10 @@
 import { UserPreferences } from "@/types/user";
 import { applyUIPreferencesToDOM } from "./ui-utils";
 import { 
-  applyThemePresetToDOM, 
   applyCustomColorsToDom,
   applyCustomBackgroundToDom
 } from "./theme-utils";
+import { applyThemePresetToDOM } from "./apply-theme-preset";
 
 /**
  * Apply all preferences to the UI

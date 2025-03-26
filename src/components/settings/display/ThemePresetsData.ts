@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { Snowflake, Sun, Sparkles } from 'lucide-react';
 
 export interface ThemePreset {
@@ -212,3 +210,4 @@ export const getPresetsByCategory = () => {
     gradient: allPresets.filter(preset => preset.category === 'gradient')
   };
 };
+

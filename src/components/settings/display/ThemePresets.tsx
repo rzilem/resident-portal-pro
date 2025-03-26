@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import ThemePresetController from './ThemePresetController';
 import PresetSection from './PresetSection';
 import { getPresetsByCategory, getAllPresets } from './ThemePresetsData';
+import { applyThemePresetToDOM, applyThemeColorsFromPreset } from '@/hooks/settings/apply-theme-preset';
 
 const ThemePresets: React.FC = () => {
   // Group presets by category
@@ -22,23 +23,7 @@ const ThemePresets: React.FC = () => {
             const selectedPreset = allPresets.find(preset => preset.id === selectedPresetId);
             if (selectedPreset) {
               // We don't want to trigger a toast on initial load, so we just apply the theme to DOM
-              const preset = selectedPreset;
-              
-              // Remove existing theme classes
-              document.body.classList.forEach(className => {
-                if (className.startsWith('theme-preset-')) {
-                  document.body.classList.remove(className);
-                }
-              });
-              
-              // Add the new theme class
-              document.body.classList.add(`theme-preset-${preset.id}`);
-              
-              // Apply theme colors to CSS variables
-              document.documentElement.style.setProperty('--theme-primary', preset.primaryColor);
-              document.documentElement.style.setProperty('--theme-secondary', preset.secondaryColor);
-              document.documentElement.style.setProperty('--theme-accent', preset.accentColor);
-              document.documentElement.style.setProperty('--theme-background', preset.background);
+              applyThemePresetToDOM(selectedPreset.id, selectedPreset);
             }
           }
         }, [selectedPresetId]);
