@@ -22,6 +22,21 @@ export interface UserPreferences {
   databaseTransactionColumns?: any[];
   propertyTableColumns?: any[];
   residentTableColumns?: any[];
+  
+  // Add new preferences for custom theming
+  themePreset?: string;
+  customColors?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    text: string;
+    border: string;
+  };
+  customBackground?: {
+    type: 'url' | 'data' | 'pattern';
+    value: string;
+  } | null;
 }
 
 export interface Widget {

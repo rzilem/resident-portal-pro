@@ -6,9 +6,13 @@ import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sun, Moon, Monitor, Palette, Image as ImageIcon, Grid } from "lucide-react";
 import { useSettings } from '@/hooks/use-settings';
 import { useTheme } from '@/hooks/use-theme';
+import ThemePresets from './display/ThemePresets';
+import CustomBackground from './display/CustomBackground';
+import ColorCustomizer from './display/ColorCustomizer';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
@@ -71,80 +75,115 @@ const DisplaySettings = () => {
             <CardTitle>Theme Settings</CardTitle>
             <CardDescription>Customize the appearance of your interface</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <Label>Theme Mode</Label>
-              <ToggleGroup 
-                type="single" 
-                value={localTheme} 
-                onValueChange={handleThemeChange}
-                className="justify-start"
-              >
-                <ToggleGroupItem value="light" aria-label="Light Mode">
-                  <Sun className="h-4 w-4 mr-2" />
-                  Light
-                </ToggleGroupItem>
-                <ToggleGroupItem value="dark" aria-label="Dark Mode">
-                  <Moon className="h-4 w-4 mr-2" />
-                  Dark
-                </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label="System Mode">
+          <CardContent>
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid grid-cols-4 mb-4">
+                <TabsTrigger value="basic">
                   <Monitor className="h-4 w-4 mr-2" />
-                  System
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-            
-            <div className="space-y-4">
-              <Label>Card Style</Label>
-              <RadioGroup 
-                value={cardStyle} 
-                onValueChange={setCardStyle} 
-                className="flex flex-col space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="default" id="card-default" />
-                  <Label htmlFor="card-default" className="font-normal cursor-pointer">Default</Label>
+                  Basic
+                </TabsTrigger>
+                <TabsTrigger value="presets">
+                  <Grid className="h-4 w-4 mr-2" />
+                  Themes
+                </TabsTrigger>
+                <TabsTrigger value="background">
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Background
+                </TabsTrigger>
+                <TabsTrigger value="colors">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Colors
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="basic" className="space-y-6">
+                <div className="space-y-4">
+                  <Label>Theme Mode</Label>
+                  <ToggleGroup 
+                    type="single" 
+                    value={localTheme} 
+                    onValueChange={handleThemeChange}
+                    className="justify-start"
+                  >
+                    <ToggleGroupItem value="light" aria-label="Light Mode">
+                      <Sun className="h-4 w-4 mr-2" />
+                      Light
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="dark" aria-label="Dark Mode">
+                      <Moon className="h-4 w-4 mr-2" />
+                      Dark
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="system" aria-label="System Mode">
+                      <Monitor className="h-4 w-4 mr-2" />
+                      System
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="flat" id="card-flat" />
-                  <Label htmlFor="card-flat" className="font-normal cursor-pointer">Flat</Label>
+                
+                <div className="space-y-4">
+                  <Label>Card Style</Label>
+                  <RadioGroup 
+                    value={cardStyle} 
+                    onValueChange={setCardStyle} 
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="default" id="card-default" />
+                      <Label htmlFor="card-default" className="font-normal cursor-pointer">Default</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="flat" id="card-flat" />
+                      <Label htmlFor="card-flat" className="font-normal cursor-pointer">Flat</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="glass" id="card-glass" />
+                      <Label htmlFor="card-glass" className="font-normal cursor-pointer">Glass Morphism</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="glass" id="card-glass" />
-                  <Label htmlFor="card-glass" className="font-normal cursor-pointer">Glass Morphism</Label>
+                
+                <div className="space-y-4">
+                  <Label>Layout Density</Label>
+                  <RadioGroup 
+                    value={density} 
+                    onValueChange={setDensity} 
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="comfortable" id="density-comfortable" />
+                      <Label htmlFor="density-comfortable" className="font-normal cursor-pointer">Comfortable</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="compact" id="density-compact" />
+                      <Label htmlFor="density-compact" className="font-normal cursor-pointer">Compact</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="space-y-4">
-              <Label>Layout Density</Label>
-              <RadioGroup 
-                value={density} 
-                onValueChange={setDensity} 
-                className="flex flex-col space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="comfortable" id="density-comfortable" />
-                  <Label htmlFor="density-comfortable" className="font-normal cursor-pointer">Comfortable</Label>
+                
+                <div className="flex items-center justify-between py-2">
+                  <Label htmlFor="animations" className="font-normal cursor-pointer">
+                    Enable animations
+                  </Label>
+                  <Switch 
+                    id="animations" 
+                    checked={animations} 
+                    onCheckedChange={setAnimations} 
+                  />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="compact" id="density-compact" />
-                  <Label htmlFor="density-compact" className="font-normal cursor-pointer">Compact</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="flex items-center justify-between py-2">
-              <Label htmlFor="animations" className="font-normal cursor-pointer">
-                Enable animations
-              </Label>
-              <Switch 
-                id="animations" 
-                checked={animations} 
-                onCheckedChange={setAnimations} 
-              />
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="presets">
+                <ThemePresets />
+              </TabsContent>
+              
+              <TabsContent value="background">
+                <CustomBackground />
+              </TabsContent>
+              
+              <TabsContent value="colors">
+                <ColorCustomizer />
+              </TabsContent>
+            </Tabs>
           </CardContent>
           <CardFooter className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
