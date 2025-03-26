@@ -61,3 +61,52 @@ export const getAccessLevelBadge = (accessLevel: DocumentAccessLevel) => {
       );
   }
 };
+
+// Add the missing functions needed by CategoryItem.tsx
+export const getAccessLevelLabel = (accessLevel: DocumentAccessLevel): string => {
+  switch (accessLevel) {
+    case 'admin':
+      return 'Admin Only';
+    case 'management':
+      return 'Management';
+    case 'board':
+      return 'Board Members';
+    case 'homeowner':
+      return 'Homeowners';
+    case 'all':
+    default:
+      return 'Public';
+  }
+};
+
+export const getSecurityLevelColor = (accessLevel: DocumentAccessLevel): string => {
+  switch (accessLevel) {
+    case 'admin':
+      return 'bg-red-50 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800';
+    case 'management':
+      return 'bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800';
+    case 'board':
+      return 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800';
+    case 'homeowner':
+      return 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800';
+    case 'all':
+    default:
+      return 'bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800';
+  }
+};
+
+export const getFolderIconColor = (accessLevel: DocumentAccessLevel): string => {
+  switch (accessLevel) {
+    case 'admin':
+      return 'text-red-500';
+    case 'management':
+      return 'text-purple-500';
+    case 'board':
+      return 'text-amber-500';
+    case 'homeowner':
+      return 'text-blue-500';
+    case 'all':
+    default:
+      return 'text-green-500';
+  }
+};
