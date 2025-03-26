@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { User, UserRole } from '@/types/user';
 import { userService } from '@/services/userService';
+import { AlertCircle } from 'lucide-react';
 
 interface UserDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     if (editingUser) {
@@ -49,6 +51,7 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
         firstName: editingUser.firstName || '',
         lastName: editingUser.lastName || '',
       });
+      setEmailError('');
     } else {
       setFormData({
         name: '',
@@ -57,12 +60,18 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
         firstName: '',
         lastName: '',
       });
+      setEmailError('');
     }
-  }, [editingUser]);
+  }, [editingUser, open]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear email error when email is changed
+    if (name === 'email') {
+      setEmailError('');
+    }
     
     // Update the full name when first or last name changes
     if (name === 'firstName' || name === 'lastName') {
@@ -80,6 +89,18 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
     setFormData(prev => ({ ...prev, role: value }));
   };
 
+  const validateEmail = () => {
+    // Only check for duplicate email when creating a new user (not editing)
+    if (!editingUser) {
+      const existingUser = userService.getUserByEmail(formData.email);
+      if (existingUser) {
+        setEmailError('A user with this email already exists');
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -87,6 +108,12 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
     try {
       if (!formData.name || !formData.email || !formData.role) {
         toast.error("Please fill in all required fields");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Validate email before proceeding
+      if (!validateEmail()) {
         setIsSubmitting(false);
         return;
       }
@@ -106,16 +133,25 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
         toast.success("User updated successfully");
       } else {
         // Add new user
-        const newUser = userService.createUser({
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        });
-        
-        setUsers([...users, newUser]);
-        toast.success("User invited successfully");
+        try {
+          const newUser = userService.createUser({
+            name: formData.name,
+            email: formData.email,
+            role: formData.role,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+          });
+          
+          setUsers([...users, newUser]);
+          toast.success("User invited successfully");
+        } catch (error) {
+          if (error instanceof Error) {
+            setEmailError(error.message);
+            setIsSubmitting(false);
+            return;
+          }
+          throw error;
+        }
       }
       
       setOpen(false);
@@ -175,7 +211,14 @@ const UserDialog = ({ open, setOpen, editingUser, users, setUsers }: UserDialogP
                 value={formData.email}
                 onChange={handleInputChange}
                 required
+                className={emailError ? "border-red-500" : ""}
               />
+              {emailError && (
+                <div className="text-red-500 text-sm flex items-center mt-1">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {emailError}
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">

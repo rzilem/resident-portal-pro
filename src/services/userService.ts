@@ -58,6 +58,10 @@ export const userService = {
     return users.find(user => user.id === id);
   },
 
+  getUserByEmail: (email: string): User | undefined => {
+    return users.find(user => user.email.toLowerCase() === email.toLowerCase());
+  },
+
   updateUser: (updatedUser: User): User => {
     const index = users.findIndex(user => user.id === updatedUser.id);
     if (index !== -1) {
@@ -75,6 +79,12 @@ export const userService = {
   },
 
   createUser: (user: Omit<User, 'id'>): User => {
+    // Check if user with this email already exists
+    const existingUser = userService.getUserByEmail(user.email);
+    if (existingUser) {
+      throw new Error('A user with this email already exists');
+    }
+    
     const id = Date.now().toString();
     
     // Get default permissions based on role
