@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -68,8 +67,12 @@ const AssociationProfile = () => {
   // Format full address for map
   const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
   
-  // Sample property image - in a real app, this would come from your database
-  const samplePropertyImage = 'https://images.unsplash.com/photo-1487958449943-2429e8be8625';
+  // Sample property images - in a real app, these would come from your database
+  const propertyImages = [
+    'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
+    'https://images.unsplash.com/photo-1523217582562-09d0def993a6',
+    'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6'
+  ];
 
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
@@ -95,7 +98,7 @@ const AssociationProfile = () => {
 
         {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Key info and map */}
+          {/* Left column - Key info and photo area */}
           <div className="space-y-6 lg:col-span-2">
             {/* Overview Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -145,17 +148,34 @@ const AssociationProfile = () => {
               </Card>
             </div>
 
-            {/* Location and Map */}
+            {/* Property Photos - replacing the map */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Location
+                  <Image className="h-5 w-5" />
+                  Property Photos
                 </CardTitle>
-                <CardDescription>{fullAddress}</CardDescription>
+                <CardDescription>{association.name} property images</CardDescription>
               </CardHeader>
               <CardContent>
-                <GoogleMap address={fullAddress} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <PropertyImage 
+                    url={propertyImages[0]} 
+                    alt={`${association.name} property`} 
+                    aspectRatio="video"
+                    className="md:col-span-2"
+                  />
+                  <PropertyImage 
+                    url={propertyImages[1]} 
+                    alt={`${association.name} property detail`} 
+                    aspectRatio="square"
+                  />
+                  <PropertyImage 
+                    url={propertyImages[2]} 
+                    alt={`${association.name} property view`} 
+                    aspectRatio="square"
+                  />
+                </div>
               </CardContent>
             </Card>
             
