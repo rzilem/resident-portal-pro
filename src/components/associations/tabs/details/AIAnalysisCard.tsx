@@ -1,17 +1,28 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Association } from '@/types/association';
 import { AlertCircle, BarChart2, Calendar, CheckCircle2, Clock, Droplet, FileWarning, Lightbulb, TrendingUp, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/utils/formatters';
+import { Alert as AlertType, getAlerts } from '@/utils/alertUtils';
+import AnalysisAlert from '@/components/alerts/AnalysisAlert';
 
 interface AIAnalysisCardProps {
   association: Association;
 }
 
 const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
-  // Sample critical dates data (would be fetched from API in a real app)
+  const [alerts, setAlerts] = useState<AlertType[]>([]);
+  
+  useEffect(() => {
+    if (association) {
+      setAlerts(getAlerts({ 
+        associationId: association.id,
+        status: 'new' 
+      }));
+    }
+  }, [association]);
+
   const criticalDates = {
     poolPermitExpiration: '2024-05-30',
     insuranceExpiration: '2025-06-15',
@@ -19,26 +30,22 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
     fireInspection: '2024-07-22',
   };
 
-  // Sample pending maintenance items
   const pendingMaintenance = [
     { id: 1, title: 'HVAC Not Working', priority: 'High', daysOpen: 5 },
     { id: 2, title: 'Water Damage', priority: 'Urgent', daysOpen: 7 },
     { id: 3, title: 'Leaky Faucet', priority: 'Medium', daysOpen: 3 },
   ];
 
-  // Sample board member requests
   const boardRequests = [
     { id: 1, title: 'Update governing documents', daysOpen: 14 },
     { id: 2, title: 'Schedule annual meeting', daysOpen: 7 },
   ];
 
-  // Sample pending workflows
   const pendingWorkflows = [
     { id: 1, title: 'Delinquency Process', age: 30, status: 'waiting' },
     { id: 2, title: 'Community Event Reminders', age: 15, status: 'blocked' },
   ];
 
-  // Sample financial insights
   const financialInsights = {
     reserveFundingLevel: 87.5, // percent
     cashFlowTrend: 'positive',
@@ -52,20 +59,16 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
     ]
   };
 
-  // Calculate days until critical dates
   const today = new Date();
   const daysUntilPoolPermitExpires = Math.ceil((new Date(criticalDates.poolPermitExpiration).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   const daysUntilInsuranceExpires = Math.ceil((new Date(criticalDates.insuranceExpiration).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Determine if any critical dates are within 30 days
   const hasUrgentCriticalDates = daysUntilPoolPermitExpires <= 30 || daysUntilInsuranceExpires <= 30;
 
-  // Determine if any maintenance items are high priority or urgent
   const hasUrgentMaintenance = pendingMaintenance.some(item => 
     item.priority === 'High' || item.priority === 'Urgent'
   );
 
-  // Determine risk level for the association
   const riskLevel = () => {
     if (hasUrgentCriticalDates && hasUrgentMaintenance && financialInsights.reserveFundingLevel < 70) {
       return { level: 'High', color: 'bg-red-100 text-red-800' };
@@ -92,7 +95,14 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
-        {/* Critical Dates */}
+        {alerts.length > 0 && (
+          <div>
+            {alerts.map(alert => (
+              <AnalysisAlert key={alert.id} alert={alert} />
+            ))}
+          </div>
+        )}
+      
         <div>
           <h3 className="font-medium text-sm flex items-center gap-2 mb-2">
             <Calendar className="h-4 w-4 text-blue-600" />
@@ -133,7 +143,6 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
           </div>
         </div>
 
-        {/* Pending Maintenance */}
         <div>
           <h3 className="font-medium text-sm flex items-center gap-2 mb-2">
             <Wrench className="h-4 w-4 text-orange-600" />
@@ -154,7 +163,6 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
           </div>
         </div>
 
-        {/* Pending Workflows */}
         <div>
           <h3 className="font-medium text-sm flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-violet-600" />
@@ -175,7 +183,6 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
           </div>
         </div>
 
-        {/* Financial Analysis */}
         <div>
           <h3 className="font-medium text-sm flex items-center gap-2 mb-2">
             <BarChart2 className="h-4 w-4 text-green-600" />
@@ -219,7 +226,6 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ association }) => {
           </div>
         </div>
 
-        {/* Recommendations */}
         <div>
           <h3 className="font-medium text-sm flex items-center gap-2 mb-2">
             <CheckCircle2 className="h-4 w-4 text-indigo-600" />
