@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +9,14 @@ import DocumentSearch from '@/components/documents/DocumentSearch';
 import DocumentTable from '@/components/documents/DocumentTable';
 import DocumentUploader from '@/components/documents/DocumentUploader';
 import { DOCUMENT_CATEGORIES } from '@/components/database/DocumentCategoryStructure';
+import AssociationSelector from '@/components/documents/AssociationSelector';
+import { useAssociations } from '@/hooks/use-associations';
 
 const AssociationDocuments = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [activeCategory, setActiveCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const { activeAssociation } = useAssociations();
 
   return (
     <>
@@ -24,6 +27,11 @@ const AssociationDocuments = () => {
       />
       
       <div className="container mx-auto p-4 md:p-6">
+        {/* Association selector */}
+        <div className="mb-6">
+          <AssociationSelector className="ml-auto" />
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Left sidebar with document categories */}
           <div className="md:col-span-1">
@@ -57,6 +65,9 @@ const AssociationDocuments = () => {
                       {activeCategory 
                         ? DOCUMENT_CATEGORIES.find(c => c.id === activeCategory)?.name || 'Documents'
                         : 'All Documents'}
+                      {activeAssociation && <span className="text-sm font-normal text-muted-foreground ml-2">
+                        ({activeAssociation.name})
+                      </span>}
                     </CardTitle>
                     <Download className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-primary" />
                   </div>
@@ -77,6 +88,7 @@ const AssociationDocuments = () => {
                       <DocumentTable 
                         category={activeCategory} 
                         searchQuery={searchQuery}
+                        associationId={activeAssociation?.id}
                       />
                     </TabsContent>
                     
@@ -85,6 +97,7 @@ const AssociationDocuments = () => {
                         category={activeCategory} 
                         searchQuery={searchQuery}
                         filter="recent"
+                        associationId={activeAssociation?.id}
                       />
                     </TabsContent>
                     
@@ -93,6 +106,7 @@ const AssociationDocuments = () => {
                         category={activeCategory} 
                         searchQuery={searchQuery}
                         filter="shared"
+                        associationId={activeAssociation?.id}
                       />
                     </TabsContent>
                     
@@ -101,6 +115,7 @@ const AssociationDocuments = () => {
                         category={activeCategory} 
                         searchQuery={searchQuery}
                         filter="important"
+                        associationId={activeAssociation?.id}
                       />
                     </TabsContent>
                   </Tabs>

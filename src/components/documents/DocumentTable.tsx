@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -22,6 +21,7 @@ interface DocumentTableProps {
   category?: string;
   searchQuery?: string;
   filter?: 'recent' | 'shared' | 'important';
+  associationId?: string;
 }
 
 // Sample document data
@@ -36,6 +36,7 @@ const sampleDocuments = [
     tags: ['important', 'board', 'financial'],
     isShared: true,
     isImportant: true,
+    associationId: '1'
   },
   {
     id: 'doc2',
@@ -47,6 +48,7 @@ const sampleDocuments = [
     tags: ['meeting', 'board'],
     isShared: true,
     isImportant: false,
+    associationId: '1'
   },
   {
     id: 'doc3',
@@ -58,6 +60,7 @@ const sampleDocuments = [
     tags: ['operations'],
     isShared: false,
     isImportant: false,
+    associationId: '2'
   },
   {
     id: 'doc4',
@@ -69,6 +72,7 @@ const sampleDocuments = [
     tags: ['important', 'residents'],
     isShared: true,
     isImportant: true,
+    associationId: '2'
   },
   {
     id: 'doc5',
@@ -80,6 +84,7 @@ const sampleDocuments = [
     tags: ['legal', 'important'],
     isShared: false,
     isImportant: true,
+    associationId: '3'
   },
   {
     id: 'doc6',
@@ -91,6 +96,7 @@ const sampleDocuments = [
     tags: ['projects'],
     isShared: false,
     isImportant: false,
+    associationId: '3'
   },
   {
     id: 'doc7',
@@ -102,6 +108,7 @@ const sampleDocuments = [
     tags: ['financial', 'quarterly'],
     isShared: true,
     isImportant: true,
+    associationId: '1'
   },
 ];
 
@@ -125,23 +132,23 @@ const getDocumentIcon = (name: string) => {
 const DocumentTable: React.FC<DocumentTableProps> = ({ 
   category, 
   searchQuery = '',
-  filter
+  filter,
+  associationId
 }) => {
-  // Filter documents based on the selected category, search query and filter
   const filteredDocuments = sampleDocuments.filter(doc => {
-    // Apply category filter
+    if (associationId && doc.associationId !== associationId) {
+      return false;
+    }
+    
     if (category && doc.category !== category) {
       return false;
     }
     
-    // Apply search query
     if (searchQuery && !doc.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     
-    // Apply additional filters
     if (filter === 'recent') {
-      // Show documents from the last 30 days (simplified for demo)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       return new Date(doc.uploadDate) >= thirtyDaysAgo;
@@ -166,7 +173,9 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         <p className="text-muted-foreground mt-1">
           {searchQuery 
             ? `No results for "${searchQuery}"` 
-            : 'Upload documents to get started'}
+            : associationId 
+              ? 'No documents for this association' 
+              : 'Upload documents to get started'}
         </p>
       </div>
     );
