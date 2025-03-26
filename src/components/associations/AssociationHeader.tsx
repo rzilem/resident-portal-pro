@@ -12,6 +12,7 @@ interface AssociationHeaderProps {
 
 const AssociationHeader: React.FC<AssociationHeaderProps> = ({ association }) => {
   const navigate = useNavigate();
+  const associationCode = association.settings?.code || association.id;
   
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -19,6 +20,9 @@ const AssociationHeader: React.FC<AssociationHeaderProps> = ({ association }) =>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Building className="h-6 w-6" />
           {association.name}
+          <span className="text-sm font-normal text-muted-foreground ml-2">
+            Code: {associationCode}
+          </span>
         </h1>
         <p className="text-muted-foreground">ID: {association.id}</p>
       </div>
