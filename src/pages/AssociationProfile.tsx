@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Building, Users, MapPin, CalendarDays, DollarSign, 
   FileText, Phone, Mail, Globe, Image, Ship, Shield, 
-  Landmark, Building2, Lock, Footprints 
+  Landmark, Building2, Lock, Footprints, Info, Calendar, Clipboard
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,7 +15,6 @@ import { useAssociations } from '@/hooks/use-associations';
 import { Association } from '@/types/association';
 import PropertyListReport from '@/components/reports/property/PropertyListReport';
 import { getPropertiesFromAssociations } from '@/components/properties/PropertyHelpers';
-import GoogleMap from '@/components/map/GoogleMap';
 import PropertyImage from '@/components/associations/PropertyImage';
 import AmenityBadge from '@/components/associations/AmenityBadge';
 
@@ -196,10 +196,72 @@ const AssociationProfile = () => {
           </div>
           
           <div className="space-y-6">
-            <PropertyImage 
-              url={propertyImages[0]} 
-              alt={`${association.name} property`} 
-            />
+            {/* Replacing the image with a quick reference card */}
+            <Card className="border-2 border-primary/20">
+              <CardHeader className="bg-primary/5 pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Info className="h-5 w-5 text-primary" />
+                  Quick Reference
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-3">
+                <div>
+                  <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                    Address
+                  </h4>
+                  <p className="text-sm">{fullAddress}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                    Contact
+                  </h4>
+                  <p className="text-sm">{association.contactInfo.phone}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                    Email
+                  </h4>
+                  <p className="text-sm">{association.contactInfo.email}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    Next Dues
+                  </h4>
+                  <p className="text-sm">
+                    {association.settings?.dueDay ? 
+                      `${association.settings.dueDay}${getDaySuffix(association.settings.dueDay)} of each ${association.settings?.feesFrequency || 'month'}` : 
+                      'No due date set'}
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                    <Clipboard className="h-3.5 w-3.5 text-muted-foreground" />
+                    Association Type
+                  </h4>
+                  <p className="text-sm capitalize">{association.type}</p>
+                </div>
+                
+                <div className="pt-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full text-xs" 
+                    onClick={() => navigate(`/documents/AssociationDocuments?id=${association.id}`)}
+                  >
+                    <FileText className="h-3.5 w-3.5 mr-1.5" />
+                    View Documents
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             
             <Card>
               <CardHeader>
@@ -520,6 +582,23 @@ const AssociationProfile = () => {
       </div>
     </div>
   );
+};
+
+// Helper function to get the day suffix (1st, 2nd, 3rd, etc.)
+const getDaySuffix = (day: string): string => {
+  const num = parseInt(day, 10);
+  if (!num) return '';
+  
+  if (num >= 11 && num <= 13) {
+    return 'th';
+  }
+  
+  switch (num % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
 };
 
 export default AssociationProfile;
