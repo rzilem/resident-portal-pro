@@ -1,187 +1,60 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import { Users, UserPlus, Edit, Trash2 } from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import UserManagementHeader from './components/UserManagementHeader';
+import UserManagementTable from './components/UserManagementTable';
 import UserDialog from './UserDialog';
-import { userService } from '@/services/userService';
-import { User } from '@/types/user';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import DeleteUserDialog from './components/DeleteUserDialog';
+import { useUserManagement } from './hooks/useUserManagement';
 
 interface UserManagementProps {
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 }
 
-const UserManagement = ({ users, setUsers }: UserManagementProps) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+import { User } from '@/types/user';
 
-  useEffect(() => {
-    // Load users on component mount
-    const loadUsers = async () => {
-      try {
-        const fetchedUsers = await userService.getUsers();
-        // Ensure all users have unique IDs to avoid rendering issues
-        const uniqueUsers = removeDuplicateUsers(fetchedUsers);
-        setUsers(uniqueUsers);
-      } catch (error) {
-        toast.error("Failed to load users");
-        console.error(error);
-      }
-    };
+const UserManagement = ({ users: initialUsers, setUsers: setParentUsers }: UserManagementProps) => {
+  const {
+    users,
+    setUsers,
+    dialogOpen,
+    setDialogOpen,
+    editingUser,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    userToDelete,
+    openNewUserDialog,
+    openEditDialog,
+    toggleUserStatus,
+    confirmDeleteUser,
+    deleteUser
+  } = useUserManagement();
 
-    loadUsers();
-  }, [setUsers]);
-  
-  // Helper function to remove duplicate users by email
-  const removeDuplicateUsers = (userList: User[]): User[] => {
-    const emailMap = new Map<string, User>();
-    
-    // Keep only the most recently created user for each email
-    userList.forEach(user => {
-      const email = user.email.toLowerCase();
-      const existingUser = emailMap.get(email);
-      
-      // If this is the first user with this email, or if this one is newer, keep it
-      if (!existingUser || 
-          (user.createdAt && existingUser.createdAt && 
-           new Date(user.createdAt) > new Date(existingUser.createdAt))) {
-        emailMap.set(email, user);
-      }
-    });
-    
-    return Array.from(emailMap.values());
-  };
-  
-  const openNewUserDialog = () => {
-    setEditingUser(null);
-    setDialogOpen(true);
-  };
-  
-  const openEditDialog = (user: User) => {
-    setEditingUser(user);
-    setDialogOpen(true);
-  };
-  
-  const toggleUserStatus = async (id: string) => {
-    try {
-      const user = users.find(u => u.id === id);
-      if (!user) return;
+  // Sync with parent state when our local state changes
+  React.useEffect(() => {
+    setParentUsers(users);
+  }, [users, setParentUsers]);
 
-      let updatedUser;
-      if (user.status === 'active') {
-        updatedUser = await userService.deactivateUser(id);
-        toast.success(`${user.name} deactivated`);
-      } else {
-        updatedUser = await userService.activateUser(id);
-        toast.success(`${user.name} activated`);
-      }
-
-      const updatedUsers = users.map(u => 
-        u.id === id ? updatedUser : u
-      );
-      setUsers(updatedUsers);
-    } catch (error) {
-      toast.error("Failed to update user status");
-      console.error(error);
+  // Initialize with props
+  React.useEffect(() => {
+    if (initialUsers.length > 0 && users.length === 0) {
+      setUsers(initialUsers);
     }
-  };
-  
-  const confirmDeleteUser = (user: User) => {
-    setUserToDelete(user);
-    setDeleteDialogOpen(true);
-  };
-
-  const deleteUser = async () => {
-    if (!userToDelete) return;
-    
-    try {
-      await userService.deleteUser(userToDelete.id);
-      // Important: Only filter out the specific user with matching ID
-      setUsers(users.filter(u => u.id !== userToDelete.id));
-      toast.success(`User deleted successfully`);
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
-    } catch (error) {
-      toast.error("Failed to delete user");
-      console.error(error);
-    }
-  };
+  }, [initialUsers, users.length, setUsers]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            User Management
-          </CardTitle>
-          <CardDescription>Manage users and their roles in the system</CardDescription>
-        </div>
-        <Button onClick={openNewUserDialog}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite User
-        </Button>
+      <CardHeader>
+        <UserManagementHeader openNewUserDialog={openNewUserDialog} />
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">
-                  {user.name}
-                </TableCell>
-                <TableCell className="hidden md:table-cell">{user.email}</TableCell>
-                <TableCell>
-                  <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                    {user.role.charAt(0).toUpperCase() + user.role.slice(1).replace('_', ' ')}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Switch 
-                    checked={user.status === 'active'} 
-                    onCheckedChange={() => toggleUserStatus(user.id)} 
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => openEditDialog(user)}
-                      aria-label={`Edit ${user.name}`}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => confirmDeleteUser(user)}
-                      aria-label={`Delete ${user.name}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <UserManagementTable 
+          users={users}
+          toggleUserStatus={toggleUserStatus}
+          openEditDialog={openEditDialog}
+          confirmDeleteUser={confirmDeleteUser}
+        />
       </CardContent>
       
       <UserDialog 
@@ -192,30 +65,12 @@ const UserManagement = ({ users, setUsers }: UserManagementProps) => {
         setUsers={setUsers}
       />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user
-              account and remove their data from our servers.
-              {userToDelete && (
-                <div className="mt-2 p-2 bg-muted rounded-md">
-                  <p><strong>Name:</strong> {userToDelete.name}</p>
-                  <p><strong>Email:</strong> {userToDelete.email}</p>
-                  <p><strong>ID:</strong> {userToDelete.id}</p>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteUser} className="bg-red-500 hover:bg-red-600">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteUserDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        user={userToDelete}
+        onDelete={deleteUser}
+      />
     </Card>
   );
 };
