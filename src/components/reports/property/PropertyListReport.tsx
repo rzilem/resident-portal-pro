@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { Property } from '@/components/properties/PropertyHelpers';
+import { formatCurrency, formatDate } from '@/utils/formatters';
 
 interface PropertyListReportProps {
   properties: Property[];
@@ -32,15 +34,13 @@ const PropertyListReport = ({ properties, timeRange, association }: PropertyList
                 <TableCell>{property.location}</TableCell>
                 <TableCell>{property.units}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
+                  <Badge variant={property.status === 'Active' ? 'secondary' : 'outline'}>
                     {property.status}
-                  </span>
+                  </Badge>
                 </TableCell>
-                <TableCell>{new Date(property.foundedDate).toLocaleDateString()}</TableCell>
-                <TableCell>${property.annualFees}</TableCell>
-                <TableCell>{property.assessmentFrequency}</TableCell>
+                <TableCell>{formatDate(property.foundedDate)}</TableCell>
+                <TableCell>{formatCurrency(property.annualFees)}</TableCell>
+                <TableCell className="capitalize">{property.assessmentFrequency}</TableCell>
               </TableRow>
             ))
           ) : (

@@ -8,6 +8,7 @@ import AssociationFinancialsTab from './tabs/AssociationFinancialsTab';
 import AssociationPropertiesTab from './tabs/AssociationPropertiesTab';
 import AssociationDocumentsTab from './tabs/AssociationDocumentsTab';
 import AssociationSettingsTab from './tabs/AssociationSettingsTab';
+import AssociationMembersTab from './tabs/AssociationMembersTab';
 
 interface AssociationTabsProps {
   association: Association;
@@ -17,11 +18,12 @@ interface AssociationTabsProps {
 const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properties }) => {
   return (
     <Tabs defaultValue="details" className="w-full mt-6">
-      <TabsList className="grid grid-cols-5 md:w-[500px]">
+      <TabsList className="grid grid-cols-6 md:w-[600px]">
         <TabsTrigger value="details">Details</TabsTrigger>
         <TabsTrigger value="financials">Financials</TabsTrigger>
         <TabsTrigger value="properties">Properties</TabsTrigger>
         <TabsTrigger value="documents">Documents</TabsTrigger>
+        <TabsTrigger value="members">Members</TabsTrigger>
         <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
 
@@ -39,6 +41,10 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
 
       <TabsContent value="documents">
         <AssociationDocumentsTab association={association} />
+      </TabsContent>
+      
+      <TabsContent value="members">
+        <AssociationMembersTab association={association} />
       </TabsContent>
 
       <TabsContent value="settings">
