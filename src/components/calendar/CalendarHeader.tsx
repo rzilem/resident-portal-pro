@@ -2,17 +2,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Filter, Plus, CalendarRange, CalendarDays, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Plus,
+  Settings
+} from 'lucide-react';
 import { Association } from '@/types/association';
 
 interface CalendarHeaderProps {
   view: 'month' | 'week' | 'day';
   currentDate: Date;
   isGlobalAdmin?: boolean;
+  showManagerToggle?: boolean;
+  isManagerView?: boolean;
+  onManagerViewToggle?: () => void;
   associations?: Association[];
   activeAssociation: Association | null;
-  onAssociationChange: (associationId: string) => void;
+  onAssociationChange?: (associationId: string) => void;
   onViewChange: (view: 'month' | 'week' | 'day') => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -21,10 +31,13 @@ interface CalendarHeaderProps {
   onCreateEvent: () => void;
 }
 
-const CalendarHeader: React.FC<CalendarHeaderProps> = ({
+const CalendarHeader = ({
   view,
   currentDate,
-  isGlobalAdmin,
+  isGlobalAdmin = false,
+  showManagerToggle = false,
+  isManagerView = false,
+  onManagerViewToggle,
   associations = [],
   activeAssociation,
   onAssociationChange,
@@ -34,90 +47,109 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onToday,
   onToggleFilters,
   onCreateEvent
-}) => {
-  const getDateRangeTitle = () => {
+}: CalendarHeaderProps) => {
+  // Format date based on current view
+  const getHeaderDate = () => {
     if (view === 'month') {
       return format(currentDate, 'MMMM yyyy');
     } else if (view === 'week') {
-      const start = format(currentDate, 'MMM d');
-      const end = format(new Date(currentDate.getTime() + 6 * 24 * 60 * 60 * 1000), 'MMM d, yyyy');
-      return `${start} - ${end}`;
+      const start = new Date(currentDate);
+      // Set to start of week (Sunday)
+      start.setDate(currentDate.getDate() - currentDate.getDay());
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      
+      if (start.getMonth() === end.getMonth()) {
+        return `${format(start, 'MMM d')} - ${format(end, 'd, yyyy')}`;
+      } else if (start.getFullYear() === end.getFullYear()) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+      } else {
+        return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+      }
     } else {
       return format(currentDate, 'EEEE, MMMM d, yyyy');
     }
   };
   
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-4">
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={onPrevious}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" size="icon" onClick={onNext}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" className="ml-2" onClick={onToday}>
-          Today
-        </Button>
-        <h2 className="text-xl font-bold ml-2">{getDateRangeTitle()}</h2>
-      </div>
-      
-      <div className="flex flex-wrap gap-2">
-        {isGlobalAdmin && associations.length > 0 && (
-          <Select 
-            value={activeAssociation?.id || ''} 
-            onValueChange={onAssociationChange}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select Association" />
-            </SelectTrigger>
-            <SelectContent>
-              {associations.map((association) => (
-                <SelectItem key={association.id} value={association.id}>
-                  {association.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        
-        <div className="flex items-center rounded-md border">
-          <Button
-            variant={view === 'month' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => onViewChange('month')}
-            className="rounded-r-none"
-          >
-            <CalendarDays className="h-4 w-4 mr-1" />
-            Month
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={onPrevious}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button
-            variant={view === 'week' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => onViewChange('week')}
-            className="rounded-none border-l border-r"
-          >
-            <CalendarRange className="h-4 w-4 mr-1" />
-            Week
+          <Button variant="outline" size="icon" onClick={onNext}>
+            <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button
-            variant={view === 'day' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => onViewChange('day')}
-            className="rounded-l-none"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            Day
+          <div className="text-lg font-medium px-2">{getHeaderDate()}</div>
+          <Button variant="outline" size="sm" onClick={onToday}>
+            Today
           </Button>
         </div>
         
-        <Button variant="outline" size="icon" onClick={onToggleFilters}>
-          <Filter className="h-4 w-4" />
+        <div className="flex flex-wrap items-center gap-2">
+          {showManagerToggle && onManagerViewToggle && (
+            <Button 
+              variant={isManagerView ? "default" : "outline"} 
+              onClick={onManagerViewToggle}
+              className="flex items-center gap-1"
+            >
+              <Calendar className="h-4 w-4" />
+              {isManagerView ? "Manager View" : "Single Association"}
+            </Button>
+          )}
+          
+          {!isManagerView && activeAssociation && associations.length > 0 && onAssociationChange && (
+            <Select 
+              value={activeAssociation.id} 
+              onValueChange={onAssociationChange}
+            >
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Select Association" />
+              </SelectTrigger>
+              <SelectContent>
+                {associations.map(association => (
+                  <SelectItem key={association.id} value={association.id}>
+                    {association.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onToggleFilters}>
+              <Filter className="h-4 w-4 mr-2" /> Filters
+            </Button>
+            
+            <Button onClick={onCreateEvent}>
+              <Plus className="h-4 w-4 mr-2" /> Add Event
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex gap-2">
+        <Button 
+          variant={view === 'month' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => onViewChange('month')}
+        >
+          Month
         </Button>
-        
-        <Button onClick={onCreateEvent}>
-          <Plus className="h-4 w-4 mr-1" />
-          Create Event
+        <Button 
+          variant={view === 'week' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => onViewChange('week')}
+        >
+          Week
+        </Button>
+        <Button 
+          variant={view === 'day' ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => onViewChange('day')}
+        >
+          Day
         </Button>
       </div>
     </div>

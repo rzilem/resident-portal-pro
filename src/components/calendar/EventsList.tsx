@@ -1,112 +1,131 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { format, parseISO } from 'date-fns';
-import { Calendar, Clock, MapPin, Users, Tag } from 'lucide-react';
 import { CalendarEvent } from '@/types/calendar';
-import { calendarStyles } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarClock, MapPin, Users, Building } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 interface EventsListProps {
   selectedDate: Date;
   events: CalendarEvent[];
   isLoading: boolean;
   onSelectEvent: (event: CalendarEvent) => void;
+  showAssociation?: boolean;
 }
 
-const EventsList: React.FC<EventsListProps> = ({
-  selectedDate,
-  events,
-  isLoading,
-  onSelectEvent
-}) => {
-  const formatEventTime = (event: CalendarEvent) => {
-    const start = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-    
-    if (event.allDay) {
-      return 'All Day';
-    }
-    
-    let timeString = format(start, 'h:mm a');
-    
-    if (event.end) {
-      const end = typeof event.end === 'string' ? parseISO(event.end) : event.end;
-      timeString += ` - ${format(end, 'h:mm a')}`;
-    }
-    
-    return timeString;
-  };
+const EventsList = ({ 
+  selectedDate, 
+  events, 
+  isLoading, 
+  onSelectEvent,
+  showAssociation = false
+}: EventsListProps) => {
+  const formattedDate = format(selectedDate, 'MMMM d, yyyy');
   
-  const getEventTypeColor = (type: string): string => {
-    return calendarStyles.eventColors[type as keyof typeof calendarStyles.eventColors] || calendarStyles.eventColors.default;
-  };
-  
-  const sortedEvents = [...events].sort((a, b) => {
-    const aStart = typeof a.start === 'string' ? parseISO(a.start) : a.start;
-    const bStart = typeof b.start === 'string' ? parseISO(b.start) : b.start;
-    return aStart.getTime() - bStart.getTime();
-  });
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-md">
+            <Skeleton className="h-6 w-40" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Array(3).fill(0).map((_, index) => (
+              <div key={index} className="p-3 rounded-md border">
+                <Skeleton className="h-5 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2 mb-1" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">
-          Events for {format(selectedDate, 'MMMM d, yyyy')}
-        </CardTitle>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-md">Events for {formattedDate}</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-[200px]">
-            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
-          </div>
-        ) : sortedEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
-            <Calendar className="h-12 w-12 text-muted-foreground opacity-20 mb-2" />
-            <p className="text-muted-foreground">No events scheduled for this date</p>
-            <p className="text-xs text-muted-foreground mt-1">Double-click on the calendar to add an event</p>
+        {events.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <CalendarClock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No events scheduled for this day</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {sortedEvents.map((event) => (
-              <div 
-                key={event.id}
-                className="p-3 border rounded-md hover:bg-accent/50 transition-colors cursor-pointer"
-                onClick={() => onSelectEvent(event)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={cn("w-1 self-stretch rounded-full", getEventTypeColor(event.type))} />
-                  <div className="flex-1 space-y-1">
+            {events.map((event) => {
+              const start = typeof event.start === 'string' ? new Date(event.start) : event.start;
+              const end = event.end 
+                ? (typeof event.end === 'string' ? new Date(event.end) : event.end) 
+                : null;
+              
+              const timeDisplay = event.allDay 
+                ? 'All day' 
+                : `${format(start, 'h:mm a')}${end ? ` - ${format(end, 'h:mm a')}` : ''}`;
+              
+              // Color map for event types
+              const typeColors: Record<string, string> = {
+                meeting: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100',
+                maintenance: 'bg-amber-100 text-amber-800 dark:bg-amber-800 dark:text-amber-100',
+                holiday: 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
+                deadline: 'bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100',
+                workflow: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-100',
+                community: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+                custom: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
+              };
+              
+              return (
+                <div 
+                  key={event.id} 
+                  className="p-3 rounded-md border hover:bg-accent/20 cursor-pointer"
+                  onClick={() => onSelectEvent(event)}
+                >
+                  <div className="flex items-start justify-between">
                     <h4 className="font-medium">{event.title}</h4>
-                    
-                    <div className="space-y-1 text-sm">
-                      <div className="flex items-center text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5 mr-1" />
-                        <span>{formatEventTime(event)}</span>
-                      </div>
-                      
-                      {event.location && (
-                        <div className="flex items-center text-muted-foreground">
-                          <MapPin className="h-3.5 w-3.5 mr-1" />
-                          <span>{event.location}</span>
-                        </div>
-                      )}
-                      
-                      {event.attendees && event.attendees.length > 0 && (
-                        <div className="flex items-center text-muted-foreground">
-                          <Users className="h-3.5 w-3.5 mr-1" />
-                          <span>{event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center text-muted-foreground">
-                        <Tag className="h-3.5 w-3.5 mr-1" />
-                        <span className="capitalize">{event.type}</span>
-                      </div>
+                    <Badge className={typeColors[event.type] || typeColors.custom}>
+                      {event.type}
+                    </Badge>
+                  </div>
+                  
+                  <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                    <div className="flex items-center">
+                      <CalendarClock className="h-3.5 w-3.5 mr-1.5" />
+                      {timeDisplay}
                     </div>
+                    
+                    {event.location && (
+                      <div className="flex items-center">
+                        <MapPin className="h-3.5 w-3.5 mr-1.5" />
+                        {event.location}
+                      </div>
+                    )}
+                    
+                    {showAssociation && event.associationId && (
+                      <div className="flex items-center">
+                        <Building className="h-3.5 w-3.5 mr-1.5" />
+                        {event.associationId.includes('assoc-') 
+                          ? `Association ${event.associationId.replace('assoc-', '')}`
+                          : event.associationId}
+                      </div>
+                    )}
+                    
+                    {event.accessLevel && (
+                      <div className="flex items-center">
+                        <Users className="h-3.5 w-3.5 mr-1.5" />
+                        {event.accessLevel.charAt(0).toUpperCase() + event.accessLevel.slice(1)}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

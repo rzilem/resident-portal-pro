@@ -18,9 +18,11 @@ interface CalendarViewProps {
   userAccessLevel: CalendarAccessLevel;
   associationId?: string;
   isGlobalAdmin?: boolean;
+  isManagerView?: boolean;
   associations?: Association[];
   activeAssociation?: Association | null;
   onAssociationChange?: (association: Association) => void;
+  onManagerViewToggle?: () => void;
 }
 
 const CalendarView = ({ 
@@ -28,9 +30,11 @@ const CalendarView = ({
   userAccessLevel, 
   associationId,
   isGlobalAdmin = false,
+  isManagerView = false,
   associations = [],
   activeAssociation,
-  onAssociationChange
+  onAssociationChange,
+  onManagerViewToggle
 }: CalendarViewProps) => {
   // Get workflows for the association
   const { workflows = [] } = useWorkflows({ associationId });
@@ -85,6 +89,9 @@ const CalendarView = ({
         view={view}
         currentDate={currentDate}
         isGlobalAdmin={isGlobalAdmin}
+        showManagerToggle={!!onManagerViewToggle}
+        isManagerView={isManagerView}
+        onManagerViewToggle={onManagerViewToggle}
         associations={associations}
         activeAssociation={activeAssociation || null}
         onAssociationChange={handleAssociationChange}
@@ -116,6 +123,7 @@ const CalendarView = ({
             events={selectedDateEvents}
             isLoading={isLoading}
             onSelectEvent={setSelectedEvent}
+            showAssociation={isManagerView || isGlobalAdmin}
           />
         </div>
       </div>
