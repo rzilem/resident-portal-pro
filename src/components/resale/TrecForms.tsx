@@ -11,12 +11,12 @@ import { toast } from '@/components/ui/use-toast';
 
 // Sample TREC forms data
 const trecForms = [
-  { id: '1', name: 'Seller's Disclosure Notice', code: 'OP-H', updated: '2022-04-01', required: true },
+  { id: '1', name: "Seller's Disclosure Notice", code: 'OP-H', updated: '2022-04-01', required: true },
   { id: '2', name: 'Condominium Resale Certificate', code: 'OP-C', updated: '2023-01-15', required: true },
   { id: '3', name: 'HOA Resale Certificate', code: 'OP-H', updated: '2023-03-10', required: true },
-  { id: '4', name: 'Notice of Buyer's Termination of Contract', code: 'OP-T', updated: '2021-11-05', required: false },
+  { id: '4', name: "Notice of Buyer's Termination of Contract", code: 'OP-T', updated: '2021-11-05', required: false },
   { id: '5', name: 'Third Party Financing Addendum', code: 'OP-F', updated: '2022-08-22', required: false },
-  { id: '6', name: 'Addendum for Property Subject to HOA', code: 'OP-A', updated: '2022-10-30', required: true },
+  { id: '6', name: 'Addendum for Property Subject to HOA', code: 'OP-A', updated: '2022-10-30', required: true }
 ];
 
 const TrecForms = () => {
