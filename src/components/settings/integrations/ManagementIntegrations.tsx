@@ -1,94 +1,125 @@
 
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Building, Users, Mail, Phone, MessageSquare } from "lucide-react";
+import { Building, Map, Calendar, Clock } from "lucide-react";
 import IntegrationCard from './IntegrationCard';
 
 const ManagementIntegrations = () => {
   return (
     <ScrollArea className="h-[600px] pr-4">
       <div className="grid gap-6">
-        {/* Property Management Systems */}
+        {/* Property Management */}
         <IntegrationCard 
           title="Property Management Systems"
-          description="Connect with comprehensive property management solutions"
+          description="Connect your existing property management software"
           icon={<Building className="h-5 w-5" />}
           integrations={[
-            { name: "Microsoft Dynamics 365", connected: false },
-            { name: "Buildium", connected: false },
-            { name: "Yardi", connected: false },
-            { name: "AppFolio", connected: false },
-            { name: "PropertyBoss", connected: false }
+            { 
+              name: "Buildium", 
+              connected: false,
+              apiFields: [
+                { name: 'clientId', label: 'Client ID', type: 'text', required: true },
+                { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+                { name: 'developerApiKey', label: 'Developer API Key', type: 'password', required: true }
+              ]
+            },
+            { 
+              name: "AppFolio", 
+              connected: false,
+              apiFields: [
+                { name: 'apiKey', label: 'API Key', type: 'password', required: true },
+                { name: 'databaseId', label: 'Database ID', type: 'text', required: true },
+                { name: 'companyId', label: 'Company ID', type: 'text', required: true }
+              ]
+            },
+            { 
+              name: "Yardi", 
+              connected: false,
+              apiFields: [
+                { name: 'username', label: 'Username', type: 'text', required: true },
+                { name: 'password', label: 'Password', type: 'password', required: true },
+                { name: 'platformUrl', label: 'Platform URL', type: 'url', required: true },
+                { name: 'clientId', label: 'Client ID', type: 'text', required: true }
+              ]
+            }
           ]}
         />
         
-        {/* Document Management */}
+        {/* Mapping Services */}
         <IntegrationCard 
-          title="Document Management"
-          description="Connect document storage services"
-          icon={<FileText className="h-5 w-5" />}
+          title="Mapping & Location Services"
+          description="Integrate mapping and location-based services"
+          icon={<Map className="h-5 w-5" />}
           integrations={[
-            { name: "Google Drive", connected: true },
-            { name: "Dropbox", connected: false },
-            { name: "OneDrive", connected: false },
-            { name: "Box", connected: false },
-            { name: "SharePoint", connected: false }
+            { 
+              name: "Google Maps", 
+              connected: false,
+              apiFields: [
+                { name: 'apiKey', label: 'API Key', type: 'password', required: true },
+                { name: 'enabledApis', label: 'Enabled APIs', type: 'text', description: 'Comma-separated list of Google Maps APIs you want to use', placeholder: 'maps,places,geocoding' }
+              ]
+            },
+            { 
+              name: "Mapbox", 
+              connected: false,
+              apiFields: [
+                { name: 'accessToken', label: 'Access Token', type: 'password', required: true },
+                { name: 'defaultStyle', label: 'Default Style', type: 'text', placeholder: 'mapbox://styles/mapbox/streets-v11' }
+              ]
+            }
           ]}
         />
         
-        {/* Maintenance Management */}
+        {/* Calendar Services */}
         <IntegrationCard 
-          title="Maintenance & Work Orders"
-          description="Connect maintenance management systems"
-          icon={<Building className="h-5 w-5" />}
+          title="Calendar Services"
+          description="Sync with calendar providers for meeting scheduling"
+          icon={<Calendar className="h-5 w-5" />}
           integrations={[
-            { name: "BuildingLink", connected: false },
-            { name: "FixxFlo", connected: false },
-            { name: "Breezeway", connected: false },
-            { name: "Property Meld", connected: false },
-            { name: "Facility Management Systems", connected: false }
+            { 
+              name: "Google Calendar", 
+              connected: false,
+              apiFields: [
+                { name: 'clientId', label: 'Client ID', type: 'text', required: true },
+                { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+                { name: 'redirectUri', label: 'Redirect URI', type: 'url', required: true }
+              ]
+            },
+            { 
+              name: "Microsoft Outlook", 
+              connected: false,
+              apiFields: [
+                { name: 'clientId', label: 'Client ID', type: 'text', required: true },
+                { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+                { name: 'redirectUri', label: 'Redirect URI', type: 'url', required: true },
+                { name: 'tenantId', label: 'Tenant ID', type: 'text', description: 'Optional tenant ID for Microsoft authentication' }
+              ]
+            }
           ]}
         />
-
-        {/* Vendor Communications */}
+        
+        {/* Time Tracking */}
         <IntegrationCard 
-          title="Vendor Management"
-          description="Systems for vendor communications and management"
-          icon={<Users className="h-5 w-5" />}
+          title="Time Tracking"
+          description="Integrate with time tracking solutions for maintenance and staff"
+          icon={<Clock className="h-5 w-5" />}
           integrations={[
-            { name: "Coupa", connected: false },
-            { name: "SAP Ariba", connected: false },
-            { name: "Procurify", connected: false },
-            { name: "HomeAdvisor", connected: false },
-            { name: "Custom Vendor Portal", connected: false }
-          ]}
-        />
-
-        {/* Board & Committee Collaboration */}
-        <IntegrationCard 
-          title="Board & Committee Collaboration"
-          description="Tools for board and committee communication and collaboration"
-          icon={<Mail className="h-5 w-5" />}
-          integrations={[
-            { name: "Microsoft Teams", connected: false },
-            { name: "Slack", connected: false },
-            { name: "BoardEffect", connected: false },
-            { name: "BoardBookit", connected: false },
-            { name: "Boardable", connected: false }
-          ]}
-        />
-
-        {/* Invoice Approval Systems */}
-        <IntegrationCard 
-          title="Invoice Approval Systems"
-          description="Systems for invoice approver notifications and workflows"
-          icon={<MessageSquare className="h-5 w-5" />}
-          integrations={[
-            { name: "Bill.com", connected: false },
-            { name: "AvidXchange", connected: false },
-            { name: "Concur Invoice", connected: false },
-            { name: "QuickBooks", connected: false },
-            { name: "Tipalti", connected: false }
+            { 
+              name: "Toggl", 
+              connected: false,
+              apiFields: [
+                { name: 'apiToken', label: 'API Token', type: 'password', required: true },
+                { name: 'workspaceId', label: 'Workspace ID', type: 'text', description: 'Optional specific workspace ID' }
+              ]
+            },
+            { 
+              name: "Harvest", 
+              connected: false,
+              apiFields: [
+                { name: 'accessToken', label: 'Access Token', type: 'password', required: true },
+                { name: 'accountId', label: 'Account ID', type: 'text', required: true }
+              ]
+            }
           ]}
         />
       </div>

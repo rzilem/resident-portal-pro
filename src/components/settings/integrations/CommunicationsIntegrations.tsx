@@ -1,113 +1,119 @@
 
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Mail, Phone, MessageSquare, Calendar, FileText, Bell, Users } from "lucide-react";
+import { Mail, MessageSquare, Phone, FileText } from "lucide-react";
 import IntegrationCard from './IntegrationCard';
 
 const CommunicationsIntegrations = () => {
   return (
     <ScrollArea className="h-[600px] pr-4">
       <div className="grid gap-6">
-        {/* Email Service Integration */}
+        {/* Email Services */}
         <IntegrationCard 
-          title="Email Service"
-          description="Connect your email provider to send notifications, updates, and statements"
+          title="Email Services"
+          description="Connect email service providers for sending communications"
           icon={<Mail className="h-5 w-5" />}
           integrations={[
-            { name: "Mailchimp", connected: true },
-            { name: "SendGrid", connected: false },
-            { name: "Amazon SES", connected: false },
-            { name: "Constant Contact", connected: false },
-            { name: "Custom SMTP", connected: false }
+            { 
+              name: "SendGrid", 
+              connected: false,
+              apiFields: [
+                { name: 'apiKey', label: 'API Key', type: 'password', required: true },
+                { name: 'fromEmail', label: 'From Email', type: 'text', required: true }
+              ]
+            },
+            { 
+              name: "Mailchimp", 
+              connected: false,
+              apiFields: [
+                { name: 'apiKey', label: 'API Key', type: 'password', required: true },
+                { name: 'serverPrefix', label: 'Server Prefix', type: 'text', required: true, description: 'The server prefix in your API key (e.g., "us1")' },
+                { name: 'defaultListId', label: 'Default List ID', type: 'text', required: true }
+              ]
+            },
+            { 
+              name: "Postmark", 
+              connected: false,
+              apiFields: [
+                { name: 'serverToken', label: 'Server Token', type: 'password', required: true },
+                { name: 'fromEmail', label: 'From Email', type: 'text', required: true },
+                { name: 'templatePrefix', label: 'Template Prefix', type: 'text', description: 'Optional prefix for template identification' }
+              ]
+            }
           ]}
         />
         
-        {/* SMS Service Integration */}
+        {/* Text Messaging */}
         <IntegrationCard 
-          title="SMS Service"
-          description="Connect your SMS provider to send text message notifications"
+          title="Text Messaging"
+          description="Connect SMS services for text notifications"
           icon={<MessageSquare className="h-5 w-5" />}
           integrations={[
-            { name: "Twilio", connected: false },
-            { name: "Plivo", connected: false },
-            { name: "Nexmo", connected: false },
-            { name: "MessageBird", connected: false }
+            { 
+              name: "Twilio", 
+              connected: false,
+              apiFields: [
+                { name: 'accountSid', label: 'Account SID', type: 'text', required: true },
+                { name: 'authToken', label: 'Auth Token', type: 'password', required: true },
+                { name: 'phoneNumber', label: 'Twilio Phone Number', type: 'text', required: true }
+              ]
+            },
+            { 
+              name: "Nexmo (Vonage)", 
+              connected: false,
+              apiFields: [
+                { name: 'apiKey', label: 'API Key', type: 'text', required: true },
+                { name: 'apiSecret', label: 'API Secret', type: 'password', required: true },
+                { name: 'from', label: 'From Number/ID', type: 'text', required: true }
+              ]
+            }
           ]}
         />
         
-        {/* Phone Service Integration */}
+        {/* Voice Services */}
         <IntegrationCard 
-          title="Phone Service"
-          description="Connect your phone system for calls and voicemail"
+          title="Voice Services"
+          description="Connect voice calling and IVR services"
           icon={<Phone className="h-5 w-5" />}
           integrations={[
-            { name: "Twilio Voice", connected: false },
-            { name: "RingCentral", connected: false },
-            { name: "Vonage", connected: false },
-            { name: "Microsoft Teams Phone", connected: false }
+            { 
+              name: "Twilio Voice", 
+              connected: false,
+              apiFields: [
+                { name: 'accountSid', label: 'Account SID', type: 'text', required: true },
+                { name: 'authToken', label: 'Auth Token', type: 'password', required: true },
+                { name: 'phoneNumber', label: 'Twilio Phone Number', type: 'text', required: true },
+                { name: 'callbackUrl', label: 'Voice Callback URL', type: 'url', description: 'URL that will handle voice XML responses' }
+              ]
+            }
           ]}
         />
         
-        {/* Microsoft Teams Phone Integration */}
+        {/* Document Services */}
         <IntegrationCard 
-          title="Microsoft Teams Phone"
-          description="Connect Microsoft Teams Phone for unified communications and calling capabilities"
-          icon={<Phone className="h-5 w-5" />}
-          integrations={[
-            { name: "Teams Direct Routing", connected: false },
-            { name: "Teams Calling Plan", connected: false },
-            { name: "Teams Operator Connect", connected: false }
-          ]}
-        />
-        
-        {/* Calendar Integration */}
-        <IntegrationCard 
-          title="Calendar"
-          description="Sync HOA events with external calendars"
-          icon={<Calendar className="h-5 w-5" />}
-          integrations={[
-            { name: "Google Calendar", connected: true },
-            { name: "Outlook Calendar", connected: false },
-            { name: "Apple Calendar", connected: false },
-            { name: "iCalendar (.ics)", connected: false }
-          ]}
-        />
-
-        {/* Document Distribution */}
-        <IntegrationCard 
-          title="Document Distribution"
-          description="Services for distributing documents to residents and board members"
+          title="Document Services"
+          description="Connect document generation and signature services"
           icon={<FileText className="h-5 w-5" />}
           integrations={[
-            { name: "DocuSign", connected: false },
-            { name: "Adobe Sign", connected: false },
-            { name: "HelloSign", connected: false },
-            { name: "PandaDoc", connected: false }
-          ]}
-        />
-
-        {/* Resident Portals */}
-        <IntegrationCard 
-          title="Resident Portals & Apps"
-          description="Connect with resident portals and mobile applications"
-          icon={<Users className="h-5 w-5" />}
-          integrations={[
-            { name: "BuildingLink", connected: false },
-            { name: "Pilera", connected: false },
-            { name: "TownSq", connected: false },
-            { name: "Custom Portal", connected: false }
-          ]}
-        />
-        
-        {/* Push Notifications */}
-        <IntegrationCard 
-          title="Push Notifications"
-          description="Send push notifications to mobile devices"
-          icon={<Bell className="h-5 w-5" />}
-          integrations={[
-            { name: "Firebase Cloud Messaging", connected: false },
-            { name: "OneSignal", connected: false },
-            { name: "Apple Push Notification Service", connected: false }
+            { 
+              name: "DocuSign", 
+              connected: false,
+              apiFields: [
+                { name: 'integrationKey', label: 'Integration Key', type: 'text', required: true },
+                { name: 'secret', label: 'Secret Key', type: 'password', required: true },
+                { name: 'redirectUri', label: 'Redirect URI', type: 'url', required: true },
+                { name: 'accountId', label: 'Account ID', type: 'text', description: 'Optional if using default account' }
+              ]
+            },
+            { 
+              name: "Adobe Sign", 
+              connected: false,
+              apiFields: [
+                { name: 'clientId', label: 'Client ID', type: 'text', required: true },
+                { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+                { name: 'redirectUri', label: 'Redirect URI', type: 'url', required: true }
+              ]
+            }
           ]}
         />
       </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,10 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Copy, Check, Link } from "lucide-react";
 import { toast } from "sonner";
 import { useIntegrations } from '@/hooks/use-integrations';
+import APIConfigForm, { APIConfigFormProps } from './APIConfigForm';
 
 interface Integration {
   name: string;
   connected: boolean;
+  apiFields?: APIConfigFormProps['fields'];
 }
 
 interface IntegrationCardProps {
@@ -24,6 +26,7 @@ interface IntegrationCardProps {
   isWebhook?: boolean;
   isWebhookEndpoint?: boolean;
   customActions?: React.ReactNode;
+  apiFields?: APIConfigFormProps['fields'];
 }
 
 const IntegrationCard: React.FC<IntegrationCardProps> = ({
@@ -34,24 +37,37 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   isApiKey,
   isWebhook,
   isWebhookEndpoint,
-  customActions
+  customActions,
+  apiFields
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showConfigForm, setShowConfigForm] = useState(false);
   
   const { 
     connectIntegration, 
     disconnectIntegration, 
     updateIntegrationSettings, 
     testWebhook,
-    isConnected 
+    isConnected,
+    getIntegration
   } = useIntegrations();
 
   const handleConnect = async (name: string) => {
     try {
+      // For integrations with API fields, show config form instead of auto-connecting
+      const integration = integrations?.find(i => i.name === name);
+      if (integration?.apiFields && integration.apiFields.length > 0) {
+        setSelectedIntegration(name);
+        setShowConfigForm(true);
+        setOpen(true);
+        return;
+      }
+      
+      // Simple toggle-only integrations
       await connectIntegration(name, { enabled: true });
       toast.success(`Connected to ${name}`);
     } catch (error) {
@@ -67,6 +83,24 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     } catch (error) {
       console.error('Error disconnecting:', error);
       toast.error(`Failed to disconnect from ${name}`);
+    }
+  };
+
+  const handleSaveAPIConfig = async (values: Record<string, string>) => {
+    if (!selectedIntegration) return;
+    
+    try {
+      await updateIntegrationSettings(selectedIntegration, {
+        ...values,
+        enabled: true
+      });
+      
+      setOpen(false);
+      setShowConfigForm(false);
+      toast.success(`API configuration saved for ${selectedIntegration}`);
+    } catch (error) {
+      console.error('Error saving API configuration:', error);
+      toast.error('Failed to save API configuration');
     }
   };
 
@@ -120,14 +154,85 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     }
   };
 
+  const handleTestConnection = async (values: Record<string, string>) => {
+    if (!selectedIntegration) return false;
+    
+    try {
+      // This is a simplified test; in a real app, you'd test with the actual service
+      const result = await testWebhook(values.apiUrl || 'https://example.com', {
+        service: selectedIntegration,
+        credentials: 'test'
+      });
+      return result;
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      return false;
+    }
+  };
+
   const handleCopyApiKey = () => {
     navigator.clipboard.writeText('sk_test_example_api_key_for_demo');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const getIntegrationConfig = (name: string) => {
+    const integration = getIntegration(name);
+    if (!integration) return {};
+    
+    // Filter out non-user-configurable fields
+    const {enabled, lastSync, ...config} = integration;
+    return config;
+  };
+
+  const renderAPIConfigForm = () => {
+    if (!selectedIntegration) return null;
+    
+    // Get fields from either the integration or the card's apiFields
+    let fields: APIConfigFormProps['fields'] = [];
+    
+    if (integrations) {
+      const integration = integrations.find(i => i.name === selectedIntegration);
+      if (integration?.apiFields) {
+        fields = integration.apiFields;
+      }
+    } else if (apiFields) {
+      fields = apiFields;
+    }
+    
+    const initialValues = getIntegrationConfig(selectedIntegration);
+    
+    return (
+      <Dialog open={open && showConfigForm} onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) setShowConfigForm(false);
+      }}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Configure {selectedIntegration}</DialogTitle>
+            <DialogDescription>
+              Enter your API details for {selectedIntegration}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <APIConfigForm 
+            integrationId={selectedIntegration}
+            fields={fields}
+            initialValues={initialValues}
+            onSave={handleSaveAPIConfig}
+            onCancel={() => {
+              setOpen(false);
+              setShowConfigForm(false);
+            }}
+            testConnection={handleTestConnection}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const renderApiKeyDialog = () => (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open && !showConfigForm} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Configure API Key</DialogTitle>
@@ -158,7 +263,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   );
 
   const renderWebhookDialog = () => (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open && !showConfigForm} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Configure Webhook</DialogTitle>
@@ -199,7 +304,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   );
 
   const renderWebhookEndpointDialog = () => (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open && !showConfigForm} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Webhook Endpoint</DialogTitle>
@@ -266,7 +371,20 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             {integrations.map((integration, index) => (
               <li key={index} className="flex items-center justify-between">
                 <span>{integration.name}</span>
-                <div>
+                <div className="flex items-center gap-2">
+                  {isConnected(integration.name) && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedIntegration(integration.name);
+                        setShowConfigForm(true);
+                        setOpen(true);
+                      }}
+                    >
+                      Configure
+                    </Button>
+                  )}
                   <Switch 
                     checked={integration.connected || isConnected(integration.name)}
                     onCheckedChange={(checked) => {
@@ -325,6 +443,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           customActions
         ) : null}
 
+        {renderAPIConfigForm()}
         {isApiKey && renderApiKeyDialog()}
         {isWebhook && renderWebhookDialog()}
         {isWebhookEndpoint && renderWebhookEndpointDialog()}

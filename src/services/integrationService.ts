@@ -6,10 +6,20 @@ interface IntegrationSettings {
   connectedAccount?: string;
   lastSync?: string;
   config?: Record<string, any>;
+  [key: string]: any; // Allow any additional fields for integration-specific configurations
 }
 
-// Integration settings storage
+// Integration settings storage - in real app this would be persistent
 let integrationSettings: Record<string, Record<string, IntegrationSettings>> = {};
+
+// Integration schema registry - defines what fields each integration requires
+const integrationSchemas: Record<string, { fields: string[] }> = {
+  Stripe: { fields: ['apiKey', 'webhookSecret', 'publishableKey'] },
+  PayPal: { fields: ['clientId', 'clientSecret', 'environment'] },
+  Twilio: { fields: ['accountSid', 'authToken', 'phoneNumber'] },
+  SendGrid: { fields: ['apiKey', 'fromEmail'] },
+  // Add more integrations as needed
+};
 
 export const integrationService = {
   /**
@@ -41,11 +51,17 @@ export const integrationService = {
       integrationSettings[entityId] = {};
     }
     
+    // Create or update the integration settings
+    const existingSettings = integrationSettings[entityId][integrationId] || { enabled: false };
+    
     integrationSettings[entityId][integrationId] = {
+      ...existingSettings,
       ...settings,
       enabled: true,
       lastSync: new Date().toISOString()
     };
+    
+    console.log(`Connected integration ${integrationId} for ${entityId}`, integrationSettings[entityId][integrationId]);
     
     return integrationSettings[entityId][integrationId];
   },
@@ -59,6 +75,7 @@ export const integrationService = {
     }
     
     integrationSettings[entityId][integrationId].enabled = false;
+    console.log(`Disconnected integration ${integrationId} for ${entityId}`);
     return true;
   },
 
@@ -70,14 +87,26 @@ export const integrationService = {
     integrationId: string, 
     updates: Partial<IntegrationSettings>
   ) => {
-    if (!integrationSettings[entityId] || !integrationSettings[entityId][integrationId]) {
-      return null;
+    if (!integrationSettings[entityId]) {
+      integrationSettings[entityId] = {};
+    }
+    
+    if (!integrationSettings[entityId][integrationId]) {
+      integrationSettings[entityId][integrationId] = {
+        enabled: false
+      };
     }
     
     integrationSettings[entityId][integrationId] = {
       ...integrationSettings[entityId][integrationId],
       ...updates
     };
+    
+    console.log(`Updated settings for ${integrationId}`, {
+      entityId,
+      updatedFields: Object.keys(updates),
+      enabled: integrationSettings[entityId][integrationId].enabled
+    });
     
     return integrationSettings[entityId][integrationId];
   },
@@ -87,6 +116,9 @@ export const integrationService = {
    */
   testWebhook: async (url: string, payload: any) => {
     try {
+      console.log(`Testing webhook to ${url} with payload:`, payload);
+      
+      // In a real application, you would actually send the request
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -96,10 +128,56 @@ export const integrationService = {
         body: JSON.stringify(payload)
       });
       
+      console.log('Webhook test successful');
       return true;
     } catch (error) {
       console.error('Error testing webhook:', error);
       return false;
     }
+  },
+
+  /**
+   * Test an API integration
+   */
+  testAPIConnection: async (integrationId: string, config: Record<string, any>) => {
+    // This is a mock implementation - in a real app, you would test the actual service
+    console.log(`Testing API connection for ${integrationId} with config:`, config);
+    
+    // Simulate API test
+    return new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        // 80% success rate for demo purposes
+        const success = Math.random() > 0.2;
+        console.log(`API test ${success ? 'succeeded' : 'failed'} for ${integrationId}`);
+        resolve(success);
+      }, 1000);
+    });
+  },
+
+  /**
+   * Get required fields for an integration
+   */
+  getRequiredFields: (integrationId: string) => {
+    return integrationSchemas[integrationId]?.fields || [];
+  },
+
+  /**
+   * Validate integration configuration
+   */
+  validateConfig: (integrationId: string, config: Record<string, any>) => {
+    const requiredFields = integrationSchemas[integrationId]?.fields || [];
+    const missingFields = requiredFields.filter(field => !config[field]);
+    
+    if (missingFields.length > 0) {
+      return {
+        valid: false,
+        missingFields
+      };
+    }
+    
+    return {
+      valid: true,
+      missingFields: []
+    };
   }
 };
