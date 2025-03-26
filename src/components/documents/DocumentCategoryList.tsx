@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { 
   FolderIcon, FileIcon, FileTextIcon, BarChartIcon, 
   ClipboardIcon, FileSpreadsheetIcon, ShieldIcon,
-  UsersIcon, UserIcon, LockIcon
+  UsersIcon, UserIcon, LockIcon, InfoIcon
 } from 'lucide-react';
 import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
 import { useDocumentPermissions } from '@/hooks/use-document-permissions';
@@ -115,7 +116,37 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
   const { checkCategoryAccess } = useDocumentPermissions();
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-4">
+      {/* Security Level Color Guide */}
+      <div className="bg-muted/30 rounded-md p-3 text-xs">
+        <div className="font-medium mb-2 flex items-center gap-1">
+          <InfoIcon className="h-3.5 w-3.5" />
+          <span>Access Levels</span>
+        </div>
+        <div className="grid grid-cols-2 gap-y-1.5 gap-x-2">
+          <div className="flex items-center gap-1.5">
+            <FolderIcon className="h-4 w-4 text-yellow-400" />
+            <span>All Users</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <FolderIcon className="h-4 w-4 text-green-500" />
+            <span>Homeowners</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <FolderIcon className="h-4 w-4 text-blue-500" />
+            <span>Board Members</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <FolderIcon className="h-4 w-4 text-purple-500" />
+            <span>Management</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <FolderIcon className="h-4 w-4 text-red-500" />
+            <span>Administrators</span>
+          </div>
+        </div>
+      </div>
+
       <button 
         onClick={() => onSelectCategory('')}
         className={cn(
@@ -123,11 +154,11 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
           !activeCategory ? "bg-muted font-medium" : "text-muted-foreground"
         )}
       >
-        <FileIcon className="h-4 w-4" />
+        <FileIcon className="h-5 w-5" />
         <span>All Documents</span>
       </button>
       
-      <div className="pt-4">
+      <div className="pt-2">
         <div className="text-xs font-medium text-muted-foreground px-3 py-1">
           Categories
         </div>
@@ -143,7 +174,7 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
                   <button
                     onClick={() => hasAccess && onSelectCategory(category.id)}
                     className={cn(
-                      "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md",
+                      "w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-md",
                       !hasAccess && "opacity-50 cursor-not-allowed",
                       activeCategory === category.id 
                         ? `${securityColor} font-medium border` 
@@ -152,7 +183,7 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
                     disabled={!hasAccess}
                   >
                     <div className="flex items-center gap-2">
-                      <FolderIcon className={`h-4 w-4 ${folderColor}`} />
+                      <FolderIcon className={`h-5 w-5 ${folderColor}`} />
                       <span>{category.name}</span>
                     </div>
                     
@@ -160,12 +191,11 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
                       <Badge 
                         variant="outline" 
                         className={cn(
-                          "text-xs flex items-center gap-1",
+                          "flex items-center p-1",
                           securityColor
                         )}
                       >
                         {getAccessLevelIcon(category.accessLevel)}
-                        <span className="hidden sm:inline">{category.accessLevel}</span>
                       </Badge>
                     )}
                   </button>
