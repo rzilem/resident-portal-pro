@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tag, TagType } from '@/types/resident';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
@@ -11,7 +11,10 @@ export interface UseTagsProps {
 }
 
 export const useTags = ({ initialTags, onTagsChange }: UseTagsProps) => {
-  const [tags, setTags] = useState<Tag[]>(initialTags);
+  // Ensure initialTags is always an array
+  const safeInitialTags = Array.isArray(initialTags) ? initialTags : [];
+  
+  const [tags, setTags] = useState<Tag[]>(safeInitialTags);
   const [open, setOpen] = useState(false);
   const [usePredefined, setUsePredefined] = useState(true);
   const [selectedPredefinedTag, setSelectedPredefinedTag] = useState<string>('');
@@ -20,6 +23,11 @@ export const useTags = ({ initialTags, onTagsChange }: UseTagsProps) => {
     label: '',
     color: '#71717a'
   });
+
+  // Update tags if initialTags changes
+  useEffect(() => {
+    setTags(Array.isArray(initialTags) ? initialTags : []);
+  }, [initialTags]);
 
   const handleAddTag = () => {
     if (usePredefined && !selectedPredefinedTag) {

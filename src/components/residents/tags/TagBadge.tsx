@@ -18,7 +18,6 @@ const TagBadge: React.FC<TagBadgeProps> = ({ tag, editable = false, onRemove }) 
   
   return (
     <Badge 
-      key={tag.id}
       variant="outline"
       className="flex items-center gap-1.5 px-2 py-1"
       style={{ 

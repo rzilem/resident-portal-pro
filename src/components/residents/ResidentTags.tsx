@@ -19,8 +19,8 @@ const ResidentTags: React.FC<ResidentTagsProps> = ({
   onTagsChange,
   editable = true 
 }) => {
-  // Debug - log what tags are received by this component
-  console.log('Tags received by ResidentTags:', tags);
+  // Ensure we're working with an array, even if tags is undefined
+  const safeInitialTags = Array.isArray(tags) ? tags : [];
   
   const {
     tags: currentTags,
@@ -36,12 +36,12 @@ const ResidentTags: React.FC<ResidentTagsProps> = ({
     removeTag,
     handleCancel
   } = useTags({ 
-    initialTags: tags, 
+    initialTags: safeInitialTags, 
     onTagsChange 
   });
 
   // Debug - log the processed tags
-  console.log('Processed tags in ResidentTags:', currentTags);
+  console.log('Tags in ResidentTags component:', currentTags);
 
   return (
     <div>

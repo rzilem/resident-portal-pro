@@ -11,17 +11,16 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
-  // Make sure we're working with the tags array, even if it's undefined
+  // Create a local state for tags that's initialized with the resident's tags or an empty array
   const [tags, setTags] = useState(resident.tags || []);
 
   const handleTagsChange = (newTags) => {
     setTags(newTags);
     toast.success('Tags updated successfully');
-    console.log('Updated tags:', newTags); // Add this to debug
+    
+    // For debugging
+    console.log('Tags updated in ProfileHeader:', newTags);
   };
-
-  // Debug - check what tags are actually available
-  console.log('Current resident tags:', resident.tags);
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -29,7 +28,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
         <h1 className="text-2xl font-bold">{resident.name}</h1>
         
         <div className="mt-4">
-          <ResidentTags tags={tags} onTagsChange={handleTagsChange} />
+          <ResidentTags 
+            tags={tags} 
+            onTagsChange={handleTagsChange} 
+            editable={true}
+          />
         </div>
         
         <div className="flex flex-col gap-2 mt-4">

@@ -36,6 +36,7 @@ const ResidentProfile = () => {
     
     // In a real app, you would save this to the backend
     console.log('Tags updated in parent component:', updatedTags);
+    toast.success('Resident tags updated successfully');
   };
 
   return (
