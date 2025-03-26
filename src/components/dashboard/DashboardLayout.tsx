@@ -4,14 +4,16 @@ import { Widget } from '@/types/dashboard';
 import { DynamicWidget } from './widgets/WidgetRegistry';
 import { cn } from '@/lib/utils';
 import { useCardStyle } from '@/hooks/use-card-style';
+import { motion } from 'framer-motion';
 
 interface DashboardLayoutProps {
   widgets: Widget[];
   columns?: number;
   className?: string;
+  animate?: boolean;
 }
 
-const DashboardLayout = ({ widgets, columns = 2, className }: DashboardLayoutProps) => {
+const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: DashboardLayoutProps) => {
   const { cardClass } = useCardStyle();
   
   // Sort widgets by position
@@ -33,6 +35,12 @@ const DashboardLayout = ({ widgets, columns = 2, className }: DashboardLayoutPro
     );
   }
 
+  // Animation variants
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+  };
+
   return (
     <div 
       className={cn(
@@ -41,22 +49,43 @@ const DashboardLayout = ({ widgets, columns = 2, className }: DashboardLayoutPro
         className
       )}
     >
-      {visibleWidgets.map((widget) => (
-        <div 
-          key={widget.id}
-          className={cn(
-            widget.size === 'small' && "col-span-1",
-            widget.size === 'medium' && "col-span-1",
-            widget.size === 'large' && columns === 2 && "col-span-2"
-          )}
-        >
-          <DynamicWidget
-            type={widget.type}
-            size={widget.size}
-            config={widget.config}
-            cardClass={cardClass}
-          />
-        </div>
+      {visibleWidgets.map((widget, index) => (
+        animate ? (
+          <motion.div 
+            key={widget.id}
+            variants={item}
+            className={cn(
+              widget.size === 'small' && "col-span-1",
+              widget.size === 'medium' && "col-span-1",
+              widget.size === 'large' && columns === 2 && "col-span-2",
+              "transform-gpu hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            )}
+          >
+            <DynamicWidget
+              type={widget.type}
+              size={widget.size}
+              config={widget.config}
+              cardClass={cn(cardClass, "h-full")}
+            />
+          </motion.div>
+        ) : (
+          <div 
+            key={widget.id}
+            className={cn(
+              widget.size === 'small' && "col-span-1",
+              widget.size === 'medium' && "col-span-1",
+              widget.size === 'large' && columns === 2 && "col-span-2",
+              "hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            )}
+          >
+            <DynamicWidget
+              type={widget.type}
+              size={widget.size}
+              config={widget.config}
+              cardClass={cn(cardClass, "h-full")}
+            />
+          </div>
+        )
       ))}
     </div>
   );

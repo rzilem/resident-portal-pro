@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { WidgetType } from '@/types/dashboard';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, Users, Calendar, Activity, Bell, DollarSign, Megaphone, UserSearch } from 'lucide-react';
 
 // Import all widget components
@@ -325,9 +324,29 @@ interface DynamicWidgetProps {
 }
 
 // A component that renders the appropriate widget based on the type
-export const DynamicWidget = ({ type, size = 'medium', config = {}, cardClass = '' }: DynamicWidgetProps) => {
-  const WidgetComponent = widgetComponents[type] || (({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => 
-    <Card className={`p-4 ${cardClass}`}>Widget not found</Card>);
-  
-  return <WidgetComponent size={size} cardClass={cardClass} {...config} />;
+export const DynamicWidget = ({ type, size, config, cardClass = '' }: DynamicWidgetProps) => {
+  // Switch based on widget type
+  switch (type) {
+    case 'weather':
+      return <WeatherWidget size={size} config={config} cardClass={cardClass} />;
+    case 'tasks':
+      return <TasksWidget size={size} cardClass={cardClass} />;
+    case 'maintenance':
+      return <MaintenanceWidget size={size} cardClass={cardClass} />;
+    case 'documents':
+      return <DocumentsWidget size={size} cardClass={cardClass} />;
+    // Add more widget types as needed
+    default:
+      return (
+        <Card className={cardClass}>
+          <CardHeader>
+            <CardTitle>{type} Widget</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">Widget type: {type}</p>
+            <p className="text-muted-foreground">Size: {size}</p>
+          </CardContent>
+        </Card>
+      );
+  }
 };

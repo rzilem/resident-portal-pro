@@ -144,6 +144,23 @@
     animation-delay: 500ms;
   }
 
+  /* Dashboard specific styles */
+  .dashboard-card {
+    @apply rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .dashboard-card-header {
+    @apply border-b bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 px-4 py-3;
+  }
+
+  .dashboard-stat-card {
+    @apply bg-white/80 dark:bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm;
+  }
+
+  .dashboard-widget-container {
+    @apply rounded-xl overflow-hidden bg-white dark:bg-gray-950 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
   /* HOA Management specific styles */
   .hoa-button-primary {
     @apply bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors;

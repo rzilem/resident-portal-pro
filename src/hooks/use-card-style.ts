@@ -17,10 +17,13 @@ export function useCardStyle() {
       additionalCardClass = "card-style-flat border-0 shadow-none bg-background";
       break;
     case 'glass':
-      additionalCardClass = "card-style-glass backdrop-blur-sm bg-background/80 border border-muted/30";
+      additionalCardClass = "card-style-glass backdrop-blur-sm bg-background/80 border border-muted/30 shadow-xl";
+      break;
+    case 'rounded':
+      additionalCardClass = "card-style-rounded rounded-xl border-0 shadow-lg overflow-hidden";
       break;
     default:
-      additionalCardClass = "card-style-default";
+      additionalCardClass = "card-style-default shadow-sm hover:shadow-md transition-shadow duration-300";
   }
   
   return {
