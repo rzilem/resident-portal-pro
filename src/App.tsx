@@ -11,7 +11,7 @@ import Dashboard from '@/pages/Dashboard';
 import Properties from '@/pages/Properties';
 import Residents from '@/pages/Residents';
 import ResidentProfile from '@/pages/ResidentProfile';
-import AssociationProfile from '@/pages/AssociationProfile'; // New import
+import AssociationProfile from '@/pages/AssociationProfile'; 
 import Calendar from '@/pages/Calendar';
 import Integrations from '@/pages/Integrations';
 import Reports from '@/pages/Reports';
@@ -34,7 +34,7 @@ import AccountingReports from '@/pages/accounting/AccountingReports';
 import JournalEntries from '@/pages/accounting/JournalEntries';
 import GlAccounts from '@/pages/accounting/GlAccounts';
 import InvoiceCoding from './pages/accounting/InvoiceCoding';
-import InvoiceQueue from './pages/accounting/InvoiceQueue'; // Add new import
+import InvoiceQueue from './pages/accounting/InvoiceQueue';
 
 // Communications pages
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
@@ -68,6 +68,9 @@ import EmailWorkflows from "./pages/settings/EmailWorkflows";
 // Add import for PrintQueue component
 import PrintQueue from "./pages/PrintQueue";
 
+// Add import for Resale module
+import ResaleDashboard from "@/pages/resale/ResaleDashboard";
+
 const App = () => {
   return (
     <ThemeProvider>
@@ -89,7 +92,7 @@ const App = () => {
           <Route path="/properties" element={<Properties />} />
           <Route path="/residents" element={<Residents />} />
           <Route path="/residents/:id" element={<ResidentProfile />} />
-          <Route path="/associations/:id" element={<AssociationProfile />} /> {/* New route */}
+          <Route path="/associations/:id" element={<AssociationProfile />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/reports" element={<Reports />} />
@@ -103,6 +106,9 @@ const App = () => {
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/system-uploads" element={<SystemUploads />} />
           <Route path="/print-queue" element={<PrintQueue />} />
+          
+          {/* Resale Module */}
+          <Route path="/resale" element={<ResaleDashboard />} />
           
           {/* Vendor routes */}
           <Route path="/vendors" element={<Vendors />} />
