@@ -1,86 +1,68 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
-import { printQueueService, PrintJob, PrintCategory } from '@/services/printQueueService';
+import { useState, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { useToast } from '@/components/ui/use-toast';
 
-export function usePrintQueue() {
-  const [printJobs, setPrintJobs] = useState<PrintJob[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+export interface PrintJob {
+  id: string;
+  name: string;
+  createdAt: string;
+  status: 'pending' | 'printing' | 'completed' | 'error';
+  type: 'letter' | 'report' | 'statement' | 'certificate' | 'notice';
+  recipient?: string;
+  pages: number;
+  documentId?: string;
+  error?: string;
+}
+
+export const usePrintQueue = () => {
+  const [jobs, setJobs] = useState<PrintJob[]>(SAMPLE_PRINT_JOBS);
   const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
-  const [filters, setFilters] = useState<{
-    category?: PrintCategory;
-    associationId?: string;
-  }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  // Load all print jobs
-  const loadPrintJobs = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      let jobs = printQueueService.getAllJobs();
-      
-      // Apply filters if any
-      if (filters.category) {
-        jobs = jobs.filter(job => job.category === filters.category);
-      }
-      if (filters.associationId) {
-        jobs = jobs.filter(job => job.associationId === filters.associationId);
-      }
-      
-      setPrintJobs(jobs);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load print jobs'));
-      toast.error('Failed to load print queue');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters]);
+  // Mock job creation
+  const createJob = useCallback((job: Omit<PrintJob, 'id' | 'createdAt' | 'status'>) => {
+    const newJob: PrintJob = {
+      ...job,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
 
-  // Add a new print job
-  const addPrintJob = useCallback(async (job: Omit<PrintJob, 'id'>) => {
-    try {
-      const newJob = printQueueService.addJob(job);
-      setPrintJobs(prev => [...prev, newJob]);
-      toast.success('Print job added successfully');
-      return newJob;
-    } catch (err) {
-      toast.error('Failed to add print job');
-      throw err;
-    }
-  }, []);
+    setJobs(prev => [newJob, ...prev]);
+    
+    toast({
+      title: "Job added to queue",
+      description: `${newJob.name} has been added to the print queue.`
+    });
 
-  // Update a print job
-  const updatePrintJob = useCallback(async (id: string, updates: Partial<PrintJob>) => {
-    try {
-      const updatedJob = printQueueService.updateJob(id, updates);
-      if (updatedJob) {
-        setPrintJobs(prev => prev.map(job => job.id === id ? updatedJob : job));
-        toast.success('Print job updated successfully');
-        return updatedJob;
-      }
-      throw new Error('Job not found');
-    } catch (err) {
-      toast.error('Failed to update print job');
-      throw err;
-    }
-  }, []);
+    return newJob;
+  }, [toast]);
 
-  // Delete a print job
-  const deletePrintJob = useCallback(async (id: string) => {
-    try {
-      const success = printQueueService.deleteJob(id);
-      if (success) {
-        setPrintJobs(prev => prev.filter(job => job.id !== id));
-        setSelectedJobs(prev => prev.filter(jobId => jobId !== id));
-        toast.success('Print job deleted successfully');
-      }
-      return success;
-    } catch (err) {
-      toast.error('Failed to delete print job');
-      throw err;
-    }
-  }, []);
+  // Mock job deletion
+  const deleteJob = useCallback((id: string) => {
+    setJobs(prev => prev.filter(job => job.id !== id));
+    setSelectedJobs(prev => prev.filter(jobId => jobId !== id));
+    
+    toast({
+      title: "Job removed",
+      description: "The job has been removed from the print queue."
+    });
+  }, [toast]);
+
+  // Mock bulk job deletion
+  const deleteSelectedJobs = useCallback(() => {
+    if (selectedJobs.length === 0) return;
+    
+    setJobs(prev => prev.filter(job => !selectedJobs.includes(job.id)));
+    setSelectedJobs([]);
+    
+    toast({
+      title: "Jobs removed",
+      description: `${selectedJobs.length} jobs have been removed from the print queue.`
+    });
+  }, [selectedJobs, toast]);
 
   // Toggle job selection
   const toggleJobSelection = useCallback((id: string) => {
@@ -93,74 +75,146 @@ export function usePrintQueue() {
 
   // Select all jobs
   const selectAllJobs = useCallback(() => {
-    setSelectedJobs(printJobs.map(job => job.id));
-  }, [printJobs]);
+    const allJobIds = jobs.map(job => job.id);
+    setSelectedJobs(allJobIds);
+  }, [jobs]);
 
-  // Clear all selections
-  const clearSelections = useCallback(() => {
+  // Clear selection
+  const clearSelection = useCallback(() => {
     setSelectedJobs([]);
   }, []);
 
-  // Send selected jobs to HOA Mailers
-  const sendToHOAMailers = useCallback(async () => {
-    if (selectedJobs.length === 0) {
-      toast.warning('No jobs selected to send');
-      return { success: false, sentJobs: [] };
-    }
+  // Mock print function
+  const printJobs = useCallback(() => {
+    if (selectedJobs.length === 0) return;
     
-    try {
-      const result = printQueueService.sendToHOAMailers(selectedJobs);
-      if (result.success) {
-        setPrintJobs(prev => prev.map(job => 
-          selectedJobs.includes(job.id) && job.status === 'pending'
-            ? { ...job, status: 'sent', sentDate: new Date() }
+    setIsLoading(true);
+    
+    // Simulate print process
+    setTimeout(() => {
+      setJobs(prev => 
+        prev.map(job => 
+          selectedJobs.includes(job.id) 
+            ? { ...job, status: 'printing' } 
             : job
-        ));
-        toast.success(`${result.sentJobs.length} jobs sent to HOA Mailers`);
-        clearSelections();
-      } else {
-        toast.error('No eligible jobs to send');
-      }
-      return result;
-    } catch (err) {
-      toast.error('Failed to send jobs to HOA Mailers');
-      throw err;
-    }
-  }, [selectedJobs, clearSelections]);
+        )
+      );
+      
+      setIsLoading(false);
+      
+      toast({
+        title: "Printing started",
+        description: `${selectedJobs.length} jobs sent to printer.`
+      });
+      
+      // Simulate completion after some time
+      setTimeout(() => {
+        setJobs(prev => 
+          prev.map(job => 
+            selectedJobs.includes(job.id) && job.status === 'printing'
+              ? { ...job, status: 'completed' } 
+              : job
+          )
+        );
+        
+        setSelectedJobs([]);
+      }, 3000);
+    }, 1000);
+  }, [selectedJobs, toast]);
 
-  // Set filters
-  const setFilter = useCallback((key: 'category' | 'associationId', value?: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  }, []);
-
-  // Clear filters
-  const clearFilters = useCallback(() => {
-    setFilters({});
-  }, []);
-
-  // Load jobs on mount and when filters change
-  useEffect(() => {
-    loadPrintJobs();
-  }, [loadPrintJobs]);
+  // Mock send to HOA Mailers function
+  const sendToHOAMailers = useCallback(() => {
+    if (selectedJobs.length === 0) return;
+    
+    setIsLoading(true);
+    
+    // Simulate sending process
+    setTimeout(() => {
+      setJobs(prev => 
+        prev.map(job => 
+          selectedJobs.includes(job.id) 
+            ? { ...job, status: 'completed' } 
+            : job
+        )
+      );
+      
+      setIsLoading(false);
+      
+      toast({
+        title: "Jobs sent to HOA Mailers",
+        description: `${selectedJobs.length} jobs sent to HOA Mailers service.`
+      });
+      
+      setSelectedJobs([]);
+    }, 1500);
+  }, [selectedJobs, toast]);
 
   return {
-    printJobs,
-    isLoading,
-    error,
+    jobs,
     selectedJobs,
-    filters,
-    loadPrintJobs,
-    addPrintJob,
-    updatePrintJob,
-    deletePrintJob,
+    isLoading,
+    createJob,
+    deleteJob,
+    deleteSelectedJobs,
     toggleJobSelection,
     selectAllJobs,
-    clearSelections,
-    sendToHOAMailers,
-    setFilter,
-    clearFilters
+    clearSelection,
+    printJobs,
+    sendToHOAMailers
   };
-}
+};
+
+// Sample print jobs for demonstration
+const SAMPLE_PRINT_JOBS: PrintJob[] = [
+  {
+    id: '1',
+    name: 'Monthly HOA Statement - Unit 101',
+    createdAt: '2023-06-12T09:30:00Z',
+    status: 'pending',
+    type: 'statement',
+    recipient: 'Alice Johnson',
+    pages: 3,
+    documentId: 'doc-1'
+  },
+  {
+    id: '2',
+    name: 'Violation Notice - Unit 203',
+    createdAt: '2023-06-12T10:15:00Z',
+    status: 'pending',
+    type: 'notice',
+    recipient: 'Michael Wilson',
+    pages: 2,
+    documentId: 'doc-2'
+  },
+  {
+    id: '3',
+    name: 'Annual Financial Report',
+    createdAt: '2023-06-11T14:45:00Z',
+    status: 'completed',
+    type: 'report',
+    recipient: 'Board Members',
+    pages: 12,
+    documentId: 'doc-3'
+  },
+  {
+    id: '4',
+    name: 'Resale Certificate - Unit 156',
+    createdAt: '2023-06-11T11:20:00Z',
+    status: 'error',
+    type: 'certificate',
+    recipient: 'David Lee',
+    pages: 5,
+    documentId: 'doc-4',
+    error: 'Insufficient printer toner'
+  },
+  {
+    id: '5',
+    name: 'Welcome Letter - Unit 118',
+    createdAt: '2023-06-10T16:05:00Z',
+    status: 'completed',
+    type: 'letter',
+    recipient: 'Sarah Brown',
+    pages: 1,
+    documentId: 'doc-5'
+  }
+];

@@ -11,8 +11,10 @@ interface TagBadgeProps {
 }
 
 const TagBadge: React.FC<TagBadgeProps> = ({ tag, editable = false, onRemove }) => {
-  // Debug - log each tag that's being rendered
-  console.log('Rendering tag:', tag);
+  if (!tag || !tag.id) {
+    console.error('Invalid tag provided to TagBadge:', tag);
+    return null;
+  }
   
   return (
     <Badge 
@@ -31,6 +33,7 @@ const TagBadge: React.FC<TagBadgeProps> = ({ tag, editable = false, onRemove }) 
         <button 
           className="ml-1 hover:bg-gray-200 rounded-full"
           onClick={() => onRemove(tag.id)}
+          aria-label={`Remove ${tag.label} tag`}
         >
           <X className="h-3 w-3" />
         </button>

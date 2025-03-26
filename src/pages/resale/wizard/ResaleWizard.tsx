@@ -1,140 +1,226 @@
 
-import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardDescription, CardTitle } from '@/components/ui/card';
-import { STEPS } from './constants';
-import { WizardProgress } from './components/WizardProgress';
-import { WizardNavigation } from './components/WizardNavigation';
-import { useResaleWizard } from './hooks/useResaleWizard';
-import { useGeneratePdf } from './utils/generatePdf';
-import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Stepper, Step } from '@/components/ui/stepper';
+import { ArrowLeft, ArrowRight, Check, Save, FileClock } from 'lucide-react';
 
-// Import step components
+// Import necessary wizard steps
 import PropertyDetailsStep from './steps/PropertyDetailsStep';
-import ResaleCertificateStep from './steps/ResaleCertificateStep';
-import CondoQuestionnaireStep from './steps/CondoQuestionnaireStep';
-import PropertyInspectionStep from './steps/PropertyInspectionStep';
-import AccountStatementStep from './steps/AccountStatementStep';
-import TrecFormsStep from './steps/TrecFormsStep';
+import OwnerInfoStep from './steps/OwnerInfoStep';
+import DocumentSelectionStep from './steps/DocumentSelectionStep';
+import PaymentStep from './steps/PaymentStep';
+import ReviewStep from './steps/ReviewStep';
 
 const ResaleWizard = () => {
-  const {
-    currentStep,
-    completedSteps,
-    isLoading,
-    formData,
-    handleInputChange,
-    handleSelectChange,
-    handleNext,
-    handlePrevious,
-    handleStepClick,
-  } = useResaleWizard();
-  
-  const generatePdf = useGeneratePdf();
-  
-  const handleGeneratePdf = (documentType: 'certificate' | 'questionnaire' | 'statement') => {
-    generatePdf(documentType, formData);
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState({
+    property: { id: '', name: '', unit: '' },
+    owner: { name: '', email: '', phone: '' },
+    documents: {
+      resaleCertificate: true,
+      condoQuestionnaire: false,
+      propertyInspection: false,
+      accountStatement: true,
+      trecForms: false
+    },
+    paymentMethod: '',
+    fees: {
+      processing: 150,
+      rush: 0,
+      delivery: 0,
+      total: 150
+    },
+    notes: '',
+    requestedBy: '',
+    dueDate: null
+  });
+
+  const steps = [
+    { id: 'property', label: 'Property Details' },
+    { id: 'owner', label: 'Owner Information' },
+    { id: 'documents', label: 'Document Selection' },
+    { id: 'payment', label: 'Payment Information' },
+    { id: 'review', label: 'Review & Submit' }
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
   };
-  
-  // Render the current step content
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    // Process submission here
+    console.log('Submitting resale request:', formData);
+    
+    // Show success message and navigate back to dashboard
+    navigate('/resale', { 
+      state: { 
+        success: true, 
+        message: 'Resale request created successfully!' 
+      } 
+    });
+  };
+
+  const handleSaveAsDraft = () => {
+    // Save as draft functionality
+    console.log('Saving as draft:', formData);
+    
+    navigate('/resale', { 
+      state: { 
+        success: true, 
+        message: 'Resale request saved as draft' 
+      } 
+    });
+  };
+
+  const handleCancel = () => {
+    navigate('/resale');
+  };
+
+  const handleUpdateFormData = (section: string, data: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section as keyof typeof prev],
+        ...data
+      }
+    }));
+  };
+
+  // Render current step content
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
         return (
           <PropertyDetailsStep 
-            formData={formData}
-            onInputChange={handleInputChange}
-            onSelectChange={handleSelectChange}
+            formData={formData.property} 
+            onUpdate={(data) => handleUpdateFormData('property', data)} 
           />
         );
       case 1:
         return (
-          <ResaleCertificateStep 
-            formData={formData}
-            onInputChange={handleInputChange}
-            onSelectChange={handleSelectChange}
-            onGeneratePdf={handleGeneratePdf}
+          <OwnerInfoStep 
+            formData={formData.owner} 
+            onUpdate={(data) => handleUpdateFormData('owner', data)} 
           />
         );
       case 2:
         return (
-          <CondoQuestionnaireStep 
-            formData={formData}
-            onInputChange={handleInputChange}
-            onGeneratePdf={handleGeneratePdf}
+          <DocumentSelectionStep 
+            formData={formData.documents} 
+            onUpdate={(data) => handleUpdateFormData('documents', data)} 
+            onFeesUpdate={(fees) => handleUpdateFormData('fees', fees)} 
           />
         );
       case 3:
         return (
-          <PropertyInspectionStep 
-            formData={formData}
-            onInputChange={handleInputChange}
-            onSelectChange={handleSelectChange}
+          <PaymentStep 
+            formData={formData} 
+            onUpdate={(data) => handleUpdateFormData('payment', data)} 
           />
         );
       case 4:
         return (
-          <AccountStatementStep 
-            formData={formData}
-            onInputChange={handleInputChange}
-            onGeneratePdf={handleGeneratePdf}
-          />
-        );
-      case 5:
-        return (
-          <TrecFormsStep 
-            formData={formData}
-            onInputChange={handleInputChange}
+          <ReviewStep 
+            formData={formData} 
+            onUpdate={(section, data) => handleUpdateFormData(section, data)} 
           />
         );
       default:
         return null;
     }
   };
-  
+
   return (
-    <ResaleRbacWrapper requiredPermission="create">
-      <div className="container p-6 max-w-5xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Resale Process Wizard</h1>
-          <p className="text-muted-foreground">
-            Complete each step to prepare all required documents for your resale
-          </p>
-        </div>
-        
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-64">
-            <WizardProgress 
-              currentStep={currentStep}
-              completedSteps={completedSteps}
-              onStepClick={handleStepClick}
-            />
+    <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold">New Resale Request</h1>
+        <p className="text-muted-foreground">Complete the wizard to create a new resale documentation request</p>
+      </div>
+      
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Resale Documentation Request</CardTitle>
+          <CardDescription>
+            Follow the steps below to submit a resale document request
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Stepper currentStep={currentStep}>
+            {steps.map((step, index) => (
+              <Step 
+                key={step.id} 
+                label={step.label} 
+                completed={currentStep > index}
+                active={currentStep === index}
+              />
+            ))}
+          </Stepper>
+          
+          <div className="mt-8">{renderStepContent()}</div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div>
+            {currentStep > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={handleBack}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            )}
           </div>
           
-          <div className="flex-1">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>{STEPS[currentStep].label}</CardTitle>
-                <CardDescription>
-                  Step {currentStep + 1} of {STEPS.length}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {renderStepContent()}
-              </CardContent>
-              <CardFooter>
-                <WizardNavigation 
-                  currentStep={currentStep}
-                  totalSteps={STEPS.length}
-                  isLoading={isLoading}
-                  onPrevious={handlePrevious}
-                  onNext={handleNext}
-                />
-              </CardFooter>
-            </Card>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleSaveAsDraft}
+              className="gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save as Draft
+            </Button>
+            
+            {currentStep < steps.length - 1 ? (
+              <Button 
+                onClick={handleNext}
+                className="gap-2"
+              >
+                Next
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSubmit}
+                className="gap-2"
+              >
+                <Check className="h-4 w-4" />
+                Submit Request
+              </Button>
+            )}
           </div>
-        </div>
-      </div>
-    </ResaleRbacWrapper>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 

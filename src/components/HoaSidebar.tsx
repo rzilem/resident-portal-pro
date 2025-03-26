@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
 import { 
@@ -11,7 +12,9 @@ import {
   Wrench, 
   Users, 
   Calendar, 
-  ChevronLeft
+  ChevronLeft,
+  LayoutDashboard,
+  Building
 } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -80,6 +83,40 @@ export const HoaSidebar = ({
                 </li>
               );
             })}
+          </ul>
+          
+          {/* Separator */}
+          <div className="my-4 border-t border-gray-200"></div>
+          
+          {/* Back to main app section */}
+          <h3 className={cn("text-xs uppercase text-gray-500 font-semibold mb-2", collapsed && "sr-only")}>
+            Main App
+          </h3>
+          <ul className="space-y-2">
+            <li>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-left text-gray-700 hover:bg-gray-100"
+                asChild
+              >
+                <Link to="/dashboard" state={{ from: location.pathname }}>
+                  <span className="mr-3"><LayoutDashboard size={20} /></span>
+                  {!collapsed && <span>Main Dashboard</span>}
+                </Link>
+              </Button>
+            </li>
+            <li>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-left text-gray-700 hover:bg-gray-100"
+                asChild
+              >
+                <Link to="/properties" state={{ from: location.pathname }}>
+                  <span className="mr-3"><Building size={20} /></span>
+                  {!collapsed && <span>Properties</span>}
+                </Link>
+              </Button>
+            </li>
           </ul>
         </nav>
         

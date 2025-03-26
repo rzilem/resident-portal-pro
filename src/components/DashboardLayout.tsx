@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
 import { Sidebar } from '@/components/Sidebar';
 import ChatbotButton from './ChatbotButton';
-import { useLocation, Outlet } from 'react-router-dom';
+import { useLocation, Outlet, Link } from 'react-router-dom';
+import { Button } from './ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -14,6 +17,9 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  
+  // Check if we're coming from an HOA page to show back button
+  const showHoaBackButton = location.state?.from?.startsWith('/hoa');
   
   // Dynamically set title based on the current route
   const getPageTitle = () => {
@@ -94,6 +100,23 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
           toggleSidebar={toggleSidebar} 
           title={getPageTitle()} 
         />
+        
+        {/* Back to HOA button if applicable */}
+        {showHoaBackButton && (
+          <div className="mx-4 mt-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/hoa/dashboard" state={{ from: location.pathname }}>
+                <ArrowLeft className="h-4 w-4" />
+                Back to HOA Dashboard
+              </Link>
+            </Button>
+          </div>
+        )}
         
         {/* Main Content - use Outlet for nested routes or fallback to children */}
         <main className="flex-1 animate-fade-in">

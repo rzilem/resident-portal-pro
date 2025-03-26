@@ -1,83 +1,154 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { EmailWorkflowRule, emailWorkflowService } from '@/services/emailWorkflowService';
-import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
+import { useToast } from '@/components/ui/use-toast';
 
-export function useEmailWorkflows() {
+export interface EmailWorkflowRule {
+  id: string;
+  name: string;
+  inboundEmail: string;
+  workflowType: string;
+  forwardTo: string;
+  isActive: boolean;
+  createdAt: string;
+  description?: string;
+}
+
+export const useEmailWorkflows = () => {
   const [workflowRules, setWorkflowRules] = useState<EmailWorkflowRule[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const fetchWorkflowRules = useCallback(async () => {
+  const { toast } = useToast();
+
+  // Sample workflow rules data
+  const sampleWorkflowRules: EmailWorkflowRule[] = [
+    {
+      id: '1',
+      name: 'Maintenance Requests',
+      inboundEmail: 'maintenance@example.com',
+      workflowType: 'Maintenance Request',
+      forwardTo: 'maintenance-team@example.com',
+      isActive: true,
+      createdAt: '2023-06-15T10:00:00Z',
+      description: 'Automatically create maintenance requests from emails'
+    },
+    {
+      id: '2',
+      name: 'Accounting Inquiries',
+      inboundEmail: 'accounting@example.com',
+      workflowType: 'Accounting',
+      forwardTo: 'finance@example.com',
+      isActive: true,
+      createdAt: '2023-05-20T14:30:00Z',
+      description: 'Forward accounting questions to finance team'
+    },
+    {
+      id: '3',
+      name: 'Violation Reports',
+      inboundEmail: 'violations@example.com',
+      workflowType: 'Compliance',
+      forwardTo: 'compliance@example.com',
+      isActive: false,
+      createdAt: '2023-07-01T09:15:00Z',
+      description: 'Process violation reports and create compliance records'
+    }
+  ];
+
+  // Fetch workflow rules
+  const fetchWorkflowRules = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    try {
-      const rules = await emailWorkflowService.getAllRules();
-      setWorkflowRules(rules);
-    } catch (err) {
-      console.error('Failed to fetch email workflow rules:', err);
-      setError('Failed to load email workflow rules');
-      toast.error('Failed to load email workflow rules');
-    } finally {
+    
+    // Simulate API call with setTimeout
+    setTimeout(() => {
+      setWorkflowRules(sampleWorkflowRules);
       setIsLoading(false);
-    }
+    }, 500);
   }, []);
   
-  // Load workflow rules on initial mount
+  // Create a new workflow rule
+  const createWorkflowRule = useCallback((ruleData: Omit<EmailWorkflowRule, 'id' | 'createdAt'>) => {
+    setIsLoading(true);
+    
+    // Create new rule with ID and timestamp
+    const newRule: EmailWorkflowRule = {
+      ...ruleData,
+      id: uuidv4(),
+      createdAt: new Date().toISOString()
+    };
+    
+    // Simulate API call
+    setTimeout(() => {
+      setWorkflowRules(prev => [...prev, newRule]);
+      setIsLoading(false);
+      
+      toast({
+        title: "Workflow rule created",
+        description: `${newRule.name} was created successfully.`,
+      });
+    }, 500);
+  }, [toast]);
+  
+  // Update an existing workflow rule
+  const updateWorkflowRule = useCallback((id: string, ruleData: Partial<Omit<EmailWorkflowRule, 'id' | 'createdAt'>>) => {
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setWorkflowRules(prev => 
+        prev.map(rule => 
+          rule.id === id ? { ...rule, ...ruleData } : rule
+        )
+      );
+      setIsLoading(false);
+      
+      toast({
+        title: "Workflow rule updated",
+        description: "The workflow rule was updated successfully.",
+      });
+    }, 500);
+  }, [toast]);
+  
+  // Delete a workflow rule
+  const deleteWorkflowRule = useCallback((id: string) => {
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setWorkflowRules(prev => prev.filter(rule => rule.id !== id));
+      setIsLoading(false);
+      
+      toast({
+        title: "Workflow rule deleted",
+        description: "The workflow rule was deleted successfully.",
+      });
+    }, 500);
+  }, [toast]);
+  
+  // Toggle active status of a workflow rule
+  const toggleWorkflowRuleStatus = useCallback((id: string) => {
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setWorkflowRules(prev => 
+        prev.map(rule => 
+          rule.id === id ? { ...rule, isActive: !rule.isActive } : rule
+        )
+      );
+      setIsLoading(false);
+      
+      toast({
+        title: "Status updated",
+        description: "The workflow rule status was updated successfully.",
+      });
+    }, 500);
+  }, [toast]);
+  
+  // Load workflow rules when component mounts
   useEffect(() => {
     fetchWorkflowRules();
   }, [fetchWorkflowRules]);
-  
-  const createWorkflowRule = useCallback(async (rule: Omit<EmailWorkflowRule, 'id' | 'createdAt'>) => {
-    try {
-      const newRule = await emailWorkflowService.createRule(rule);
-      setWorkflowRules(prev => [...prev, newRule]);
-      toast.success('Email workflow rule created successfully');
-      return newRule;
-    } catch (err) {
-      console.error('Failed to create email workflow rule:', err);
-      toast.error('Failed to create email workflow rule');
-      throw err;
-    }
-  }, []);
-  
-  const updateWorkflowRule = useCallback(async (id: string, updates: Partial<Omit<EmailWorkflowRule, 'id' | 'createdAt'>>) => {
-    try {
-      const updatedRule = await emailWorkflowService.updateRule(id, updates);
-      setWorkflowRules(prev => prev.map(rule => rule.id === id ? updatedRule : rule));
-      toast.success('Email workflow rule updated successfully');
-      return updatedRule;
-    } catch (err) {
-      console.error('Failed to update email workflow rule:', err);
-      toast.error('Failed to update email workflow rule');
-      throw err;
-    }
-  }, []);
-  
-  const deleteWorkflowRule = useCallback(async (id: string) => {
-    try {
-      await emailWorkflowService.deleteRule(id);
-      setWorkflowRules(prev => prev.filter(rule => rule.id !== id));
-      toast.success('Email workflow rule deleted successfully');
-    } catch (err) {
-      console.error('Failed to delete email workflow rule:', err);
-      toast.error('Failed to delete email workflow rule');
-      throw err;
-    }
-  }, []);
-  
-  const toggleWorkflowRuleStatus = useCallback(async (id: string) => {
-    try {
-      const updatedRule = await emailWorkflowService.toggleRuleStatus(id);
-      setWorkflowRules(prev => prev.map(rule => rule.id === id ? updatedRule : rule));
-      toast.success(`Email workflow rule ${updatedRule.isActive ? 'activated' : 'deactivated'} successfully`);
-      return updatedRule;
-    } catch (err) {
-      console.error('Failed to toggle email workflow rule status:', err);
-      toast.error('Failed to update email workflow rule status');
-      throw err;
-    }
-  }, []);
   
   return {
     workflowRules,
@@ -89,4 +160,6 @@ export function useEmailWorkflows() {
     deleteWorkflowRule,
     toggleWorkflowRuleStatus
   };
-}
+};
+
+export type { EmailWorkflowRule } from '@/services/emailWorkflowService';
