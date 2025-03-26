@@ -1,8 +1,10 @@
+
 import { Vendor, VendorInvoice, VendorService } from '@/types/vendor';
 import { v4 as uuidv4 } from 'uuid';
 
 const generateMockInvoices = (vendorId: string, count: number): VendorInvoice[] => {
   const statuses: ('paid' | 'pending' | 'overdue')[] = ['paid', 'pending', 'overdue'];
+  const associations = ['Evergreen HOA', 'Sunset Estates', 'Mountain View', 'Lakeside Community', 'Oak Meadows'];
   const invoices: VendorInvoice[] = [];
   
   for (let i = 0; i < count; i++) {
@@ -24,7 +26,8 @@ const generateMockInvoices = (vendorId: string, count: number): VendorInvoice[] 
       status: statuses[i % 3],
       description: `Monthly service - ${date.toLocaleString('default', { month: 'long' })}`,
       dueDate: dueDate.toISOString(),
-      paymentDate
+      paymentDate,
+      associationName: associations[i % associations.length]
     });
   }
   

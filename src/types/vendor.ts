@@ -57,6 +57,7 @@ export interface VendorInvoice {
   description: string;
   dueDate: string;
   paymentDate?: string;
+  associationName?: string;
 }
 
 export interface VendorService {

@@ -34,7 +34,8 @@ const VendorInvoicesTab: React.FC<VendorInvoicesTabProps> = ({ vendorId }) => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
     return format(new Date(dateString), 'MMM d, yyyy');
   };
 
@@ -48,8 +49,9 @@ const VendorInvoicesTab: React.FC<VendorInvoicesTabProps> = ({ vendorId }) => {
           <TableHeader>
             <TableRow>
               <TableHead>Invoice #</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Due Date</TableHead>
+              <TableHead>Date Received</TableHead>
+              <TableHead>Date Paid</TableHead>
+              <TableHead>Association</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Description</TableHead>
@@ -60,7 +62,8 @@ const VendorInvoicesTab: React.FC<VendorInvoicesTabProps> = ({ vendorId }) => {
               <TableRow key={invoice.id}>
                 <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
-                <TableCell>{formatDate(invoice.dueDate)}</TableCell>
+                <TableCell>{formatDate(invoice.paymentDate)}</TableCell>
+                <TableCell>{invoice.associationName || 'Evergreen HOA'}</TableCell>
                 <TableCell>{formatCurrency(invoice.amount)}</TableCell>
                 <TableCell>
                   <Badge 
@@ -75,7 +78,7 @@ const VendorInvoicesTab: React.FC<VendorInvoicesTabProps> = ({ vendorId }) => {
             ))}
             {invoices.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
                   No invoices found
                 </TableCell>
               </TableRow>
