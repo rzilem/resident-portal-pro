@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -47,7 +46,7 @@ const Hero = () => {
           
           <div className="relative md:h-[540px] flex items-center">
             <AnimatedImage 
-              src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" 
+              src="/lovable-uploads/4210bfbe-69f1-4ffc-8a52-4bff55f3dd71.png" 
               alt="Community Intelligence Dashboard" 
               className="rounded-xl border shadow-2xl w-full"
               animation="scale-in"
