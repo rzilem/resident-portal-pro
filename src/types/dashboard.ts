@@ -17,6 +17,7 @@ export type WidgetType =
   | 'documents'
   | 'announcements'
   | 'directory'
+  | 'ci-insights'
   | string; // Add string to make it compatible with the User Widget type
 
 export interface Widget {

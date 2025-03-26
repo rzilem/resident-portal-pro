@@ -1,13 +1,14 @@
 import React from 'react';
 import { WidgetType } from '@/types/dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Users, Calendar, Activity, Bell, DollarSign, Megaphone, UserSearch } from 'lucide-react';
+import { Building, Users, Calendar, Activity, Bell, DollarSign, Megaphone, UserSearch, Info } from 'lucide-react';
 
 // Import all widget components
 import WeatherWidget from './WeatherWidget';
 import TasksWidget from './TasksWidget';
 import MaintenanceWidget from './MaintenanceWidget';
 import DocumentsWidget from './DocumentsWidget';
+import CIInsightsWidget from './CIInsightsWidget';
 
 // Create more realistic placeholder widgets for components we haven't fully implemented yet
 const PropertiesWidget = ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => (
@@ -208,7 +209,6 @@ const CalendarWidget = ({ cardClass, size }: { cardClass?: string, size?: 'small
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
         {[...Array(31)].map((_, i) => {
-          // Highlight some dates
           const isEvent = [5, 12, 15, 22, 28].includes(i + 1);
           return (
             <div 
@@ -314,6 +314,7 @@ export const widgetComponents: Record<WidgetType, React.ComponentType<any>> = {
   'calendar': CalendarWidget,
   'announcements': AnnouncementsWidget,
   'directory': DirectoryWidget,
+  'ci-insights': CIInsightsWidget,
 };
 
 interface DynamicWidgetProps {
@@ -335,7 +336,8 @@ export const DynamicWidget = ({ type, size, config, cardClass = '' }: DynamicWid
       return <MaintenanceWidget size={size} cardClass={cardClass} />;
     case 'documents':
       return <DocumentsWidget size={size} cardClass={cardClass} />;
-    // Add more widget types as needed
+    case 'ci-insights':
+      return <CIInsightsWidget size={size} cardClass={cardClass} />;
     default:
       return (
         <Card className={cardClass}>
