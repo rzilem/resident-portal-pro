@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, addMonths } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -34,11 +34,18 @@ const PaymentPlanDialog: React.FC<PaymentPlanDialogProps> = ({
   const [isSavingsAccount, setIsSavingsAccount] = useState<boolean>(false);
   const [numberOfMonths, setNumberOfMonths] = useState<string>("6");
   const [monthlyPayment, setMonthlyPayment] = useState<string>("");
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   
   // Calculate end date based on start date and number of months
-  const endDate = billingStartDate ? 
-    addMonths(billingStartDate, parseInt(numberOfMonths)) : 
-    undefined;
+  useEffect(() => {
+    if (billingStartDate && numberOfMonths) {
+      const months = parseInt(numberOfMonths);
+      const calculatedEndDate = addMonths(billingStartDate, months);
+      setEndDate(calculatedEndDate);
+    } else {
+      setEndDate(undefined);
+    }
+  }, [billingStartDate, numberOfMonths]);
   
   // Format numeric balance string for calculations (strips $ and ,)
   const getNumericBalance = (balanceStr: string): number => {
@@ -46,7 +53,7 @@ const PaymentPlanDialog: React.FC<PaymentPlanDialogProps> = ({
   };
 
   // Calculate monthly payment when balance or months change
-  React.useEffect(() => {
+  useEffect(() => {
     const balanceValue = getNumericBalance(currentBalance);
     const months = parseInt(numberOfMonths) || 1;
     
