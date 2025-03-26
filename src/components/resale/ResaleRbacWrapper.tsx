@@ -39,9 +39,12 @@ const ResaleRbacWrapper = ({
     ? permissionParts.slice(0, permissionParts.length - 1).join('.') 
     : module;
   
-  // Fix the type issue by casting the permission string to the Permission type
-  // Since we've defined Permission to include string, this should work properly
-  const authorized = hasPermission(actualModule, actualPermission as Permission);
+  // Create a variable of the correct type for the permission check
+  // This ensures that TypeScript knows we're using a valid Permission value
+  const permissionValue: Permission = actualPermission;
+  
+  // Now use the properly typed permission value
+  const authorized = hasPermission(actualModule, permissionValue);
   
   if (!authorized) {
     return fallback || (
