@@ -3,46 +3,48 @@ import { DocumentAccessLevel } from '@/types/documents';
 import { 
   BarChartIcon, FileIcon, FileTextIcon, 
   ClipboardIcon, FileSpreadsheetIcon, ShieldIcon,
-  UsersIcon, UserIcon, FolderIcon
+  UsersIcon, UserIcon, FolderIcon,
+  LucideIcon
 } from 'lucide-react';
+import React from 'react';
 
-export const getCategoryIcon = (categoryId: string) => {
+export const getCategoryIcon = (categoryId: string): React.ReactNode => {
   switch (categoryId) {
     case 'financials':
     case 'financial':
     case 'monthlyFinancialReports':
-      return <BarChartIcon className="h-4 w-4 text-blue-500" />;
+      return React.createElement(BarChartIcon, { className: "h-4 w-4 text-blue-500" });
     case 'forms':
-      return <ClipboardIcon className="h-4 w-4 text-purple-500" />;
+      return React.createElement(ClipboardIcon, { className: "h-4 w-4 text-purple-500" });
     case 'invoiceImages':
-      return <FileSpreadsheetIcon className="h-4 w-4 text-green-500" />;
+      return React.createElement(FileSpreadsheetIcon, { className: "h-4 w-4 text-green-500" });
     case 'communityDocuments':
     case 'communityMeetings':
     case 'meetings':
-      return <FileTextIcon className="h-4 w-4 text-amber-500" />;
+      return React.createElement(FileTextIcon, { className: "h-4 w-4 text-amber-500" });
     case 'governing':
-      return <ShieldIcon className="h-4 w-4 text-red-500" />;
+      return React.createElement(ShieldIcon, { className: "h-4 w-4 text-red-500" });
     case 'legal':
-      return <ClipboardIcon className="h-4 w-4 text-red-500" />;
+      return React.createElement(ClipboardIcon, { className: "h-4 w-4 text-red-500" });
     case 'rules':
-      return <ShieldIcon className="h-4 w-4 text-indigo-500" />;
+      return React.createElement(ShieldIcon, { className: "h-4 w-4 text-indigo-500" });
     case 'contracts':
-      return <FileTextIcon className="h-4 w-4 text-gray-500" />;
+      return React.createElement(FileTextIcon, { className: "h-4 w-4 text-gray-500" });
     default:
-      return <FolderIcon className="h-4 w-4 text-yellow-400" />;
+      return React.createElement(FolderIcon, { className: "h-4 w-4 text-yellow-400" });
   }
 };
 
-export const getAccessLevelIcon = (accessLevel?: DocumentAccessLevel) => {
+export const getAccessLevelIcon = (accessLevel?: DocumentAccessLevel): React.ReactNode => {
   switch(accessLevel) {
     case 'admin':
-      return <ShieldIcon className="h-3 w-3" />;
+      return React.createElement(ShieldIcon, { className: "h-3 w-3" });
     case 'management':
-      return <UserIcon className="h-3 w-3" />;
+      return React.createElement(UserIcon, { className: "h-3 w-3" });
     case 'board':
-      return <UsersIcon className="h-3 w-3" />;
+      return React.createElement(UsersIcon, { className: "h-3 w-3" });
     case 'homeowner':
-      return <UsersIcon className="h-3 w-3" />;
+      return React.createElement(UsersIcon, { className: "h-3 w-3" });
     case 'all':
     default:
       return null;
