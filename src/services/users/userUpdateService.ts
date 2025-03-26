@@ -1,7 +1,7 @@
 
 import { User, UserRole, SecurityLevel } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
-import { users, updateUsersCache, profileToUser } from './types';
+import { users, updateUserInCache, profileToUser } from './types';
 import { defaultRolePermissions } from '@/components/settings/permissions/constants/securityLevels';
 import { userRetrievalService } from './userRetrievalService';
 
@@ -34,7 +34,7 @@ export const userUpdateService = {
       if (error) {
         console.error('Error updating user in Supabase:', error);
         // Fallback to local data
-        updateUsersCache(updatedUser);
+        updateUserInCache(updatedUser.id, updatedUser);
         const updatedUserInCache = users.find(user => user.id === updatedUser.id);
         if (!updatedUserInCache) {
           throw new Error('User not found');
@@ -47,7 +47,7 @@ export const userUpdateService = {
           ...profileToUser(data),
           ...updatedUser,
         };
-        updateUsersCache(result);
+        updateUserInCache(result.id, result);
         return result;
       }
       
@@ -55,7 +55,7 @@ export const userUpdateService = {
     } catch (error) {
       console.error('Error in updateUser:', error);
       // Fallback to local implementation
-      updateUsersCache(updatedUser);
+      updateUserInCache(updatedUser.id, updatedUser);
       const updatedUserInCache = users.find(user => user.id === updatedUser.id);
       if (!updatedUserInCache) {
         throw new Error('User not found');

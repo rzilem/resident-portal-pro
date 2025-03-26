@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { User, Edit } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SecurityLevel, UserRole } from "@/types/user";
 
 interface SecurityLevelsTabProps {
-  rolePermissions: Record<UserRole, {
+  rolePermissions: Record<string, {
     securityLevel: SecurityLevel,
     globalPermission: string,
     modules: Record<string, string>

@@ -11,11 +11,11 @@ import ModulePermissionsTab from './tabs/ModulePermissionsTab';
 import { 
   securityLevelIcons,
   securityLevelDescriptions,
-  defaultRolePermissions 
+  rolePermissionsData 
 } from './constants/securityLevels';
 
 const RolesPermissionManagement = () => {
-  const [rolePermissions, setRolePermissions] = useState(defaultRolePermissions);
+  const [rolePermissions, setRolePermissions] = useState(rolePermissionsData);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
   
   const handleSecurityLevelChange = (role: UserRole, level: SecurityLevel) => {
@@ -35,7 +35,7 @@ const RolesPermissionManagement = () => {
   const renderSecurityLevel = (level: SecurityLevel) => (
     <div className="flex items-center gap-2">
       {securityLevelIcons[level]()}
-      <span className="capitalize">{level}</span>
+      <span className="capitalize">{level.replace('_', ' ')}</span>
     </div>
   );
 
@@ -80,7 +80,7 @@ const RolesPermissionManagement = () => {
         </Tabs>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => setRolePermissions(defaultRolePermissions)}>
+        <Button variant="outline" onClick={() => setRolePermissions(rolePermissionsData)}>
           Reset to Defaults
         </Button>
         <Button onClick={() => toast.success("Role permissions saved")}>
