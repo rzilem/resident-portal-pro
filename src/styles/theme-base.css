@@ -17,9 +17,9 @@
 
 /* First, check for custom colors */
 :root {
-  --theme-primary: var(--color-primary, #8B5CF6);
-  --theme-secondary: var(--color-secondary, #A78BFA);
-  --theme-accent: var(--color-accent, #C4B5FD);
+  --theme-primary: var(--color-primary, #3B82F6);
+  --theme-secondary: var(--color-secondary, #60A5FA);
+  --theme-accent: var(--color-accent, #93C5FD);
   --theme-background: var(--color-background, #FFFFFF);
   --theme-text: var(--color-text, #1F2937);
   --theme-border: var(--color-border, #E5E7EB);
