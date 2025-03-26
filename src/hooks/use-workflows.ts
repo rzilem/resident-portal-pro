@@ -22,7 +22,7 @@ export function useWorkflows({ associationId }: UseWorkflowsProps = {}) {
         
         // Filter by association if needed
         const filteredData = associationId 
-          ? data.filter(w => w.associationId === associationId || !w.associationId)
+          ? data.filter(w => 'associationId' in w && (w.associationId === associationId || !w.associationId))
           : data;
           
         setWorkflows(filteredData);
