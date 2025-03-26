@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Association } from '@/types/association';
@@ -68,7 +67,11 @@ const AssociationTabs: React.FC<AssociationTabsProps> = ({ association, properti
       </TabsList>
 
       {tabConfigs.map(tab => (
-        <TabsContent key={tab.id} value={tab.id} className="mt-1">
+        <TabsContent 
+          key={tab.id} 
+          value={tab.id} 
+          className="mt-0 space-y-4"
+        >
           {tab.requiresProperties ? (
             <tab.content association={association} properties={properties} />
           ) : (
