@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
+import { ViolationRow } from '@/types/compliance';
 
 interface ComplianceMetricsProps {
   associationId?: string;
@@ -67,7 +68,7 @@ const ComplianceMetrics: React.FC<ComplianceMetricsProps> = ({ associationId }) 
 
         // Process status metrics
         const statusCounts: Record<string, number> = {};
-        data.forEach(item => {
+        data.forEach((item: ViolationRow) => {
           const status = item.status?.toLowerCase() || 'unknown';
           statusCounts[status] = (statusCounts[status] || 0) + 1;
         });
@@ -75,12 +76,12 @@ const ComplianceMetrics: React.FC<ComplianceMetricsProps> = ({ associationId }) 
         const statusMetrics = Object.entries(statusCounts).map(([name, value]) => ({
           name: name.charAt(0).toUpperCase() + name.slice(1),
           value,
-          color: statusColors[name as keyof typeof statusColors] || statusColors.default
+          color: (statusColors as any)[name] || statusColors.default
         }));
 
         // Process violation type metrics
         const typeCounts: Record<string, number> = {};
-        data.forEach(item => {
+        data.forEach((item: ViolationRow) => {
           const type = item.violation_type || 'unspecified';
           typeCounts[type] = (typeCounts[type] || 0) + 1;
         });

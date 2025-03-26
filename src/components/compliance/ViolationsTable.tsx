@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+import { ViolationRow } from '@/types/compliance';
 
 interface ViolationsTableProps {
   associationId?: string;

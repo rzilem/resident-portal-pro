@@ -1,5 +1,23 @@
 
 import { Tag } from './resident';
+import type { Database } from '@/integrations/supabase/types';
+
+// Extend Supabase types with our violations table
+export type ViolationRow = {
+  id: string;
+  association_id: string;
+  property_id: string;
+  violation_type: string;
+  reported_date: string;
+  description?: string;
+  status: string;
+  resolved_date?: string;
+  created_at: string;
+  updated_at: string;
+  properties?: {
+    address: string;
+  };
+};
 
 export interface ViolationType {
   id: string;

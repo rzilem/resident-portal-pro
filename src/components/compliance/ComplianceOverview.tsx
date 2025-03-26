@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ViolationRow } from '@/types/compliance';
 
 interface ComplianceOverviewProps {
   associationId?: string;
@@ -33,8 +34,8 @@ const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({ associationId }
         // Prepare summary data
         const summary = {
           totalViolations: data?.length || 0,
-          openViolations: data?.filter(v => !v.resolved_date).length || 0,
-          resolvedViolations: data?.filter(v => v.resolved_date).length || 0,
+          openViolations: data?.filter((v: ViolationRow) => !v.resolved_date).length || 0,
+          resolvedViolations: data?.filter((v: ViolationRow) => v.resolved_date).length || 0,
         };
 
         setComplianceData(summary);

@@ -249,6 +249,60 @@ export type Database = {
           },
         ]
       }
+      violations: {
+        Row: {
+          association_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          property_id: string | null
+          reported_date: string | null
+          resolved_date: string | null
+          status: string | null
+          updated_at: string | null
+          violation_type: string
+        }
+        Insert: {
+          association_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          property_id?: string | null
+          reported_date?: string | null
+          resolved_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          violation_type: string
+        }
+        Update: {
+          association_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          property_id?: string | null
+          reported_date?: string | null
+          resolved_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violations_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "violations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
