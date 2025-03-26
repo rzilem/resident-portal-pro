@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Mail, Phone, Calendar, ArrowRight } from 'lucide-react';
+import { User, Mail, Phone, Calendar, ArrowRight, CircleDollarSign, PhoneCall } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ResidentProfile } from '@/types/resident';
 import ResidentTags from './ResidentTags';
@@ -54,6 +54,51 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ resident }) => {
       </div>
       
       <div className="hidden md:block md:flex-grow"></div>
+      
+      {/* Financial and Contact Info - moved further right */}
+      <div className="md:w-1/4">
+        <div className="border p-4 rounded-md bg-slate-50 dark:bg-slate-900">
+          <h3 className="text-sm font-semibold mb-2">Account & Contact Info</h3>
+          
+          <div className="space-y-3">
+            <div className="flex items-start gap-2">
+              <CircleDollarSign className={`h-4 w-4 mt-0.5 ${resident.balance !== '$0.00' ? 'text-red-500' : 'text-green-500'}`} />
+              <div>
+                <p className="text-xs font-medium">Current Balance</p>
+                <p className={`text-sm font-bold ${resident.balance !== '$0.00' ? 'text-red-600' : 'text-green-600'}`}>
+                  {resident.balance}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <PhoneCall className="h-4 w-4 mt-0.5 text-indigo-500" />
+              <div>
+                <p className="text-xs font-medium">Last Contact</p>
+                {resident.lastContact && (
+                  <>
+                    {resident.lastContact.called && (
+                      <p className="text-xs">
+                        <span className="font-medium">Called:</span> {resident.lastContact.called}
+                      </p>
+                    )}
+                    {resident.lastContact.visitedOffice && (
+                      <p className="text-xs">
+                        <span className="font-medium">Office Visit:</span> {resident.lastContact.visitedOffice}
+                      </p>
+                    )}
+                    {resident.lastContact.email && (
+                      <p className="text-xs">
+                        <span className="font-medium">Email:</span> {resident.lastContact.email}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <div className="flex items-center space-x-2 md:w-1/12 md:justify-end">
         <Badge 

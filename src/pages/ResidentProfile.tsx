@@ -5,7 +5,6 @@ import { MapPin } from 'lucide-react';
 import ProfileHeader from '@/components/residents/ProfileHeader';
 import ResidentTabs from '@/components/residents/ResidentTabs';
 import NotFoundState from '@/components/residents/NotFoundState';
-import CriticalInfoArea from '@/components/residents/CriticalInfoArea';
 import residentProfiles from '@/data/residentProfiles';
 import { Tag } from '@/types/resident';
 import { toast } from 'sonner';
@@ -41,8 +40,6 @@ const ResidentProfile = () => {
         <MapPin className="h-4 w-4" />
         <span>{resident.property} • Unit {resident.unit}</span>
       </div>
-      
-      <CriticalInfoArea resident={resident} onTagsChange={handleTagsChange} />
       
       <ResidentTabs resident={resident} />
     </div>
