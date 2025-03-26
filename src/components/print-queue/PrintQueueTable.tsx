@@ -1,26 +1,11 @@
 
 import React from 'react';
-import { ChevronDown, Filter } from 'lucide-react';
-import { format } from 'date-fns';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { PrintJob } from '@/services/printQueueService';
+import { Badge } from '@/components/ui/badge';
+import { Tag, Building } from 'lucide-react';
+import { PrintJob } from '@/hooks/use-print-queue';
 
 interface PrintQueueTableProps {
   jobs: PrintJob[];
@@ -37,165 +22,90 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
   onToggleSelect,
   onSelectAll,
   onSetCategoryFilter,
-  onSetAssociationFilter,
+  onSetAssociationFilter
 }) => {
-  // Group jobs by category for expandable rows
-  const jobsByCategory: Record<string, PrintJob[]> = {} as Record<string, PrintJob[]>;
-  jobs.forEach(job => {
-    if (!jobsByCategory[job.category]) {
-      jobsByCategory[job.category] = [];
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-yellow-500">Pending</Badge>;
+      case 'printing':
+        return <Badge className="bg-blue-500">Printing</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-500">Completed</Badge>;
+      case 'failed':
+        return <Badge className="bg-red-500">Failed</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
     }
-    jobsByCategory[job.category].push(job);
-  });
-
-  const categories = Object.keys(jobsByCategory);
-  
-  const [expandedCategories, setExpandedCategories] = React.useState<Record<string, boolean>>({});
-
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
   };
-
+  
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead style={{ width: 50 }}>
+            <TableHead className="w-[50px]">
               <Checkbox 
                 checked={jobs.length > 0 && selectedJobs.length === jobs.length}
                 onCheckedChange={() => onSelectAll()}
                 aria-label="Select all"
               />
             </TableHead>
-            <TableHead style={{ width: 120 }}>
-              <div className="flex items-center gap-1">
-                <span>Category</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Filter className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuGroup>
-                      {['Bank Return', 'Statement', 'Notice', 'Invoice', 'Welcome Letter', 'Violation', 'Election Material', 'Other'].map((category) => (
-                        <DropdownMenuItem 
-                          key={category}
-                          onClick={() => onSetCategoryFilter(category)}
-                        >
-                          {category}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center gap-1">
-                <span>Association</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Filter className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuGroup>
-                      {Array.from(new Set(jobs.map(job => job.associationName))).map((name) => {
-                        const job = jobs.find(j => j.associationName === name);
-                        return job ? (
-                          <DropdownMenuItem 
-                            key={job.associationId}
-                            onClick={() => onSetAssociationFilter(job.associationId, job.associationName)}
-                          >
-                            {name}
-                          </DropdownMenuItem>
-                        ) : null;
-                      })}
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Send Certified</TableHead>
+            <TableHead>Document</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Association</TableHead>
+            <TableHead>Pages</TableHead>
+            <TableHead>Copies</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Certified</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.length === 0 ? (
+          {jobs.length > 0 ? (
+            jobs.map((job) => (
+              <TableRow key={job.id} className={selectedJobs.includes(job.id) ? "bg-blue-50" : ""}>
+                <TableCell>
+                  <Checkbox 
+                    checked={selectedJobs.includes(job.id)}
+                    onCheckedChange={() => onToggleSelect(job.id)}
+                    aria-label={`Select ${job.name}`}
+                  />
+                </TableCell>
+                <TableCell className="font-medium">{job.name}</TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 text-xs"
+                    onClick={() => onSetCategoryFilter(job.category)}
+                  >
+                    <Tag className="h-3 w-3 mr-1" />
+                    {job.category}
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 text-xs"
+                    onClick={() => onSetAssociationFilter(job.associationId, job.associationName)}
+                  >
+                    <Building className="h-3 w-3 mr-1" />
+                    {job.associationName}
+                  </Button>
+                </TableCell>
+                <TableCell>{job.pageCount}</TableCell>
+                <TableCell>{job.copies}</TableCell>
+                <TableCell>{getStatusBadge(job.status)}</TableCell>
+                <TableCell>{job.sendCertified ? "Yes" : "No"}</TableCell>
+              </TableRow>
+            ))
+          ) : (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
-                No print jobs found.
+              <TableCell colSpan={8} className="h-24 text-center">
+                No print jobs found in the queue.
               </TableCell>
             </TableRow>
-          ) : (
-            categories.map(category => {
-              const categoryJobs = jobsByCategory[category];
-              const isExpanded = expandedCategories[category];
-              
-              return (
-                <React.Fragment key={category}>
-                  <TableRow className="bg-muted/30">
-                    <TableCell colSpan={7}>
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => toggleCategory(category)}
-                        className="p-0 hover:bg-transparent flex items-center gap-2"
-                      >
-                        <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`} />
-                        <span className="font-medium">{category} (Count: {categoryJobs.length})</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  
-                  {isExpanded && categoryJobs.map(job => (
-                    <TableRow key={job.id} className="hover:bg-muted/20">
-                      <TableCell>
-                        <Checkbox 
-                          checked={selectedJobs.includes(job.id)}
-                          onCheckedChange={() => onToggleSelect(job.id)}
-                          aria-label={`Select ${job.description}`}
-                        />
-                      </TableCell>
-                      <TableCell>{job.category}</TableCell>
-                      <TableCell>{job.associationName}</TableCell>
-                      <TableCell>{job.category}</TableCell>
-                      <TableCell>{format(new Date(job.createdAt), 'MM/dd/yyyy h:mm a')}</TableCell>
-                      <TableCell>{job.description}</TableCell>
-                      <TableCell>
-                        <RadioGroup className="flex flex-row">
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem 
-                              value="yes" 
-                              id={`yes-${job.id}`} 
-                              checked={job.sendCertified === true}
-                              disabled
-                            />
-                            <label htmlFor={`yes-${job.id}`} className="text-sm">Yes</label>
-                          </div>
-                          <div className="flex items-center space-x-1 ml-4">
-                            <RadioGroupItem 
-                              value="no" 
-                              id={`no-${job.id}`} 
-                              checked={job.sendCertified === false}
-                              disabled
-                            />
-                            <label htmlFor={`no-${job.id}`} className="text-sm">No</label>
-                          </div>
-                        </RadioGroup>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </React.Fragment>
-              );
-            })
           )}
         </TableBody>
       </Table>

@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertyRecords from './PropertyRecords';
 import UnitRecords from './UnitRecords';
 import AssociationRecords from './AssociationRecords';
-import TransactionRecordsPlaceholder from './TransactionRecordsPlaceholder';
+import TransactionRecords from './TransactionRecords';
 import { Database, Building, Users, CreditCard } from 'lucide-react';
 
 const DatabaseExplorer = () => {
@@ -51,7 +51,7 @@ const DatabaseExplorer = () => {
           </TabsContent>
           
           <TabsContent value="transactions" className="pt-4">
-            <TransactionRecordsPlaceholder />
+            <TransactionRecords />
           </TabsContent>
         </Tabs>
       </CardContent>
