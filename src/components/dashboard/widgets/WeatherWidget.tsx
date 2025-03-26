@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CloudSun, Droplets, Wind, Thermometer, Sun, Cloud, CloudRain, CloudSnow, CloudFog } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface WeatherWidgetProps {
   size?: 'small' | 'medium' | 'large';
@@ -12,41 +13,50 @@ interface WeatherWidgetProps {
 }
 
 const WeatherWidget = ({ size = 'small', cardClass = '', config }: WeatherWidgetProps) => {
-  const location = config?.location || 'San Francisco, CA';
+  const location = "Austin, TX"; // Fixed to Austin, TX
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'current' | 'forecast'>('current');
   
   // Weather icons based on condition
-  const getWeatherIcon = (condition: string) => {
+  const getWeatherIcon = (condition: string, size: 'sm' | 'md' | 'lg' = 'lg') => {
+    const sizeClasses = {
+      sm: 'h-4 w-4',
+      md: 'h-8 w-8',
+      lg: 'h-16 w-16',
+    };
+    
     switch (condition.toLowerCase()) {
       case 'sunny':
-        return <Sun className="h-16 w-16 text-amber-400" />;
+        return <Sun className={`${sizeClasses[size]} text-amber-400`} />;
       case 'partly cloudy':
-        return <CloudSun className="h-16 w-16 text-blue-400" />;
+        return <CloudSun className={`${sizeClasses[size]} text-blue-400`} />;
       case 'cloudy':
-        return <Cloud className="h-16 w-16 text-gray-400" />;
+        return <Cloud className={`${sizeClasses[size]} text-gray-400`} />;
       case 'rainy':
-        return <CloudRain className="h-16 w-16 text-blue-500" />;
+        return <CloudRain className={`${sizeClasses[size]} text-blue-500`} />;
       case 'snowy':
-        return <CloudSnow className="h-16 w-16 text-blue-200" />;
+        return <CloudSnow className={`${sizeClasses[size]} text-blue-200`} />;
       case 'foggy':
-        return <CloudFog className="h-16 w-16 text-gray-300" />;
+        return <CloudFog className={`${sizeClasses[size]} text-gray-300`} />;
       default:
-        return <CloudSun className="h-16 w-16 text-blue-400" />;
+        return <CloudSun className={`${sizeClasses[size]} text-blue-400`} />;
     }
   };
 
-  // Mock weather data (in a real app, this would come from a weather API)
+  // Mock weather data for Austin, TX (in a real app, this would come from a weather API)
   const weatherData = {
-    temperature: 72,
+    temperature: 84,
     condition: 'Partly Cloudy',
-    humidity: 48,
-    windSpeed: 8,
+    humidity: 45,
+    windSpeed: 12,
     forecast: [
-      { day: 'Today', high: 72, low: 58, condition: 'Partly Cloudy' },
-      { day: 'Tue', high: 75, low: 60, condition: 'Sunny' },
-      { day: 'Wed', high: 68, low: 57, condition: 'Cloudy' },
-      { day: 'Thu', high: 65, low: 55, condition: 'Rainy' },
-      { day: 'Fri', high: 70, low: 58, condition: 'Partly Cloudy' },
+      { day: 'Today', high: 84, low: 68, condition: 'Partly Cloudy' },
+      { day: 'Tue', high: 87, low: 71, condition: 'Sunny' },
+      { day: 'Wed', high: 81, low: 65, condition: 'Cloudy' },
+      { day: 'Thu', high: 79, low: 64, condition: 'Rainy' },
+      { day: 'Fri', high: 83, low: 69, condition: 'Partly Cloudy' },
+      { day: 'Sat', high: 85, low: 70, condition: 'Sunny' },
+      { day: 'Sun', high: 82, low: 68, condition: 'Cloudy' },
     ]
   };
 
@@ -79,46 +89,82 @@ const WeatherWidget = ({ size = 'small', cardClass = '', config }: WeatherWidget
     );
   }
 
+  const renderCurrentWeather = () => (
+    <div className="bg-gradient-to-br from-blue-400 to-sky-500 text-white p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-medium">{location}</h3>
+          <p className="text-3xl font-bold mt-1">{weatherData.temperature}°F</p>
+          <p className="text-sm text-blue-100">{weatherData.condition}</p>
+        </div>
+        <div>
+          {getWeatherIcon(weatherData.condition)}
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between mt-4 text-sm text-blue-100">
+        <div className="flex items-center">
+          <Droplets className="h-4 w-4 mr-1" /> {weatherData.humidity}%
+        </div>
+        <div className="flex items-center">
+          <Wind className="h-4 w-4 mr-1" /> {weatherData.windSpeed} mph
+        </div>
+        <div className="flex items-center">
+          <Thermometer className="h-4 w-4 mr-1" /> Feels like {weatherData.temperature - 2}°F
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderForecast = () => (
+    <div className="bg-gradient-to-br from-blue-400 to-sky-500 text-white p-4">
+      <div className="mb-3">
+        <h3 className="font-medium">{location} - 5 Day Forecast</h3>
+      </div>
+      
+      <div className="grid grid-cols-5 gap-2">
+        {weatherData.forecast.slice(0, 5).map((day, index) => (
+          <div key={index} className="flex flex-col items-center bg-white/10 rounded-lg p-2">
+            <p className="text-xs font-bold mb-1">{day.day}</p>
+            <div className="my-1">
+              {getWeatherIcon(day.condition, 'md')}
+            </div>
+            <div className="flex flex-col items-center text-xs">
+              <span className="font-medium">{day.high}°</span>
+              <span className="text-blue-200">{day.low}°</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <Card className={`${cardClass} overflow-hidden`}>
       <CardHeader className="pb-2 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30 border-b">
-        <CardTitle className="text-md flex items-center gap-2">
-          <CloudSun className="h-4 w-4" /> Weather
+        <CardTitle className="text-md flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CloudSun className="h-4 w-4" /> Weather
+          </div>
+          
+          <Tabs defaultValue="current" className="w-auto" onValueChange={(value) => setActiveTab(value as 'current' | 'forecast')}>
+            <TabsList className="h-8 bg-blue-50/50 dark:bg-blue-900/20">
+              <TabsTrigger value="current" className="text-xs px-3 py-1">Current</TabsTrigger>
+              <TabsTrigger value="forecast" className="text-xs px-3 py-1">5-Day</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="bg-gradient-to-br from-blue-400 to-sky-500 text-white p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium">{location}</h3>
-              <p className="text-3xl font-bold mt-1">{weatherData.temperature}°F</p>
-              <p className="text-sm text-blue-100">{weatherData.condition}</p>
-            </div>
-            <div>
-              {getWeatherIcon(weatherData.condition)}
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between mt-4 text-sm text-blue-100">
-            <div className="flex items-center">
-              <Droplets className="h-4 w-4 mr-1" /> {weatherData.humidity}%
-            </div>
-            <div className="flex items-center">
-              <Wind className="h-4 w-4 mr-1" /> {weatherData.windSpeed} mph
-            </div>
-            <div className="flex items-center">
-              <Thermometer className="h-4 w-4 mr-1" /> Feels like {weatherData.temperature - 2}°F
-            </div>
-          </div>
-        </div>
-
-        {size !== 'small' && (
+        {activeTab === 'current' ? renderCurrentWeather() : renderForecast()}
+        
+        {activeTab === 'current' && size !== 'small' && (
           <div className="flex justify-between px-4 py-3 border-t">
             {weatherData.forecast.slice(0, 5).map((day, index) => (
               <div key={index} className="text-center">
                 <p className="text-xs font-medium">{day.day}</p>
                 <div className="my-1">
-                  {getWeatherIcon(day.condition.toLowerCase())}
+                  {getWeatherIcon(day.condition.toLowerCase(), 'sm')}
                 </div>
                 <div className="flex items-center justify-center gap-1 text-xs">
                   <span className="font-medium">{day.high}°</span>
