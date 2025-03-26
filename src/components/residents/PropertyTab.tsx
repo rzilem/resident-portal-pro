@@ -87,31 +87,38 @@ const PropertyTab: React.FC<PropertyTabProps> = ({ propertyDetails, status }) =>
           <div>
             <h3 className="text-lg font-semibold mb-4">Ownership Information</h3>
             <div className="space-y-4">
-              {propertyDetails.leaseStart && propertyDetails.leaseEnd && (
+              {status === 'Active' ? (
+                <div>
+                  <p className="text-sm font-medium">Start Date</p>
+                  <p className="text-muted-foreground">{propertyDetails.leaseStart}</p>
+                </div>
+              ) : (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium">Start Date</p>
-                      <p className="text-muted-foreground">{propertyDetails.leaseStart}</p>
+                  {propertyDetails.leaseStart && propertyDetails.leaseEnd && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium">Start Date</p>
+                        <p className="text-muted-foreground">{propertyDetails.leaseStart}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">End Date</p>
+                        <p className="text-muted-foreground">{propertyDetails.leaseEnd}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">End Date</p>
-                      <p className="text-muted-foreground">{propertyDetails.leaseEnd}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium">Monthly Assessment</p>
-                      <p className="text-muted-foreground">{propertyDetails.monthlyAssessment}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Security Deposit</p>
-                      <p className="text-muted-foreground">{propertyDetails.deposit}</p>
-                    </div>
-                  </div>
+                  )}
                 </>
               )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium">Monthly Assessment</p>
+                  <p className="text-muted-foreground">{propertyDetails.monthlyAssessment}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Security Deposit</p>
+                  <p className="text-muted-foreground">{propertyDetails.deposit}</p>
+                </div>
+              </div>
               
               <div className="mt-6 flex justify-end gap-2">
                 <Button variant="outline">View Ownership Documents</Button>
