@@ -1,11 +1,8 @@
-
 /**
- * Export all document utility functions
+ * Export all document-related utilities
  */
-
-// Export utility functions from dedicated files
-export * from './fileUtils';
-export * from './categoryUtils';
+export * from './uploadUtils';
 export * from './bucketUtils';
-export * from './documentDbUtils';
 export * from './authUtils';
+export { validateFileSize, validateFileType, formatFileSize, getFileExtension, generateUniqueFileName, getFileTypeIcon, downloadFile, readFileAsDataURL } from './fileUtils';
+export { getDocumentCategories } from './uploadUtils';
