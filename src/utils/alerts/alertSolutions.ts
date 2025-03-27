@@ -14,7 +14,9 @@ export const implementSolution = async (alertId: string, solutionId: string): Pr
   
   try {
     // Execute the solution's action
-    await solution.action();
+    if (solution.action) {
+      await solution.action();
+    }
     
     // Update alert status to in-progress
     updateAlertStatus(alertId, 'in-progress');

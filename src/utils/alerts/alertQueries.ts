@@ -1,9 +1,15 @@
+
 import { Alert } from '@/types/alert';
 import { mockAlerts } from '@/data/mockAlerts';
 
 // Function to get all alerts
 export const getAllAlerts = (): Alert[] => {
   return mockAlerts;
+};
+
+// Function to get an alert by ID
+export const getAlertById = (id: string): Alert | undefined => {
+  return mockAlerts.find(alert => alert.id === id);
 };
 
 // Function to get recent alerts, optionally filtered by association ID

@@ -18,11 +18,11 @@ export const updateAlertStatus = (id: string, status: AlertStatus): Alert | unde
   return alertsDatabase[alertIndex];
 };
 
-export const createAlert = (alert: Omit<Alert, 'id' | 'timestamp' | 'status'>): Alert => {
+export const createAlert = (alert: Omit<Alert, 'id' | 'createdAt' | 'status'>): Alert => {
   const newAlert: Alert = {
     id: uuid(),
     ...alert,
-    timestamp: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     status: 'new'
   };
   

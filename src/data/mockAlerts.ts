@@ -9,7 +9,7 @@ export const mockAlerts: Alert[] = [
     title: 'Invoice Approval Pending',
     description: 'There are 5 invoices awaiting approval for more than 7 days.',
     severity: 'high',
-    status: 'active',
+    status: 'new',
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
     scope: 'global',
     source: 'system',
@@ -36,7 +36,7 @@ export const mockAlerts: Alert[] = [
     title: 'Security Certificates Expiring',
     description: 'SSL certificates for the resident portal will expire in 14 days.',
     severity: 'critical',
-    status: 'active',
+    status: 'new',
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
     scope: 'global',
     source: 'system',
@@ -48,7 +48,7 @@ export const mockAlerts: Alert[] = [
         id: uuidv4(),
         title: 'Renew SSL Certificates',
         description: 'Contact IT department to renew SSL certificates before expiration.',
-        actionType: 'task',
+        actionType: 'manual',
         steps: [
           'Contact IT department',
           'Request certificate renewal',
@@ -62,7 +62,7 @@ export const mockAlerts: Alert[] = [
     title: 'Budget Variance Detected',
     description: 'Maintenance expenses exceed budget by 15% for Oceanview Heights Association.',
     severity: 'medium',
-    status: 'active',
+    status: 'new',
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
     scope: 'association',
     source: 'system',
@@ -86,7 +86,7 @@ export const mockAlerts: Alert[] = [
         id: uuidv4(),
         title: 'Schedule Board Review',
         description: 'Schedule a meeting with the board to discuss budget variances.',
-        actionType: 'task',
+        actionType: 'manual',
         steps: [
           'Contact board members',
           'Schedule meeting',
@@ -100,7 +100,7 @@ export const mockAlerts: Alert[] = [
     title: 'Compliance Notices Due',
     description: 'Annual compliance notices need to be sent to all homeowners by the end of the month.',
     severity: 'medium',
-    status: 'active',
+    status: 'new',
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
     scope: 'global',
     source: 'system',
@@ -127,7 +127,7 @@ export const mockAlerts: Alert[] = [
     title: 'High Water Usage Detected',
     description: 'Several units in Lakeside Community showing abnormally high water usage patterns.',
     severity: 'high',
-    status: 'active',
+    status: 'new',
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
     scope: 'association',
     source: 'system',
@@ -139,7 +139,7 @@ export const mockAlerts: Alert[] = [
         id: uuidv4(),
         title: 'Initiate Leak Investigation',
         description: 'Schedule maintenance team to inspect potential water leaks in identified units.',
-        actionType: 'task',
+        actionType: 'manual',
         steps: [
           'Identify affected units',
           'Schedule maintenance visits',
@@ -153,7 +153,7 @@ export const mockAlerts: Alert[] = [
     title: 'Resident Portal Usage Declining',
     description: 'Resident portal logins have decreased by 30% over the past month.',
     severity: 'low',
-    status: 'active',
+    status: 'new',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
     scope: 'global',
     source: 'analytics',
@@ -176,3 +176,6 @@ export const mockAlerts: Alert[] = [
     ]
   }
 ];
+
+// Create an alias for compatibility with existing code
+export const alertsDatabase = mockAlerts;
