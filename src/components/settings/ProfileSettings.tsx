@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { UserRound, Mail, Phone, MapPin, Building } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import ProfilePhotoUploader from './profile/ProfilePhotoUploader';
 

@@ -1,11 +1,10 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserRound, Image, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface ProfilePhotoUploaderProps {
   initialPhotoUrl?: string | null;
@@ -26,13 +25,11 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       return;
     }
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size should be less than 2MB');
       return;
@@ -42,10 +39,8 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
 
     try {
       console.log("Starting file upload process");
-      // Create a unique file path with user ID to enforce ownership
       const filePath = `${user.id}/${Date.now()}-${file.name}`;
 
-      // Upload file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile_photos')
         .upload(filePath, file, {
@@ -60,7 +55,6 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
 
       console.log("File uploaded successfully:", data);
 
-      // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('profile_photos')
         .getPublicUrl(filePath);
@@ -68,7 +62,6 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       const publicUrl = publicUrlData.publicUrl;
       console.log("Public URL generated:", publicUrl);
 
-      // Update profile with new photo URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: publicUrl })
@@ -79,7 +72,6 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         throw updateError;
       }
 
-      // Update local state
       setPhotoUrl(publicUrl);
       onPhotoChange(publicUrl);
       toast.success('Profile photo updated successfully');
@@ -88,7 +80,6 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       toast.error('Failed to upload profile photo');
     } finally {
       setIsUploading(false);
-      // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -101,14 +92,12 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
     setIsRemoving(true);
 
     try {
-      // Extract the file path from the URL
       const filePathMatch = photoUrl.match(/profile_photos\/(.+)$/);
       if (!filePathMatch) throw new Error('Invalid file path');
       
       const filePath = filePathMatch[1];
       console.log("Removing file:", filePath);
 
-      // Remove the file from storage
       const { error: removeError } = await supabase.storage
         .from('profile_photos')
         .remove([filePath]);
@@ -118,7 +107,6 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         throw removeError;
       }
 
-      // Update profile to remove the photo URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: null })
@@ -129,7 +117,6 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         throw updateError;
       }
 
-      // Update local state
       setPhotoUrl(null);
       onPhotoChange(null);
       toast.success('Profile photo removed');

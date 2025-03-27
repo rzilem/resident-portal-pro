@@ -1,193 +1,73 @@
+
 /**
- * Utility functions for document operations
+ * Utility functions for document management
  */
 
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog, errorLog } from '@/utils/debug';
-import { DocumentFile } from '@/types/documents';
-import { getDownloadUrl } from './uploadUtils';
-import { formatFileSize, formatDate } from './fileUtils';
+import { DocumentCategory } from '@/types/documents';
 
 /**
- * Get documents by association ID
- * @param associationId - Association ID
- * @returns Promise<DocumentFile[]> Array of documents
+ * Format file size in bytes to a human-readable format
+ * @param bytes File size in bytes
+ * @returns Formatted file size (e.g., "1.5 MB")
  */
-export const getDocumentsByAssociation = async (associationId: string): Promise<DocumentFile[]> => {
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+/**
+ * Get all document categories
+ * @returns Promise<DocumentCategory[]> List of document categories
+ */
+export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
   try {
-    if (!associationId) {
-      errorLog("No association ID provided");
-      return [];
+    const defaultCategories: DocumentCategory[] = [
+      { id: 'general', name: 'General', description: 'General documents', sortOrder: 1 },
+      { id: 'financial', name: 'Financial', description: 'Financial documents', sortOrder: 2 },
+      { id: 'legal', name: 'Legal', description: 'Legal documents', sortOrder: 3 },
+      { id: 'meetings', name: 'Meetings', description: 'Meeting minutes and agendas', sortOrder: 4 },
+      { id: 'maintenance', name: 'Maintenance', description: 'Maintenance records and reports', sortOrder: 5 },
+      { id: 'compliance', name: 'Compliance', description: 'Compliance documents', sortOrder: 6 },
+      { id: 'communications', name: 'Communications', description: 'Community communications', sortOrder: 7 }
+    ];
+    
+    return defaultCategories;
+  } catch (error) {
+    errorLog("Error getting document categories:", error);
+    return [];
+  }
+};
+
+/**
+ * Get documents from the database
+ * @param associationId Optional association ID to filter documents
+ * @returns Promise with list of documents
+ */
+export const getDocuments = async (associationId?: string) => {
+  try {
+    let query = supabase.from('documents').select('*');
+    
+    if (associationId) {
+      query = query.eq('association_id', associationId);
     }
     
-    debugLog(`Fetching documents for association: ${associationId}`);
-    
-    const { data, error } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('association_id', associationId)
-      .eq('is_archived', false)
-      .order('uploaded_date', { ascending: false });
+    const { data, error } = await query;
     
     if (error) {
       errorLog("Error fetching documents:", error);
       return [];
     }
     
-    debugLog(`Found ${data.length} documents for association ${associationId}`);
-    
-    // Transform data to match DocumentFile interface
-    return data.map(doc => ({
-      id: doc.id,
-      name: doc.name,
-      description: doc.description || '',
-      fileSize: doc.file_size,
-      fileType: doc.file_type,
-      url: doc.url,
-      category: doc.category || 'uncategorized',
-      tags: doc.tags || [],
-      uploadedBy: doc.uploaded_by,
-      uploadedDate: doc.uploaded_date,
-      lastModified: doc.last_modified || doc.uploaded_date,
-      version: doc.version || 1,
-      isPublic: !!doc.is_public,
-      isArchived: false,
-      associations: [associationId]
-    }));
+    return data || [];
   } catch (error) {
-    errorLog("Exception in getDocumentsByAssociation:", error);
+    errorLog("Exception in getDocuments:", error);
     return [];
-  }
-};
-
-/**
- * Search documents by criteria
- * @param criteria Search criteria
- * @returns Promise<DocumentFile[]> Array of documents
- */
-export const searchDocuments = async (criteria: {
-  query?: string,
-  categories?: string[],
-  associationId?: string
-}): Promise<DocumentFile[]> => {
-  try {
-    let query = supabase
-      .from('documents')
-      .select('*')
-      .eq('is_archived', false);
-    
-    if (criteria.associationId) {
-      query = query.eq('association_id', criteria.associationId);
-    }
-    
-    if (criteria.categories && criteria.categories.length > 0) {
-      query = query.in('category', criteria.categories);
-    }
-    
-    if (criteria.query) {
-      query = query.or(`name.ilike.%${criteria.query}%,description.ilike.%${criteria.query}%`);
-    }
-    
-    const { data, error } = await query.order('uploaded_date', { ascending: false });
-    
-    if (error) {
-      errorLog("Error searching documents:", error);
-      return [];
-    }
-    
-    // Transform data to match DocumentFile interface
-    return data.map(doc => ({
-      id: doc.id,
-      name: doc.name,
-      description: doc.description || '',
-      fileSize: doc.file_size,
-      fileType: doc.file_type,
-      url: doc.url,
-      category: doc.category || 'uncategorized',
-      tags: doc.tags || [],
-      uploadedBy: doc.uploaded_by,
-      uploadedDate: doc.uploaded_date,
-      lastModified: doc.last_modified || doc.uploaded_date,
-      version: doc.version || 1,
-      isPublic: !!doc.is_public,
-      isArchived: false,
-      associations: [doc.association_id]
-    }));
-  } catch (error) {
-    errorLog("Exception in searchDocuments:", error);
-    return [];
-  }
-};
-
-/**
- * Get document metadata by ID
- * @param documentId Document ID
- * @returns Promise<DocumentFile|null> Document metadata or null if not found
- */
-export const getDocumentById = async (documentId: string): Promise<DocumentFile | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('id', documentId)
-      .single();
-    
-    if (error) {
-      errorLog("Error fetching document:", error);
-      return null;
-    }
-    
-    if (!data) {
-      return null;
-    }
-    
-    return {
-      id: data.id,
-      name: data.name,
-      description: data.description || '',
-      fileSize: data.file_size,
-      fileType: data.file_type,
-      url: data.url,
-      category: data.category || 'uncategorized',
-      tags: data.tags || [],
-      uploadedBy: data.uploaded_by,
-      uploadedDate: data.uploaded_date,
-      lastModified: data.last_modified || data.uploaded_date,
-      version: data.version || 1,
-      isPublic: !!data.is_public,
-      isArchived: !!data.is_archived,
-      associations: [data.association_id]
-    };
-  } catch (error) {
-    errorLog("Exception in getDocumentById:", error);
-    return null;
-  }
-};
-
-/**
- * Download a document by ID
- * @param documentId Document ID
- * @returns Promise<void>
- */
-export const downloadDocument = async (documentId: string): Promise<void> => {
-  try {
-    const document = await getDocumentById(documentId);
-    
-    if (!document) {
-      throw new Error("Document not found");
-    }
-    
-    // If it's a direct public URL, we can download directly
-    if (document.url.startsWith('http')) {
-      window.open(document.url, '_blank');
-      return;
-    }
-    
-    // Otherwise, get a download URL from Supabase
-    const downloadUrl = await getDownloadUrl(document.url);
-    window.open(downloadUrl, '_blank');
-  } catch (error) {
-    errorLog("Error downloading document:", error);
-    throw error;
   }
 };
