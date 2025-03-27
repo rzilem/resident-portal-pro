@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, FileCheck } from "lucide-react";
@@ -25,20 +24,24 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
     
     try {
       // Call uploadDocument with correct parameter structure
-      const success = await uploadDocument({
+      const result = await uploadDocument({
         file,
         category: 'uncategorized',
         description: '',
         tags: []
       });
       
-      if (success && uploadedUrl) {
-        if (onSuccess) {
+      if (result === true) {
+        toast.success("File uploaded successfully");
+        if (uploadedUrl && onSuccess) {
           onSuccess(uploadedUrl);
         }
       }
       
       // Errors are already handled in the uploadDocument function with toast
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload file");
     } finally {
       setIsUploading(false);
       // Reset the input to allow uploading the same file again

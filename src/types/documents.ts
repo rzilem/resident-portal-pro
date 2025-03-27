@@ -18,6 +18,7 @@ export interface DocumentFile {
   fileSize: number;
   fileType: string;
   url: string;
+  path: string; // Added this property for storage path
   category: string;
   tags?: string[];
   uploadedBy: string;
@@ -35,7 +36,9 @@ export interface DocumentFile {
   isArchived: boolean;
   properties?: string[];
   associations?: string[];
+  associationId?: string; // Added this property for association relationship
   metadata?: Record<string, any>;
+  accessLevel?: string; // Added for access level control
 }
 
 export interface DocumentTemplate {

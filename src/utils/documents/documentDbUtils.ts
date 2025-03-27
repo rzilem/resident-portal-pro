@@ -21,7 +21,7 @@ const mapDbObjectToDocumentFile = (dbObject: any): DocumentFile => {
     fileSize: dbObject.file_size,
     fileType: dbObject.file_type,
     url: dbObject.url || '',
-    path: dbObject.url, // Using url field as path
+    path: dbObject.url, // Using url field as path for storage reference
     category: dbObject.category || 'uncategorized',
     tags: dbObject.tags || [],
     uploadedBy: dbObject.uploaded_by,
@@ -30,7 +30,8 @@ const mapDbObjectToDocumentFile = (dbObject: any): DocumentFile => {
     version: dbObject.version || 1,
     isPublic: dbObject.is_public || false,
     isArchived: dbObject.is_archived || false,
-    associationId: dbObject.association_id
+    associationId: dbObject.association_id,
+    accessLevel: dbObject.access_level
   };
 };
 
@@ -48,6 +49,7 @@ const mapDocumentFileToDbObject = (documentData: Partial<DocumentFile>): any => 
   if (documentData.fileSize !== undefined) dbObject.file_size = documentData.fileSize;
   if (documentData.fileType !== undefined) dbObject.file_type = documentData.fileType;
   if (documentData.url !== undefined) dbObject.url = documentData.url;
+  if (documentData.path !== undefined) dbObject.url = documentData.path; // Map path to url for storage
   if (documentData.category !== undefined) dbObject.category = documentData.category;
   if (documentData.tags !== undefined) dbObject.tags = documentData.tags;
   if (documentData.uploadedBy !== undefined) dbObject.uploaded_by = documentData.uploadedBy;
@@ -57,6 +59,7 @@ const mapDocumentFileToDbObject = (documentData: Partial<DocumentFile>): any => 
   if (documentData.isPublic !== undefined) dbObject.is_public = documentData.isPublic;
   if (documentData.isArchived !== undefined) dbObject.is_archived = documentData.isArchived;
   if (documentData.associationId !== undefined) dbObject.association_id = documentData.associationId;
+  if (documentData.accessLevel !== undefined) dbObject.access_level = documentData.accessLevel;
   
   return dbObject;
 };
