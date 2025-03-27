@@ -34,12 +34,31 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [initializing, setInitializing] = useState(true);
   const [initializationTimeout, setInitializationTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   
   // Hooks
   const { activeAssociation } = useAssociations();
   const { bucketReady, isLoading, isCreating, errorMessage, retryCheck, checkStorageStatus } = useDocumentsBucket();
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Check authentication status when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const checkAuth = async () => {
+        try {
+          const { data } = await supabase.auth.getSession();
+          console.log('Auth session check:', data.session ? 'authenticated' : 'not authenticated');
+          setAuthChecked(true);
+        } catch (error) {
+          console.error('Error checking auth session:', error);
+          setAuthChecked(true); // Set to true even on error to avoid endless loading
+        }
+      };
+      
+      checkAuth();
+    }
+  }, [isOpen]);
 
   // Reset form when dialog opens and check storage status
   useEffect(() => {
@@ -53,7 +72,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       }
       
       console.log('Checking storage status on dialog open, authenticated:', isAuthenticated);
-      checkStorageStatus();
+      
+      // Give a short delay before checking storage status to ensure auth state is updated
+      const delayId = setTimeout(() => {
+        checkStorageStatus();
+      }, 500);
       
       // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
@@ -65,13 +88,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       
       return () => {
         if (timeoutId) clearTimeout(timeoutId);
+        if (delayId) clearTimeout(delayId);
       };
     }
   }, [isOpen, checkStorageStatus, isAuthenticated]);
   
   // Update initializing state when loading completes
   useEffect(() => {
-    if (!isLoading && initializing) {
+    if (!isLoading && initializing && authChecked) {
       console.log('Storage loading complete, setting initializing to false');
       setInitializing(false);
       
@@ -81,7 +105,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         setInitializationTimeout(null);
       }
     }
-  }, [isLoading, initializing, initializationTimeout]);
+  }, [isLoading, initializing, initializationTimeout, authChecked]);
 
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);

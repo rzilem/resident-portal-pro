@@ -22,11 +22,12 @@ export const uploadDocument = async ({
   try {
     console.log('Starting document upload process');
     
-    // Get user ID for document ownership
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Get user ID for document ownership with direct session check
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
     
-    if (userError || !user) {
-      console.error('Auth error or no user found:', userError);
+    if (!user) {
+      console.error('Auth error or no user found:', 'No session');
       toast.error('Authentication required to upload documents. Please sign in first.');
       return false;
     }

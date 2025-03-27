@@ -11,10 +11,11 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
   try {
     console.log('Checking if documents bucket exists...');
     
-    // Check if user is authenticated first
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Check if user is authenticated first with direct session check
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
     
-    if (authError || !user) {
+    if (!user) {
       console.log('User not authenticated. Authentication is required to use document storage.');
       return false;
     }
@@ -27,12 +28,13 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
     if (listError) {
       console.error('Error listing buckets:', listError);
       
-      // If we get a permission error here, check if the user is authenticated
+      // If we get a permission error here, recheck authentication
       if (listError.message?.includes('permission') || listError.message?.includes('403')) {
-        console.log('Permission error listing buckets. Authentication may be required.');
+        console.log('Permission error listing buckets. Rechecking authentication...');
         
-        if (!user) {
-          console.log('User not authenticated. Authentication is required to use document storage.');
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          console.log('User not authenticated after recheck. Authentication is required to use document storage.');
           return false;
         }
         
@@ -72,6 +74,21 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
               error.message.includes('403'))) {
             console.log('Permission error creating bucket. Will attempt to use it anyway.');
             toast.info("Using existing document storage");
+            
+            // Try to create a storage policy if the bucket exists but access is denied
+            try {
+              const policyName = 'allow_authenticated_users';
+              await supabase.rpc('create_storage_policy', {
+                bucket_name: 'documents',
+                policy_name: policyName,
+                definition: 'auth.uid() IS NOT NULL'
+              });
+              console.log('Created storage policy for authenticated users');
+            } catch (policyError) {
+              console.log('Error creating storage policy:', policyError);
+              // Continue anyway, policy might already exist
+            }
+            
             return true;
           }
           
@@ -102,8 +119,9 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
 // Test if we can upload to the documents bucket
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
-    // Check if user is authenticated first
-    const { data: { user } } = await supabase.auth.getUser();
+    // Check if user is authenticated first with direct session check
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
     
     if (!user) {
       console.log('User not authenticated. Authentication is required to test bucket access.');
@@ -116,7 +134,7 @@ export const testBucketAccess = async (): Promise<boolean> => {
     const testFile = new Blob(['test'], { type: 'text/plain' });
     const testFilePath = `test-${Date.now()}.txt`;
     
-    // Try to upload it with a timeout of 4 seconds (reduced from 5)
+    // Try to upload it with a timeout of 4 seconds
     const uploadPromise = supabase.storage
       .from('documents')
       .upload(testFilePath, testFile, {
