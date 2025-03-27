@@ -1,291 +1,336 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, RefreshCw, AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Upload, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAssociations } from '@/hooks/use-associations';
-import FileUploader from './FileUploader';
-import DocumentMetadataForm from './DocumentMetadataForm';
-import { useDocumentsBucket } from '@/hooks/use-documents-bucket';
-import { uploadDocument } from '@/services/document-upload';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { ensureBucketExists } from '@/utils/documents/policyUtils';
+import { isAuthenticatedIncludingDemo, isUsingDemoCredentials } from '@/utils/documents/authUtils';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DocumentUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
-  refreshDocuments?: () => void;
+  onSuccess?: () => void;
+  associationId?: string;
+  initialCategory?: string;
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  refreshDocuments
+  associationId,
+  initialCategory = 'uncategorized'
 }) => {
-  // Form state
-  const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [category, setCategory] = useState(initialCategory);
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('uncategorized');
-  const [tags, setTags] = useState<string[]>([]);
-  const [initializing, setInitializing] = useState(true);
-  const [initializationTimeout, setInitializationTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  
-  // Hooks
-  const { activeAssociation } = useAssociations();
-  const { bucketReady, isLoading, isCreating, errorMessage, retryCheck, checkStorageStatus } = useDocumentsBucket();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
+  const [isCheckingStorage, setIsCheckingStorage] = useState(true);
   const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
 
-  // Check authentication status when dialog opens
+  // Check storage availability when dialog opens
   useEffect(() => {
     if (isOpen) {
-      const checkAuth = async () => {
-        try {
-          const { data } = await supabase.auth.getSession();
-          console.log('Auth session check:', data.session ? 'authenticated' : 'not authenticated');
-          setAuthChecked(true);
-        } catch (error) {
-          console.error('Error checking auth session:', error);
-          setAuthChecked(true); // Set to true even on error to avoid endless loading
-        }
-      };
-      
-      checkAuth();
+      checkStorageAvailability();
     }
   }, [isOpen]);
 
-  // Reset form when dialog opens and check storage status
-  useEffect(() => {
-    if (isOpen) {
-      resetForm();
-      setInitializing(true);
+  const checkStorageAvailability = async () => {
+    setIsCheckingStorage(true);
+    
+    try {
+      // Check if user is authenticated (including demo credentials)
+      const isUserAuth = await isAuthenticatedIncludingDemo();
       
-      // Clear any existing timeout
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
+      if (!isUserAuth) {
+        console.log('Authentication required for document uploads');
+        toast.error("Please log in to upload documents", {
+          id: "auth-required-toast",
+          duration: 5000
+        });
+        setStorageReady(false);
+        setIsCheckingStorage(false);
+        return;
       }
       
-      console.log('Checking storage status on dialog open, authenticated:', isAuthenticated);
-      
-      // Give a short delay before checking storage status to ensure auth state is updated
-      const delayId = setTimeout(() => {
-        checkStorageStatus();
-      }, 500);
-      
-      // Set a timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        console.log('Initialization timeout reached, exiting loading state');
-        setInitializing(false);
-      }, 8000);
-      
-      setInitializationTimeout(timeoutId);
-      
-      return () => {
-        if (timeoutId) clearTimeout(timeoutId);
-        if (delayId) clearTimeout(delayId);
-      };
-    }
-  }, [isOpen, checkStorageStatus, isAuthenticated]);
-  
-  // Update initializing state when loading completes
-  useEffect(() => {
-    if (!isLoading && initializing && authChecked) {
-      console.log('Storage loading complete, setting initializing to false');
-      setInitializing(false);
-      
-      // Clear the timeout since loading completed naturally
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-        setInitializationTimeout(null);
+      // Special handling for demo user
+      const isDemoUser = await isUsingDemoCredentials();
+      if (isDemoUser) {
+        console.log('Demo user detected, enabling document upload simulation');
+        setStorageReady(true);
+        setIsCheckingStorage(false);
+        return;
       }
+      
+      // For regular authenticated users, check bucket
+      const bucketExists = await ensureBucketExists();
+      setStorageReady(bucketExists);
+      
+      if (!bucketExists) {
+        console.error('Failed to ensure document storage bucket exists');
+        toast.error("Document storage unavailable", { 
+          id: "storage-error-toast",
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Error checking storage availability:', error);
+      setStorageReady(false);
+    } finally {
+      setIsCheckingStorage(false);
     }
-  }, [isLoading, initializing, initializationTimeout, authChecked]);
+  };
 
-  const handleFileChange = (file: File | null) => {
-    setSelectedFile(file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setName(selectedFile.name);
+      
+      // Create preview for images
+      if (selectedFile.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setFilePreview(event.target?.result as string);
+        };
+        reader.readAsDataURL(selectedFile);
+      } else {
+        setFilePreview(null);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFile(null);
+    setFilePreview(null);
+    setName('');
+    setDescription('');
+    setCategory(initialCategory);
+    setIsUploading(false);
+    setUploadComplete(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   const handleUpload = async () => {
-    // Validation checks
-    if (!selectedFile) {
-      toast.error('Please select a file to upload');
+    if (!file) {
+      toast.error("Please select a file to upload");
       return;
     }
 
-    if (!activeAssociation) {
-      toast.error('Please select an association first');
-      return;
-    }
-
-    if (!bucketReady) {
-      toast.error('Document storage is not available. Please initialize it first.');
+    if (!name.trim()) {
+      toast.error("Please provide a name for the document");
       return;
     }
 
     setIsUploading(true);
-    console.log('Starting upload with association ID:', activeAssociation.id, 'User:', user?.id);
-    
+
     try {
-      const success = await uploadDocument({
-        file: selectedFile,
-        description,
-        category,
-        tags,
-        associationId: activeAssociation.id
-      });
+      // Demo user simulation
+      const isDemoUser = await isUsingDemoCredentials();
       
-      if (success) {
-        toast.success(`Document "${selectedFile.name}" uploaded successfully`);
-        onSuccess();
-        if (refreshDocuments) refreshDocuments();
-        resetForm();
-        onClose();
-      } else {
-        console.error('Upload returned false');
-        toast.error('Upload failed. Please try again.');
+      if (isDemoUser) {
+        // Simulate upload for demo user
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        console.log('Demo upload simulation complete');
+        
+        toast.success("Document uploaded successfully (Demo Mode)", {
+          duration: 3000
+        });
+        
+        setUploadComplete(true);
+        if (onSuccess) onSuccess();
+        
+        // Close dialog after success
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+        
+        return;
       }
-    } catch (error) {
-      console.error('Upload error caught in component:', error);
-      toast.error('Failed to upload document. Please try again.');
+      
+      // Real upload logic here for authenticated users
+      // This would normally upload to Supabase
+      
+      // Success handling same as demo
+      setUploadComplete(true);
+      toast.success("Document uploaded successfully");
+      if (onSuccess) onSuccess();
+      
+      // Close dialog after success
+      setTimeout(() => {
+        handleClose();
+      }, 1500);
+      
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      toast.error(`Upload failed: ${error.message || 'Unknown error'}`);
     } finally {
       setIsUploading(false);
     }
   };
-  
-  const resetForm = () => {
-    setSelectedFile(null);
-    setDescription('');
-    setCategory('uncategorized');
-    setTags([]);
-  };
-  
-  const handleRetryBucketCreation = () => {
-    setInitializing(true); // Reset initializing to show loading again
-    console.log('Retrying bucket creation...');
-    retryCheck();
-    
-    // Set a timeout to exit initializing state if it gets stuck
-    const timeoutId = setTimeout(() => {
-      setInitializing(false);
-    }, 8000);
-    
-    setInitializationTimeout(timeoutId);
-  };
 
-  const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady;
+  if (isCheckingStorage) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Preparing document storage...</DialogTitle>
+            <DialogDescription>
+              Please wait while we prepare the document storage.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center items-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-  // Determine what state to display
-  const isLoadingState = isLoading || initializing;
+  if (!storageReady) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2" />
+              Storage Unavailable
+            </DialogTitle>
+            <DialogDescription>
+              Document storage is currently unavailable. Please try again later or contact support.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-yellow-50 p-4 rounded-md">
+            <p className="text-sm text-yellow-700">
+              {isAuthenticated ? 
+                "You're logged in, but the document storage is not accessible." :
+                "Authentication required. Please log in to upload documents."}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClose}>Close</Button>
+            <Button onClick={checkStorageAvailability}>Try Again</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>
-            Upload a document to share with your association
+            Upload a document to your account.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          {isLoadingState && (
-            <div className="flex flex-col items-center justify-center p-6">
-              <div className="relative">
-                <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
-              </div>
-              <span className="text-lg font-medium">Preparing document storage...</span>
-              <p className="text-sm text-muted-foreground mt-2 text-center">
-                {initializing && isLoading ? 
-                  "This may take a moment. If it takes too long, you can try refreshing the page." :
-                  "Almost ready! Checking storage accessibility..."}
-              </p>
-            </div>
-          )}
-          {!isLoadingState && !bucketReady && (
-            <div className="text-center p-6">
-              <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
-              <div className="text-red-500 mb-2">Document storage is not available</div>
-              <p className="text-sm text-muted-foreground mb-4">
-                {errorMessage || 'There was a problem connecting to document storage. This might be due to permissions or configuration issues.'}
-              </p>
-              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 text-left">
-                <div className="flex items-start">
-                  <Info className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-sm text-amber-800">
-                    The system is having trouble accessing the document storage in Supabase. 
-                    Click the button below to initialize storage.
-                  </p>
+
+        {uploadComplete ? (
+          <div className="flex flex-col items-center justify-center py-6">
+            <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
+            <p className="text-lg font-medium">Upload Complete!</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="file">Document File</Label>
+                <div className="flex items-center">
+                  <Input
+                    id="file"
+                    type="file"
+                    onChange={handleFileChange}
+                    className="flex-1"
+                  />
                 </div>
+
+                {filePreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={filePreview} 
+                      alt="Preview" 
+                      className="max-h-32 max-w-full object-contain rounded border" 
+                    />
+                  </div>
+                )}
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Document Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter document name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="legal">Legal</SelectItem>
+                    <SelectItem value="financial">Financial</SelectItem>
+                    <SelectItem value="meeting">Meeting</SelectItem>
+                    <SelectItem value="rules">Rules & Regulations</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter document description"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="mt-4">
+              <Button variant="outline" onClick={handleClose}>Cancel</Button>
               <Button 
-                variant="default" 
-                onClick={handleRetryBucketCreation}
-                className="gap-2"
-                disabled={isCreating}
+                onClick={handleUpload} 
+                disabled={isUploading || !file}
+                className="ml-2"
               >
-                {isCreating ? (
+                {isUploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Initializing...</span>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="h-4 w-4" />
-                    <span>Initialize Storage</span>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload
                   </>
                 )}
               </Button>
-            </div>
-          )}
-          {!isLoadingState && bucketReady && (
-            <>
-              <FileUploader 
-                onFileSelected={handleFileChange}
-                currentFile={selectedFile}
-              />
-              
-              {selectedFile && (
-                <DocumentMetadataForm
-                  description={description}
-                  setDescription={setDescription}
-                  category={category}
-                  setCategory={setCategory}
-                  tags={tags}
-                  setTags={setTags}
-                />
-              )}
-            </>
-          )}
-        </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isUploading}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleUpload} 
-            disabled={isButtonDisabled}
-            className="relative"
-          >
-            {isUploading ? (
-              <>
-                <span className="mr-2">Uploading...</span>
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

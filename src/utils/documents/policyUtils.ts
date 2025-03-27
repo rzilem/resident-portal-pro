@@ -5,6 +5,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isUsingDemoCredentials } from './authUtils';
 
 /**
  * Log instructions to manually set storage policies in Supabase dashboard
@@ -53,6 +54,13 @@ export const ensureStoragePolicies = async (bucketName: string = 'documents'): P
  */
 export const checkBucketExists = async (bucketName: string): Promise<boolean> => {
   try {
+    // Special handling for demo user
+    const isDemoUser = await isUsingDemoCredentials();
+    if (isDemoUser) {
+      console.log(`Demo user - simulating bucket ${bucketName} exists`);
+      return true;
+    }
+    
     const { data: buckets, error } = await supabase.storage.listBuckets();
     
     if (error) {
@@ -80,6 +88,13 @@ export const createBucket = async (
   fileSizeLimit: number = 10485760
 ): Promise<boolean> => {
   try {
+    // Special handling for demo user
+    const isDemoUser = await isUsingDemoCredentials();
+    if (isDemoUser) {
+      console.log(`Demo user - simulating bucket ${bucketName} creation`);
+      return true;
+    }
+    
     // Check if bucket already exists
     const exists = await checkBucketExists(bucketName);
     if (exists) {
@@ -126,6 +141,13 @@ export const ensureBucketExists = async (
   isPublic: boolean = false
 ): Promise<boolean> => {
   try {
+    // Special handling for demo user
+    const isDemoUser = await isUsingDemoCredentials();
+    if (isDemoUser) {
+      console.log(`Demo user - simulating bucket ${bucketName} exists`);
+      return true;
+    }
+    
     // Check if bucket exists
     const exists = await checkBucketExists(bucketName);
     
