@@ -34,7 +34,7 @@ function App() {
                 <Route path="finances" element={<Finances />} />
               </Route>
               
-              {/* Compliance Management Routes */}
+              {/* Compliance Management Routes - now under Community Management */}
               <Route path="compliance" element={<Compliance />} />
               
               <Route path="*" element={<div>Not Found</div>} />

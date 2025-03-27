@@ -3,7 +3,6 @@ import {
   Calendar, 
   FileText, 
   MessageSquare, 
-  AlertTriangle, 
   Printer, 
   ClipboardCheck, 
   Home 
@@ -16,7 +15,6 @@ export const getOperationsSection = (currentPath: string): NavItem => {
     icon: Home,
     active: currentPath === "/calendar" || 
             currentPath.startsWith("/communications") || 
-            currentPath.startsWith("/compliance") || 
             currentPath === "/workflows" || 
             currentPath === "/print-queue" ||
             currentPath.startsWith("/resale"),
@@ -45,12 +43,6 @@ export const getOperationsSection = (currentPath: string): NavItem => {
             active: currentPath === "/communications/announcements",
           },
         ],
-      },
-      {
-        label: "Compliance",
-        icon: AlertTriangle,
-        href: "/compliance",
-        active: currentPath.startsWith("/compliance"),
       },
       {
         label: "Workflows",

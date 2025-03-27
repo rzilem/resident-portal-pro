@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -102,11 +103,6 @@ const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link to="/compliance" className="text-sm font-medium hover:underline flex items-center">
-            <AlertTriangle className="h-4 w-4 mr-1" />
-            <span>Compliance</span>
-          </Link>
-          
           <Link to="/settings" className="text-sm font-medium hover:underline">
             Settings
           </Link>
@@ -195,14 +191,6 @@ const Navbar = () => {
             >
               <FileText size={16} className="mr-2" />
               Payments
-            </Link>
-            <Link
-              to="/compliance"
-              className="flex items-center text-sm font-medium hover:underline"
-              onClick={toggleMenu}
-            >
-              <AlertTriangle size={16} className="mr-2" />
-              Compliance
             </Link>
             <Link
               to="/settings"
