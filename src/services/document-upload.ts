@@ -23,11 +23,15 @@ export const uploadDocument = async ({
     console.log('Starting document upload process');
     
     // Get user ID for document ownership
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      console.log('No authenticated user found, attempting to proceed as anonymous');
-      // We'll proceed as anonymous since the bucket is public
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('Auth error or no user found:', userError);
+      toast.error('Authentication required to upload documents. Please sign in first.');
+      return false;
     }
+    
+    console.log('User authenticated:', user.id);
     
     // First make sure the bucket exists
     const bucketExists = await ensureDocumentsBucketExists();
@@ -114,7 +118,7 @@ export const uploadDocument = async ({
           url: filePath,
           category: category,
           tags: tags.length > 0 ? tags : null,
-          uploaded_by: user?.id || null,
+          uploaded_by: user.id,
           association_id: validAssociationId,
           is_public: false,
           version: 1

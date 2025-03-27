@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/storageUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
@@ -10,19 +11,18 @@ export const useDocumentsBucket = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { isAuthenticated, user } = useAuth();
   const MAX_RETRIES = 3;
 
   const checkBucket = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
     
+    console.log('Checking bucket, user authenticated:', isAuthenticated, user?.id);
+    
     try {
-      // Check if user is authenticated first
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.log('User not authenticated. Authentication is required to use document storage.');
-        setErrorMessage('Authentication required to use document storage');
+      if (!isAuthenticated) {
+        console.log('User is not authenticated, skipping bucket check');
         setBucketReady(false);
         setIsLoading(false);
         return;
@@ -32,7 +32,7 @@ export const useDocumentsBucket = () => {
       const timeoutPromise = new Promise<boolean>((_, reject) => {
         setTimeout(() => {
           reject(new Error('Connection to document storage timed out'));
-        }, 5000); // Reduced from 6s to 5s
+        }, 5000);
       });
       
       // Race the bucket check against the timeout
@@ -53,7 +53,7 @@ export const useDocumentsBucket = () => {
             new Promise<boolean>((_, reject) => {
               setTimeout(() => {
                 reject(new Error('Bucket access test timed out'));
-              }, 4000); // Reduced from 5s to 4s
+              }, 4000);
             })
           ]);
           
@@ -98,7 +98,7 @@ export const useDocumentsBucket = () => {
       setIsLoading(false);
       setBucketReady(false);
     }
-  }, [retryCount, isCreating, MAX_RETRIES]);
+  }, [retryCount, isCreating, MAX_RETRIES, isAuthenticated, user]);
   
   useEffect(() => {
     let isMounted = true;
@@ -125,17 +125,23 @@ export const useDocumentsBucket = () => {
             setErrorMessage('Document storage check timed out');
           }
         }
-      }, 8000); // Reduced from 10s to 8s
+      }, 8000);
     };
     
-    checkWithTimeout();
+    if (isAuthenticated) {
+      checkWithTimeout();
+    } else {
+      setIsLoading(false);
+      setBucketReady(false);
+      setErrorMessage('Authentication required to use document storage');
+    }
     
     // Cleanup function
     return () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [checkBucket, isLoading, bucketReady]);
+  }, [checkBucket, isLoading, bucketReady, isAuthenticated]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
@@ -144,17 +150,6 @@ export const useDocumentsBucket = () => {
     setIsCreating(true);
     
     try {
-      // First ensure the user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.log('User not authenticated. Cannot create bucket.');
-        setErrorMessage('Authentication required to create document storage');
-        setIsCreating(false);
-        toast.error("Please sign in to create document storage");
-        return;
-      }
-      
       // Force bucket creation with timeout
       const success = await Promise.race([
         ensureDocumentsBucketExists(true),

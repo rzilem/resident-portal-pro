@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface VendorDocumentsTabProps {
   vendorId: string;
@@ -11,6 +12,7 @@ interface VendorDocumentsTabProps {
 
 const VendorDocumentsTab: React.FC<VendorDocumentsTabProps> = ({ vendorId }) => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   return (
     <>

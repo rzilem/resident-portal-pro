@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Download, Upload } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DocumentActionButtons: React.FC = () => {
   const isMobile = useIsMobile();
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const { isAuthenticated } = useAuth();
   
   return (
     <>

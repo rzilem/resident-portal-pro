@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Document } from '@/types/resident';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DocumentsTabProps {
   documents?: Document[];
@@ -13,6 +14,7 @@ interface DocumentsTabProps {
 
 const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   return (
     <>

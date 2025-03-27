@@ -16,9 +16,10 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
     
     if (authError || !user) {
       console.log('User not authenticated. Authentication is required to use document storage.');
-      toast.error("Authentication required to use document storage");
       return false;
     }
+    
+    console.log('User authenticated:', user.id);
     
     // Check if bucket exists
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
@@ -32,7 +33,6 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
         
         if (!user) {
           console.log('User not authenticated. Authentication is required to use document storage.');
-          toast.error("Authentication required to use document storage");
           return false;
         }
         
@@ -75,7 +75,6 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
             return true;
           }
           
-          toast.error(`Failed to create document storage: ${error.message}`);
           return false;
         }
         
@@ -88,7 +87,6 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
         return true;
       } catch (createError) {
         console.error('Exception during bucket creation:', createError);
-        toast.error('Failed to initialize document storage');
         return false;
       }
     } else {
@@ -97,15 +95,6 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
     }
   } catch (error) {
     console.error('Error checking/creating documents bucket:', error);
-    
-    // Check if it's an auth-related error
-    if (error instanceof Error && 
-        (error.message.includes('auth') || error.message.includes('token') || error.message.includes('JWT'))) {
-      toast.error("Authentication required to use document storage");
-    } else {
-      toast.error("Failed to access document storage");
-    }
-    
     return false;
   }
 };
@@ -120,6 +109,8 @@ export const testBucketAccess = async (): Promise<boolean> => {
       console.log('User not authenticated. Authentication is required to test bucket access.');
       return false;
     }
+    
+    console.log('User authenticated for bucket access test:', user.id);
     
     // Create a tiny test file
     const testFile = new Blob(['test'], { type: 'text/plain' });
@@ -145,13 +136,6 @@ export const testBucketAccess = async (): Promise<boolean> => {
     
     if (error) {
       console.error('Error testing bucket access:', error);
-      
-      // Check if it's an auth-related error
-      if (error.message && 
-          (error.message.includes('auth') || error.message.includes('JWT') || error.message.includes('token'))) {
-        toast.error("Authentication required to access document storage");
-      }
-      
       return false;
     }
     
