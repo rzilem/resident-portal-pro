@@ -1,59 +1,132 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { 
+  Home, 
+  Settings, 
+  User, 
+  Menu, 
+  X, 
+  LogOut,
+  CreditCard,
+  FileText,
+  AlertTriangle,
+  DollarSign
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useUser } from '@/contexts/UserContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings, User } from 'lucide-react';
 import { ModeToggle } from '@/components/theme/mode-toggle';
-import { useUser } from '@/contexts/UserContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
-export default function Navbar() {
-  const { user, profile, isAuthenticated } = useUser();
+const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useUser();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('Signed out successfully');
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Failed to sign out');
-    }
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   const getInitials = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
-    } else if (user?.email) {
-      return user.email[0].toUpperCase();
-    }
-    return 'U';
+    if (!user?.profile) return 'U';
+    const { first_name, last_name } = user.profile;
+    return `${first_name?.[0] || ''}${last_name?.[0] || ''}` || 'U';
   };
 
   return (
-    <div className="border-b">
-      <div className="flex h-16 items-center px-4 container mx-auto">
-        <Link to="/" className="font-bold text-xl">ResidentPro</Link>
-        
-        <div className="ml-auto flex items-center space-x-4">
+    <header className="sticky top-0 z-40 w-full border-b bg-background">
+      <div className="container flex h-16 items-center justify-between py-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={toggleMenu}
+          >
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </Button>
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-xl font-bold">HOA Manager</span>
+          </Link>
+        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link to="/dashboard" className="text-sm font-medium hover:underline">
+            Dashboard
+          </Link>
+          
+          {/* Financial Management Links */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Financial Menu</span>
+                <DollarSign className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Financial Management</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link to="/financial/transactions">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Transactions</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/financial/payments">
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Payments</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/financial/finances">
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    <span>Finances</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Compliance Link */}
+          <Link to="/compliance" className="text-sm font-medium hover:underline flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            <span>Compliance</span>
+          </Link>
+          
+          <Link to="/settings" className="text-sm font-medium hover:underline">
+            Settings
+          </Link>
+        </nav>
+
+        <div className="flex items-center gap-2">
           <ModeToggle />
+
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.profile_image_url || ''} alt={profile?.first_name || 'User'} />
+                    <AvatarImage
+                      src={user?.profile?.profile_image_url || ''}
+                      alt={user?.profile?.first_name || 'User'}
+                    />
                     <AvatarFallback>{getInitials()}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -62,34 +135,92 @@ export default function Navbar() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {profile?.first_name} {profile?.last_name}
+                      {user?.profile?.first_name} {user?.profile?.last_name}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
+                      {user?.profile?.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" onClick={() => navigate('/login')}>Login</Button>
+            <Button size="sm" onClick={() => navigate('/login')}>
+              Login
+            </Button>
           )}
         </div>
       </div>
-    </div>
+
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t">
+          <div className="flex flex-col space-y-3 p-4">
+            <Link
+              to="/dashboard"
+              className="flex items-center text-sm font-medium hover:underline"
+              onClick={toggleMenu}
+            >
+              <Home size={16} className="mr-2" />
+              Dashboard
+            </Link>
+            <Link
+              to="/financial/transactions"
+              className="flex items-center text-sm font-medium hover:underline"
+              onClick={toggleMenu}
+            >
+              <CreditCard size={16} className="mr-2" />
+              Transactions
+            </Link>
+            <Link
+              to="/financial/payments"
+              className="flex items-center text-sm font-medium hover:underline"
+              onClick={toggleMenu}
+            >
+              <FileText size={16} className="mr-2" />
+              Payments
+            </Link>
+            <Link
+              to="/compliance"
+              className="flex items-center text-sm font-medium hover:underline"
+              onClick={toggleMenu}
+            >
+              <AlertTriangle size={16} className="mr-2" />
+              Compliance
+            </Link>
+            <Link
+              to="/settings"
+              className="flex items-center text-sm font-medium hover:underline"
+              onClick={toggleMenu}
+            >
+              <Settings size={16} className="mr-2" />
+              Settings
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
   );
-}
+};
+
+export default Navbar;
