@@ -12,8 +12,8 @@ export const initializeDocumentStorage = async (): Promise<void> => {
     console.log('Initializing document storage...');
     
     // Check if user is authenticated
-    const { data: session } = await supabase.auth.getSession();
-    const isAuthenticated = !!session?.user;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const isAuthenticated = !!sessionData?.session;
     
     if (!isAuthenticated) {
       console.log('User not authenticated, skipping bucket initialization');

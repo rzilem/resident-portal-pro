@@ -65,6 +65,14 @@ export const isAllowedFileType = (file: File, allowedTypes: string[]): boolean =
 };
 
 /**
+ * Validate file type (alias for isAllowedFileType for backward compatibility)
+ * @param {File} file - File to check
+ * @param {string[]} allowedTypes - Allowed MIME types
+ * @returns {boolean} True if file type is allowed
+ */
+export const validateFileType = isAllowedFileType;
+
+/**
  * Check if file size is within limit
  * @param {File} file - File to check
  * @param {number} maxSizeBytes - Maximum file size in bytes
@@ -73,6 +81,14 @@ export const isAllowedFileType = (file: File, allowedTypes: string[]): boolean =
 export const isFileSizeValid = (file: File, maxSizeBytes: number): boolean => {
   return file.size <= maxSizeBytes;
 };
+
+/**
+ * Validate file size (alias for isFileSizeValid for backward compatibility)
+ * @param {File} file - File to check
+ * @param {number} maxSizeBytes - Maximum file size in bytes
+ * @returns {boolean} True if file size is within limit
+ */
+export const validateFileSize = isFileSizeValid;
 
 /**
  * Generate a unique file name
