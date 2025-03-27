@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
@@ -32,37 +32,35 @@ const App = () => {
     <AuthProvider>
       <DocumentStorageInitializer />
       <Toaster />
-      <Router basename="/projects/3d3233c6-ee7c-4383-8ccf-b42d6efe67e1">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/logout" element={<LogoutRedirect />} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/logout" element={<LogoutRedirect />} />
 
-          <Route
-            path="/simple-dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/upload"
-            element={
-              <ProtectedRoute>
-                <UploadDocument />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/simple-dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/upload"
+          element={
+            <ProtectedRoute>
+              <UploadDocument />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route path="/hoa/dashboard" element={<HoaDashboard />} />
-          <Route path="/hoa/finances" element={<HoaFinances />} />
+        <Route path="/hoa/dashboard" element={<HoaDashboard />} />
+        <Route path="/hoa/finances" element={<HoaFinances />} />
 
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/residents" element={<Residents />} />
-          <Route path="/residents/:id" element={<ResidentProfile />} />
-          <Route path="/" element={<Index />} />
-        </Routes>
-      </Router>
+        <Route path="/properties" element={<Properties />} />
+        <Route path="/residents" element={<Residents />} />
+        <Route path="/residents/:id" element={<ResidentProfile />} />
+        <Route path="/" element={<Index />} />
+      </Routes>
     </AuthProvider>
   );
 };
