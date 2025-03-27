@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -65,13 +64,11 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/dashboard" className="text-sm font-medium hover:underline">
             Dashboard
           </Link>
           
-          {/* Financial Management Links */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -105,7 +102,6 @@ const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {/* Compliance Link */}
           <Link to="/compliance" className="text-sm font-medium hover:underline flex items-center">
             <AlertTriangle className="h-4 w-4 mr-1" />
             <span>Compliance</span>
@@ -173,7 +169,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="md:hidden border-t">
           <div className="flex flex-col space-y-3 p-4">
