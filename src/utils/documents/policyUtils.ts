@@ -37,7 +37,7 @@ export const createStoragePolicy = async (
     } as StoragePolicyParams);
     
     if (error) {
-      throw error;
+      throw new Error(error.message || 'Failed to create storage policy');
     }
     
     console.log(`Created storage policy ${policyName} for ${operation} operation`);
