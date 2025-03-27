@@ -14,6 +14,7 @@ import ThemePresets from './display/ThemePresets';
 import CustomBackground from './display/CustomBackground';
 import ColorCustomizer from './display/ColorCustomizer';
 import LogoUploader from './display/LogoUploader';
+import { toast } from 'sonner';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
@@ -60,11 +61,19 @@ const DisplaySettings = () => {
     e.preventDefault();
     
     try {
+      // Show loading state
+      toast.loading("Saving preferences...");
+      
+      // Save each preference independently
       await updatePreference("cardStyle", cardStyle);
       await updatePreference("density", density);
       await updatePreference("animations", animations);
+      
+      // Show success message
+      toast.success("Preferences saved successfully");
     } catch (error) {
       console.error("Error saving display settings:", error);
+      toast.error("Failed to save preferences");
     }
   };
 
@@ -197,7 +206,10 @@ const DisplaySettings = () => {
             </Tabs>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+            >
               {isLoading ? "Saving..." : "Save Preferences"}
             </Button>
           </CardFooter>

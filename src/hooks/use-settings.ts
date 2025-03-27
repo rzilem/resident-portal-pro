@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { UserPreferences } from '@/types/user';
 import { userPreferencesService } from '@/services/userPreferencesService';
 import { toast } from 'sonner';
+import { applySpecificPreferenceToUI } from './settings/apply-preferences';
 
 // Mock current user ID - in a real app, this would come from auth
 const CURRENT_USER_ID = 'current-user';
@@ -29,20 +30,26 @@ export function useSettings() {
     key: keyof UserPreferences, 
     value: any
   ): Promise<void> => {
-    if (!preferences) return;
+    if (!preferences) return Promise.reject('No preferences loaded');
+    
+    setIsLoading(true);
     
     try {
       console.log(`Updating preference "${key}" with:`, value);
       const updatedPrefs = userPreferencesService.updatePreference(CURRENT_USER_ID, key, value);
       
-      // Important: Update the local state with the updated preferences
+      // Update the local state with the updated preferences
       setPreferences(updatedPrefs);
+      
+      // Apply the specific preference to the UI
+      applySpecificPreferenceToUI(key, value, updatedPrefs);
       
       return Promise.resolve();
     } catch (error) {
       console.error(`Error updating preference "${key}":`, error);
-      toast.error('Failed to save settings');
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   }, [preferences]);
 
@@ -50,25 +57,30 @@ export function useSettings() {
   const updatePreferences = useCallback(async (
     updates: Partial<UserPreferences>
   ): Promise<void> => {
-    if (!preferences) return;
+    if (!preferences) return Promise.reject('No preferences loaded');
+    
+    setIsLoading(true);
     
     try {
       console.log('Updating preferences with:', updates);
       const updatedPrefs = userPreferencesService.updateUserPreferences(CURRENT_USER_ID, updates);
       
-      // Important: Update the local state with the updated preferences
+      // Update the local state with the updated preferences
       setPreferences(updatedPrefs);
       
       return Promise.resolve();
     } catch (error) {
       console.error('Error updating preferences:', error);
-      toast.error('Failed to save settings');
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   }, [preferences]);
 
   // Reset preferences to default
   const resetPreferences = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    
     try {
       const defaultPrefs = userPreferencesService.resetPreferences(CURRENT_USER_ID);
       setPreferences(defaultPrefs);
@@ -76,8 +88,9 @@ export function useSettings() {
       return Promise.resolve();
     } catch (error) {
       console.error('Error resetting preferences:', error);
-      toast.error('Failed to reset settings');
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
