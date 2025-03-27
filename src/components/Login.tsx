@@ -1,27 +1,36 @@
 
-import React, { useState, useContext } from 'react';
+// src/components/Login.tsx
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { login } = useContext(AuthContext);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const { signIn, user } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get the page the user was trying to access (default to /dashboard)
+  console.log('Login component: Current user:', user);
+  console.log('Login component: Redirecting from:', location.state?.from);
+
   const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
-      // Redirect to the page the user came from
+      const { error } = await signIn(email, password);
+      if (error) {
+        throw error;
+      }
+      
+      console.log('Login component: Redirecting to:', from);
       navigate(from, { replace: true });
-    } catch (err) {
+    } catch (err: any) {
       setError('Failed to log in. Please check your credentials.');
+      console.error('Login component: Error:', err.message);
     }
   };
 
@@ -65,7 +74,6 @@ const Login = () => {
               />
             </div>
           </div>
-
           <div>
             <button
               type="submit"

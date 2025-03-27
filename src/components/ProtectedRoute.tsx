@@ -1,19 +1,15 @@
+
 // src/components/ProtectedRoute.tsx
-import React, { useContext, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('AuthContext must be used within an AuthProvider');
-  }
-
-  const { user, loading } = context;
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   console.log('ProtectedRoute: User:', user);

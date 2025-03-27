@@ -6,7 +6,6 @@ import App from './App'
 import './index.css'
 import './styles/theme.css'
 import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from '@/contexts/auth/AuthProvider'
 
 // Apply theme class to body for more visible theming
 document.body.classList.add('theme-applied');

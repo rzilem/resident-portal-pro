@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
 import { useLogout } from '@/hooks/use-logout';
 
