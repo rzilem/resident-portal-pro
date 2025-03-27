@@ -355,6 +355,7 @@ export const updateDocumentAccessLevel = async (
   accessLevel: string
 ): Promise<boolean> => {
   try {
+    // Fix: Use the correct column name 'access_level' in the update object
     const { error } = await supabase
       .from('documents')
       .update({ access_level: accessLevel })
