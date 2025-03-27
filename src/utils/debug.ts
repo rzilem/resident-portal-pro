@@ -32,3 +32,42 @@ export const errorLog = (message: string, error?: any): void => {
     console.error(`[ERROR] ${message}`);
   }
 };
+
+/**
+ * Log warning messages to console
+ * @param message Warning message
+ * @param data Optional data to log
+ */
+export const warnLog = (message: string, data?: any): void => {
+  if (data) {
+    console.warn(`[WARNING] ${message}`, data);
+  } else {
+    console.warn(`[WARNING] ${message}`);
+  }
+};
+
+/**
+ * Log success messages to console
+ * @param message Success message
+ * @param data Optional data to log
+ */
+export const successLog = (message: string, data?: any): void => {
+  if (data) {
+    console.log(`[SUCCESS] ${message}`, data);
+  } else {
+    console.log(`[SUCCESS] ${message}`);
+  }
+};
+
+/**
+ * Log information messages to console
+ * @param message Info message
+ * @param data Optional data to log
+ */
+export const infoLog = (message: string, data?: any): void => {
+  if (data) {
+    console.info(`[INFO] ${message}`, data);
+  } else {
+    console.info(`[INFO] ${message}`);
+  }
+};

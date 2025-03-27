@@ -4,187 +4,137 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
+import { debugLog, errorLog } from '@/utils/debug';
 
-// Get documents with optional filters
-export const getDocuments = async (
-  filters: DocumentSearchFilters = {}, 
-  associationId?: string,
-  userRole?: string
-): Promise<DocumentFile[]> => {
+/**
+ * Save document metadata to the database
+ * @param documentData Document metadata
+ * @returns Promise<{ success: boolean, id?: string, error?: string }>
+ */
+export const saveDocumentMetadata = async (documentData: any): Promise<{ success: boolean, id?: string, error?: string }> => {
   try {
-    console.log('Fetching documents with filters:', { filters, associationId, userRole });
+    debugLog("Saving document metadata:", documentData);
     
-    // Start query builder
-    let query = supabase
+    // Check for required fields
+    if (!documentData.name || !documentData.file_size || !documentData.file_type || !documentData.url) {
+      return { 
+        success: false, 
+        error: "Missing required document metadata" 
+      };
+    }
+    
+    const { data, error } = await supabase
       .from('documents')
-      .select('*');
-    
-    // Apply association filter if provided
-    if (associationId) {
-      console.log(`Filtering by association ID: ${associationId}`);
-      try {
-        // Validate if this is a UUID
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(associationId)) {
-          // If it's a simple numeric ID, try to fetch the actual UUID first
-          const { data: associationData } = await supabase
-            .from('associations')
-            .select('id')
-            .eq('id', associationId)
-            .maybeSingle();
-            
-          if (associationData) {
-            query = query.eq('association_id', associationData.id);
-          } else {
-            // If we can't find it, still use the original ID (will likely return no results)
-            query = query.eq('association_id', associationId);
-          }
-        } else {
-          // It's already a valid UUID
-          query = query.eq('association_id', associationId);
-        }
-      } catch (error) {
-        console.error('Error validating association ID:', error);
-        query = query.eq('association_id', associationId);
-      }
-    }
-    
-    // Apply search query if provided
-    if (filters.query && filters.query.trim() !== '') {
-      const searchTerm = `%${filters.query.toLowerCase()}%`;
-      query = query.or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`);
-    }
-    
-    // Apply category filter
-    if (filters.categories && filters.categories.length > 0) {
-      query = query.in('category', filters.categories);
-    }
-    
-    // Apply tags filter
-    if (filters.tags && filters.tags.length > 0) {
-      // For array columns, we need to check if any of the tags are in the array
-      for (const tag of filters.tags) {
-        query = query.contains('tags', [tag]);
-      }
-    }
-    
-    // Apply date range filter
-    if (filters.dateRange) {
-      if (filters.dateRange.start) {
-        query = query.gte('uploaded_date', filters.dateRange.start);
-      }
-      if (filters.dateRange.end) {
-        query = query.lte('uploaded_date', filters.dateRange.end);
-      }
-    }
-    
-    // Execute query
-    const { data, error } = await query;
+      .insert(documentData)
+      .select('id')
+      .single();
     
     if (error) {
-      console.error('Error fetching documents:', error);
-      throw error;
+      errorLog("Error saving document metadata:", error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
     }
     
-    console.log(`Found ${data?.length || 0} documents`);
+    if (!data) {
+      return { 
+        success: false, 
+        error: "Document saved but no ID returned" 
+      };
+    }
     
-    // Transform the Supabase data to match our DocumentFile interface
-    const documents: DocumentFile[] = (data || []).map(doc => ({
-      id: doc.id,
-      name: doc.name,
-      description: doc.description || undefined,
-      fileSize: doc.file_size,
-      fileType: doc.file_type,
-      url: doc.url,
-      category: doc.category,
-      tags: doc.tags || [],
-      uploadedBy: doc.uploaded_by,
-      uploadedDate: doc.uploaded_date,
-      lastModified: doc.last_modified || undefined,
-      version: doc.version,
-      previousVersions: [], // We'll implement version history later
-      expirationDate: undefined,
-      isPublic: doc.is_public,
-      isArchived: doc.is_archived,
-      properties: [],
-      associations: [doc.association_id],
-      metadata: {}
-    }));
-    
-    return documents;
+    debugLog("Document metadata saved successfully:", data);
+    return { 
+      success: true, 
+      id: data.id 
+    };
   } catch (error) {
-    console.error('Error in getDocuments:', error);
-    return [];
+    errorLog("Exception in saveDocumentMetadata:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error saving document metadata" 
+    };
   }
 };
 
-// Delete document from database and storage
-export const deleteDocument = async (documentId: string): Promise<boolean> => {
+/**
+ * Update document metadata
+ * @param documentId Document ID
+ * @param updates Document updates
+ * @returns Promise<boolean> Success status
+ */
+export const updateDocumentMetadata = async (documentId: string, updates: any): Promise<boolean> => {
   try {
-    // First get the document to get the URL
-    const { data: document, error: fetchError } = await supabase
+    const { error } = await supabase
       .from('documents')
-      .select('url')
-      .eq('id', documentId)
-      .maybeSingle();
-    
-    if (fetchError) {
-      console.error('Error fetching document for deletion:', fetchError);
-      throw fetchError;
-    }
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('documents')
-      .remove([document.url]);
-    
-    if (storageError) {
-      console.error('Error deleting document from storage:', storageError);
-      // Continue with database deletion even if storage deletion fails
-    }
-    
-    // Delete from database
-    const { error: dbError } = await supabase
-      .from('documents')
-      .delete()
+      .update(updates)
       .eq('id', documentId);
     
-    if (dbError) {
-      console.error('Error deleting document from database:', dbError);
-      throw dbError;
+    if (error) {
+      errorLog("Error updating document metadata:", error);
+      return false;
     }
     
     return true;
   } catch (error) {
-    console.error('Error in deleteDocument:', error);
+    errorLog("Exception in updateDocumentMetadata:", error);
     return false;
   }
 };
 
-// Get download URL for a document
-export const downloadDocument = async (document: DocumentFile): Promise<string> => {
+/**
+ * Update document access level
+ * @param documentId Document ID
+ * @param isPublic Whether the document is public
+ * @returns Promise<boolean> Success status
+ */
+export const updateDocumentAccess = async (documentId: string, isPublic: boolean): Promise<boolean> => {
   try {
-    // Get download URL
-    const { data, error } = await supabase.storage
+    return await updateDocumentMetadata(documentId, { is_public: isPublic });
+  } catch (error) {
+    errorLog("Exception in updateDocumentAccess:", error);
+    return false;
+  }
+};
+
+/**
+ * Delete a document
+ * @param documentId Document ID
+ * @returns Promise<boolean> Success status
+ */
+export const deleteDocument = async (documentId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
       .from('documents')
-      .createSignedUrl(document.url, 60); // 60 seconds expiry
+      .delete()
+      .eq('id', documentId);
     
     if (error) {
-      console.error('Error creating signed URL:', error);
-      throw error;
+      errorLog("Error deleting document:", error);
+      return false;
     }
     
-    if (!data || !data.signedUrl) {
-      throw new Error('Failed to generate download URL');
-    }
-    
-    return data.signedUrl;
+    return true;
   } catch (error) {
-    console.error('Error in downloadDocument:', error);
-    throw error;
+    errorLog("Exception in deleteDocument:", error);
+    return false;
+  }
+};
+
+/**
+ * Archive a document
+ * @param documentId Document ID
+ * @returns Promise<boolean> Success status
+ */
+export const archiveDocument = async (documentId: string): Promise<boolean> => {
+  try {
+    return await updateDocumentMetadata(documentId, { 
+      is_archived: true,
+      last_modified: new Date().toISOString()
+    });
+  } catch (error) {
+    errorLog("Exception in archiveDocument:", error);
+    return false;
   }
 };

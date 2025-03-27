@@ -16,6 +16,8 @@ import { Loader2 } from 'lucide-react';
 import FileUploader from './FileUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
+import { verifyDocumentsBucket } from '@/utils/documents/checkBucket';
+import { debugLog, errorLog } from '@/utils/debug';
 
 interface DocumentMetadata {
   title: string;
@@ -55,11 +57,17 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({
     setIsUploading(true);
 
     try {
-      console.log("Starting upload process for file:", file.name);
-      console.log("Association ID:", associationId);
+      debugLog("Starting upload process for file:", file.name);
+      debugLog("Association ID:", associationId);
       
       if (!associationId) {
         throw new Error("Association ID is required but not provided");
+      }
+      
+      // Verify the bucket exists and is accessible
+      const bucketExists = await verifyDocumentsBucket();
+      if (!bucketExists) {
+        throw new Error("Document storage is not accessible. Please try again later.");
       }
       
       // Upload file directly to Supabase storage
@@ -67,7 +75,7 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({
       const fileExtension = file.name.split('.').pop() || '';
       const filePath = `${metadata.category}/${timestamp}-${metadata.title}`;
       
-      console.log(`Uploading to path: ${filePath}`);
+      debugLog(`Uploading to path: ${filePath}`);
       
       const { data, error } = await supabase.storage
         .from('documents')
@@ -77,11 +85,11 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({
         });
       
       if (error) {
-        console.error("Storage upload error:", error);
+        errorLog("Storage upload error:", error);
         throw error;
       }
       
-      console.log("Storage upload successful:", data);
+      debugLog("Storage upload successful:", data);
       
       // Get the file URL
       const { data: urlData } = await supabase.storage
@@ -90,7 +98,7 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({
       
       const fileUrl = urlData?.publicUrl;
       
-      console.log("File URL:", fileUrl);
+      debugLog("File URL:", fileUrl);
       
       // Save document metadata to the database
       const { data: documentData, error: documentError } = await supabase
@@ -105,19 +113,19 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({
           uploaded_by: user?.id,
           is_public: false,
           version: 1,
-          association_id: associationId // This was missing before
+          association_id: associationId
         });
       
       if (documentError) {
-        console.error("Database error:", documentError);
+        errorLog("Database error:", documentError);
         throw documentError;
       }
       
-      console.log("Document metadata saved:", documentData);
+      debugLog("Document metadata saved:", documentData);
       toast.success(`${file.name} has been uploaded.`);
       onUploadComplete();
     } catch (error) {
-      console.error("Upload error:", error);
+      errorLog("Upload error:", error);
       toast.error(`Failed to upload ${file.name}. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setIsUploading(false);
@@ -190,17 +198,18 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   useEffect(() => {
     if (propAssociationId) {
       setCurrentAssociationId(propAssociationId);
+      debugLog("Using association ID from props:", propAssociationId);
     } else {
       // Try to extract association ID from URL path
       const pathParts = location.pathname.split('/');
       const associationPart = pathParts.findIndex(part => part === 'associations');
       if (associationPart !== -1 && pathParts.length > associationPart + 1) {
         setCurrentAssociationId(pathParts[associationPart + 1]);
+        debugLog("Using association ID from URL:", pathParts[associationPart + 1]);
       } else {
         // Default to first association for demo purposes
-        // In production, you would want to handle this case differently
         setCurrentAssociationId("00000000-0000-0000-0000-000000000000");
-        console.warn("No association ID found, using default");
+        debugLog("No association ID found, using default");
       }
     }
   }, [propAssociationId, location]);
@@ -215,6 +224,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const handleFileSelection = (selectedFile: File | null) => {
     if (selectedFile) {
       setFile(selectedFile);
+      debugLog("File selected:", selectedFile.name);
     }
   };
 
@@ -231,10 +241,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 
   const handleCancel = () => {
     setFile(null);
+    debugLog("File selection canceled");
   };
 
   if (!currentAssociationId) {
-    console.error("No association ID available for document upload");
+    errorLog("No association ID available for document upload");
   }
 
   return (

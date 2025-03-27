@@ -8,6 +8,7 @@ import { Document } from '@/types/resident';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { useParams } from 'react-router-dom';
+import { debugLog } from '@/utils/debug';
 
 interface DocumentsTabProps {
   documents?: Document[];
@@ -23,12 +24,14 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents, associationId })
   useEffect(() => {
     if (associationId) {
       setCurrentAssociationId(associationId);
+      debugLog("DocumentsTab: Using associationId from props:", associationId);
     } else if (params.associationId) {
       setCurrentAssociationId(params.associationId);
+      debugLog("DocumentsTab: Using associationId from URL params:", params.associationId);
     } else {
       // Default fallback for demo purposes
       setCurrentAssociationId("00000000-0000-0000-0000-000000000000");
-      console.warn("No association ID found in DocumentsTab, using default");
+      debugLog("DocumentsTab: No association ID found, using default");
     }
   }, [associationId, params]);
 
@@ -87,7 +90,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents, associationId })
         open={showUploadDialog}
         setOpen={setShowUploadDialog}
         onSuccess={() => {
-          console.log("Document uploaded successfully");
+          debugLog("Document uploaded successfully");
           // Additional success handling if needed
         }}
         associationId={currentAssociationId}
