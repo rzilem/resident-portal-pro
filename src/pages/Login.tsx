@@ -116,7 +116,10 @@ const Login = () => {
           { duration: 5000 }
         );
         // Switch to login tab
-        document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+        const loginTab = document.querySelector('[data-state="inactive"][data-value="login"]') as HTMLElement;
+        if (loginTab) {
+          loginTab.click();
+        }
       }
     } catch (err) {
       console.error("Signup error:", err);
