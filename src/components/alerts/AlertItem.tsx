@@ -13,18 +13,18 @@ interface AlertItemProps {
 }
 
 const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
-  const getAlertIcon = (type: AlertType['type']) => {
-    switch (type) {
+  const getAlertIcon = (category: AlertType['category']) => {
+    switch (category) {
       case 'financial':
         return <DollarSign className="h-5 w-5 text-amber-500" />;
-      case 'operational':
-        return <FileCog className="h-5 w-5 text-blue-500" />;
-      case 'compliance':
-        return <FileWarning className="h-5 w-5 text-red-500" />;
-      case 'governance':
-        return <Info className="h-5 w-5 text-indigo-500" />;
       case 'maintenance':
         return <AlertTriangle className="h-5 w-5 text-orange-500" />;
+      case 'security':
+        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      case 'compliance':
+        return <FileWarning className="h-5 w-5 text-red-500" />;
+      case 'engagement':
+        return <Info className="h-5 w-5 text-indigo-500" />;
       default:
         return <Info className="h-5 w-5 text-gray-500" />;
     }
@@ -59,7 +59,7 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
   return (
     <div className="p-3 border rounded-md hover:bg-muted/50 transition-colors">
       <div className="flex items-start gap-2">
-        <div className="mt-0.5">{getAlertIcon(alert.type)}</div>
+        <div className="mt-0.5">{getAlertIcon(alert.category)}</div>
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-sm font-medium">{alert.title}</h4>
@@ -74,7 +74,7 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
           <div className="flex justify-between items-center mt-2">
             <span className="text-xs flex items-center text-muted-foreground">
               <Clock className="h-3 w-3 mr-1" />
-              {formatTimestamp(alert.timestamp)}
+              {formatTimestamp(alert.createdAt)}
             </span>
             
             {(alert.status === 'new' || alert.status === 'in-progress') && (
