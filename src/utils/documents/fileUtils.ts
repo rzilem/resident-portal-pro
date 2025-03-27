@@ -44,6 +44,19 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 /**
+ * Formats a date string to a user-friendly format
+ * @param dateString The date string to format
+ * @returns Formatted date string (e.g., "Jan 1, 2023")
+ */
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+/**
  * Gets the file extension from a file name
  * @param fileName The file name
  * @returns The file extension (e.g., "pdf")

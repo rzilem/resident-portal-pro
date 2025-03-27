@@ -22,7 +22,7 @@ import DocumentTemplates from '@/components/documents/templates/DocumentTemplate
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthRole } from '@/hooks/use-auth-role';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatDate, formatFileSize } from '@/utils/documents/fileUtils';
+import { formatDate, formatFileSize } from '@/components/documents/utils/documentIconUtils';
 
 interface AssociationDocumentsTabProps {
   association: Association;

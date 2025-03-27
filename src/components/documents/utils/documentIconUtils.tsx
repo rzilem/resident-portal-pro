@@ -4,7 +4,7 @@ import {
   FileText, File, FileCode, 
   FileSpreadsheet, Image
 } from "lucide-react";
-import { formatFileSize as formatFileSizeUtil } from '@/utils/documents/documentUtils';
+import { formatFileSize } from '@/utils/documents/fileUtils';
 
 // Helper function to determine icon based on file name or type
 export const getDocumentIcon = (fileName: string) => {
@@ -46,4 +46,4 @@ export const formatDate = (dateString: string) => {
 };
 
 // Re-export the formatFileSize function for convenience
-export const formatFileSize = formatFileSizeUtil;
+export const formatFileSize = formatFileSize;

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, FileCheck } from "lucide-react";
@@ -26,9 +25,10 @@ const SimpleDocumentUploader = ({ onSuccess, className, associationId = '0000000
       }
       
       // Validate file
-      const isValidSize = validateFileSize(file, 5); // 5MB limit
-      if (!isValidSize) {
-        return { success: false, error: "File is too large (max 5MB)" };
+      try {
+        validateFileSize(file, 5); // 5MB limit
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "File is too large" };
       }
       
       const allowedTypes = [
@@ -41,9 +41,10 @@ const SimpleDocumentUploader = ({ onSuccess, className, associationId = '0000000
         'image/png',
       ];
       
-      const isValidType = validateFileType(file, allowedTypes);
-      if (!isValidType) {
-        return { success: false, error: "Invalid file type. Please upload PDF, Word, Excel, or image files." };
+      try {
+        validateFileType(file, allowedTypes);
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Invalid file type" };
       }
       
       // Generate file path

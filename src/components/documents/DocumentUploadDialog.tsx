@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,9 +148,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     try {
       // Validate file
       console.log("Validating file:", file.name);
-      const isValidSize = validateFileSize(file, 5); // 5MB limit
-      if (!isValidSize) {
-        toast.error("File is too large (max 5MB)");
+      try {
+        validateFileSize(file, 5); // 5MB limit
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "File is too large");
+        setIsUploading(false);
         return;
       }
       
@@ -165,9 +166,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         'image/png',
       ];
       
-      const isValidType = validateFileType(file, allowedTypes);
-      if (!isValidType) {
-        toast.error("Invalid file type. Please upload PDF, Word, Excel, or image files.");
+      try {
+        validateFileType(file, allowedTypes);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Invalid file type");
+        setIsUploading(false);
         return;
       }
 

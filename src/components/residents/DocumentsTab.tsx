@@ -47,7 +47,28 @@ const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) =>
         return;
       }
 
-      setDocuments(data || []);
+      // Convert Supabase data to match our Document interface
+      const formattedDocuments: Document[] = (data || []).map(doc => ({
+        id: doc.id,
+        name: doc.name,
+        category: doc.category,
+        description: doc.description || '',
+        url: doc.url,
+        created_at: doc.created_at || new Date().toISOString(),
+        file_size: doc.file_size,
+        file_type: doc.file_type,
+        is_public: doc.is_public,
+        is_archived: doc.is_archived,
+        last_modified: doc.last_modified,
+        version: doc.version,
+        uploaded_date: doc.uploaded_date,
+        uploaded_by: doc.uploaded_by,
+        association_id: doc.association_id,
+        updated_at: doc.updated_at,
+        tags: doc.tags
+      }));
+
+      setDocuments(formattedDocuments);
     } catch (error: unknown) {
       console.error("Unexpected error fetching documents:", error);
       toast.error("Error fetching documents");
