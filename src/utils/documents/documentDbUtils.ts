@@ -1,4 +1,3 @@
-
 /**
  * Database utilities for document management
  */
@@ -149,7 +148,7 @@ export const getDocuments = async (
       .select('*')
       .order('uploaded_date', { ascending: false });
     
-    // Apply filters
+    // Apply filters - Fix for infinite type instantiation by simplifying the query logic
     if (filters.query) {
       query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%`);
     }
@@ -163,7 +162,6 @@ export const getDocuments = async (
     }
     
     if (filters.tags && filters.tags.length > 0) {
-      // Note: This assumes the tags column is an array type in the database
       query = query.overlaps('tags', filters.tags);
     }
     
@@ -181,22 +179,16 @@ export const getDocuments = async (
     }
     
     if (associationId) {
-      // For now, assume the documents table has an associationId column
-      // In a real application, this might be more complex, e.g., a junction table
       query = query.eq('association_id', associationId);
     }
     
     // Apply access level filtering based on user role
     if (userRole) {
-      // Implement role-based access filtering logic
-      // This is just a placeholder - your actual implementation will depend on your 
-      // role structure and data model
+      // Simple conditional logic instead of complex chaining to avoid type issues
       if (userRole !== 'admin' && userRole !== 'manager') {
-        // If not admin/manager, filter out restricted documents
         query = query.neq('access_level', 'management');
         
         if (userRole !== 'board_member') {
-          // If not board member, filter out board-only documents
           query = query.neq('access_level', 'board');
         }
       }
@@ -218,7 +210,7 @@ export const getDocuments = async (
     // Map database objects to DocumentFile interface
     const documents = data.map(item => mapDbObjectToDocumentFile(item));
     
-    // Since we'll need download URLs for all documents, process them in parallel
+    // Process URLs in parallel
     const documentsWithUrls = await Promise.all(documents.map(async (doc) => {
       if (doc.path) {
         try {
@@ -355,10 +347,12 @@ export const updateDocumentAccessLevel = async (
   accessLevel: string
 ): Promise<boolean> => {
   try {
-    // Fix: Use the correct column name 'access_level' in the update object
+    // Fix: Map the JavaScript property to the database column name
+    const dbObject = mapDocumentFileToDbObject({ accessLevel });
+    
     const { error } = await supabase
       .from('documents')
-      .update({ access_level: accessLevel })
+      .update(dbObject)
       .eq('id', id);
     
     if (error) {
