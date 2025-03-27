@@ -31,11 +31,11 @@ const ResidentReports: React.FC<ResidentReportsProps> = ({
       )}
       
       {(selectedReport.startsWith('statement') || selectedReport === 'homeowner-invoice') && (
-        <HomeownerStatementReport type={selectedReport} timeRange={timeRange} association={association} />
+        <HomeownerStatementReport timeRange={timeRange} association={association} selectedReport={selectedReport} />
       )}
       
       {selectedReport === 'contact-info' && (
-        <ContactInfoReport timeRange={timeRange} association={association} />
+        <ContactInfoReport timeRange={timeRange} association={association} selectedReport={selectedReport} />
       )}
       
       {selectedReport === 'board-members' && (
@@ -43,11 +43,19 @@ const ResidentReports: React.FC<ResidentReportsProps> = ({
       )}
       
       {(selectedReport === 'transaction-history' || selectedReport === 'transaction-by-charge') && (
-        <TransactionHistoryReport timeRange={timeRange} association={association} type={selectedReport} />
+        <TransactionHistoryReport 
+          timeRange={timeRange} 
+          association={association} 
+          selectedReport={selectedReport} 
+        />
       )}
       
       {(selectedReport === 'meeting-signin' || selectedReport === 'meeting-consolidated') && (
-        <MeetingReport timeRange={timeRange} association={association} type={selectedReport} />
+        <MeetingReport 
+          timeRange={timeRange} 
+          association={association} 
+          selectedReport={selectedReport} 
+        />
       )}
       
       {/* Default fallback if no report is selected */}
