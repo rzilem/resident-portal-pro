@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,8 +7,10 @@ import DocumentStorageInitializer from '@/components/documents/DocumentStorageIn
 import { useLogout } from '@/hooks/use-logout';
 
 import Index from '@/pages/Index';
-import Login from '@/pages/Login';
-import Dashboard from '@/pages/Dashboard';
+import Login from '@/components/Login';
+import Dashboard from '@/components/Dashboard';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import UploadDocument from '@/components/UploadDocument';
 import Properties from '@/pages/Properties';
 import Residents from '@/pages/Residents';
 import ResidentProfile from '@/pages/ResidentProfile';
@@ -86,6 +89,18 @@ const App = () => {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<LogoutRedirect />} />
+        
+        {/* New simple dashboard and upload routes */}
+        <Route path="/simple-dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/upload" element={
+          <ProtectedRoute>
+            <UploadDocument />
+          </ProtectedRoute>
+        } />
         
         {/* HOA routes with their own layout */}
         <Route path="/hoa/dashboard" element={<HoaDashboard />} />
