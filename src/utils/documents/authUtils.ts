@@ -5,6 +5,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isDemoAuthenticated } from '@/utils/auth/demoAuth';
 
 /**
  * Check if current user is authenticated
@@ -12,6 +13,12 @@ import { toast } from 'sonner';
  */
 export const isUserAuthenticated = async (): Promise<boolean> => {
   try {
+    // First check if using demo credentials
+    if (isDemoAuthenticated()) {
+      console.log('User authenticated via demo credentials');
+      return true;
+    }
+    
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
@@ -39,6 +46,12 @@ export const isUserAuthenticated = async (): Promise<boolean> => {
  * @returns {Promise<string | null>} User ID or null if not authenticated
  */
 export const getCurrentUserId = async (): Promise<string | null> => {
+  // First check if using demo credentials
+  if (isDemoAuthenticated()) {
+    console.log('Using mock user ID for demo user');
+    return 'demo-user-id';
+  }
+  
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     
@@ -59,17 +72,7 @@ export const getCurrentUserId = async (): Promise<string | null> => {
  * @returns {Promise<boolean>} True if using demo credentials
  */
 export const isUsingDemoCredentials = async (): Promise<boolean> => {
-  // First check for a proper session
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  // If we have a proper session with email matching demo credentials
-  if (session?.user?.email === 'admin@residentpro.com') {
-    return true;
-  }
-  
-  // Also check localStorage for legacy auth state
-  const storedEmail = localStorage.getItem('userEmail');
-  return storedEmail === 'admin@residentpro.com';
+  return isDemoAuthenticated();
 };
 
 /**
@@ -77,12 +80,11 @@ export const isUsingDemoCredentials = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} True if authenticated through any method
  */
 export const isAuthenticatedIncludingDemo = async (): Promise<boolean> => {
-  // Check normal authentication first
-  const isNormallyAuthenticated = await isUserAuthenticated();
-  if (isNormallyAuthenticated) {
+  // Check if using demo credentials first
+  if (isDemoAuthenticated()) {
     return true;
   }
   
-  // Fallback to demo authentication
-  return await isUsingDemoCredentials();
+  // Check normal authentication
+  return await isUserAuthenticated();
 };

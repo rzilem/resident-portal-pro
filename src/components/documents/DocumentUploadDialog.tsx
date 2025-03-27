@@ -1,132 +1,206 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { InfoIcon } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { uploadFile, getUserSpecificPath, ensureBucketExists } from '@/utils/documents';
+import { useAuth } from '@/contexts/auth/AuthProvider';
+import { Loader2 } from 'lucide-react';
 import FileUploader from './FileUploader';
-import DocumentMetadataForm from './DocumentMetadataForm';
-import { toast } from 'sonner';
 
-export interface DocumentUploadDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  refreshDocuments?: () => void; // Add this to make the interface compatible with both usage patterns
+interface DocumentMetadata {
+  title: string;
+  category: string;
+  description: string;
 }
 
-const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSuccess,
-  refreshDocuments 
-}) => {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+interface DocumentMetadataFormProps {
+  file: File;
+  onUploadComplete: () => void;
+  onCancel: () => void;
+  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-  const handleFilesSelected = (files: File[]) => {
-    setUploadedFiles(files);
-    if (files.length > 0) {
-      setActiveTab('metadata');
-    }
+const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUploadComplete, onCancel, setIsUploading }) => {
+  const [metadata, setMetadata] = useState<DocumentMetadata>({
+    title: file.name,
+    category: 'General',
+    description: '',
+  });
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setMetadata(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleUploadComplete = () => {
-    toast.success("Documents uploaded successfully!");
-    setUploadedFiles([]);
-    setActiveTab('upload');
-    onSuccess();
-    
-    // Call refreshDocuments if it exists (for backward compatibility)
-    if (refreshDocuments) {
-      refreshDocuments();
-    }
-    
-    onClose();
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUploading(true);
 
-  const handleCancel = () => {
-    if (isUploading) {
-      // Ask for confirmation if upload is in progress
-      if (window.confirm("Upload in progress. Are you sure you want to cancel?")) {
-        onClose();
+    try {
+      const bucketName = 'documents';
+      const userSpecificPath = await getUserSpecificPath('user-documents');
+      await ensureBucketExists(bucketName);
+
+      const uploadResult = await uploadFile(file, bucketName, userSpecificPath);
+
+      if (uploadResult) {
+        toast({
+          title: "Upload successful!",
+          description: `${file.name} has been uploaded.`,
+        });
+        onUploadComplete();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Upload failed!",
+          description: `Failed to upload ${file.name}. Please try again.`,
+        });
       }
-    } else {
-      onClose();
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload error!",
+        description: "An unexpected error occurred during upload.",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Title</Label>
+        <Input
+          type="text"
+          id="title"
+          name="title"
+          value={metadata.title}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <Label htmlFor="category">Category</Label>
+        <Input
+          type="text"
+          id="category"
+          name="category"
+          value={metadata.category}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Input
+          type="textarea"
+          id="description"
+          name="description"
+          value={metadata.description}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">Upload</Button>
+      </div>
+    </form>
+  );
+};
+
+interface DocumentUploadDialogProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}
+
+const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ open, setOpen }) => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  const maxFiles = 1;
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      setFiles([]);
+    }
+  };
+
+  const handleFileSelection = (selectedFiles: File[]) => {
+    if (selectedFiles && selectedFiles.length > 0) {
+      setFiles(selectedFiles);
+    }
+  };
+
+  const handleUploadComplete = () => {
+    setFiles([]);
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    setFiles([]);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button>Upload Document</Button>
+      </DialogTrigger>
+      
+      <DialogContent className="sm:max-w-md md:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Upload Documents</DialogTitle>
+          <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>
-            Add documents to be stored in your association's repository.
+            Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.
           </DialogDescription>
         </DialogHeader>
 
-        <Alert className="my-4 bg-blue-50 border-blue-200">
-          <InfoIcon className="h-4 w-4 text-blue-500" />
-          <AlertDescription>
-            Documents uploaded here will be available to all authorized users of your association.
-          </AlertDescription>
-        </Alert>
+        {!files.length ? (
+          <FileUploader
+            onFileSelected={(files) => handleFileSelection(files)} 
+            acceptedFileTypes={{
+              'application/pdf': ['.pdf'],
+              'application/msword': ['.doc'],
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+              'application/vnd.ms-excel': ['.xls'],
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+              'image/jpeg': ['.jpg', '.jpeg'],
+              'image/png': ['.png'],
+              'text/plain': ['.txt']
+            }}
+            maxFiles={maxFiles}
+            maxSize={maxSize}
+          />
+        ) : (
+          <DocumentMetadataForm
+            file={files[0]}
+            onUploadComplete={handleUploadComplete}
+            onCancel={handleCancel}
+            setIsUploading={setIsUploading}
+          />
+        )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="upload" disabled={isUploading}>
-              1. Select Files
-            </TabsTrigger>
-            <TabsTrigger 
-              value="metadata" 
-              disabled={uploadedFiles.length === 0 || isUploading}
-            >
-              2. Add Metadata
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upload" className="space-y-4">
-            <FileUploader
-              onFilesSelected={handleFilesSelected}
-              acceptedFileTypes={{
-                'application/pdf': ['.pdf'],
-                'application/msword': ['.doc'],
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-                'application/vnd.ms-excel': ['.xls'],
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-                'image/jpeg': ['.jpg', '.jpeg'],
-                'image/png': ['.png'],
-                'text/plain': ['.txt']
-              }}
-              maxFiles={5}
-              maxSize={5 * 1024 * 1024} // 5MB
-            />
-
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => setActiveTab('metadata')} 
-                disabled={uploadedFiles.length === 0}
-              >
-                Next: Add Metadata
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="metadata" className="space-y-4">
-            <DocumentMetadataForm
-              files={uploadedFiles}
-              onUploadComplete={handleUploadComplete}
-              onCancel={() => setActiveTab('upload')}
-              setIsUploading={setIsUploading}
-            />
-          </TabsContent>
-        </Tabs>
+        {isUploading && (
+          <div className="flex justify-center my-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2">Uploading document...</span>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
