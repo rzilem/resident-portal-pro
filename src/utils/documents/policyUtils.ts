@@ -43,6 +43,6 @@ export const createStoragePolicy = async (
     console.log(`Created storage policy ${policyName} for ${operation} operation`);
   } catch (error) {
     console.error(`Error creating storage policy ${policyName}:`, error);
-    throw error;
+    throw error instanceof Error ? error : new Error(String(error));
   }
 };
