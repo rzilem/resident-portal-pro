@@ -1,42 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from "sonner";
-import { Loader2, InfoIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// Predefined credentials for internal employee (kept for demo purposes)
-const INTERNAL_CREDENTIALS = {
-  email: "admin@residentpro.com",
-  password: "admin123"
-};
+import AuthStatusDisplay from '@/components/auth/AuthStatusDisplay';
+import LoginHeader from '@/components/auth/LoginHeader';
+import LoginForm from '@/components/auth/LoginForm';
+import SignupForm from '@/components/auth/SignupForm';
+import LoginFooter from '@/components/auth/LoginFooter';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, user, profile, signIn, signUp } = useAuth();
-  const [loginValues, setLoginValues] = useState({
-    email: '',
-    password: '',
-  });
-  const [signupValues, setSignupValues] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-  });
-
-  // Display auth state for debugging
-  useEffect(() => {
-    console.log('Auth state:', { isAuthenticated, user, profile });
-  }, [isAuthenticated, user, profile]);
+  const { isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState('login');
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -46,94 +22,8 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setLoginValues({ ...loginValues, [id]: value });
-  };
-
-  const handleSignupInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setSignupValues({ ...signupValues, [id.replace('-register', '')]: value });
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // First try Supabase authentication
-      const { error } = await signIn(loginValues.email, loginValues.password);
-      
-      if (error) {
-        console.log("Supabase auth error:", error);
-        
-        // Fallback to demo credentials for development
-        if (loginValues.email === INTERNAL_CREDENTIALS.email && 
-            loginValues.password === INTERNAL_CREDENTIALS.password) {
-          toast.success("Login successful with demo account! Welcome back.");
-          
-          // Store legacy auth state in localStorage (for backward compatibility)
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('userEmail', loginValues.email);
-          
-          // Navigate to dashboard after successful login
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 1000);
-        } else {
-          toast.error(error.message || "Invalid credentials. Please try again.");
-        }
-      } else {
-        toast.success("Login successful! Welcome back.");
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      toast.error("An error occurred during login. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    if (!signupValues.firstName || !signupValues.lastName) {
-      toast.error("Please provide your first and last name.");
-      setIsLoading(false);
-      return;
-    }
-    
-    try {
-      const { error, data } = await signUp(
-        signupValues.email, 
-        signupValues.password, 
-        {
-          first_name: signupValues.firstName,
-          last_name: signupValues.lastName
-        }
-      );
-      
-      if (error) {
-        toast.error(error.message || "Registration failed. Please try again.");
-      } else {
-        toast.success(
-          "Registration successful! You can now sign in.", 
-          { duration: 5000 }
-        );
-        // Switch to login tab
-        const loginTab = document.querySelector('[data-state="inactive"][data-value="login"]') as HTMLElement;
-        if (loginTab) {
-          loginTab.click();
-        }
-      }
-    } catch (err) {
-      console.error("Signup error:", err);
-      toast.error("An error occurred during registration. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSwitchToLogin = () => {
+    setActiveTab('login');
   };
 
   return (
@@ -145,170 +35,26 @@ const Login = () => {
         
         <div className="glass-panel bg-white/95 p-8 rounded-xl border border-border shadow-lg backdrop-blur-md relative z-10 animate-scale-in">
           {/* Auth status display for debugging */}
-          {isAuthenticated ? (
-            <Alert className="mb-4 bg-green-50 border-green-200">
-              <InfoIcon className="h-4 w-4 text-green-500" />
-              <AlertDescription>
-                Logged in as: {profile?.first_name} {profile?.last_name} ({user?.email})
-                <br />
-                <span className="text-xs text-muted-foreground">You should be redirected to dashboard soon...</span>
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Alert className="mb-4 bg-blue-50 border-blue-200">
-              <InfoIcon className="h-4 w-4 text-blue-500" />
-              <AlertDescription>
-                Not currently logged in. Please sign in or create an account.
-              </AlertDescription>
-            </Alert>
-          )}
+          <AuthStatusDisplay />
           
-          <div className="mb-6 text-center">
-            <Link to="/" className="inline-block">
-              <h1 className="text-2xl font-bold text-gradient">ResidentPro</h1>
-            </Link>
-            <p className="text-muted-foreground mt-2">Access your community dashboard</p>
-          </div>
+          <LoginHeader />
           
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login" className="animate-fade-in">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="hello@example.com"
-                    value={loginValues.email}
-                    onChange={handleLoginInputChange}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <a 
-                      href="#" 
-                      className="text-sm text-primary/90 hover:text-primary transition-colors"
-                    >
-                      Forgot password?
-                    </a>
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginValues.password}
-                    onChange={handleLoginInputChange}
-                    required
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
-                  <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">Remember me</Label>
-                </div>
-                
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
-                    </span>
-                  ) : 'Sign In'}
-                </Button>
-              </form>
+              <LoginForm />
             </TabsContent>
             
             <TabsContent value="register" className="animate-fade-in">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName-register">First name</Label>
-                    <Input
-                      id="firstName-register"
-                      placeholder="John"
-                      value={signupValues.firstName}
-                      onChange={handleSignupInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName-register">Last name</Label>
-                    <Input
-                      id="lastName-register"
-                      placeholder="Doe"
-                      value={signupValues.lastName}
-                      onChange={handleSignupInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email-register">Email</Label>
-                  <Input
-                    id="email-register"
-                    type="email"
-                    placeholder="hello@example.com"
-                    value={signupValues.email}
-                    onChange={handleSignupInputChange}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password-register">Password</Label>
-                  <Input
-                    id="password-register"
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupValues.password}
-                    onChange={handleSignupInputChange}
-                    required
-                    minLength={6}
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="terms" required />
-                  <Label htmlFor="terms" className="text-sm font-normal cursor-pointer">
-                    I agree to the <a href="#" className="text-primary underline hover:text-primary/80">terms of service</a> and <a href="#" className="text-primary underline hover:text-primary/80">privacy policy</a>
-                  </Label>
-                </div>
-                
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
-                    </span>
-                  ) : 'Create Account'}
-                </Button>
-              </form>
+              <SignupForm onSwitchToLogin={handleSwitchToLogin} />
             </TabsContent>
           </Tabs>
           
-          <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            <p>
-              By continuing, you agree to our <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
-            </p>
-          </div>
+          <LoginFooter />
         </div>
       </div>
     </div>
