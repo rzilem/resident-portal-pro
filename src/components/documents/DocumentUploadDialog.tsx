@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload, RefreshCw, AlertTriangle, Info, Loader2 } from 'lucide-react';
@@ -9,6 +9,7 @@ import FileUploader from './FileUploader';
 import DocumentMetadataForm from './DocumentMetadataForm';
 import { useDocumentsBucket } from '@/hooks/use-documents-bucket';
 import { uploadDocument } from '@/services/document-upload';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentUploadDialogProps {
   isOpen: boolean;
@@ -31,10 +32,28 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [initializing, setInitializing] = useState(true);
   const [initializationTimeout, setInitializationTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
   // Hooks
   const { activeAssociation } = useAssociations();
   const { bucketReady, isLoading, isCreating, errorMessage, retryCheck, checkStorageStatus } = useDocumentsBucket();
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setIsAuthenticated(false);
+      }
+    };
+    
+    if (isOpen) {
+      checkAuthStatus();
+    }
+  }, [isOpen]);
 
   // Reset form when dialog opens and check storage status
   useEffect(() => {
@@ -54,7 +73,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       const timeoutId = setTimeout(() => {
         console.log('Initialization timeout reached, exiting loading state');
         setInitializing(false);
-      }, 10000); // 10 seconds max for initialization
+      }, 8000); // Reduced from 10s to 8s
       
       setInitializationTimeout(timeoutId);
       
@@ -96,6 +115,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 
     if (!bucketReady) {
       toast.error('Document storage is not available. Please initialize it first.');
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      toast.error('You must be signed in to upload documents');
       return;
     }
 
@@ -149,7 +173,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setInitializationTimeout(timeoutId);
   };
 
-  const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady;
+  const isButtonDisabled = !selectedFile || isUploading || isLoading || !bucketReady || !isAuthenticated;
 
   // Determine what state to display
   const isLoadingState = isLoading || initializing;
@@ -165,7 +189,16 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          {isLoadingState ? (
+          {isAuthenticated === false && (
+            <div className="text-center p-6">
+              <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
+              <div className="text-red-500 mb-2">Authentication Required</div>
+              <p className="text-sm text-muted-foreground mb-4">
+                You must be signed in to upload documents. Please sign in and try again.
+              </p>
+            </div>
+          )}
+          {isAuthenticated && isLoadingState && (
             <div className="flex flex-col items-center justify-center p-6">
               <div className="relative">
                 <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
@@ -177,7 +210,8 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
                   "Almost ready! Checking storage accessibility..."}
               </p>
             </div>
-          ) : !bucketReady ? (
+          )}
+          {isAuthenticated && !isLoadingState && !bucketReady && (
             <div className="text-center p-6">
               <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
               <div className="text-red-500 mb-2">Document storage is not available</div>
@@ -213,7 +247,8 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
                 )}
               </Button>
             </div>
-          ) : (
+          )}
+          {isAuthenticated && !isLoadingState && bucketReady && (
             <>
               <FileUploader 
                 onFileSelected={handleFileChange}

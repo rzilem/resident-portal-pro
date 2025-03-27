@@ -11,6 +11,15 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
   try {
     console.log('Checking if documents bucket exists...');
     
+    // Check if user is authenticated first
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.log('User not authenticated. Authentication is required to use document storage.');
+      toast.error("Authentication required to use document storage");
+      return false;
+    }
+    
     // Check if bucket exists
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
@@ -19,10 +28,8 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
       
       // If we get a permission error here, check if the user is authenticated
       if (listError.message?.includes('permission') || listError.message?.includes('403')) {
-        console.log('Permission error listing buckets. Checking auth status...');
+        console.log('Permission error listing buckets. Authentication may be required.');
         
-        // Check auth status
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           console.log('User not authenticated. Authentication is required to use document storage.');
           toast.error("Authentication required to use document storage");
@@ -43,15 +50,6 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
       console.log('Documents bucket not found or force create requested, attempting to create it...');
       
       try {
-        // Get the current user to ensure we're authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          console.log('User not authenticated, cannot create bucket.');
-          toast.error("Authentication required to create document storage");
-          return false;
-        }
-        
         // Create the documents bucket with public access
         const { error } = await supabase.storage.createBucket('documents', {
           public: true, // Make the bucket public so documents can be accessed
@@ -115,11 +113,19 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
 // Test if we can upload to the documents bucket
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
+    // Check if user is authenticated first
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('User not authenticated. Authentication is required to test bucket access.');
+      return false;
+    }
+    
     // Create a tiny test file
     const testFile = new Blob(['test'], { type: 'text/plain' });
     const testFilePath = `test-${Date.now()}.txt`;
     
-    // Try to upload it with a timeout of 5 seconds
+    // Try to upload it with a timeout of 4 seconds (reduced from 5)
     const uploadPromise = supabase.storage
       .from('documents')
       .upload(testFilePath, testFile, {
@@ -130,8 +136,8 @@ export const testBucketAccess = async (): Promise<boolean> => {
     // Add a timeout
     const timeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => {
       setTimeout(() => {
-        reject({ data: null, error: new Error('Upload test timed out after 5 seconds') });
-      }, 5000);
+        reject({ data: null, error: new Error('Upload test timed out after 4 seconds') });
+      }, 4000);
     });
     
     // Race the upload against the timeout
