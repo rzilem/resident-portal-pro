@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "sonner";
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Predefined credentials for internal employee
+// Predefined credentials for internal employee (kept for demo purposes)
 const INTERNAL_CREDENTIALS = {
   email: "admin@residentpro.com",
   password: "admin123"
@@ -17,6 +20,7 @@ const INTERNAL_CREDENTIALS = {
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, signIn, signUp } = useAuth();
   const [loginValues, setLoginValues] = useState({
     email: '',
     password: '',
@@ -28,6 +32,13 @@ const Login = () => {
     password: '',
   });
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setLoginValues({ ...loginValues, [id]: value });
@@ -38,43 +49,81 @@ const Login = () => {
     setSignupValues({ ...signupValues, [id.replace('-register', '')]: value });
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Check if credentials match predefined ones
-    if (loginValues.email === INTERNAL_CREDENTIALS.email && 
-        loginValues.password === INTERNAL_CREDENTIALS.password) {
-      // Successful login
-      toast.success("Login successful! Welcome back.");
+    try {
+      // First try Supabase authentication
+      const { error } = await signIn(loginValues.email, loginValues.password);
       
-      // Store auth state in localStorage (in a real app, you'd use a proper auth system)
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userEmail', loginValues.email);
-      
-      // Navigate to dashboard after successful login
-      setTimeout(() => {
-        setIsLoading(false);
+      if (error) {
+        console.log("Supabase auth error:", error);
+        
+        // Fallback to demo credentials for development
+        if (loginValues.email === INTERNAL_CREDENTIALS.email && 
+            loginValues.password === INTERNAL_CREDENTIALS.password) {
+          toast.success("Login successful with demo account! Welcome back.");
+          
+          // Store legacy auth state in localStorage (for backward compatibility)
+          localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('userEmail', loginValues.email);
+          
+          // Navigate to dashboard after successful login
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1000);
+        } else {
+          toast.error(error.message || "Invalid credentials. Please try again.");
+        }
+      } else {
+        toast.success("Login successful! Welcome back.");
         navigate('/dashboard');
-      }, 1000);
-    } else {
-      // Failed login
-      setTimeout(() => {
-        setIsLoading(false);
-        toast.error("Invalid credentials. Please try again.");
-      }, 1000);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("An error occurred during login. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // In a real application, you would add proper signup logic here
-    setTimeout(() => {
+    if (!signupValues.firstName || !signupValues.lastName) {
+      toast.error("Please provide your first and last name.");
       setIsLoading(false);
-      toast.info("Registration is currently limited to approved employees only.");
-    }, 1000);
+      return;
+    }
+    
+    try {
+      const { error, data } = await signUp(
+        signupValues.email, 
+        signupValues.password, 
+        {
+          first_name: signupValues.firstName,
+          last_name: signupValues.lastName
+        }
+      );
+      
+      if (error) {
+        toast.error(error.message || "Registration failed. Please try again.");
+      } else {
+        toast.success(
+          "Registration successful! You can now sign in.", 
+          { duration: 5000 }
+        );
+        // Switch to login tab
+        document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+      }
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast.error("An error occurred during registration. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -142,7 +191,12 @@ const Login = () => {
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </span>
+                  ) : 'Sign In'}
                 </Button>
               </form>
             </TabsContent>
@@ -151,9 +205,9 @@ const Login = () => {
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="first-name-register">First name</Label>
+                    <Label htmlFor="firstName-register">First name</Label>
                     <Input
-                      id="first-name-register"
+                      id="firstName-register"
                       placeholder="John"
                       value={signupValues.firstName}
                       onChange={handleSignupInputChange}
@@ -162,9 +216,9 @@ const Login = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="last-name-register">Last name</Label>
+                    <Label htmlFor="lastName-register">Last name</Label>
                     <Input
-                      id="last-name-register"
+                      id="lastName-register"
                       placeholder="Doe"
                       value={signupValues.lastName}
                       onChange={handleSignupInputChange}
@@ -194,6 +248,7 @@ const Login = () => {
                     value={signupValues.password}
                     onChange={handleSignupInputChange}
                     required
+                    minLength={6}
                   />
                 </div>
                 
@@ -209,7 +264,12 @@ const Login = () => {
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating account...' : 'Create Account'}
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </span>
+                  ) : 'Create Account'}
                 </Button>
               </form>
             </TabsContent>
