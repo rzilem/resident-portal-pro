@@ -20,10 +20,21 @@ const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
   const { theme, setTheme } = useTheme();
   
+  // Check if we should automatically open a specific tab
+  const [activeSubTab, setActiveSubTab] = useState<string>("basic");
+  
   const [localTheme, setLocalTheme] = useState(theme || "light");
   const [cardStyle, setCardStyle] = useState("default");
   const [density, setDensity] = useState("comfortable");
   const [animations, setAnimations] = useState(true);
+  
+  useEffect(() => {
+    // Check if we should open the branding tab (from sidebar logo click)
+    if (sessionStorage.getItem('open-branding-tab') === 'true') {
+      setActiveSubTab('branding');
+      sessionStorage.removeItem('open-branding-tab');
+    }
+  }, []);
   
   useEffect(() => {
     if (preferences) {
@@ -86,7 +97,7 @@ const DisplaySettings = () => {
             <CardDescription>Customize the appearance of your interface</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="basic" className="w-full">
+            <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
               <TabsList className="grid grid-cols-5 mb-4">
                 <TabsTrigger value="basic">
                   <Monitor className="h-4 w-4 mr-2" />
@@ -198,7 +209,7 @@ const DisplaySettings = () => {
                 <ColorCustomizer />
               </TabsContent>
               
-              <TabsContent value="branding">
+              <TabsContent value="branding" id="branding-tab">
                 <div className="space-y-6">
                   <LogoUploader />
                 </div>

@@ -15,6 +15,8 @@ import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useState } from "react";
 import HoaSidebar from "./HoaSidebar";
 import { useCompanySettings } from "@/hooks/use-company-settings";
+import { Settings } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function Sidebar({
   className,
@@ -43,22 +45,57 @@ export function Sidebar({
 
   const NAV_ITEMS = getNavItems(location.pathname);
 
+  // Handler to navigate to logo settings
+  const handleLogoClick = () => {
+    navigate('/settings');
+    // We'll add a session storage flag to open the display tab and branding section automatically
+    sessionStorage.setItem('open-display-settings', 'true');
+    sessionStorage.setItem('open-branding-tab', 'true');
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className={cn("pb-12 border-r min-h-screen bg-background", className)}>
         <SidebarContent className="space-y-4 py-4">
           <SidebarHeader className="px-4 py-2">
-            <div className="mb-2 px-2">
+            <div 
+              className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group"
+              onClick={handleLogoClick}
+            >
               {settings.logoUrl ? (
-                <img 
-                  src={settings.logoUrl} 
-                  alt={settings.companyName || "Company Logo"} 
-                  className="h-10 max-w-full object-contain"
-                />
+                <>
+                  <img 
+                    src={settings.logoUrl} 
+                    alt={settings.companyName || "Company Logo"} 
+                    className="h-10 max-w-full object-contain"
+                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Settings className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit logo in settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
               ) : (
-                <div className="text-xl font-semibold tracking-tight">
-                  {settings.companyName || "HOA Management"}
-                </div>
+                <>
+                  <div className="text-xl font-semibold tracking-tight">
+                    {settings.companyName || "HOA Management"}
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Settings className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add logo in settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
               )}
             </div>
           </SidebarHeader>
