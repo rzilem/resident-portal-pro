@@ -54,17 +54,18 @@ const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) =>
         category: doc.category,
         description: doc.description || '',
         url: doc.url,
-        created_at: doc.created_at || new Date().toISOString(),
         file_size: doc.file_size,
         file_type: doc.file_type,
         is_public: doc.is_public,
         is_archived: doc.is_archived,
         last_modified: doc.last_modified,
         version: doc.version,
-        uploaded_date: doc.uploaded_date,
+        uploaded_date: doc.uploaded_date || doc.last_modified || new Date().toISOString(),
         uploaded_by: doc.uploaded_by,
         association_id: doc.association_id,
-        updated_at: doc.updated_at,
+        // Use existing fields as fallbacks if these fields don't exist
+        created_at: doc.uploaded_date || doc.last_modified || new Date().toISOString(),
+        updated_at: doc.last_modified || new Date().toISOString(),
         tags: doc.tags
       }));
 
