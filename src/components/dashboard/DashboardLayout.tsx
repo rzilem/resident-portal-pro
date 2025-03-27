@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Widget } from '@/types/dashboard';
-import { DynamicWidget } from './widgets/WidgetRegistry';
 import { cn } from '@/lib/utils';
 import { useCardStyle } from '@/hooks/use-card-style';
 import { motion } from 'framer-motion';
+import { DynamicWidget } from './widgets/WidgetRegistry';
 
 interface DashboardLayoutProps {
   widgets: Widget[];
@@ -84,7 +84,7 @@ const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: D
               config={widget.config}
               cardClass={cn(cardClass, "h-full")}
             />
-          </div>
+          </motion.div>
         )
       ))}
     </div>
