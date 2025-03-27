@@ -71,3 +71,12 @@ export const testBucketAccess = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Ensure that the documents bucket exists, creating it if necessary
+ * @param forceCreate Force creation even if it exists
+ * @returns Promise<boolean> Success status
+ */
+export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<boolean> => {
+  return await initializeDocumentsBucket(forceCreate);
+};
