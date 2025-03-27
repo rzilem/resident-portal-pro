@@ -18,15 +18,15 @@ export const useDocumentsBucket = () => {
     setIsLoading(true);
     setErrorMessage(null);
     
-    // First perform a direct authentication check
-    const { data } = await supabase.auth.getSession();
-    const isAuthValid = !!data.session;
-    
-    console.log('Checking bucket, user authenticated via useAuth:', isAuthenticated);
-    console.log('Checking bucket, user authenticated via direct check:', isAuthValid);
-    console.log('User ID available:', user?.id);
-    
     try {
+      // Directly check authentication status with await
+      const { data, error } = await supabase.auth.getSession();
+      const isAuthValid = !!data.session;
+      
+      console.log('Checking bucket, user authenticated via useAuth:', isAuthenticated);
+      console.log('Checking bucket, user authenticated via direct check:', isAuthValid);
+      console.log('User ID available:', user?.id);
+      
       if (!isAuthValid && !isAuthenticated) {
         console.log('User is not authenticated, skipping bucket check');
         setBucketReady(false);
@@ -135,16 +135,21 @@ export const useDocumentsBucket = () => {
       }, 8000);
     };
     
-    const { data } = supabase.auth.getSession();
-    const hasSession = !!data.session;
+    // Use async/await here to properly check the session
+    const checkSessionAndBucket = async () => {
+      const { data } = await supabase.auth.getSession();
+      const hasSession = !!data.session;
+      
+      if (isAuthenticated || hasSession) {
+        checkWithTimeout();
+      } else {
+        setIsLoading(false);
+        setBucketReady(false);
+        setErrorMessage('Authentication required to use document storage');
+      }
+    };
     
-    if (isAuthenticated || hasSession) {
-      checkWithTimeout();
-    } else {
-      setIsLoading(false);
-      setBucketReady(false);
-      setErrorMessage('Authentication required to use document storage');
-    }
+    checkSessionAndBucket();
     
     // Cleanup function
     return () => {

@@ -78,11 +78,14 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
             // Try to create a storage policy if the bucket exists but access is denied
             try {
               const policyName = 'allow_authenticated_users';
+              
+              // Use a properly typed RPC call
               await supabase.rpc('create_storage_policy', {
                 bucket_name: 'documents',
                 policy_name: policyName,
                 definition: 'auth.uid() IS NOT NULL'
               });
+              
               console.log('Created storage policy for authenticated users');
             } catch (policyError) {
               console.log('Error creating storage policy:', policyError);
