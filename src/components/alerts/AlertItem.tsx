@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Alert as AlertType } from '@/types/alert';
 import { updateAlertStatus } from '@/utils/alerts';
@@ -68,10 +69,10 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
               {alert.title}
             </h4>
             <div className="flex items-center gap-1.5">
-              <Badge className={getSeverityColor(alert.severity)} variant="secondary" size="sm">
+              <Badge className={getSeverityColor(alert.severity)} variant="secondary">
                 {alert.severity}
               </Badge>
-              <Badge className={getStatusColor(alert.status)} variant="secondary" size="sm">
+              <Badge className={getStatusColor(alert.status)} variant="secondary">
                 {alert.status}
               </Badge>
             </div>
