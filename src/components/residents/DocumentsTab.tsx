@@ -1,101 +1,64 @@
-
 import React, { useState, useEffect } from 'react';
-import { FileText, Download } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Document } from '@/types/resident';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { useParams } from 'react-router-dom';
-import { debugLog } from '@/utils/debug';
 
-interface DocumentsTabProps {
-  documents?: Document[];
-  associationId?: string;
+interface Document {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  url: string;
+  created_at: string;
 }
 
-const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents, associationId }) => {
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const { isAuthenticated } = useAuth();
-  const params = useParams();
-  const [currentAssociationId, setCurrentAssociationId] = useState<string>("");
-  
-  useEffect(() => {
-    if (associationId) {
-      setCurrentAssociationId(associationId);
-      debugLog("DocumentsTab: Using associationId from props:", associationId);
-    } else if (params.associationId) {
-      setCurrentAssociationId(params.associationId);
-      debugLog("DocumentsTab: Using associationId from URL params:", params.associationId);
-    } else {
-      // Default fallback for demo purposes
-      setCurrentAssociationId("00000000-0000-0000-0000-000000000000");
-      debugLog("DocumentsTab: No association ID found, using default");
+const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) => {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [open, setOpen] = useState(false);
+
+  const fetchDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('association_id', associationId);
+
+      if (error) {
+        toast.error("Failed to fetch documents");
+        console.error("Fetch documents error:", error.message);
+        return;
+      }
+
+      setDocuments(data || []);
+    } catch (error: unknown) {
+      console.error("Unexpected error fetching documents:", error);
+      toast.error("Error fetching documents");
     }
-  }, [associationId, params]);
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [associationId]);
 
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Documents</CardTitle>
-            <CardDescription>
-              All documents related to this resident
-            </CardDescription>
-          </div>
-          <Button onClick={() => setShowUploadDialog(true)}>
-            <FileText className="mr-2 h-4 w-4" />
-            Upload Document
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {documents && documents.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documents.map((doc, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{doc.name}</TableCell>
-                    <TableCell>{doc.type}</TableCell>
-                    <TableCell>{doc.date}</TableCell>
-                    <TableCell>{doc.size}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No documents available
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+    <div>
+      <h2>Documents</h2>
+      <button onClick={() => setOpen(true)}>Upload Document</button>
       <DocumentUploadDialog
-        open={showUploadDialog}
-        setOpen={setShowUploadDialog}
-        onSuccess={() => {
-          debugLog("Document uploaded successfully");
-          // Additional success handling if needed
-        }}
-        associationId={currentAssociationId}
+        open={open}
+        setOpen={setOpen}
+        onSuccess={fetchDocuments}
+        associationId={associationId}
       />
-    </>
+      <ul>
+        {documents.map(doc => (
+          <li key={doc.id}>
+            {doc.title} ({doc.category}) - {doc.description}
+            <a href={doc.url} target="_blank" rel="noopener noreferrer">Download</a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
