@@ -40,7 +40,7 @@ export const initializeTables = async (): Promise<boolean> => {
       // Use RPC to create table if available
       try {
         // Skip RPC since we created the table in Supabase
-console.log('Skipping RPC call; table should already exist in Supabase.');
+        console.log('Skipping RPC call; table should already exist in Supabase.');
       } catch (rpcError: unknown) {
         console.error('Error creating association_settings table using RPC:', rpcError);
 

@@ -1,72 +1,71 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Association } from "@/types/association";
 import { PostgrestError } from '@supabase/supabase-js';
+import { toast } from "sonner";
 import { AssociationQueryResult, transformToAssociation } from "./types";
 
 /**
- * Generic error handler for association operations
- * @param error - The error that occurred
- * @param context - The context where the error occurred (for logging)
- * @returns The error message
+ * Standard error handler for association operations
+ * @param {unknown} error - The error object
+ * @param {string} operation - Description of the operation that failed
  */
-export const handleError = (error: unknown, context: string): string => {
+export const handleError = (error: unknown, operation: string): void => {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`Error in ${context}: ${message}`);
-  toast.error(`Failed to ${context.toLowerCase()}`);
-  return message;
+  console.error(`Error trying to ${operation}:`, message);
+  toast.error(`Failed to ${operation}`);
 };
 
 /**
- * Validate file before upload
- * @param file - The file to validate
- * @param options - Validation options
- * @throws {Error} If validation fails
+ * Validate a file before upload
+ * @param {File} file - The file to validate
+ * @param {Object} options - Validation options
  */
 export const validateFile = (
   file: File, 
-  options?: {
-    maxSizeMB?: number;
-    allowedTypes?: string[];
+  options: { 
+    maxSizeMB?: number; 
+    allowedTypes?: string[] 
   }
 ): void => {
-  const maxSize = (options?.maxSizeMB || 5) * 1024 * 1024; // Default 5MB
-  const allowedTypes = options?.allowedTypes || ['image/jpeg', 'image/png', 'image/gif'];
+  const { maxSizeMB = 5, allowedTypes = ['image/jpeg', 'image/png', 'image/gif'] } = options;
   
-  if (file.size > maxSize) {
-    throw new Error(`File size exceeds ${options?.maxSizeMB || 5}MB`);
+  if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+    throw new Error(`File type not allowed. Allowed types: ${allowedTypes.join(', ')}`);
   }
   
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error(`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    throw new Error(`File size exceeds maximum allowed (${maxSizeMB}MB)`);
   }
 };
 
 /**
- * Common query to fetch associations with their settings
- * @returns Promise with associations data
+ * Validate association data before creating/updating
+ * @param {Partial<Association>} association - The association data to validate
  */
-export const fetchAssociationsWithSettings = async (): Promise<AssociationQueryResult[]> => {
-  const { data, error } = await supabase
-    .from('associations')
-    .select(`
-      *,
-      association_settings(settings)
-    `)
-    .order('name');
-  
-  if (error) {
-    throw error;
+export const validateAssociation = (association: Partial<Association>): void => {
+  if (!association.name || association.name.trim() === '') {
+    throw new Error('Association name is required');
   }
   
-  return data as AssociationQueryResult[];
+  if (association.address) {
+    if (!association.address.street || association.address.street.trim() === '') {
+      throw new Error('Association street address is required');
+    }
+    if (!association.address.city || association.address.city.trim() === '') {
+      throw new Error('Association city is required');
+    }
+    if (!association.address.state || association.address.state.trim() === '') {
+      throw new Error('Association state is required');
+    }
+  }
 };
 
 /**
- * Get a single association with settings by ID
- * @param id - The association ID
- * @returns Promise with association data
+ * Fetch an association with its settings by ID
+ * @param {string} id - The association ID
+ * @returns {Promise<AssociationQueryResult>} - The association data
  */
 export const getAssociationWithSettings = async (id: string): Promise<AssociationQueryResult> => {
   const { data, error } = await supabase
@@ -76,30 +75,29 @@ export const getAssociationWithSettings = async (id: string): Promise<Associatio
       association_settings(settings)
     `)
     .eq('id', id)
-    .maybeSingle();
+    .single() as { data: AssociationQueryResult | null; error: PostgrestError | null };
   
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
+  if (!data) throw new Error(`Association with ID ${id} not found`);
   
-  if (!data) {
-    throw new Error(`Association with ID ${id} not found`);
-  }
-  
-  return data as AssociationQueryResult;
+  return data;
 };
 
 /**
- * Validate association input
- * @param association - The association data to validate
- * @throws {Error} If validation fails
+ * Fetch all associations with their settings
+ * @returns {Promise<AssociationQueryResult[]>} - Array of associations with settings
  */
-export const validateAssociation = (association: Partial<Association>): void => {
-  if (!association.name || association.name.trim() === '') {
-    throw new Error('Association name is required');
-  }
+export const fetchAssociationsWithSettings = async (): Promise<AssociationQueryResult[]> => {
+  const { data, error } = await supabase
+    .from('associations')
+    .select(`
+      *,
+      association_settings(settings)
+    `)
+    .order('name') as { data: AssociationQueryResult[] | null; error: PostgrestError | null };
   
-  if (association.units !== undefined && (isNaN(association.units) || association.units < 0)) {
-    throw new Error('Units must be a positive number');
-  }
+  if (error) throw error;
+  if (!data) return [];
+  
+  return data;
 };
