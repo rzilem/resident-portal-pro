@@ -1,12 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-/**
- * Interface for document categories
- */
-interface DocumentCategory {
-  name: string;
-}
+import { DocumentCategory } from "@/types/documents";
 
 /**
  * Fetch document categories from Supabase
@@ -16,32 +10,32 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
   try {
     const { data, error } = await supabase
       .from('document_categories')
-      .select('name')
+      .select('*')
       .order('name');
 
     if (error) {
       console.error("Error fetching document categories:", error.message);
       return [
-        { name: 'GENERAL' },
-        { name: 'FINANCIAL' },
-        { name: 'LEGAL' },
-        { name: 'MAINTENANCE' }
+        { id: '1', name: 'GENERAL', description: 'General documents', accessLevel: 'all' },
+        { id: '2', name: 'FINANCIAL', description: 'Financial documents', accessLevel: 'board' },
+        { id: '3', name: 'LEGAL', description: 'Legal documents', accessLevel: 'board' },
+        { id: '4', name: 'MAINTENANCE', description: 'Maintenance documents', accessLevel: 'all' }
       ]; // Fallback categories
     }
 
-    return data?.map(item => ({ name: item.name })) || [
-      { name: 'GENERAL' },
-      { name: 'FINANCIAL' },
-      { name: 'LEGAL' },
-      { name: 'MAINTENANCE' }
+    return data || [
+      { id: '1', name: 'GENERAL', description: 'General documents', accessLevel: 'all' },
+      { id: '2', name: 'FINANCIAL', description: 'Financial documents', accessLevel: 'board' },
+      { id: '3', name: 'LEGAL', description: 'Legal documents', accessLevel: 'board' },
+      { id: '4', name: 'MAINTENANCE', description: 'Maintenance documents', accessLevel: 'all' }
     ];
   } catch (error: unknown) {
     console.error("Unexpected error fetching document categories:", error);
     return [
-      { name: 'GENERAL' },
-      { name: 'FINANCIAL' },
-      { name: 'LEGAL' },
-      { name: 'MAINTENANCE' }
+      { id: '1', name: 'GENERAL', description: 'General documents', accessLevel: 'all' },
+      { id: '2', name: 'FINANCIAL', description: 'Financial documents', accessLevel: 'board' },
+      { id: '3', name: 'LEGAL', description: 'Legal documents', accessLevel: 'board' },
+      { id: '4', name: 'MAINTENANCE', description: 'Maintenance documents', accessLevel: 'all' }
     ]; // Fallback categories
   }
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
@@ -11,7 +10,7 @@ export const useDocumentsBucket = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { isAuthenticated, user } = useAuth();
+  const { user, session } = useAuth();
   const MAX_RETRIES = 3;
 
   const checkBucket = useCallback(async () => {
@@ -23,7 +22,7 @@ export const useDocumentsBucket = () => {
       const { data, error } = await supabase.auth.getSession();
       const isAuthValid = !!data?.session;
       
-      if (!isAuthValid && !isAuthenticated) {
+      if (!isAuthValid && !user) {
         console.log('User is not authenticated, skipping bucket check');
         setBucketReady(false);
         setIsLoading(false);
@@ -79,7 +78,7 @@ export const useDocumentsBucket = () => {
       setIsLoading(false);
       setBucketReady(false);
     }
-  }, [retryCount, isCreating, MAX_RETRIES, isAuthenticated, user]);
+  }, [retryCount, isCreating, MAX_RETRIES, user]);
   
   useEffect(() => {
     let isMounted = true;
@@ -91,7 +90,7 @@ export const useDocumentsBucket = () => {
         const { data } = await supabase.auth.getSession();
         const hasSession = !!data?.session;
         
-        if (isAuthenticated || hasSession) {
+        if (user || hasSession) {
           checkBucket();
         } else {
           setIsLoading(false);
@@ -113,7 +112,7 @@ export const useDocumentsBucket = () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [checkBucket, isAuthenticated]);
+  }, [checkBucket, user, session]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
@@ -153,7 +152,6 @@ export const useDocumentsBucket = () => {
     }
   };
   
-  // Provide a function to manually check storage status
   const checkStorageStatus = () => {
     setRetryCount(0); // Reset retry count
     setErrorMessage(null);

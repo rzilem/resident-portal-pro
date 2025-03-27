@@ -1,12 +1,37 @@
 
 /**
- * Utility functions for file operations
+ * Utility functions for handling file operations
  */
 
 /**
- * Format file size in a human-readable format
+ * Validates the file size
+ * @param file The file to validate
+ * @param maxSizeMB Maximum file size in MB
+ * @throws Error if the file size exceeds the maximum
+ */
+export const validateFileSize = (file: File, maxSizeMB: number): void => {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    throw new Error(`File size exceeds ${maxSizeMB}MB limit`);
+  }
+};
+
+/**
+ * Validates the file type
+ * @param file The file to validate
+ * @param allowedTypes Array of allowed MIME types
+ * @throws Error if the file type is not allowed
+ */
+export const validateFileType = (file: File, allowedTypes: string[]): void => {
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error(`File type ${file.type} is not allowed`);
+  }
+};
+
+/**
+ * Formats a file size in bytes to a human-readable format
  * @param bytes File size in bytes
- * @returns Formatted file size string (e.g., "1.2 MB")
+ * @returns Formatted file size (e.g., "2.5 MB")
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
@@ -19,111 +44,78 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 /**
- * Format date in a human-readable format
- * @param dateStr Date string
- * @returns Formatted date string
+ * Gets the file extension from a file name
+ * @param fileName The file name
+ * @returns The file extension (e.g., "pdf")
  */
-export const formatDate = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+export const getFileExtension = (fileName: string): string => {
+  return fileName.split('.').pop()?.toLowerCase() || '';
 };
 
 /**
- * Validate file type against a list of accepted types
- * @param file File to validate
- * @param acceptedTypes Array of accepted MIME types
- * @returns Boolean indicating if the file type is valid
+ * Generates a unique file name
+ * @param originalName The original file name
+ * @returns A unique file name with timestamp
  */
-export const validateFileType = (file: File, acceptedTypes: string[]): boolean => {
-  console.log(`Validating file type: ${file.type} against accepted types:`, acceptedTypes);
-  return acceptedTypes.includes(file.type);
+export const generateUniqueFileName = (originalName: string): string => {
+  const timestamp = Date.now();
+  const extension = getFileExtension(originalName);
+  const baseName = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+  
+  return `${baseName}-${timestamp}.${extension}`;
 };
 
 /**
- * Validate file size against a maximum size
- * @param file File to validate
- * @param maxSizeInBytes Maximum file size in bytes
- * @returns Boolean indicating if the file size is valid
+ * Get file type icon based on file extension
+ * @param extension File extension (e.g., "pdf", "docx")
+ * @returns Icon name or default icon
  */
-export const validateFileSize = (file: File, maxSizeInMB: number): boolean => {
-  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-  console.log(`Validating file size: ${file.size} bytes against max size: ${maxSizeInBytes} bytes`);
-  return file.size <= maxSizeInBytes;
+export const getFileTypeIcon = (extension: string): string => {
+  const iconMap: Record<string, string> = {
+    'pdf': 'file-pdf',
+    'doc': 'file-word',
+    'docx': 'file-word',
+    'xls': 'file-excel',
+    'xlsx': 'file-excel',
+    'ppt': 'file-powerpoint',
+    'pptx': 'file-powerpoint',
+    'jpg': 'file-image',
+    'jpeg': 'file-image',
+    'png': 'file-image',
+    'gif': 'file-image',
+    'txt': 'file-text',
+    'csv': 'file-spreadsheet',
+    'zip': 'file-archive',
+    'rar': 'file-archive',
+  };
+  
+  return iconMap[extension.toLowerCase()] || 'file';
 };
 
 /**
  * Download a file from a URL
- * @param url URL of the file to download
- * @param filename Filename to use for the download
+ * @param url The URL of the file to download
+ * @param fileName The name to save the file as
  */
-export const downloadFile = (url: string, filename: string): void => {
+export const downloadFile = (url: string, fileName: string): void => {
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename;
+  link.download = fileName;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
 
 /**
- * Get file extension from a filename
- * @param filename The filename to extract extension from
- * @returns The file extension (without the dot)
- */
-export const getFileExtension = (filename: string): string => {
-  return filename.split('.').pop() || '';
-};
-
-/**
- * Generate a unique filename to avoid collisions
- * @param originalName Original filename
- * @returns Unique filename with timestamp
- */
-export const generateUniqueFileName = (originalName: string): string => {
-  const extension = getFileExtension(originalName);
-  const timestamp = Date.now();
-  const baseName = originalName.substring(0, originalName.lastIndexOf('.'));
-  return `${baseName}_${timestamp}.${extension}`;
-};
-
-/**
- * Get an icon name based on file type
- * @param fileType MIME type of the file
- * @returns Icon name to use for the file type
- */
-export const getFileTypeIcon = (fileType: string): string => {
-  if (fileType.includes('pdf')) return 'file-text';
-  if (fileType.includes('word') || fileType.includes('document')) return 'file-text';
-  if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'file-spreadsheet';
-  if (fileType.includes('image')) return 'image';
-  if (fileType.includes('video')) return 'video';
-  if (fileType.includes('audio')) return 'headphones';
-  if (fileType.includes('zip') || fileType.includes('compressed')) return 'archive';
-  return 'file';
-};
-
-/**
- * Read a file as a Data URL (base64)
- * @param file File to read
- * @returns Promise that resolves with the file contents as a Data URL
+ * Read a file as a data URL
+ * @param file The file to read
+ * @returns Promise resolving to the file data URL
  */
 export const readFileAsDataURL = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Failed to read file as Data URL'));
-      }
-    };
-    reader.onerror = () => {
-      reject(reader.error);
-    };
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 };

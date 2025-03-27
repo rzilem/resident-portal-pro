@@ -20,6 +20,12 @@ interface Document {
   is_archived: boolean;
   last_modified: string;
   version: number;
+  // Adding missing fields from the error
+  uploaded_date?: string;
+  uploaded_by?: string;
+  association_id: string;
+  updated_at?: string;
+  tags?: string[];
 }
 
 const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) => {

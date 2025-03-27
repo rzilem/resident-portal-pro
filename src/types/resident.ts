@@ -1,4 +1,3 @@
-
 /**
  * Resident type definitions
  */
@@ -118,6 +117,8 @@ export type ResidentProfile = {
     visitedOffice?: string;
     email?: string;
   };
+  // Add associationId property
+  associationId?: string;
 }
 
 export type ResidentProfiles = Record<number, ResidentProfile>;
