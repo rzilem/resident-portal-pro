@@ -1,3 +1,4 @@
+
 // src/App.tsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -14,14 +15,16 @@ import UploadDocument from '@/components/UploadDocument';
 import Properties from '@/pages/Properties';
 import Residents from '@/pages/Residents';
 import ResidentProfile from '@/pages/ResidentProfile';
-import HoaDashboard from '@/pages/HoaDashboard';
-import HoaFinances from '@/pages/HoaFinances';
+import HoaDashboard from '@/pages/hoa/Dashboard'; // Fixed import path
+import HoaFinances from '@/pages/hoa/Finances'; // Fixed import path
 
 const LogoutRedirect = () => {
-  const logout = useLogout();
+  const { handleLogout } = useLogout(); // Destructure the correct property
+  
   React.useEffect(() => {
-    logout();
-  }, [logout]);
+    handleLogout(); // Use the correct method name
+  }, [handleLogout]);
+  
   return <Navigate to="/login" />;
 };
 
