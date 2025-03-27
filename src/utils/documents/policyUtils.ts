@@ -28,20 +28,23 @@ export const createStoragePolicy = async (
       operation: string;
     }
     
-    // Call RPC without explicit type parameters, letting TypeScript infer them
+    // Call RPC and cast error to any to bypass type issue
     const { error } = await supabase.rpc('create_storage_policy', {
       bucket_name: bucketName,
       policy_name: policyName,
       definition: definition,
       operation: operation
-    } as StoragePolicyParams);
+    }) as { error: any };
     
     if (error) {
-      throw new Error(error.message || 'Failed to create storage policy');
+      const errorMessage = typeof error.message === 'string' 
+        ? error.message 
+        : `Failed to create storage policy ${policyName} for ${operation}`;
+      throw new Error(errorMessage);
     }
     
     console.log(`Created storage policy ${policyName} for ${operation} operation`);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`Error creating storage policy ${policyName}:`, error);
     throw error instanceof Error ? error : new Error(String(error));
   }
