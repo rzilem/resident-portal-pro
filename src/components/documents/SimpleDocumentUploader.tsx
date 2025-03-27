@@ -54,8 +54,9 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
             const input = document.createElement('input');
             input.type = 'file';
             input.onchange = (e) => {
-              // Using type assertion to safely convert Event to React.ChangeEvent<HTMLInputElement>
-              if (e.target && (e.target as HTMLInputElement).files) {
+              // Fix: Properly cast the Event to the expected type
+              if (e.target && 'files' in e.target) {
+                // Cast to unknown first as recommended in the error message, then to the expected type
                 handleFileChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }
             };

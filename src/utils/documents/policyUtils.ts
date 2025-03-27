@@ -28,8 +28,8 @@ export const createStoragePolicy = async (
       operation: string;
     }
     
-    // Call RPC with properly typed parameters
-    await supabase.rpc<null, StoragePolicyParams>('create_storage_policy', {
+    // Call RPC with properly typed parameters - using void instead of null to fix type constraint error
+    await supabase.rpc<void, StoragePolicyParams>('create_storage_policy', {
       bucket_name: bucketName,
       policy_name: policyName,
       definition: definition,
