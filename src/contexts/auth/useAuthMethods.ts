@@ -5,12 +5,14 @@ import { Profile } from '@/types/supabase';
 
 interface UseAuthMethodsProps {
   user: User | null;
+  setUser: (user: User | null) => void;
   setProfile: (profile: Profile | null) => void;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 export const useAuthMethods = ({ 
   user, 
+  setUser,
   setProfile,
   setIsAuthenticated 
 }: UseAuthMethodsProps) => {
@@ -30,8 +32,12 @@ export const useAuthMethods = ({
       
       console.log("useAuthMethods: Sign-in successful for user:", data.user?.id);
       
-      // The auth state change listener in AuthProvider will update the user state
-      // No need to manually set user or isAuthenticated here
+      // Manually update state to avoid race conditions
+      setUser(data.user);
+      setIsAuthenticated(true);
+      
+      // Force a session refresh to ensure everything is synced
+      await supabase.auth.getSession();
       
       return { error: null };
     } catch (error) {
@@ -65,6 +71,7 @@ export const useAuthMethods = ({
         // Reset authentication state
         setIsAuthenticated(false);
         setProfile(null);
+        setUser(null);
       }
     } catch (error) {
       console.error('Exception during sign out:', error);
