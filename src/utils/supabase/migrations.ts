@@ -26,7 +26,8 @@ export const initializeTables = async (): Promise<boolean> => {
       .limit(1) as { data: AssociationSettings[] | null; error: PostgrestError | null };
 
     if (tableCheckError) {
-      console.error('Error checking association_settings table:', tableCheckError.message);
+      // Fix: Cast tableCheckError to PostgrestError before accessing message
+      console.error('Error checking association_settings table:', (tableCheckError as PostgrestError).message);
       return false;
     }
 
@@ -42,7 +43,7 @@ export const initializeTables = async (): Promise<boolean> => {
           .rpc('create_association_settings_table') as { data: any; error: PostgrestError | null };
 
         if (rpcError) {
-          throw new Error(rpcError.message || 'Failed to create association_settings table via RPC');
+          throw new Error((rpcError as PostgrestError).message || 'Failed to create association_settings table via RPC');
         }
       } catch (rpcError: unknown) {
         console.error('Error creating association_settings table using RPC:', rpcError);
@@ -57,7 +58,7 @@ export const initializeTables = async (): Promise<boolean> => {
             }]) as { data: any; error: PostgrestError | null };
 
           if (insertError) {
-            throw new Error(insertError.message || 'Failed to create association_settings table');
+            throw new Error((insertError as PostgrestError).message || 'Failed to create association_settings table');
           }
 
           console.log('Created association_settings table');
@@ -75,7 +76,7 @@ export const initializeTables = async (): Promise<boolean> => {
         .maybeSingle() as { data: AssociationSettings | null; error: PostgrestError | null };
 
       if (settingsError) {
-        console.error('Error checking default settings:', settingsError.message);
+        console.error('Error checking default settings:', (settingsError as PostgrestError).message);
         return false;
       }
 
@@ -88,7 +89,7 @@ export const initializeTables = async (): Promise<boolean> => {
           }]) as { data: any; error: PostgrestError | null };
 
         if (insertDefaultError) {
-          console.error('Error inserting default settings:', insertDefaultError.message);
+          console.error('Error inserting default settings:', (insertDefaultError as PostgrestError).message);
           return false;
         }
       }
