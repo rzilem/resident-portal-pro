@@ -5,12 +5,18 @@ import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
 import { createDefaultSettings, settingsToJson } from "./types";
 import { getAssociationById } from "./getAssociations";
+import { handleError, validateAssociation } from "./utils";
 
 /**
  * Create a new association in Supabase
+ * @param {Omit<Association, 'id'>} association - The association data without ID
+ * @returns {Promise<Association | null>} - The created association or null if creation fails
  */
 export const createAssociation = async (association: Omit<Association, 'id'>): Promise<Association | null> => {
   try {
+    // Validate association data
+    validateAssociation(association);
+    
     // Extract data for the associations table
     const associationData = {
       name: association.name,
@@ -51,10 +57,10 @@ export const createAssociation = async (association: Omit<Association, 'id'>): P
     }
     
     // Return full association object
+    toast.success('Association created successfully');
     return await getAssociationById(newAssociation.id);
   } catch (error) {
-    console.error('Error creating association:', error);
-    toast.error('Failed to create association');
+    handleError(error, 'create association');
     return null;
   }
 };

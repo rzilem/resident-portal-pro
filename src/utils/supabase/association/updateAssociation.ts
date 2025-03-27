@@ -5,14 +5,23 @@ import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
 import { getAssociationById } from "./getAssociations";
 import { settingsToJson } from "./types";
+import { handleError, validateAssociation } from "./utils";
 
 /**
  * Update an existing association in Supabase
+ * @param {string} id - The association ID to update
+ * @param {Partial<Association>} updates - The fields to update
+ * @returns {Promise<Association | null>} - The updated association or null if update fails
  */
 export const updateAssociation = async (id: string, updates: Partial<Association>): Promise<Association | null> => {
   try {
+    // Validate updates if they contain required fields
+    if (updates.name) {
+      validateAssociation(updates);
+    }
+    
     // Extract data for the associations table
-    const associationData: any = {};
+    const associationData: Record<string, any> = {};
     
     if (updates.name) associationData.name = updates.name;
     if (updates.address) {
@@ -77,17 +86,21 @@ export const updateAssociation = async (id: string, updates: Partial<Association
       }
     }
     
+    toast.success('Association updated successfully');
     // Fetch updated association
     return await getAssociationById(id);
   } catch (error) {
-    console.error('Error updating association:', error);
-    toast.error('Failed to update association');
+    handleError(error, 'update association');
     return null;
   }
 };
 
 /**
  * Update a specific setting for an association
+ * @param {string} id - The association ID
+ * @param {string} settingName - The setting name to update
+ * @param {any} value - The new value for the setting
+ * @returns {Promise<Association | null>} - The updated association or null if update fails
  */
 export const updateAssociationSetting = async (
   id: string,
@@ -141,8 +154,7 @@ export const updateAssociationSetting = async (
     // Get updated association
     return await getAssociationById(id);
   } catch (error) {
-    console.error(`Error updating setting ${settingName}:`, error);
-    toast.error(`Failed to update ${settingName}`);
+    handleError(error, `update setting "${settingName}"`);
     return null;
   }
 };
