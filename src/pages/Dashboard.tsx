@@ -44,6 +44,13 @@ const Dashboard = () => {
       size: 'medium',
       position: 4,
     },
+    {
+      id: 'ci-insights-widget',
+      type: 'ci-insights',
+      title: 'CI Insights',
+      size: 'medium',
+      position: 5,
+    }
   ]);
   const [columns, setColumns] = useState(2);
   
