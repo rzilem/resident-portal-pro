@@ -34,7 +34,7 @@ const ResidentReports: React.FC<ResidentReportsProps> = ({
         <HomeownerStatementReport timeRange={timeRange} association={association} selectedReport={selectedReport} />
       )}
       
-      {selectedReport === 'contact-info' && (
+      {selectedReport === 'contact-info' || selectedReport === 'all-addresses' || selectedReport === 'current-addresses' && (
         <ContactInfoReport timeRange={timeRange} association={association} selectedReport={selectedReport} />
       )}
       
@@ -59,7 +59,8 @@ const ResidentReports: React.FC<ResidentReportsProps> = ({
       )}
       
       {/* Default fallback if no report is selected */}
-      {!['resident-overview', 'homeowner-invoice', 'contact-info', 'board-members', 'transaction-history', 'transaction-by-charge', 'meeting-signin', 'meeting-consolidated'].some(type => 
+      {!['resident-overview', 'homeowner-invoice', 'contact-info', 'board-members', 'transaction-history', 
+         'transaction-by-charge', 'meeting-signin', 'meeting-consolidated', 'all-addresses', 'current-addresses'].some(type => 
         selectedReport === type || selectedReport.startsWith('statement')
       ) && (
         <div className="text-center py-8">

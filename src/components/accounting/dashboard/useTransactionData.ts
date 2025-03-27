@@ -9,6 +9,8 @@ export const useTransactionData = (transactions: Transaction[], associationId?: 
 
   // Filter transactions based on search query, type, and association ID
   useEffect(() => {
+    console.log("Filtering transactions for association ID:", associationId);
+    
     const filtered = transactions.filter(transaction => {
       const matchesSearch = 
         transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -20,9 +22,10 @@ export const useTransactionData = (transactions: Transaction[], associationId?: 
         (transactionType === 'debit' && transaction.type === 'debit') || 
         (transactionType === 'credit' && transaction.type === 'credit');
       
-      // Filter by association if associationId is provided
+      // Filter by association if associationId is provided and not 'all'
       const matchesAssociation = 
         !associationId || 
+        associationId === 'all' || 
         transaction.associationId === associationId;
       
       return matchesSearch && matchesType && matchesAssociation;

@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { HelpCircle, Download, Mail, FileText } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,16 +13,28 @@ interface ContactInfoReportProps {
 
 const ContactInfoReport = ({ timeRange, association, selectedReport }: ContactInfoReportProps) => {
   // Sample resident data
-  const residentData = [
-    { id: 1, name: 'John Smith', property: 'Oakwood Residence', unit: '101', status: 'Owner', moveInDate: '2020-05-15', email: 'john@example.com', phone: '555-123-4567' },
-    { id: 2, name: 'Jane Doe', property: 'Willow Heights', unit: '205', status: 'Tenant', moveInDate: '2021-08-10', email: 'jane@example.com', phone: '555-987-6543' },
-    { id: 3, name: 'Robert Johnson', property: 'Cedar Point', unit: '310', status: 'Owner', moveInDate: '2018-03-22', email: 'robert@example.com', phone: '555-456-7890' },
-    { id: 4, name: 'Mary Williams', property: 'Maple Grove', unit: '402', status: 'Tenant', moveInDate: '2022-01-05', email: 'mary@example.com', phone: '555-234-5678' },
-    { id: 5, name: 'David Brown', property: 'Birchwood Court', unit: '115', status: 'Owner', moveInDate: '2019-07-12', email: 'david@example.com', phone: '555-876-5432' },
-    { id: 6, name: 'Sarah Miller', property: 'Pine Valley', unit: '220', status: 'Owner', moveInDate: '2017-11-30', email: 'sarah@example.com', phone: '555-345-6789' },
-    { id: 7, name: 'Michael Davis', property: 'Oakwood Residence', unit: '102', status: 'Tenant', moveInDate: '2021-04-18', email: 'michael@example.com', phone: '555-654-3210' },
-    { id: 8, name: 'Jennifer Garcia', property: 'Willow Heights', unit: '210', status: 'Owner', moveInDate: '2020-09-05', email: 'jennifer@example.com', phone: '555-789-0123' },
+  const allResidentData = [
+    { id: 1, name: 'John Smith', property: 'Oakwood Residence', unit: '101', status: 'Owner', moveInDate: '2020-05-15', email: 'john@example.com', phone: '555-123-4567', associationId: 'assoc1' },
+    { id: 2, name: 'Jane Doe', property: 'Willow Heights', unit: '205', status: 'Tenant', moveInDate: '2021-08-10', email: 'jane@example.com', phone: '555-987-6543', associationId: 'assoc2' },
+    { id: 3, name: 'Robert Johnson', property: 'Cedar Point', unit: '310', status: 'Owner', moveInDate: '2018-03-22', email: 'robert@example.com', phone: '555-456-7890', associationId: 'assoc3' },
+    { id: 4, name: 'Mary Williams', property: 'Maple Grove', unit: '402', status: 'Tenant', moveInDate: '2022-01-05', email: 'mary@example.com', phone: '555-234-5678', associationId: '1' },
+    { id: 5, name: 'David Brown', property: 'Birchwood Court', unit: '115', status: 'Owner', moveInDate: '2019-07-12', email: 'david@example.com', phone: '555-876-5432', associationId: '2' },
+    { id: 6, name: 'Sarah Miller', property: 'Pine Valley', unit: '220', status: 'Owner', moveInDate: '2017-11-30', email: 'sarah@example.com', phone: '555-345-6789', associationId: '3' },
+    { id: 7, name: 'Michael Davis', property: 'Oakwood Residence', unit: '102', status: 'Tenant', moveInDate: '2021-04-18', email: 'michael@example.com', phone: '555-654-3210', associationId: '1' },
+    { id: 8, name: 'Jennifer Garcia', property: 'Willow Heights', unit: '210', status: 'Owner', moveInDate: '2020-09-05', email: 'jennifer@example.com', phone: '555-789-0123', associationId: '2' },
   ];
+  
+  const [filteredResidents, setFilteredResidents] = useState(allResidentData);
+
+  // Filter residents when association changes
+  useEffect(() => {
+    console.log("ContactInfoReport: filtering by association", association);
+    if (association === 'all') {
+      setFilteredResidents(allResidentData);
+    } else {
+      setFilteredResidents(allResidentData.filter(resident => resident.associationId === association));
+    }
+  }, [association]);
 
   return (
     <div>
@@ -61,7 +74,7 @@ const ContactInfoReport = ({ timeRange, association, selectedReport }: ContactIn
           </TableRow>
         </TableHeader>
         <TableBody>
-          {residentData
+          {filteredResidents
             .filter(resident => selectedReport !== 'current-addresses' || resident.status === 'Owner')
             .map((resident) => (
             <TableRow key={resident.id}>

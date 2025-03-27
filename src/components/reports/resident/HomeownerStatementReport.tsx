@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { HelpCircle, Download, FileText, Calendar, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -39,27 +39,110 @@ const HomeownerStatementReport = ({ timeRange, association, selectedReport }: Ho
     }
   };
   
-  // Sample statement data
-  const statementEntries = [
-    { date: '2023-05-01', description: 'Monthly HOA Fee', debit: 250, credit: 0, balance: 250 },
-    { date: '2023-05-15', description: 'Payment Received', debit: 0, credit: 250, balance: 0 },
-    { date: '2023-06-01', description: 'Monthly HOA Fee', debit: 250, credit: 0, balance: 250 },
-    { date: '2023-06-10', description: 'Late Fee', debit: 25, credit: 0, balance: 275 },
-    { date: '2023-06-20', description: 'Payment Received', debit: 0, credit: 275, balance: 0 },
-    { date: '2023-07-01', description: 'Monthly HOA Fee', debit: 250, credit: 0, balance: 250 },
-    { date: '2023-07-15', description: 'Special Assessment', debit: 500, credit: 0, balance: 750 },
-    { date: '2023-07-18', description: 'Payment Received', debit: 0, credit: 250, balance: 500 },
-  ];
+  // Sample statement data by association
+  const allStatementEntries = {
+    'all': [
+      { date: '2023-05-01', description: 'Monthly HOA Fee', debit: 250, credit: 0, balance: 250, associationId: 'all' },
+      { date: '2023-05-15', description: 'Payment Received', debit: 0, credit: 250, balance: 0, associationId: 'all' },
+      { date: '2023-06-01', description: 'Monthly HOA Fee', debit: 250, credit: 0, balance: 250, associationId: 'all' },
+      { date: '2023-06-10', description: 'Late Fee', debit: 25, credit: 0, balance: 275, associationId: 'all' },
+      { date: '2023-06-20', description: 'Payment Received', debit: 0, credit: 275, balance: 0, associationId: 'all' },
+      { date: '2023-07-01', description: 'Monthly HOA Fee', debit: 250, credit: 0, balance: 250, associationId: 'all' },
+      { date: '2023-07-15', description: 'Special Assessment', debit: 500, credit: 0, balance: 750, associationId: 'all' },
+      { date: '2023-07-18', description: 'Payment Received', debit: 0, credit: 250, balance: 500, associationId: 'all' },
+    ],
+    '1': [
+      { date: '2023-05-01', description: 'Riverside HOA Fee', debit: 300, credit: 0, balance: 300, associationId: '1' },
+      { date: '2023-05-18', description: 'Payment Received', debit: 0, credit: 300, balance: 0, associationId: '1' },
+      { date: '2023-06-01', description: 'Riverside HOA Fee', debit: 300, credit: 0, balance: 300, associationId: '1' },
+      { date: '2023-06-20', description: 'Payment Received', debit: 0, credit: 300, balance: 0, associationId: '1' },
+      { date: '2023-07-01', description: 'Riverside HOA Fee', debit: 300, credit: 0, balance: 300, associationId: '1' },
+      { date: '2023-07-15', description: 'Pool Assessment', debit: 450, credit: 0, balance: 750, associationId: '1' },
+    ],
+    '2': [
+      { date: '2023-05-01', description: 'Oakwood Condos Fee', debit: 400, credit: 0, balance: 400, associationId: '2' },
+      { date: '2023-05-14', description: 'Payment Received', debit: 0, credit: 400, balance: 0, associationId: '2' },
+      { date: '2023-06-01', description: 'Oakwood Condos Fee', debit: 400, credit: 0, balance: 400, associationId: '2' },
+      { date: '2023-06-15', description: 'Payment Received', debit: 0, credit: 400, balance: 0, associationId: '2' },
+      { date: '2023-07-01', description: 'Oakwood Condos Fee', debit: 400, credit: 0, balance: 400, associationId: '2' },
+      { date: '2023-07-12', description: 'Elevator Assessment', debit: 350, credit: 0, balance: 750, associationId: '2' },
+    ],
+    '3': [
+      { date: '2023-05-01', description: 'Pinecrest Comunity Fee', debit: 275, credit: 0, balance: 275, associationId: '3' },
+      { date: '2023-05-20', description: 'Payment Received', debit: 0, credit: 275, balance: 0, associationId: '3' },
+      { date: '2023-06-01', description: 'Pinecrest Comunity Fee', debit: 275, credit: 0, balance: 275, associationId: '3' },
+      { date: '2023-06-18', description: 'Payment Received', debit: 0, credit: 275, balance: 0, associationId: '3' },
+      { date: '2023-07-01', description: 'Pinecrest Comunity Fee', debit: 275, credit: 0, balance: 275, associationId: '3' },
+      { date: '2023-07-10', description: 'Playground Assessment', debit: 300, credit: 0, balance: 575, associationId: '3' },
+    ],
+  };
 
-  // Homeowner info
-  const homeownerInfo = {
+  const [statementEntries, setStatementEntries] = useState(allStatementEntries.all);
+
+  // Filter statement entries when association changes
+  useEffect(() => {
+    console.log("HomeownerStatementReport: filtering by association", association);
+    if (association === 'all') {
+      setStatementEntries(allStatementEntries.all);
+    } else if (allStatementEntries[association]) {
+      setStatementEntries(allStatementEntries[association]);
+    } else {
+      // Fallback to default data if no matching association is found
+      setStatementEntries(allStatementEntries.all);
+    }
+  }, [association]);
+
+  // Homeowner info - adjust based on association
+  const [homeownerInfo, setHomeownerInfo] = useState({
     name: 'John Smith',
     propertyAddress: '123 Main Street, Anytown, USA 12345',
     accountNumber: 'HOA-12345',
     statementDate: new Date().toLocaleDateString(),
     dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(),
     totalDue: 500,
-  };
+  });
+
+  // Update homeowner info when association changes
+  useEffect(() => {
+    if (association === '1') {
+      setHomeownerInfo({
+        name: 'Robert Johnson',
+        propertyAddress: '456 Riverside Dr, Rivertown, USA 23456',
+        accountNumber: 'RIV-54321',
+        statementDate: new Date().toLocaleDateString(),
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        totalDue: 750,
+      });
+    } else if (association === '2') {
+      setHomeownerInfo({
+        name: 'Jane Wilson',
+        propertyAddress: '789 Oak Ave, Oakville, USA 34567',
+        accountNumber: 'OAK-67890',
+        statementDate: new Date().toLocaleDateString(),
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        totalDue: 750,
+      });
+    } else if (association === '3') {
+      setHomeownerInfo({
+        name: 'Sarah Miller',
+        propertyAddress: '101 Pine St, Pineville, USA 45678',
+        accountNumber: 'PIN-10112',
+        statementDate: new Date().toLocaleDateString(),
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        totalDue: 575,
+      });
+    } else {
+      // Default info
+      setHomeownerInfo({
+        name: 'John Smith',
+        propertyAddress: '123 Main Street, Anytown, USA 12345',
+        accountNumber: 'HOA-12345',
+        statementDate: new Date().toLocaleDateString(),
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        totalDue: 500,
+      });
+    }
+  }, [association]);
 
   const actionsForReport = () => {
     return (

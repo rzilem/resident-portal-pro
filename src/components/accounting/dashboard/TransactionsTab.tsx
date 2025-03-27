@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -175,6 +174,216 @@ const transactionsByAssociation: Record<string, Transaction[]> = {
       reference: 'WO-MV-2023-09',
       associationId: 'assoc3'
     }
+  ],
+  '1': [
+    { 
+      id: 'TRX-101', 
+      date: '2023-07-15', 
+      description: 'Riverside HOA Dues', 
+      amount: 400, 
+      type: 'credit', 
+      category: 'Assessment', 
+      account: 'Operating Account',
+      reference: 'INV-R-2023-07',
+      associationId: '1'
+    },
+    { 
+      id: 'TRX-102', 
+      date: '2023-07-14', 
+      description: 'Pool maintenance', 
+      amount: 850, 
+      type: 'debit', 
+      category: 'Maintenance',
+      account: 'Operating Account',
+      reference: 'PO-R-2023-12',
+      associationId: '1'
+    },
+    { 
+      id: 'TRX-103', 
+      date: '2023-07-10', 
+      description: 'Security system', 
+      amount: 675, 
+      type: 'debit', 
+      category: 'Security',
+      account: 'Reserve Account',
+      reference: 'WO-R-2023-08',
+      associationId: '1'
+    }
+  ],
+  '2': [
+    { 
+      id: 'TRX-201', 
+      date: '2023-07-15', 
+      description: 'Oakwood Condos Fees', 
+      amount: 520, 
+      type: 'credit', 
+      category: 'Assessment', 
+      account: 'Operating Account',
+      reference: 'INV-O-2023-07',
+      associationId: '2'
+    },
+    { 
+      id: 'TRX-202', 
+      date: '2023-07-12', 
+      description: 'Landscaping', 
+      amount: 1200, 
+      type: 'debit', 
+      category: 'Maintenance',
+      account: 'Operating Account',
+      reference: 'PO-O-2023-14',
+      associationId: '2'
+    },
+    { 
+      id: 'TRX-203', 
+      date: '2023-07-08', 
+      description: 'Hallway lighting', 
+      amount: 450, 
+      type: 'debit', 
+      category: 'Repairs',
+      account: 'Reserve Account',
+      reference: 'WO-O-2023-09',
+      associationId: '2'
+    }
+  ],
+  '3': [
+    { 
+      id: 'TRX-301', 
+      date: '2023-07-16', 
+      description: 'Pinecrest Community Dues', 
+      amount: 350, 
+      type: 'credit', 
+      category: 'Assessment', 
+      account: 'Operating Account',
+      reference: 'INV-P-2023-07',
+      associationId: '3'
+    },
+    { 
+      id: 'TRX-302', 
+      date: '2023-07-11', 
+      description: 'Common area maintenance', 
+      amount: 780, 
+      type: 'debit', 
+      category: 'Maintenance',
+      account: 'Operating Account',
+      reference: 'PO-P-2023-15',
+      associationId: '3'
+    },
+    { 
+      id: 'TRX-303', 
+      date: '2023-07-05', 
+      description: 'Tennis court resurfacing', 
+      amount: 1800, 
+      type: 'debit', 
+      category: 'Improvements',
+      account: 'Reserve Account',
+      reference: 'WO-P-2023-10',
+      associationId: '3'
+    }
+  ],
+  'oakwood': [
+    { 
+      id: 'TRX-OW1', 
+      date: '2023-07-15', 
+      description: 'Oakwood HOA Dues', 
+      amount: 380, 
+      type: 'credit', 
+      category: 'Assessment', 
+      account: 'Operating Account',
+      reference: 'INV-OW-2023-07',
+      associationId: 'oakwood'
+    },
+    { 
+      id: 'TRX-OW2', 
+      date: '2023-07-10', 
+      description: 'Fence repair', 
+      amount: 650, 
+      type: 'debit', 
+      category: 'Repairs',
+      account: 'Operating Account',
+      reference: 'PO-OW-2023-15',
+      associationId: 'oakwood'
+    },
+    { 
+      id: 'TRX-OW3', 
+      date: '2023-07-05', 
+      description: 'Lawn maintenance', 
+      amount: 420, 
+      type: 'debit', 
+      category: 'Maintenance',
+      account: 'Reserve Account',
+      reference: 'WO-OW-2023-08',
+      associationId: 'oakwood'
+    }
+  ],
+  'pinecrest': [
+    { 
+      id: 'TRX-PC1', 
+      date: '2023-07-15', 
+      description: 'Pinecrest Condo Fees', 
+      amount: 550, 
+      type: 'credit', 
+      category: 'Assessment', 
+      account: 'Operating Account',
+      reference: 'INV-PC-2023-07',
+      associationId: 'pinecrest'
+    },
+    { 
+      id: 'TRX-PC2', 
+      date: '2023-07-12', 
+      description: 'Elevator maintenance', 
+      amount: 1500, 
+      type: 'debit', 
+      category: 'Maintenance',
+      account: 'Operating Account',
+      reference: 'PO-PC-2023-12',
+      associationId: 'pinecrest'
+    },
+    { 
+      id: 'TRX-PC3', 
+      date: '2023-07-08', 
+      description: 'Lobby renovation', 
+      amount: 2800, 
+      type: 'debit', 
+      category: 'Improvements',
+      account: 'Reserve Account',
+      reference: 'WO-PC-2023-10',
+      associationId: 'pinecrest'
+    }
+  ],
+  'riverdale': [
+    { 
+      id: 'TRX-RD1', 
+      date: '2023-07-16', 
+      description: 'Riverdale Community Fees', 
+      amount: 420, 
+      type: 'credit', 
+      category: 'Assessment', 
+      account: 'Operating Account',
+      reference: 'INV-RD-2023-07',
+      associationId: 'riverdale'
+    },
+    { 
+      id: 'TRX-RD2', 
+      date: '2023-07-11', 
+      description: 'Clubhouse cleaning', 
+      amount: 350, 
+      type: 'debit', 
+      category: 'Maintenance',
+      account: 'Operating Account',
+      reference: 'PO-RD-2023-14',
+      associationId: 'riverdale'
+    },
+    { 
+      id: 'TRX-RD3', 
+      date: '2023-07-06', 
+      description: 'Playground equipment', 
+      amount: 1200, 
+      type: 'debit', 
+      category: 'Improvements',
+      account: 'Reserve Account',
+      reference: 'WO-RD-2023-09',
+      associationId: 'riverdale'
+    }
   ]
 };
 
@@ -183,11 +392,17 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ associationId }) => {
   
   // Update the transactions when the association changes
   useEffect(() => {
-    console.log("Association changed to:", associationId);
-    if (associationId && transactionsByAssociation[associationId]) {
+    console.log("TransactionsTab: Association changed to:", associationId);
+    if (associationId && associationId !== 'all' && transactionsByAssociation[associationId]) {
       setAllTransactions(transactionsByAssociation[associationId]);
     } else {
-      setAllTransactions(transactionsByAssociation.default);
+      // If association is 'all' or not found, show all transactions from all associations
+      if (associationId === 'all') {
+        const allAssociationTransactions = Object.values(transactionsByAssociation).flat();
+        setAllTransactions(allAssociationTransactions);
+      } else {
+        setAllTransactions(transactionsByAssociation.default);
+      }
     }
   }, [associationId]);
 
@@ -207,7 +422,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ associationId }) => {
         <CardTitle>Transaction Management</CardTitle>
         <CardDescription>
           View and manage all financial transactions
-          {associationId && <span className="ml-1">for the selected association</span>}
+          {associationId && associationId !== 'all' && <span className="ml-1">for the selected association</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>
