@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { isDemoAuthenticated } from '@/utils/auth/demoAuth';
 
 /**
  * Check if the current user is authenticated
@@ -38,4 +39,13 @@ export const getCurrentUserId = async (): Promise<string | null> => {
     console.error('Error getting user ID:', error);
     return null;
   }
+};
+
+/**
+ * Check if the user is using demo credentials
+ * @returns Promise<boolean> True if using demo credentials
+ */
+export const isUsingDemoCredentials = async (): Promise<boolean> => {
+  // Check if the user is using the demo authentication mode
+  return isDemoAuthenticated();
 };
