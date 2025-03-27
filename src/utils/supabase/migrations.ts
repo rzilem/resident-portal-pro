@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PostgrestError } from '@supabase/supabase-js';
 import { Json } from "@/integrations/supabase/types";
 
 /**
@@ -37,7 +38,10 @@ export const initializeTables = async (): Promise<boolean> => {
               settings: {} as Json,
             }]);
             
-          if (error) throw error;
+          if (error) {
+            // Fix for line 24: Cast error to PostgrestError to access message property
+            throw new Error((error as PostgrestError).message);
+          }
             
           console.log('Created association_settings table');
         } catch (directError) {
