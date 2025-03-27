@@ -15,6 +15,7 @@ import { uploadDocument } from '@/utils/documents/uploadUtils';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { Loader2 } from 'lucide-react';
 import FileUploader from './FileUploader';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentMetadata {
   title: string;
@@ -47,19 +48,64 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUpl
     setIsUploading(true);
 
     try {
-      const customPath = `${metadata.category}/${metadata.title}`;
+      console.log("Starting upload process for file:", file.name);
       
-      const uploadResult = await uploadDocument(file, customPath);
-
-      if (uploadResult.success) {
-        toast.success(`${file.name} has been uploaded.`);
-        onUploadComplete();
-      } else {
-        toast.error(`Failed to upload ${file.name}. ${uploadResult.error || 'Please try again.'}`);
+      // Upload file directly to Supabase storage
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop() || '';
+      const filePath = `${metadata.category}/${timestamp}-${metadata.title}`;
+      
+      console.log(`Uploading to path: ${filePath}`);
+      
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
       }
+      
+      console.log("Storage upload successful:", data);
+      
+      // Get the file URL
+      const { data: urlData } = await supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+      
+      const fileUrl = urlData?.publicUrl;
+      
+      console.log("File URL:", fileUrl);
+      
+      // Save document metadata to the database
+      const { data: documentData, error: documentError } = await supabase
+        .from('documents')
+        .insert({
+          name: metadata.title,
+          description: metadata.description,
+          file_size: file.size,
+          file_type: file.type,
+          url: fileUrl,
+          category: metadata.category,
+          uploaded_by: user?.id,
+          is_public: false,
+          version: 1
+        });
+      
+      if (documentError) {
+        console.error("Database error:", documentError);
+        throw documentError;
+      }
+      
+      console.log("Document metadata saved:", documentData);
+      toast.success(`${file.name} has been uploaded.`);
+      onUploadComplete();
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("An unexpected error occurred during upload.");
+      toast.error(`Failed to upload ${file.name}. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setIsUploading(false);
     }

@@ -1,88 +1,107 @@
 
-import { toast } from 'sonner';
+/**
+ * Utility functions for Supabase storage bucket operations
+ */
+
 import { supabase } from '@/integrations/supabase/client';
-import { isDemoAuthenticated } from '@/utils/auth/demoAuth';
+import { toast } from 'sonner';
 
 /**
- * Check if a bucket exists and create it if it doesn't
+ * Ensure a bucket exists in Supabase storage
+ * @param bucketId - Bucket ID
+ * @param forceCreation - Force creation even if bucket might exist
+ * @returns Boolean indicating if the bucket exists or was created
  */
-export const ensureBucketExists = async (bucketName: string, forceCreate: boolean = false): Promise<boolean> => {
+export const ensureBucketExists = async (
+  bucketId: string,
+  forceCreation: boolean = false
+): Promise<boolean> => {
   try {
-    // For demo user, just pretend the bucket exists to avoid Supabase auth issues
-    if (isDemoAuthenticated()) {
-      console.log(`[Demo mode] Simulating bucket check for: ${bucketName}`);
-      return true;
-    }
-
     // Check if bucket exists
-    const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets();
-    
-    if (listError) {
-      console.error('Error checking buckets:', listError);
-      throw listError;
-    }
-    
-    const bucketExists = existingBuckets.some(bucket => bucket.name === bucketName);
-    
-    if (!bucketExists || forceCreate) {
-      console.log(`Bucket ${bucketName} does not exist, creating it...`);
-      const { error: createError } = await supabase.storage.createBucket(bucketName, {
-        public: false,
-        fileSizeLimit: 52428800, // 50MB
-      });
+    if (!forceCreation) {
+      const { data: buckets, error: getBucketsError } = await supabase.storage.listBuckets();
       
-      if (createError) {
-        console.error('Error creating bucket:', createError);
-        throw createError;
+      if (getBucketsError) {
+        console.error('Error checking buckets:', getBucketsError);
+        return false;
       }
       
-      console.log(`Bucket ${bucketName} created successfully`);
-    } else {
-      console.log(`Bucket ${bucketName} already exists`);
+      const bucketExists = buckets?.some(bucket => bucket.name === bucketId);
+      if (bucketExists) {
+        console.log(`Bucket ${bucketId} already exists`);
+        return true;
+      }
     }
     
+    // Create the bucket if it doesn't exist
+    const { data, error } = await supabase.storage.createBucket(bucketId, {
+      public: true
+    });
+    
+    if (error) {
+      console.error(`Error creating bucket ${bucketId}:`, error);
+      return false;
+    }
+    
+    console.log(`Bucket ${bucketId} created successfully`);
     return true;
   } catch (error) {
-    console.error('Error in ensureBucketExists:', error);
-    toast.error(`Failed to ensure bucket exists: ${bucketName}`);
+    console.error('Unexpected error in ensureBucketExists:', error);
     return false;
   }
 };
 
 /**
- * Ensure the documents bucket exists
- * @param {boolean} forceCreate - Force creation of bucket even if it exists
- * @returns {Promise<boolean>} Success status
+ * Ensure the documents bucket exists in Supabase storage
+ * @param forceCreation - Force creation even if bucket might exist
+ * @returns Boolean indicating if the bucket exists or was created
  */
-export const ensureDocumentsBucketExists = async (forceCreate: boolean = false): Promise<boolean> => {
-  return ensureBucketExists('documents', forceCreate);
+export const ensureDocumentsBucketExists = async (
+  forceCreation: boolean = false
+): Promise<boolean> => {
+  console.log('Initializing document storage...');
+  const result = await ensureBucketExists('documents', forceCreation);
+  
+  if (!result) {
+    console.error('Failed to initialize document storage');
+    toast.error('Document storage initialization failed. Some features may not work properly.');
+  }
+  
+  return result;
 };
 
 /**
- * Test if we can access a bucket by trying to list files
+ * Test if we can access the bucket (read/write)
+ * @returns Boolean indicating if bucket access is working
  */
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
-    // For demo user, just pretend the bucket is accessible
-    if (isDemoAuthenticated()) {
-      console.log('[Demo mode] Simulating bucket access test: SUCCESS');
-      return true;
-    }
-
-    // Try to list files in the bucket (we don't care about the results, just if it succeeds)
-    const { data, error } = await supabase.storage
-      .from('documents')
-      .list('', { limit: 1 });
+    const testFile = new Blob(['test'], { type: 'text/plain' });
+    const testPath = `test-${Date.now()}.txt`;
     
-    if (error) {
-      console.error('Error accessing bucket:', error);
+    // Try to upload a test file
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(testPath, testFile);
+    
+    if (uploadError) {
+      console.error('Test upload failed:', uploadError);
       return false;
     }
     
-    console.log('Successfully accessed bucket');
+    // Try to delete the test file
+    const { error: deleteError } = await supabase.storage
+      .from('documents')
+      .remove([testPath]);
+    
+    if (deleteError) {
+      console.error('Test delete failed:', deleteError);
+      return false;
+    }
+    
     return true;
   } catch (error) {
-    console.error('Error testing bucket access:', error);
+    console.error('Bucket access test error:', error);
     return false;
   }
 };

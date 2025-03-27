@@ -1,68 +1,74 @@
 
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * Initialize Supabase storage for document management
+ */
+
+import { ensureDocumentsBucketExists, testBucketAccess } from './bucketUtils';
+import { isUserAuthenticated } from './authUtils';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists } from './bucketUtils';
 
 /**
- * Initialize document storage when the application starts
- * This should be called once during app initialization
+ * Initialize document storage bucket
+ * @returns Promise<boolean> True if initialization was successful
  */
-export const initializeDocumentStorage = async (): Promise<void> => {
-  try {
-    console.log('Initializing document storage...');
-    
-    // Check if user is authenticated
-    const { data: sessionData } = await supabase.auth.getSession();
-    const isAuthenticated = !!sessionData?.session;
-    
-    if (!isAuthenticated) {
-      console.log('User not authenticated, skipping bucket initialization');
-      return;
-    }
-    
-    // Ensure documents bucket exists
-    const success = await ensureDocumentsBucketExists();
-    
-    if (success) {
-      console.log('Document storage initialized successfully');
-    } else {
-      console.error('Failed to initialize document storage');
-      // Don't show error toast on initial load as it might be confusing
-    }
-  } catch (error) {
-    console.error('Error initializing document storage:', error);
+export const initializeDocumentStorage = async (): Promise<boolean> => {
+  console.log('Initializing document storage...');
+  
+  // Check if user is authenticated
+  const isAuthenticated = await isUserAuthenticated();
+  if (!isAuthenticated) {
+    console.log('User is not authenticated, skipping storage initialization');
+    return false;
   }
+  
+  // Create/ensure bucket exists
+  const bucketExists = await ensureDocumentsBucketExists();
+  if (!bucketExists) {
+    console.error('Failed to initialize document bucket');
+    return false;
+  }
+  
+  // Test bucket access
+  const canAccess = await testBucketAccess();
+  if (!canAccess) {
+    console.error('Document bucket exists but is not accessible');
+    return false;
+  }
+  
+  console.log('Document storage initialized successfully');
+  return true;
 };
 
 /**
- * Handle document upload errors by showing helpful messages
- * and suggesting possible solutions
+ * Handle document storage errors
+ * @param error Any error
+ * @returns String with user-friendly error message
  */
-export const handleDocumentStorageError = (error: Error | unknown): string => {
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  console.error('Document storage error:', errorMessage);
+export const handleDocumentStorageError = (error: unknown): string => {
+  console.error('Document storage error:', error);
   
-  // Common error patterns
-  if (errorMessage.includes('not found')) {
-    return 'Storage bucket not found. Please try refreshing the page or contact support.';
+  if (error instanceof Error) {
+    // Permission errors
+    if (error.message.includes('permission') || error.message.includes('access')) {
+      return 'You do not have permission to access document storage. Please check your account.';
+    }
+    
+    // Authentication errors
+    if (error.message.includes('auth') || error.message.includes('unauthenticated') || error.message.includes('not logged in')) {
+      return 'Authentication required. Please sign in to access document storage.';
+    }
+    
+    // Storage limit errors
+    if (error.message.includes('limit') || error.message.includes('quota')) {
+      return 'Storage limit exceeded. Please contact your administrator.';
+    }
+    
+    // Return the actual error message if it's reasonably user-friendly
+    if (error.message.length < 100) {
+      return error.message;
+    }
   }
   
-  if (errorMessage.includes('authentication') || errorMessage.includes('auth')) {
-    return 'Authentication error. Please try logging in again.';
-  }
-  
-  if (errorMessage.includes('permission') || errorMessage.includes('access')) {
-    return 'Permission denied. You may not have access to this resource.';
-  }
-  
-  if (errorMessage.includes('size') || errorMessage.includes('large')) {
-    return 'File is too large. Maximum file size is 50MB.';
-  }
-  
-  if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
-    return 'Network timeout. Please check your connection and try again.';
-  }
-  
-  // Generic fallback
-  return 'An error occurred during document storage operation. Please try again later.';
+  // Generic error message as fallback
+  return 'An error occurred with document storage. Please try again later.';
 };
