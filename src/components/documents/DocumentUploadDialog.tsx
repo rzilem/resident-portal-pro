@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { uploadDocument } from '@/utils/documents/uploadUtils';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { Loader2 } from 'lucide-react';
 import FileUploader from './FileUploader';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocation } from 'react-router-dom';
 
 interface DocumentMetadata {
   title: string;
@@ -28,9 +28,16 @@ interface DocumentMetadataFormProps {
   onUploadComplete: () => void;
   onCancel: () => void;
   setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
+  associationId: string;
 }
 
-const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUploadComplete, onCancel, setIsUploading }) => {
+const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ 
+  file, 
+  onUploadComplete, 
+  onCancel, 
+  setIsUploading,
+  associationId 
+}) => {
   const [metadata, setMetadata] = useState<DocumentMetadata>({
     title: file.name,
     category: 'General',
@@ -49,6 +56,11 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUpl
 
     try {
       console.log("Starting upload process for file:", file.name);
+      console.log("Association ID:", associationId);
+      
+      if (!associationId) {
+        throw new Error("Association ID is required but not provided");
+      }
       
       // Upload file directly to Supabase storage
       const timestamp = Date.now();
@@ -92,7 +104,8 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUpl
           category: metadata.category,
           uploaded_by: user?.id,
           is_public: false,
-          version: 1
+          version: 1,
+          association_id: associationId // This was missing before
         });
       
       if (documentError) {
@@ -158,16 +171,39 @@ interface DocumentUploadDialogProps {
   setOpen: (open: boolean) => void;
   onSuccess?: () => void;
   refreshDocuments?: () => void;
+  associationId?: string;
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ 
   open, 
   setOpen, 
   onSuccess,
-  refreshDocuments 
+  refreshDocuments,
+  associationId: propAssociationId 
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentAssociationId, setCurrentAssociationId] = useState<string>("");
+  const location = useLocation();
+  
+  // Determine association ID from props or from the URL
+  useEffect(() => {
+    if (propAssociationId) {
+      setCurrentAssociationId(propAssociationId);
+    } else {
+      // Try to extract association ID from URL path
+      const pathParts = location.pathname.split('/');
+      const associationPart = pathParts.findIndex(part => part === 'associations');
+      if (associationPart !== -1 && pathParts.length > associationPart + 1) {
+        setCurrentAssociationId(pathParts[associationPart + 1]);
+      } else {
+        // Default to first association for demo purposes
+        // In production, you would want to handle this case differently
+        setCurrentAssociationId("00000000-0000-0000-0000-000000000000");
+        console.warn("No association ID found, using default");
+      }
+    }
+  }, [propAssociationId, location]);
 
   const handleOpenChange = (open: boolean) => {
     setOpen(open);
@@ -197,6 +233,10 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setFile(null);
   };
 
+  if (!currentAssociationId) {
+    console.error("No association ID available for document upload");
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-2xl">
@@ -218,6 +258,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
             onUploadComplete={handleUploadComplete}
             onCancel={handleCancel}
             setIsUploading={setIsUploading}
+            associationId={currentAssociationId}
           />
         )}
 
