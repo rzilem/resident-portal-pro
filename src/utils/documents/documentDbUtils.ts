@@ -1,3 +1,4 @@
+
 /**
  * Database utilities for document management
  */
@@ -142,29 +143,36 @@ export const getDocuments = async (
   try {
     console.log('Getting documents with filters:', JSON.stringify(filters), 'associationId:', associationId, 'userRole:', userRole);
     
-    // Start with base query
+    // Use type to avoid TypeScript errors
     let query = supabase
       .from('documents')
-      .select('*')
-      .order('uploaded_date', { ascending: false });
+      .select('*');
+      
+    // Add order by
+    query = query.order('uploaded_date', { ascending: false });
     
-    // Apply filters - Fix for infinite type instantiation by simplifying the query logic
+    // Apply text search filter (using OR for name and description)
     if (filters.query) {
-      query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%`);
+      const searchPattern = `%${filters.query}%`;
+      query = query.or(`name.ilike.${searchPattern},description.ilike.${searchPattern}`);
     }
     
+    // Apply category filter if specified
     if (filters.categories && filters.categories.length > 0) {
       query = query.in('category', filters.categories);
     }
     
+    // Apply file type filter if specified
     if (filters.fileTypes && filters.fileTypes.length > 0) {
       query = query.in('file_type', filters.fileTypes);
     }
     
+    // Apply tags filter if specified (using overlap operator)
     if (filters.tags && filters.tags.length > 0) {
       query = query.overlaps('tags', filters.tags);
     }
     
+    // Apply date range filter if specified
     if (filters.dateRange) {
       if (filters.dateRange.start) {
         query = query.gte('uploaded_date', filters.dateRange.start);
@@ -174,22 +182,25 @@ export const getDocuments = async (
       }
     }
     
+    // Apply uploaded by filter if specified
     if (filters.uploadedBy && filters.uploadedBy.length > 0) {
       query = query.in('uploaded_by', filters.uploadedBy);
     }
     
+    // Filter by association ID if specified
     if (associationId) {
       query = query.eq('association_id', associationId);
     }
     
-    // Apply access level filtering based on user role
+    // Apply role-based access level filtering
     if (userRole) {
-      // Simple conditional logic instead of complex chaining to avoid type issues
+      // Admin and manager can access all documents
       if (userRole !== 'admin' && userRole !== 'manager') {
-        query = query.neq('access_level', 'management');
+        query = query.not('access_level', 'eq', 'management');
         
+        // Only board members can access board documents
         if (userRole !== 'board_member') {
-          query = query.neq('access_level', 'board');
+          query = query.not('access_level', 'eq', 'board');
         }
       }
     }
@@ -199,7 +210,7 @@ export const getDocuments = async (
       query = query.eq('is_archived', false);
     }
     
-    // Get the results
+    // Execute the query
     const { data, error } = await query;
     
     if (error) {
