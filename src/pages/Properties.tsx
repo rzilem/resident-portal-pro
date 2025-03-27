@@ -49,22 +49,15 @@ const Properties = () => {
   
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
-      <div className="grid gap-4 md:gap-6 mb-6">
-        <section className="space-y-4">
-          <h2 className="text-2xl font-bold">Properties Management</h2>
-          <p className="text-muted-foreground">Overview of all properties in your portfolio</p>
-        </section>
-        
-        <PropertyStats />
-        
-        <PropertyList 
-          properties={properties}
-          columns={columns}
-          onColumnsChange={handleColumnsChange}
-          onExport={() => handleVisibleColumnsExport(columns)}
-          onTemplateDownload={handleTemplateDownload}
-        />
-      </div>
+      <PropertyStats />
+      
+      <PropertyList 
+        properties={properties}
+        columns={columns}
+        onColumnsChange={handleColumnsChange}
+        onExport={() => handleVisibleColumnsExport(columns)}
+        onTemplateDownload={handleTemplateDownload}
+      />
     </div>
   );
 };

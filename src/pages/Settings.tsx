@@ -14,11 +14,6 @@ const Settings = () => {
   
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your account preferences and system settings</p>
-      </div>
-      
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-6'} mb-4`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>

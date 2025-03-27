@@ -7,16 +7,7 @@ const InvoiceQueuePage = () => {
   const { activeAssociation } = useAssociations();
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Invoice Queue</h1>
-          <p className="text-muted-foreground">
-            Manage invoices, track payments, and process billing
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-6 p-4 md:p-6">
       <InvoiceQueue associationId={activeAssociation?.id} />
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,8 +26,8 @@ const AssociationDocuments = () => {
   const [advancedFilters, setAdvancedFilters] = useState<DocumentSearchFilters>({});
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Added for refreshing documents
-  
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   const { activeAssociation } = useAssociations();
   const { toast } = useToast();
   
@@ -50,25 +49,20 @@ const AssociationDocuments = () => {
     }
   };
   
-  // Added function to trigger document refresh
   const refreshDocuments = () => {
     console.log('Refreshing documents list');
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // New function to handle category updates
   const handleCategoryUpdate = (updatedCategory: DocumentCategory) => {
     console.log('Category updated:', updatedCategory);
     
-    // Update the categories array with the updated category
     setCategories(prevCategories => 
       prevCategories.map(cat => 
         cat.id === updatedCategory.id ? updatedCategory : cat
       )
     );
     
-    // In a real application, you would save this to a database here
-    // For now, we're just updating the local state
     toast({
       title: "Category Updated",
       description: `${updatedCategory.name} has been updated successfully`
@@ -81,7 +75,6 @@ const AssociationDocuments = () => {
   
   const handleAdvancedSearch = (filters: DocumentSearchFilters) => {
     setAdvancedFilters(filters);
-    // Also update the simple search query if provided
     if (filters.query) {
       setSearchQuery(filters.query);
     }
@@ -101,7 +94,6 @@ const AssociationDocuments = () => {
       title: "Upload Successful",
       description: "Document has been uploaded successfully"
     });
-    // Refresh documents after successful upload
     refreshDocuments();
   };
   
@@ -115,18 +107,15 @@ const AssociationDocuments = () => {
     <>
       <DashboardHeaderWithNav
         title="Association Documents"
-        description="Manage and organize association documents"
         icon={<FileText className="h-6 w-6" />}
       />
       
       <div className="container mx-auto p-4 md:p-6">
-        {/* Association selector */}
         <div className="mb-6 flex justify-end">
           <AssociationSelector className="ml-auto" />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar with document categories */}
           <div className="md:col-span-1">
             <Card className="h-full">
               <CardHeader className="pb-3">
@@ -144,7 +133,6 @@ const AssociationDocuments = () => {
             </Card>
           </div>
           
-          {/* Main content area */}
           <div className="md:col-span-3">
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -254,7 +242,7 @@ const AssociationDocuments = () => {
         isOpen={showUploadDialog}
         onClose={() => setShowUploadDialog(false)}
         onSuccess={handleUploadSuccess}
-        refreshDocuments={refreshDocuments} // Pass the refresh function
+        refreshDocuments={refreshDocuments}
       />
       
       <DocumentPreview

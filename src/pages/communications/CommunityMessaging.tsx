@@ -20,11 +20,6 @@ const CommunityMessaging = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Community Messaging</h1>
-        <p className="text-muted-foreground">Send messages to your entire community or specific groups</p>
-      </div>
-      
       <Card>
         <CardHeader>
           <CardTitle>Community Messaging</CardTitle>

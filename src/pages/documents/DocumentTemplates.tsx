@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { FileText, Download } from 'lucide-react';
@@ -20,11 +19,9 @@ const DocumentTemplates = () => {
         generateOnboardingTemplate();
         break;
       case 'homeowners':
-        // This would be implemented in a real application
         exportToExcel([{ name: '', email: '', phone: '', unit: '' }], 'Homeowners_Template');
         break;
       case 'properties':
-        // This would be implemented in a real application
         exportToExcel([{ name: '', type: '', address: '', units: '' }], 'Properties_Template');
         break;
       default:
@@ -41,13 +38,11 @@ const DocumentTemplates = () => {
     <>
       <DashboardHeaderWithNav
         title="Document Templates"
-        description="Download standardized templates for data import"
         icon={<FileText className="h-6 w-6" />}
       />
       
       <div className="container mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar with template types */}
           <div className="md:col-span-1">
             <Card>
               <CardHeader className="pb-3">
@@ -89,7 +84,6 @@ const DocumentTemplates = () => {
             </Card>
           </div>
           
-          {/* Main content area */}
           <div className="md:col-span-3">
             <Card>
               <CardHeader className="pb-3">

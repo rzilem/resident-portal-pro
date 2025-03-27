@@ -39,8 +39,8 @@ export const initializeTables = async (): Promise<boolean> => {
             }]);
             
           if (error) {
-            // Fix for the TypeScript error - use proper error handling
-            const errorMessage = error.message || 'Unknown database error';
+            // Fix for the TypeScript error
+            const errorMessage = (error as PostgrestError).message || 'Unknown database error';
             throw new Error(errorMessage);
           }
             
