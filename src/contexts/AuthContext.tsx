@@ -1,3 +1,4 @@
+
 // src/contexts/AuthContext.tsx
 import React, { createContext, useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -10,6 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Define the type for our context
 interface AuthContextType {
   user: any | null;
+  session: any | null; // Add session property
   loading: boolean;
   login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
@@ -19,6 +21,7 @@ interface AuthContextType {
 // Create the context with default values
 export const AuthContext = createContext<AuthContextType>({
   user: null,
+  session: null, // Add session to default values
   loading: true,
   login: async () => ({}),
   logout: async () => {},
@@ -36,6 +39,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
+  const [session, setSession] = useState<any | null>(null); // Add session state
   const [loading, setLoading] = useState(true);
 
   // Check if a user is already logged in
@@ -43,6 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('AuthContext: Initializing auth state listener');
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user);
+      setSession(session); // Update session state
       setUser(session?.user || null);
       setLoading(false);
     });
@@ -54,6 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('AuthContext: Error getting session:', error);
       } else {
         console.log('AuthContext: Initial session:', session?.user);
+        setSession(session); // Update session state
         setUser(session?.user || null);
       }
       setLoading(false);
@@ -78,6 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw error;
     }
     console.log('AuthContext: Login successful:', data.user);
+    setSession(data.session); // Update session state after login
     return data;
   };
 
@@ -90,10 +97,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw error;
     }
     setUser(null);
+    setSession(null); // Clear session state on logout
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, supabase }}>
+    <AuthContext.Provider value={{ user, session, login, logout, loading, supabase }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContext } from '@/contexts/AuthContext';
+import { AuthContext, useAuth } from '@/contexts/AuthContext';
 import { useContext } from 'react';
 
 export const useDocumentsBucket = () => {
@@ -12,7 +11,7 @@ export const useDocumentsBucket = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { user, session } = useContext(AuthContext);
+  const { user } = useAuth();
   const MAX_RETRIES = 3;
 
   const checkBucket = useCallback(async () => {
@@ -114,7 +113,7 @@ export const useDocumentsBucket = () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [checkBucket, user, session]);
+  }, [checkBucket, user]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
