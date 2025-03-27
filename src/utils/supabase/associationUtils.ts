@@ -88,7 +88,7 @@ export const createSupabaseAssociation = async (association: Omit<Association, '
         .from('association_settings')
         .insert({
           association_id: newAssociation.id,
-          settings: settingsObj as unknown as Json
+          settings: JSON.parse(JSON.stringify(settingsObj)) as Json
         });
       
       if (settingsError) throw settingsError;
@@ -175,7 +175,7 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
         const { error: updateError } = await supabase
           .from('association_settings')
           .update({
-            settings: updates.settings as unknown as Json,
+            settings: JSON.parse(JSON.stringify(updates.settings)) as Json,
             updated_at: new Date().toISOString()
           })
           .eq('association_id', id);
@@ -187,7 +187,7 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
           .from('association_settings')
           .insert({
             association_id: id,
-            settings: updates.settings as unknown as Json
+            settings: JSON.parse(JSON.stringify(updates.settings)) as Json
           });
         
         if (insertError) throw insertError;
@@ -256,9 +256,12 @@ export const updateSupabaseAssociationSetting = async (
     if (fetchError) throw fetchError;
     
     // Prepare updated settings
-    const currentSettings = currentData?.settings || createDefaultSettings();
+    const currentSettings = currentData?.settings 
+      ? (currentData.settings as unknown as Record<string, any>)
+      : createDefaultSettings();
+      
     const updatedSettings = {
-      ...currentSettings,
+      ...(typeof currentSettings === 'object' && currentSettings !== null ? currentSettings : {}),
       [settingName]: value
     };
     

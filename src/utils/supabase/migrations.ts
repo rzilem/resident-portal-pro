@@ -28,14 +28,15 @@ export const initializeTables = async (): Promise<boolean> => {
         
         // Fallback: Create the table using raw SQL
         try {
-          await supabase
+          const { error } = await supabase
             .from('association_settings')
             .insert({
               id: '00000000-0000-0000-0000-000000000001',
               settings: {},
-            })
-            .select();
-          
+            });
+            
+          if (error) throw error;
+            
           console.log('Created association_settings table');
         } catch (directError) {
           console.error('Error creating settings table directly:', directError);
