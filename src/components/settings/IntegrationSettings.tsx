@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,14 +5,11 @@ import FinancialsIntegrations from './integrations/FinancialsIntegrations';
 import CommunicationsIntegrations from './integrations/CommunicationsIntegrations';
 import ManagementIntegrations from './integrations/ManagementIntegrations';
 import AutomationIntegrations from './integrations/AutomationIntegrations';
-
 const IntegrationSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('financials');
-
-  return (
-    <Card className="w-full">
+  return <Card className="w-full">
       <CardHeader>
-        <CardTitle>Integrations</CardTitle>
+        
         <CardDescription>
           Connect third-party services and tools to enhance your property management capabilities
         </CardDescription>
@@ -44,8 +40,6 @@ const IntegrationSettings: React.FC = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default IntegrationSettings;
