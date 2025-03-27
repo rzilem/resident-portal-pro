@@ -35,9 +35,8 @@ export const useLogin = () => {
           setDemoAuthentication();
           
           // Navigate to dashboard after successful login
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 1000);
+          toast.success("Login successful with demo account! Welcome back.");
+          navigate('/dashboard');
         } else {
           toast.error(error.message || "Invalid credentials. Please try again.");
         }

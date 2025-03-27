@@ -45,8 +45,18 @@ export const useAuthMethods = ({
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setIsAuthenticated(false);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      } else {
+        // Reset authentication state
+        setIsAuthenticated(false);
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error('Exception during sign out:', error);
+    }
   };
 
   const refreshProfile = async () => {
