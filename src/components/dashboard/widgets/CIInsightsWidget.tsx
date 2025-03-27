@@ -32,7 +32,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
   
   const getSeverityBadgeStyle = (severity: Alert['severity']) => {
     switch (severity) {
-      case 'critical': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'critical': return 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
       case 'high': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
       case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
@@ -61,9 +61,9 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
           <>
             <div className="flex flex-wrap gap-2 mb-4">
               {criticalCount > 0 && (
-                <Badge className={getSeverityBadgeStyle('critical')}>
-                  <BellRing className="h-3 w-3 mr-1.5 animate-pulse text-purple-600" />
-                  {criticalCount} Critical
+                <Badge className={`${getSeverityBadgeStyle('critical')} inline-flex items-center py-1 px-2`}>
+                  <BellRing className="h-3 w-3 mr-1.5 animate-pulse text-indigo-600" />
+                  <span className="text-xs">{criticalCount} Critical</span>
                 </Badge>
               )}
               {highCount > 0 && (
