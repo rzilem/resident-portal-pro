@@ -1,123 +1,146 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Image, UploadCloud, X } from "lucide-react";
-import { useCompanySettings } from '@/hooks/use-company-settings';
+import { Card, CardContent } from "@/components/ui/card";
+import { useSettings } from '@/hooks/use-settings';
+import { FileUpload, Trash2, Image as ImageIcon } from "lucide-react";
 import { toast } from 'sonner';
 
 const LogoUploader = () => {
-  const { settings, updateSetting } = useCompanySettings();
-  const [logoPreview, setLogoPreview] = useState<string | null>(settings.logoUrl || null);
+  const { companySettings, isLoading, uploadCompanyLogo, updateCompanySetting } = useSettings();
   const [isUploading, setIsUploading] = useState(false);
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const currentLogo = companySettings?.logoUrl;
+  
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB');
-      return;
-    }
-
-    setIsUploading(true);
-
-    // Create a data URL for preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setLogoPreview(result);
-      
-      // In a real app, you would upload to a server here
-      // For now, we'll just save the data URL
-      updateSetting('logoUrl', result)
-        .then(() => {
-          toast.success('Logo updated successfully');
-        })
-        .catch((error) => {
-          toast.error('Failed to update logo');
-          console.error('Error updating logo:', error);
-        })
-        .finally(() => {
-          setIsUploading(false);
-        });
-    };
     
-    reader.readAsDataURL(file);
-  };
-
-  const removeLogo = () => {
-    setLogoPreview(null);
-    updateSetting('logoUrl', null)
-      .then(() => {
-        toast.success('Logo removed');
-      })
-      .catch((error) => {
-        toast.error('Failed to remove logo');
-        console.error('Error removing logo:', error);
-      });
-  };
-
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please upload a valid image file (JPEG, PNG, GIF, or WEBP)');
+      return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image file is too large. Please upload an image smaller than 5MB');
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      toast.loading('Uploading logo...');
+      const logoUrl = await uploadCompanyLogo(file);
+      
+      if (logoUrl) {
+        toast.success('Logo uploaded successfully');
+      } else {
+        toast.error('Failed to upload logo');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setIsUploading(false);
+      
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [uploadCompanyLogo]);
+  
+  const handleRemoveLogo = useCallback(async () => {
+    if (!currentLogo) return;
+    
+    try {
+      await updateCompanySetting('logoUrl', null);
+      toast.success('Logo removed successfully');
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      toast.error('Failed to remove logo');
+    }
+  }, [currentLogo, updateCompanySetting]);
+  
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Company Logo</label>
-        {logoPreview && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={removeLogo}
-            className="text-destructive hover:text-destructive"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Remove Logo
-          </Button>
-        )}
+      <div>
+        <Label className="text-base">Company Logo</Label>
+        <p className="text-sm text-muted-foreground mb-4">
+          Upload your company logo to display in the header and sidebar.
+        </p>
       </div>
       
-      {logoPreview ? (
-        <div className="relative border rounded-md p-4 flex items-center justify-center">
-          <img 
-            src={logoPreview} 
-            alt="Company Logo" 
-            className="max-h-32 max-w-full object-contain" 
-          />
-        </div>
+      {currentLogo ? (
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex flex-col items-center p-6 relative">
+              <img 
+                src={currentLogo} 
+                alt="Company Logo" 
+                className="max-h-24 w-auto object-contain mb-4" 
+              />
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()} 
+                  disabled={isLoading || isUploading}
+                >
+                  <FileUpload className="h-4 w-4 mr-2" />
+                  Change Logo
+                </Button>
+                
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveLogo}
+                  disabled={isLoading || isUploading}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="border border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-muted/30">
-          <Image className="h-10 w-10 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground mb-2">No logo uploaded</p>
-          <p className="text-xs text-muted-foreground mb-4">Recommended size: 250x80px</p>
-        </div>
+        <Card className="overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg p-8 text-center">
+              <ImageIcon className="h-10 w-10 text-muted-foreground mb-4" />
+              
+              <h3 className="text-lg font-medium mb-2">No logo uploaded</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Upload your company logo to display in the header and sidebar.
+              </p>
+              
+              <Button
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isUploading}
+              >
+                <FileUpload className="h-4 w-4 mr-2" />
+                Upload Logo
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
       
-      <div className="flex items-center">
-        <Input
-          type="file"
-          id="logo-upload"
-          className="hidden"
-          accept="image/*"
-          onChange={handleLogoChange}
-        />
-        <Button 
-          asChild 
-          variant="outline" 
-          size="sm" 
-          disabled={isUploading}
-        >
-          <label htmlFor="logo-upload" className="cursor-pointer">
-            <UploadCloud className="h-4 w-4 mr-2" />
-            {isUploading ? 'Uploading...' : 'Upload Logo'}
-          </label>
-        </Button>
-      </div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/png, image/jpeg, image/gif, image/webp"
+        onChange={handleFileChange}
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { UserPreferences } from '@/types/user';
 import { userPreferencesService } from '@/services/userPreferencesService';
+import { companySettingsService } from '@/services/companySettingsService';
 import { toast } from 'sonner';
 import { applySpecificPreferenceToUI } from './settings/apply-preferences';
 
@@ -10,19 +11,30 @@ const CURRENT_USER_ID = 'current-user';
 
 export function useSettings() {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [companySettings, setCompanySettings] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user preferences
+  // Load user preferences and company settings
   useEffect(() => {
-    try {
-      const userPrefs = userPreferencesService.getUserPreferences(CURRENT_USER_ID);
-      setPreferences(userPrefs);
-    } catch (error) {
-      console.error('Error loading user preferences:', error);
-      toast.error('Failed to load settings');
-    } finally {
-      setIsLoading(false);
+    async function loadSettings() {
+      setIsLoading(true);
+      try {
+        // Load user preferences
+        const userPrefs = userPreferencesService.getUserPreferences(CURRENT_USER_ID);
+        setPreferences(userPrefs);
+        
+        // Load company settings
+        const settings = await companySettingsService.getCompanySettings();
+        setCompanySettings(settings);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        toast.error('Failed to load settings');
+      } finally {
+        setIsLoading(false);
+      }
     }
+    
+    loadSettings();
   }, []);
 
   // Update a specific preference
@@ -93,12 +105,64 @@ export function useSettings() {
       setIsLoading(false);
     }
   }, []);
+  
+  // Update company settings
+  const updateCompanySetting = useCallback(async (
+    key: string,
+    value: any
+  ): Promise<void> => {
+    setIsLoading(true);
+    
+    try {
+      console.log(`Updating company setting "${key}" with:`, value);
+      const updatedSettings = await companySettingsService.updateCompanySetting(key, value);
+      
+      // Update the local state with the updated settings
+      setCompanySettings(updatedSettings);
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error(`Error updating company setting "${key}":`, error);
+      return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+  
+  // Upload company logo
+  const uploadCompanyLogo = useCallback(async (
+    file: File
+  ): Promise<string | null> => {
+    setIsLoading(true);
+    
+    try {
+      const logoUrl = await companySettingsService.uploadCompanyLogo(file);
+      
+      if (logoUrl && companySettings) {
+        // Update the local state with the updated logo URL
+        setCompanySettings({
+          ...companySettings,
+          logoUrl
+        });
+      }
+      
+      return logoUrl;
+    } catch (error) {
+      console.error('Error uploading company logo:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [companySettings]);
 
   return {
     preferences,
+    companySettings,
     isLoading,
     updatePreference,
     updatePreferences,
-    resetPreferences
+    resetPreferences,
+    updateCompanySetting,
+    uploadCompanyLogo
   };
 }

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -70,6 +69,9 @@ import PrintQueue from "./pages/PrintQueue";
 // Add import for Resale module
 import ResaleDashboard from "@/pages/resale/ResaleDashboard";
 import ResaleWizard from "@/pages/resale/wizard/ResaleWizard";
+
+// Import our migrations runner
+import '@/utils/supabase/migrations';
 
 const App = () => {
   return (

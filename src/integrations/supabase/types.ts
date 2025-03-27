@@ -9,40 +9,93 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      association_settings: {
+        Row: {
+          association_id: string | null
+          created_at: string | null
+          id: string
+          settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          association_id?: string | null
+          created_at?: string | null
+          id?: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string | null
+          created_at?: string | null
+          id?: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "association_settings_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: true
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       associations: {
         Row: {
           address: string | null
           city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          contact_website: string | null
           country: string | null
           created_at: string | null
           description: string | null
+          founded_date: string | null
           id: string
           name: string
           state: string | null
+          status: string | null
+          type: string | null
+          units: number | null
           updated_at: string | null
           zip: string | null
         }
         Insert: {
           address?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           country?: string | null
           created_at?: string | null
           description?: string | null
+          founded_date?: string | null
           id?: string
           name: string
           state?: string | null
+          status?: string | null
+          type?: string | null
+          units?: number | null
           updated_at?: string | null
           zip?: string | null
         }
         Update: {
           address?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           country?: string | null
           created_at?: string | null
           description?: string | null
+          founded_date?: string | null
           id?: string
           name?: string
           state?: string | null
+          status?: string | null
+          type?: string | null
+          units?: number | null
           updated_at?: string | null
           zip?: string | null
         }

@@ -1,17 +1,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Association } from '@/types/association';
-import {
-  getAssociations,
-  getAssociationById,
-  createAssociation,
-  updateAssociation,
-  updateAssociationSetting,
-  deleteAssociation,
-  setDefaultAssociation,
-  toggleAssociationStatus
-} from '@/services/associationService';
 import { toast } from 'sonner';
+import { 
+  fetchAssociations,
+  createSupabaseAssociation,
+  updateSupabaseAssociation,
+  updateSupabaseAssociationSetting,
+  deleteSupabaseAssociation,
+  setDefaultSupabaseAssociation,
+  toggleSupabaseAssociationStatus
+} from '@/utils/supabase/associationUtils';
 
 export const useAssociations = () => {
   const [associations, setAssociations] = useState<Association[]>([]);
@@ -19,11 +18,11 @@ export const useAssociations = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchAssociations = useCallback(async () => {
+  const loadAssociations = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getAssociations();
+      const data = await fetchAssociations();
       setAssociations(data);
       
       // Set active association to default or first one if no active
@@ -40,8 +39,8 @@ export const useAssociations = () => {
   }, [activeAssociation]);
 
   useEffect(() => {
-    fetchAssociations();
-  }, [fetchAssociations]);
+    loadAssociations();
+  }, [loadAssociations]);
 
   const selectAssociation = useCallback((association: Association) => {
     setActiveAssociation(association);
@@ -49,10 +48,13 @@ export const useAssociations = () => {
 
   const addAssociation = useCallback(async (newAssociation: Omit<Association, 'id'>) => {
     try {
-      const created = await createAssociation(newAssociation);
-      setAssociations(prev => [...prev, created]);
-      toast.success('Association created successfully');
-      return created;
+      const created = await createSupabaseAssociation(newAssociation);
+      if (created) {
+        setAssociations(prev => [...prev, created]);
+        toast.success('Association created successfully');
+        return created;
+      }
+      throw new Error('Failed to create association');
     } catch (err) {
       toast.error('Failed to create association');
       throw err;
@@ -61,15 +63,18 @@ export const useAssociations = () => {
 
   const updateAssociationData = useCallback(async (id: string, updates: Partial<Association>) => {
     try {
-      const updated = await updateAssociation(id, updates);
-      setAssociations(prev => prev.map(a => a.id === id ? updated : a));
-      
-      if (activeAssociation && activeAssociation.id === id) {
-        setActiveAssociation(updated);
+      const updated = await updateSupabaseAssociation(id, updates);
+      if (updated) {
+        setAssociations(prev => prev.map(a => a.id === id ? updated : a));
+        
+        if (activeAssociation && activeAssociation.id === id) {
+          setActiveAssociation(updated);
+        }
+        
+        toast.success('Association updated successfully');
+        return updated;
       }
-      
-      toast.success('Association updated successfully');
-      return updated;
+      throw new Error('Failed to update association');
     } catch (err) {
       toast.error('Failed to update association');
       throw err;
@@ -82,14 +87,17 @@ export const useAssociations = () => {
     value: any
   ) => {
     try {
-      const updated = await updateAssociationSetting(associationId, settingName, value);
-      setAssociations(prev => prev.map(a => a.id === associationId ? updated : a));
-      
-      if (activeAssociation && activeAssociation.id === associationId) {
-        setActiveAssociation(updated);
+      const updated = await updateSupabaseAssociationSetting(associationId, settingName, value);
+      if (updated) {
+        setAssociations(prev => prev.map(a => a.id === associationId ? updated : a));
+        
+        if (activeAssociation && activeAssociation.id === associationId) {
+          setActiveAssociation(updated);
+        }
+        
+        return updated;
       }
-      
-      return updated;
+      throw new Error(`Failed to update ${settingName}`);
     } catch (err) {
       toast.error(`Failed to update ${settingName}`);
       throw err;
@@ -98,16 +106,19 @@ export const useAssociations = () => {
 
   const removeAssociation = useCallback(async (id: string) => {
     try {
-      await deleteAssociation(id);
-      setAssociations(prev => prev.filter(a => a.id !== id));
-      
-      if (activeAssociation && activeAssociation.id === id) {
-        const nextAssociation = associations.find(a => a.id !== id);
-        setActiveAssociation(nextAssociation || null);
+      const success = await deleteSupabaseAssociation(id);
+      if (success) {
+        setAssociations(prev => prev.filter(a => a.id !== id));
+        
+        if (activeAssociation && activeAssociation.id === id) {
+          const nextAssociation = associations.find(a => a.id !== id);
+          setActiveAssociation(nextAssociation || null);
+        }
+        
+        toast.success('Association deleted successfully');
+        return true;
       }
-      
-      toast.success('Association deleted successfully');
-      return true;
+      throw new Error('Failed to delete association');
     } catch (err) {
       toast.error('Failed to delete association');
       throw err;
@@ -116,10 +127,13 @@ export const useAssociations = () => {
 
   const makeDefaultAssociation = useCallback(async (id: string) => {
     try {
-      const updated = await setDefaultAssociation(id);
-      setAssociations(updated);
-      toast.success('Default association updated');
-      return updated;
+      const updated = await setDefaultSupabaseAssociation(id);
+      if (updated && updated.length > 0) {
+        setAssociations(updated);
+        toast.success('Default association updated');
+        return updated;
+      }
+      throw new Error('Failed to set default association');
     } catch (err) {
       toast.error('Failed to set default association');
       throw err;
@@ -128,15 +142,18 @@ export const useAssociations = () => {
 
   const toggleStatus = useCallback(async (id: string) => {
     try {
-      const updated = await toggleAssociationStatus(id);
-      setAssociations(prev => prev.map(a => a.id === id ? updated : a));
-      
-      if (activeAssociation && activeAssociation.id === id) {
-        setActiveAssociation(updated);
+      const updated = await toggleSupabaseAssociationStatus(id);
+      if (updated) {
+        setAssociations(prev => prev.map(a => a.id === id ? updated : a));
+        
+        if (activeAssociation && activeAssociation.id === id) {
+          setActiveAssociation(updated);
+        }
+        
+        toast.success(`Association ${updated.status === 'active' ? 'activated' : 'deactivated'}`);
+        return updated;
       }
-      
-      toast.success(`Association ${updated.status === 'active' ? 'activated' : 'deactivated'}`);
-      return updated;
+      throw new Error('Failed to toggle association status');
     } catch (err) {
       toast.error('Failed to toggle association status');
       throw err;
@@ -149,7 +166,7 @@ export const useAssociations = () => {
     setActiveAssociation,
     isLoading,
     error,
-    fetchAssociations,
+    fetchAssociations: loadAssociations,
     selectAssociation,
     addAssociation,
     updateAssociation: updateAssociationData,
