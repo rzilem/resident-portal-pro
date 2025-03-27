@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import AnalysisAlert from '@/components/alerts/AnalysisAlert';
+import FixThisButton from '@/components/alerts/FixThisButton';
 import { Alert } from '@/types/alert';
 import { getRecentAlerts } from '@/utils/alerts/alertQueries';
 import { useAssociations } from '@/hooks/use-associations';
@@ -28,39 +29,77 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
   const criticalCount = criticalAlerts.length;
   const highCount = highAlerts.length;
   
-  const displayedAlerts = expanded ? alerts : alerts.slice(0, 2);
+  const displayedAlerts = expanded ? alerts : alerts.slice(0, 3);
+  
+  // Helper function to get badge style based on severity
+  const getSeverityBadgeStyle = (severity: Alert['severity']) => {
+    switch (severity) {
+      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      case 'high': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
+      case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
+    }
+  };
   
   return (
     <Card className={cardClass || className}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Bot className="h-4 w-4" />
-          CI Insights
+          <Bot className="h-4 w-4 text-blue-600" />
+          <span className="font-semibold text-blue-800 dark:text-blue-400">CI Insights</span>
         </CardTitle>
-        <Badge variant="secondary">
+        <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 font-medium">
           {totalAlerts} Alerts
         </Badge>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {totalAlerts === 0 ? (
           <div className="text-center py-6">
             <AlertTriangle className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">No alerts found</p>
           </div>
         ) : (
-          <ul className="space-y-3">
-            {displayedAlerts.map(alert => (
-              <li key={alert.id}>
-                <AnalysisAlert alert={alert} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {criticalCount > 0 && (
+                <Badge className={getSeverityBadgeStyle('critical')}>
+                  {criticalCount} Critical
+                </Badge>
+              )}
+              {highCount > 0 && (
+                <Badge className={getSeverityBadgeStyle('high')}>
+                  {highCount} High
+                </Badge>
+              )}
+            </div>
+            <ul className="space-y-4">
+              {displayedAlerts.map(alert => (
+                <li key={alert.id} className="relative border rounded-lg p-3 hover:shadow-md transition-shadow bg-white dark:bg-gray-950">
+                  <AnalysisAlert alert={alert} />
+                  <div className="mt-2 flex justify-end">
+                    <FixThisButton 
+                      alert={alert} 
+                      variant="default" 
+                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </CardContent>
-      {totalAlerts > 2 && (
-        <CardFooter className="flex justify-center">
-          <Button variant="link" size="sm" onClick={() => setExpanded(!expanded)}>
-            {expanded ? 'Show Less' : 'Show All'} <ChevronRight className="h-4 w-4 ml-2" />
+      {totalAlerts > 3 && (
+        <CardFooter className="flex justify-center pt-0 pb-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setExpanded(!expanded)}
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+          >
+            {expanded ? 'Show Less' : 'Show All'} 
+            <ChevronRight className={`h-4 w-4 ml-2 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </Button>
         </CardFooter>
       )}
