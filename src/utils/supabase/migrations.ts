@@ -30,7 +30,7 @@ export const initializeTables = async (): Promise<boolean> => {
         
         // Fallback: Create the table using raw SQL
         try {
-          // The issue is in this block. We need to properly handle the insert operation
+          // Fixed type casting for the error object
           const { error } = await supabase
             .from('association_settings')
             .insert([{
@@ -39,9 +39,8 @@ export const initializeTables = async (): Promise<boolean> => {
             }]);
             
           if (error) {
-            // Fix for the TypeScript error
-            const errorMessage = (error as PostgrestError).message || 'Unknown database error';
-            throw new Error(errorMessage);
+            // Use the first approach with unknown casting as requested
+            throw new Error((error as unknown as { message: string }).message || 'Unknown database error');
           }
             
           console.log('Created association_settings table');
