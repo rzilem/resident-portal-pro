@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 /**
  * Initialize the database with required tables if they don't exist
@@ -28,11 +29,12 @@ export const initializeTables = async (): Promise<boolean> => {
         
         // Fallback: Create the table using raw SQL
         try {
+          // The issue is in this block. We need to properly handle the insert operation
           const { error } = await supabase
             .from('association_settings')
             .insert({
               id: '00000000-0000-0000-0000-000000000001',
-              settings: {},
+              settings: {} as Json,
             });
             
           if (error) throw error;
@@ -56,7 +58,7 @@ export const initializeTables = async (): Promise<boolean> => {
           .from('association_settings')
           .insert({
             id: '00000000-0000-0000-0000-000000000001',
-            settings: {},
+            settings: {} as Json,
           });
       }
     }
