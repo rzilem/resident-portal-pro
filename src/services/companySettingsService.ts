@@ -47,7 +47,7 @@ export const companySettingsService = {
       if (data && data.settings) {
         // Cache the settings
         cachedSettings = data.settings as Record<string, any>;
-        return { ...data.settings } as Record<string, any>;
+        return data.settings as Record<string, any>;
       }
       
       // No settings found, create default settings
@@ -92,7 +92,7 @@ export const companySettingsService = {
       
       // Update cache
       cachedSettings = newSettings;
-      return { ...newSettings };
+      return newSettings;
     } catch (error) {
       console.error('Error in updateCompanySettings:', error);
       toast.error('Failed to update company settings');
