@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Widget } from '@/types/dashboard';
 import { cn } from '@/lib/utils';
@@ -16,10 +15,8 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: DashboardLayoutProps) => {
   const { cardClass } = useCardStyle();
   
-  // Sort widgets by position
   const sortedWidgets = [...widgets].sort((a, b) => a.position - b.position);
 
-  // Filter out hidden widgets
   const visibleWidgets = sortedWidgets.filter(widget => !widget.hidden);
 
   if (visibleWidgets.length === 0) {
@@ -35,7 +32,6 @@ const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: D
     );
   }
 
-  // Animation variants
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
@@ -84,7 +80,7 @@ const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: D
               config={widget.config}
               cardClass={cn(cardClass, "h-full")}
             />
-          </motion.div>
+          </div>
         )
       ))}
     </div>
