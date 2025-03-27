@@ -1,4 +1,3 @@
-
 /**
  * File utilities for document management
  */
@@ -73,7 +72,22 @@ export const isAllowedFileType = (file: File, allowedTypes: string[]): boolean =
 export const validateFileType = isAllowedFileType;
 
 /**
- * Check if file size is within limit
+ * Validate file size
+ * @param {File} file - File to check
+ * @param {number} maxSizeMB - Maximum file size in megabytes (default: 5MB)
+ * @returns {boolean} True if file size is within limit
+ * @throws {Error} If file size exceeds the limit
+ */
+export const validateFileSize = (file: File, maxSizeMB: number = 5): boolean => {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024; // Convert MB to bytes
+  if (file.size > maxSizeBytes) {
+    throw new Error(`File size exceeds maximum allowed (${maxSizeMB}MB)`);
+  }
+  return true;
+};
+
+/**
+ * Check if file size is within limit (alternative to validateFileSize)
  * @param {File} file - File to check
  * @param {number} maxSizeBytes - Maximum file size in bytes
  * @returns {boolean} True if file size is within limit
@@ -81,14 +95,6 @@ export const validateFileType = isAllowedFileType;
 export const isFileSizeValid = (file: File, maxSizeBytes: number): boolean => {
   return file.size <= maxSizeBytes;
 };
-
-/**
- * Validate file size (alias for isFileSizeValid for backward compatibility)
- * @param {File} file - File to check
- * @param {number} maxSizeBytes - Maximum file size in bytes
- * @returns {boolean} True if file size is within limit
- */
-export const validateFileSize = isFileSizeValid;
 
 /**
  * Generate a unique file name
