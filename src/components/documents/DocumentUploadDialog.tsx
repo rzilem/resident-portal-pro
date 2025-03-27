@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -10,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { uploadFile, getUserSpecificPath, ensureBucketExists } from '@/utils/documents';
+import { toast } from "sonner";
+import { uploadDocument } from '@/utils/documents/uploadUtils';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { Loader2 } from 'lucide-react';
 import FileUploader from './FileUploader';
@@ -35,7 +36,6 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUpl
     category: 'General',
     description: '',
   });
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -48,32 +48,19 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUpl
     setIsUploading(true);
 
     try {
-      const bucketName = 'documents';
-      const userSpecificPath = await getUserSpecificPath('user-documents');
-      await ensureBucketExists(bucketName);
+      const customPath = `${metadata.category}/${metadata.title}`;
+      
+      const uploadResult = await uploadDocument(file, customPath);
 
-      const uploadResult = await uploadFile(file, bucketName, userSpecificPath);
-
-      if (uploadResult) {
-        toast({
-          title: "Upload successful!",
-          description: `${file.name} has been uploaded.`,
-        });
+      if (uploadResult.success) {
+        toast.success(`${file.name} has been uploaded.`);
         onUploadComplete();
       } else {
-        toast({
-          variant: "destructive",
-          title: "Upload failed!",
-          description: `Failed to upload ${file.name}. Please try again.`,
-        });
+        toast.error(`Failed to upload ${file.name}. ${uploadResult.error || 'Please try again.'}`);
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast({
-        variant: "destructive",
-        title: "Upload error!",
-        description: "An unexpected error occurred during upload.",
-      });
+      toast.error("An unexpected error occurred during upload.");
     } finally {
       setIsUploading(false);
     }
@@ -124,44 +111,49 @@ const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ file, onUpl
 interface DocumentUploadDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
+  onSuccess?: () => void;
+  refreshDocuments?: () => void;
 }
 
-const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ open, setOpen }) => {
-  const [files, setFiles] = useState<File[]>([]);
+const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ 
+  open, 
+  setOpen, 
+  onSuccess,
+  refreshDocuments 
+}) => {
+  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
-
-  const maxFiles = 1;
-  const maxSize = 5 * 1024 * 1024; // 5MB
 
   const handleOpenChange = (open: boolean) => {
     setOpen(open);
     if (!open) {
-      setFiles([]);
+      setFile(null);
     }
   };
 
-  const handleFileSelection = (selectedFiles: File[]) => {
-    if (selectedFiles && selectedFiles.length > 0) {
-      setFiles(selectedFiles);
+  const handleFileSelection = (selectedFile: File | null) => {
+    if (selectedFile) {
+      setFile(selectedFile);
     }
   };
 
   const handleUploadComplete = () => {
-    setFiles([]);
+    setFile(null);
     setOpen(false);
+    if (onSuccess) {
+      onSuccess();
+    }
+    if (refreshDocuments) {
+      refreshDocuments();
+    }
   };
 
   const handleCancel = () => {
-    setFiles([]);
+    setFile(null);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button>Upload Document</Button>
-      </DialogTrigger>
-      
       <DialogContent className="sm:max-w-md md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
@@ -170,25 +162,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ open, setOp
           </DialogDescription>
         </DialogHeader>
 
-        {!files.length ? (
+        {!file ? (
           <FileUploader
-            onFileSelected={(files) => handleFileSelection(files)} 
-            acceptedFileTypes={{
-              'application/pdf': ['.pdf'],
-              'application/msword': ['.doc'],
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-              'application/vnd.ms-excel': ['.xls'],
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-              'image/jpeg': ['.jpg', '.jpeg'],
-              'image/png': ['.png'],
-              'text/plain': ['.txt']
-            }}
-            maxFiles={maxFiles}
-            maxSize={maxSize}
+            onFileSelected={handleFileSelection} 
+            currentFile={null}
           />
         ) : (
           <DocumentMetadataForm
-            file={files[0]}
+            file={file}
             onUploadComplete={handleUploadComplete}
             onCancel={handleCancel}
             setIsUploading={setIsUploading}

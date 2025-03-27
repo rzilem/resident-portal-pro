@@ -145,8 +145,8 @@ const DocumentsWidget = ({ size = 'medium', cardClass = '' }: DocumentsWidgetPro
       </Card>
 
       <DocumentUploadDialog
-        isOpen={showUploadDialog}
-        onClose={() => setShowUploadDialog(false)}
+        open={showUploadDialog}
+        setOpen={setShowUploadDialog}
         onSuccess={() => {
           console.log("Document uploaded successfully");
           // Additional refresh logic if needed

@@ -7,9 +7,17 @@ import { toast } from 'sonner';
 interface FileUploaderProps {
   onFileSelected: (file: File | null) => void;
   currentFile: File | null;
+  maxSize?: number;
+  maxFiles?: number;
+  acceptedFileTypes?: Record<string, string[]>;
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelected, currentFile }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ 
+  onFileSelected, 
+  currentFile,
+  maxSize = 10 * 1024 * 1024, // 10MB default
+  acceptedFileTypes
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   
@@ -17,9 +25,41 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelected, currentFile
     fileInputRef.current?.click();
   };
   
+  const validateFile = (file: File): boolean => {
+    // Check file size
+    if (file.size > maxSize) {
+      toast.error(`File is too large. Maximum size is ${(maxSize / (1024 * 1024)).toFixed(0)}MB.`);
+      return false;
+    }
+    
+    // Check file type if acceptedFileTypes is provided
+    if (acceptedFileTypes) {
+      const fileType = file.type;
+      let isValidType = false;
+      
+      for (const [mimeType, extensions] of Object.entries(acceptedFileTypes)) {
+        if (fileType === mimeType || extensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+          isValidType = true;
+          break;
+        }
+      }
+      
+      if (!isValidType) {
+        toast.error('File type not supported.');
+        return false;
+      }
+    }
+    
+    return true;
+  };
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onFileSelected(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      if (validateFile(file)) {
+        onFileSelected(file);
+      }
     }
   };
   
@@ -39,7 +79,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelected, currentFile
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileSelected(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      
+      if (validateFile(file)) {
+        onFileSelected(file);
+      }
     }
   };
   
@@ -90,7 +134,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelected, currentFile
             <Upload className="h-10 w-10 text-muted-foreground mb-2" />
             <p className="text-sm font-medium mb-1">Drag and drop a file here or click to browse</p>
             <p className="text-xs text-muted-foreground">
-              PDF, Word, or Excel files up to 10MB
+              PDF, Word, or Excel files up to {(maxSize / (1024 * 1024)).toFixed(0)}MB
             </p>
           </>
         )}
@@ -100,7 +144,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelected, currentFile
         type="file"
         className="hidden"
         onChange={handleChange}
-        accept=".pdf,.doc,.docx,.xls,.xlsx"
+        accept={acceptedFileTypes ? Object.entries(acceptedFileTypes).flatMap(([mime, exts]) => [...exts, mime]).join(',') : undefined}
       />
     </div>
   );

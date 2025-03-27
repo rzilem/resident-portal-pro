@@ -14,5 +14,14 @@ export * from './uploadUtils';
 export * from './storageUtils';
 
 // Export bucketUtils separately to avoid duplicate exports
-import { ensureBucketExists } from './bucketUtils';
-export { ensureBucketExists };
+import { 
+  ensureBucketExists, 
+  ensureDocumentsBucketExists, 
+  testBucketAccess 
+} from './bucketUtils';
+
+export { 
+  ensureBucketExists, 
+  ensureDocumentsBucketExists, 
+  testBucketAccess 
+};

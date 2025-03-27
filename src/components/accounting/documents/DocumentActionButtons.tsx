@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Upload } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 const DocumentActionButtons: React.FC = () => {
   const isMobile = useIsMobile();
@@ -30,8 +30,8 @@ const DocumentActionButtons: React.FC = () => {
       </div>
       
       <DocumentUploadDialog
-        isOpen={showUploadDialog}
-        onClose={() => setShowUploadDialog(false)}
+        open={showUploadDialog}
+        setOpen={setShowUploadDialog}
         onSuccess={() => {
           console.log("Document uploaded successfully");
           // Additional success handling if needed

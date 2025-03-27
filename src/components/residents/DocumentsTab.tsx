@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FileText, Download } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -68,8 +67,8 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
       </Card>
 
       <DocumentUploadDialog
-        isOpen={showUploadDialog}
-        onClose={() => setShowUploadDialog(false)}
+        open={showUploadDialog}
+        setOpen={setShowUploadDialog}
         onSuccess={() => {
           console.log("Document uploaded successfully");
           // Additional success handling if needed
