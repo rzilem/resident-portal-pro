@@ -5,6 +5,18 @@ import { mockAlerts } from '@/data/mockAlerts';
 
 export const fetchViolations = async (associationId?: string) => {
   try {
+    // First, ensure the columns exist by checking the table structure
+    const { data: tableInfo, error: tableError } = await supabase
+      .from('violations')
+      .select('*')
+      .limit(1);
+
+    if (tableError) {
+      console.error('Error checking violations table:', tableError);
+      return [];
+    }
+
+    // Build the query based on available columns
     let query = supabase
       .from('violations')
       .select(`
@@ -12,17 +24,36 @@ export const fetchViolations = async (associationId?: string) => {
         violation_type,
         description,
         status,
-        severity,
         reported_date,
         resolved_date,
         property_id,
         association_id
-      `)
-      .order('reported_date', { ascending: false });
+      `);
 
+    // Add severity if it exists
+    const sampleRecord = tableInfo && tableInfo[0];
+    if (sampleRecord && 'severity' in sampleRecord) {
+      query = supabase
+        .from('violations')
+        .select(`
+          id,
+          violation_type,
+          description,
+          status,
+          severity,
+          reported_date,
+          resolved_date,
+          property_id,
+          association_id
+        `);
+    }
+
+    // Add the association filter if provided
     if (associationId) {
       query = query.eq('association_id', associationId);
     }
+
+    query = query.order('reported_date', { ascending: false });
 
     const { data, error } = await query;
 
@@ -31,7 +62,11 @@ export const fetchViolations = async (associationId?: string) => {
       throw new Error('Failed to fetch violations');
     }
 
-    // Convert to Alert type
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Convert to Alert type, handling the case where severity might not exist
     return data.map((violation): Alert => ({
       id: violation.id,
       title: violation.violation_type,
@@ -88,8 +123,13 @@ export const getAlertsForAssociation = async (associationId: string): Promise<Al
   try {
     if (!associationId) return [];
     
-    // For now, use mock data filtered by associationId
-    // In a real app, we would fetch from the database
+    // Try to fetch real data first
+    const alerts = await fetchViolations(associationId);
+    if (alerts && alerts.length > 0) {
+      return alerts;
+    }
+    
+    // Fall back to mock data filtered by associationId
     return mockAlerts.filter(alert => 
       alert.associationId === associationId || 
       alert.scope === 'global'
