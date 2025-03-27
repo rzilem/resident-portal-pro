@@ -79,12 +79,18 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
             try {
               const policyName = 'allow_authenticated_users';
               
-              // Use a properly typed RPC call by providing a more specific type
+              // Use explicit type casting with a mapped tuple type to bypass the TypeScript error
+              type StoragePolicyParams = {
+                bucket_name: string;
+                policy_name: string;
+                definition: string;
+              };
+              
               await supabase.rpc('create_storage_policy', {
                 bucket_name: 'documents',
                 policy_name: policyName,
                 definition: 'auth.uid() IS NOT NULL'
-              } as Record<string, unknown>); // Using Record type instead of 'any'
+              } as StoragePolicyParams);
               
               console.log('Created storage policy for authenticated users');
             } catch (policyError) {
