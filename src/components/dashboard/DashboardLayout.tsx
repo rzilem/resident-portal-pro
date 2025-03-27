@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Widget } from '@/types/dashboard';
+import { DynamicWidget } from './widgets/WidgetRegistry';
 import { cn } from '@/lib/utils';
 import { useCardStyle } from '@/hooks/use-card-style';
 import { motion } from 'framer-motion';
-import { DynamicWidget } from './widgets/WidgetRegistry';
 
 interface DashboardLayoutProps {
   widgets: Widget[];
@@ -16,8 +16,10 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: DashboardLayoutProps) => {
   const { cardClass } = useCardStyle();
   
+  // Sort widgets by position
   const sortedWidgets = [...widgets].sort((a, b) => a.position - b.position);
 
+  // Filter out hidden widgets
   const visibleWidgets = sortedWidgets.filter(widget => !widget.hidden);
 
   if (visibleWidgets.length === 0) {
@@ -33,6 +35,7 @@ const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: D
     );
   }
 
+  // Animation variants
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
@@ -46,48 +49,44 @@ const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: D
         className
       )}
     >
-      {visibleWidgets.map((widget, index) => {
-        if (animate) {
-          return (
-            <motion.div 
-              key={widget.id}
-              variants={item}
-              className={cn(
-                widget.size === 'small' && "col-span-1",
-                widget.size === 'medium' && "col-span-1",
-                widget.size === 'large' && columns === 2 && "col-span-2",
-                "transform-gpu hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-              )}
-            >
-              <DynamicWidget
-                type={widget.type}
-                size={widget.size}
-                config={widget.config}
-                cardClass={cn(cardClass, "h-full")}
-              />
-            </motion.div>
-          );
-        } else {
-          return (
-            <div 
-              key={widget.id}
-              className={cn(
-                widget.size === 'small' && "col-span-1",
-                widget.size === 'medium' && "col-span-1",
-                widget.size === 'large' && columns === 2 && "col-span-2",
-                "hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-              )}
-            >
-              <DynamicWidget
-                type={widget.type}
-                size={widget.size}
-                config={widget.config}
-                cardClass={cn(cardClass, "h-full")}
-              />
-            </div>
-          );
-        }
-      })}
+      {visibleWidgets.map((widget, index) => (
+        animate ? (
+          <motion.div 
+            key={widget.id}
+            variants={item}
+            className={cn(
+              widget.size === 'small' && "col-span-1",
+              widget.size === 'medium' && "col-span-1",
+              widget.size === 'large' && columns === 2 && "col-span-2",
+              "transform-gpu hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            )}
+          >
+            <DynamicWidget
+              type={widget.type}
+              size={widget.size}
+              config={widget.config}
+              cardClass={cn(cardClass, "h-full")}
+            />
+          </motion.div>
+        ) : (
+          <div 
+            key={widget.id}
+            className={cn(
+              widget.size === 'small' && "col-span-1",
+              widget.size === 'medium' && "col-span-1",
+              widget.size === 'large' && columns === 2 && "col-span-2",
+              "hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            )}
+          >
+            <DynamicWidget
+              type={widget.type}
+              size={widget.size}
+              config={widget.config}
+              cardClass={cn(cardClass, "h-full")}
+            />
+          </div>
+        )
+      ))}
     </div>
   );
 };
