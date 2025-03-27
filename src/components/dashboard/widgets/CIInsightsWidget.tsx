@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bot, ArrowRight, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Bot, AlertTriangle, ChevronRight, BellRing } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,6 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
   const [expanded, setExpanded] = useState(false);
   const { activeAssociation } = useAssociations();
   
-  // Fetch recent alerts, optionally filtered by the active association
   const alerts = getRecentAlerts(activeAssociation?.id);
   const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
   const highAlerts = alerts.filter(alert => alert.severity === 'high');
@@ -31,10 +30,9 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
   
   const displayedAlerts = expanded ? alerts : alerts.slice(0, 3);
   
-  // Helper function to get badge style based on severity
   const getSeverityBadgeStyle = (severity: Alert['severity']) => {
     switch (severity) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      case 'critical': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
       case 'high': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
       case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
@@ -64,6 +62,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
             <div className="flex flex-wrap gap-2 mb-4">
               {criticalCount > 0 && (
                 <Badge className={getSeverityBadgeStyle('critical')}>
+                  <BellRing className="h-3 w-3 mr-1.5 animate-pulse text-purple-600" />
                   {criticalCount} Critical
                 </Badge>
               )}

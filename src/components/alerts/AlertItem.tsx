@@ -32,7 +32,7 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
   
   const getSeverityColor = (severity: AlertType['severity']) => {
     switch (severity) {
-      case 'critical': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'critical': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
       case 'high': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
       case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
@@ -63,7 +63,7 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-sm font-medium flex items-center">
-              {alert.severity === 'critical' && <BellRing className="h-3.5 w-3.5 mr-1 text-purple-600 animate-pulse" />}
+              {alert.severity === 'critical' && <BellRing className="h-3.5 w-3.5 mr-1 text-indigo-600 animate-pulse" />}
               {alert.title}
             </h4>
             <Badge className={getSeverityColor(alert.severity)} variant="secondary">
