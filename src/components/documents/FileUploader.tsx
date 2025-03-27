@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { toast } from 'sonner';
+import { handleDocumentStorageError } from '@/utils/documents/initializeBucket';
 
 interface FileUploaderProps {
   onFileSelected: (file: File | null) => void;
@@ -26,31 +27,37 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   };
   
   const validateFile = (file: File): boolean => {
-    // Check file size
-    if (file.size > maxSize) {
-      toast.error(`File is too large. Maximum size is ${(maxSize / (1024 * 1024)).toFixed(0)}MB.`);
-      return false;
-    }
-    
-    // Check file type if acceptedFileTypes is provided
-    if (acceptedFileTypes) {
-      const fileType = file.type;
-      let isValidType = false;
+    try {
+      // Check file size
+      if (file.size > maxSize) {
+        toast.error(`File is too large. Maximum size is ${(maxSize / (1024 * 1024)).toFixed(0)}MB.`);
+        return false;
+      }
       
-      for (const [mimeType, extensions] of Object.entries(acceptedFileTypes)) {
-        if (fileType === mimeType || extensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-          isValidType = true;
-          break;
+      // Check file type if acceptedFileTypes is provided
+      if (acceptedFileTypes) {
+        const fileType = file.type;
+        let isValidType = false;
+        
+        for (const [mimeType, extensions] of Object.entries(acceptedFileTypes)) {
+          if (fileType === mimeType || extensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+            isValidType = true;
+            break;
+          }
+        }
+        
+        if (!isValidType) {
+          toast.error('File type not supported.');
+          return false;
         }
       }
       
-      if (!isValidType) {
-        toast.error('File type not supported.');
-        return false;
-      }
+      return true;
+    } catch (error) {
+      const errorMessage = handleDocumentStorageError(error);
+      toast.error(errorMessage);
+      return false;
     }
-    
-    return true;
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

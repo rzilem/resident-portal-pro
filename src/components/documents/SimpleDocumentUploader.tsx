@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, Loader2, FileCheck } from "lucide-react";
 import { toast } from 'sonner';
 import { uploadDocument } from '@/utils/documents/uploadUtils';
+import { handleDocumentStorageError } from '@/utils/documents/initializeBucket';
 
 interface SimpleDocumentUploaderProps {
   onSuccess?: (url: string) => void;
@@ -28,12 +29,16 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
       
       if (success && url) {
         setUploadedUrl(url);
+        toast.success('File uploaded successfully');
         if (onSuccess) {
           onSuccess(url);
         }
+      } else if (error) {
+        toast.error(`Upload failed: ${error}`);
       }
-      
-      // Errors are already handled in the uploadDocument function with toast
+    } catch (error) {
+      const errorMessage = handleDocumentStorageError(error);
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
       // Reset the input to allow uploading the same file again
@@ -54,9 +59,8 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
             const input = document.createElement('input');
             input.type = 'file';
             input.onchange = (e) => {
-              // Fix: Properly cast the Event to the expected type
+              // Cast to unknown first as recommended in the error message, then to the expected type
               if (e.target && 'files' in e.target) {
-                // Cast to unknown first as recommended in the error message, then to the expected type
                 handleFileChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }
             };

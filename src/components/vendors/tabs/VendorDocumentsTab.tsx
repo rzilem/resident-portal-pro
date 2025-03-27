@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, UploadCloud } from 'lucide-react';
@@ -14,8 +13,13 @@ const VendorDocumentsTab: React.FC<VendorDocumentsTabProps> = ({ vendorId }) => 
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  const handleUploadSuccess = () => {
+    console.log("Document uploaded successfully");
+    // Additional success handling if needed
+  };
+
   return (
-    <>
+    <div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Documents</CardTitle>
@@ -41,15 +45,12 @@ const VendorDocumentsTab: React.FC<VendorDocumentsTabProps> = ({ vendorId }) => 
         </CardContent>
       </Card>
 
-      <DocumentUploadDialog
-        isOpen={showUploadDialog}
-        onClose={() => setShowUploadDialog(false)}
-        onSuccess={() => {
-          console.log("Document uploaded successfully");
-          // Additional success handling if needed
-        }}
+      <DocumentUploadDialog 
+        open={showUploadDialog}
+        setOpen={setShowUploadDialog}
+        onSuccess={handleUploadSuccess}
       />
-    </>
+    </div>
   );
 };
 

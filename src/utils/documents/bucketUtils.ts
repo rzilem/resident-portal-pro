@@ -49,7 +49,11 @@ export const ensureBucketExists = async (bucketName: string, forceCreate: boolea
   }
 };
 
-// Add alias for ensureBucketExists to maintain backward compatibility
+/**
+ * Ensure the documents bucket exists
+ * @param {boolean} forceCreate - Force creation of bucket even if it exists
+ * @returns {Promise<boolean>} Success status
+ */
 export const ensureDocumentsBucketExists = async (forceCreate: boolean = false): Promise<boolean> => {
   return ensureBucketExists('documents', forceCreate);
 };

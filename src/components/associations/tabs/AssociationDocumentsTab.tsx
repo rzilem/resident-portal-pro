@@ -377,8 +377,8 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
       <DocumentTemplates />
       
       <DocumentUploadDialog 
-        isOpen={showUploadDialog}
-        onClose={() => setShowUploadDialog(false)}
+        open={showUploadDialog}
+        setOpen={setShowUploadDialog}
         onSuccess={handleUploadSuccess}
         refreshDocuments={refreshDocuments}
       />
