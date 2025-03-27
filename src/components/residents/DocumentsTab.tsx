@@ -13,14 +13,14 @@ interface Document {
   category: string;
   description: string;
   url: string;
-  created_at: string;
+  created_at?: string;
   file_size: number;
   file_type: string;
   is_public: boolean;
   is_archived: boolean;
   last_modified: string;
   version: number;
-  // Adding missing fields from the error
+  // Adding missing fields and making them optional
   uploaded_date?: string;
   uploaded_by?: string;
   association_id: string;
