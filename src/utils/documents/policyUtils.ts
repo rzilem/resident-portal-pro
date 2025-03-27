@@ -28,13 +28,17 @@ export const createStoragePolicy = async (
       operation: string;
     }
     
-    // Call RPC with properly typed parameters - using void instead of null to fix type constraint error
-    await supabase.rpc('create_storage_policy', {
+    // Call RPC without explicit type parameters, letting TypeScript infer them
+    const { error } = await supabase.rpc('create_storage_policy', {
       bucket_name: bucketName,
       policy_name: policyName,
       definition: definition,
       operation: operation
-    });
+    } as StoragePolicyParams);
+    
+    if (error) {
+      throw error;
+    }
     
     console.log(`Created storage policy ${policyName} for ${operation} operation`);
   } catch (error) {
