@@ -35,7 +35,11 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<LogoutRedirect />} />
-
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
         <Route
           path="/simple-dashboard"
           element={
@@ -53,12 +57,32 @@ const App = () => {
           }
         />
 
-        <Route path="/hoa/dashboard" element={<HoaDashboard />} />
-        <Route path="/hoa/finances" element={<HoaFinances />} />
+        <Route path="/hoa/dashboard" element={
+          <ProtectedRoute>
+            <HoaDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/hoa/finances" element={
+          <ProtectedRoute>
+            <HoaFinances />
+          </ProtectedRoute>
+        } />
 
-        <Route path="/properties" element={<Properties />} />
-        <Route path="/residents" element={<Residents />} />
-        <Route path="/residents/:id" element={<ResidentProfile />} />
+        <Route path="/properties" element={
+          <ProtectedRoute>
+            <Properties />
+          </ProtectedRoute>
+        } />
+        <Route path="/residents" element={
+          <ProtectedRoute>
+            <Residents />
+          </ProtectedRoute>
+        } />
+        <Route path="/residents/:id" element={
+          <ProtectedRoute>
+            <ResidentProfile />
+          </ProtectedRoute>
+        } />
         <Route path="/" element={<Index />} />
       </Routes>
     </AuthProvider>
