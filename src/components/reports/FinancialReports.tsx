@@ -18,6 +18,9 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
   association,
   selectedReport,
 }) => {
+  // When association changes, this component will re-render with the new association value
+  console.log("Financial Reports rendering with association:", association);
+  
   return (
     <Card className="p-6">
       {selectedReport === 'income-expense' && (
@@ -28,7 +31,7 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
         <CashFlowReport timeRange={timeRange} association={association} />
       )}
       
-      {selectedReport === 'forecast' && (
+      {selectedReport === 'forecast' || selectedReport === 'cash-forecast' && (
         <CashForecastReport timeRange={timeRange} association={association} />
       )}
       
@@ -36,7 +39,7 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
         <BankBalancesReport timeRange={timeRange} association={association} />
       )}
       
-      {selectedReport === 'billing' && (
+      {selectedReport === 'billing' || selectedReport === 'billing-report' && (
         <BillingReport 
           timeRange={timeRange} 
           association={association} 
@@ -45,7 +48,7 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
       )}
       
       {/* Default fallback if no report is selected */}
-      {!['income-expense', 'cash-flow', 'forecast', 'bank-balances', 'billing'].includes(selectedReport) && (
+      {!['income-expense', 'cash-flow', 'forecast', 'cash-forecast', 'bank-balances', 'billing', 'billing-report'].includes(selectedReport) && (
         <div className="text-center py-8">
           <h2 className="text-2xl font-semibold mb-2">Select a report type</h2>
           <p className="text-muted-foreground">

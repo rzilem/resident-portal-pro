@@ -1,15 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FinancialReports from '@/components/reports/FinancialReports';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 const AccountingReports = () => {
   const [timeRange, setTimeRange] = useState('year');
   const [association, setAssociation] = useState('all');
   const [selectedReport, setSelectedReport] = useState('income-expense');
+
+  // Log when association changes
+  useEffect(() => {
+    console.log("AccountingReports: association changed to", association);
+  }, [association]);
+
+  // Handle export button click
+  const handleExport = () => {
+    toast.success("Report exported successfully");
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -28,7 +39,13 @@ const AccountingReports = () => {
             </SelectContent>
           </Select>
           
-          <Select value={association} onValueChange={setAssociation}>
+          <Select 
+            value={association} 
+            onValueChange={(value) => {
+              console.log("Setting association to:", value);
+              setAssociation(value);
+            }}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select association" />
             </SelectTrigger>
@@ -40,7 +57,7 @@ const AccountingReports = () => {
             </SelectContent>
           </Select>
           
-          <Button variant="outline">Export</Button>
+          <Button variant="outline" onClick={handleExport}>Export</Button>
         </div>
       </div>
       

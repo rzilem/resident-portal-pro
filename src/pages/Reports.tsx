@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -26,11 +26,23 @@ const Reports = () => {
   const [selectedReport, setSelectedReport] = useState('income-expense');
   const { associations } = useAssociations();
   
+  // Get properties from associations
   const properties = associations && associations.length > 0 
     ? getPropertiesFromAssociations(associations) 
     : [];
   
   const { handleVisibleColumnsExport, handleTemplateDownload } = usePropertyExport(properties);
+  
+  // Handle the association change
+  const handleAssociationChange = useCallback((newAssociation: string) => {
+    console.log("Reports page: Changing association to", newAssociation);
+    setAssociation(newAssociation);
+  }, []);
+  
+  // Track association changes for debugging
+  useEffect(() => {
+    console.log("Reports page: association is now", association);
+  }, [association]);
   
   const handleExport = () => {
     toast.success(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported successfully`);
@@ -119,7 +131,7 @@ const Reports = () => {
         timeRange={timeRange}
         setTimeRange={setTimeRange}
         association={association}
-        setAssociation={setAssociation}
+        setAssociation={handleAssociationChange}
         associations={associations || []}
         reportType={reportType}
         selectedReport={selectedReport}
