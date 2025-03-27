@@ -1,61 +1,88 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import AuthStatusDisplay from '@/components/auth/AuthStatusDisplay';
-import LoginHeader from '@/components/auth/LoginHeader';
-import LoginForm from '@/components/auth/LoginForm';
-import SignupForm from '@/components/auth/SignupForm';
-import LoginFooter from '@/components/auth/LoginFooter';
+// src/components/Login.tsx
+import React, { useState, useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Login = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error('AuthContext must be used within an AuthProvider');
+  }
+
+  const { login, user } = context;
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState('login');
+  const location = useLocation();
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log('User is authenticated, redirecting to dashboard...');
-      navigate('/dashboard');
+  console.log('Login component: Current user:', user);
+  console.log('Login component: Redirecting from:', location.state?.from);
+
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(email, password);
+      console.log('Login component: Redirecting to:', from);
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setError('Failed to log in. Please check your credentials.');
+      console.error('Login component: Error:', err.message);
     }
-  }, [isAuthenticated, navigate]);
-
-  const handleSwitchToLogin = () => {
-    setActiveTab('login');
   };
 
   return (
-    <div className="min-h-screen bg-accent/30 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md">
-        {/* Background decorative elements */}
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary/10 rounded-full filter blur-3xl opacity-50 animate-blob"></div>
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-blue-300/20 rounded-full filter blur-3xl opacity-50 animate-blob" style={{ animationDelay: '4s' }}></div>
-        
-        <div className="glass-panel bg-white/95 p-8 rounded-xl border border-border shadow-lg backdrop-blur-md relative z-10 animate-scale-in">
-          {/* Auth status display for debugging */}
-          <AuthStatusDisplay />
-          
-          <LoginHeader />
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login" className="animate-fade-in">
-              <LoginForm />
-            </TabsContent>
-            
-            <TabsContent value="register" className="animate-fade-in">
-              <SignupForm onSwitchToLogin={handleSwitchToLogin} />
-            </TabsContent>
-          </Tabs>
-          
-          <LoginFooter />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+        <div>
+          <h2 className="text-2xl font-bold text-center text-gray-800">Login</h2>
+          {error && <p className="text-red-500 text-center mt-2">{error}</p>}
         </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+          <div>
+            <button
+              type="submit"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Log in
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
