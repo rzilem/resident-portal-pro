@@ -18,12 +18,13 @@ export const initializeTables = async (): Promise<boolean> => {
     // Create association_settings table if it doesn't exist
     if (!settingsTableExists) {
       // Use RPC to create table if available
-      const { error } = await supabase
-        .rpc('create_association_settings_table')
-        .catch(() => ({ error: new Error('RPC not available') }));
-      
-      if (error) {
-        console.error('Error creating association_settings table using RPC:', error);
+      try {
+        const { error } = await supabase
+          .rpc('create_association_settings_table');
+        
+        if (error) throw error;
+      } catch (rpcError) {
+        console.error('Error creating association_settings table using RPC:', rpcError);
         
         // Fallback: Create the table using raw SQL
         try {

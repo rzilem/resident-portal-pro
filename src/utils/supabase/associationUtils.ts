@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Association, AssociationSettings } from "@/types/association";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 /**
  * Fetch all associations from Supabase
@@ -38,7 +39,9 @@ export const fetchAssociations = async (): Promise<Association[]> => {
       foundedDate: item.founded_date || new Date().toISOString().split('T')[0],
       units: item.units || 0,
       status: (item.status as "active" | "inactive") || 'active',
-      settings: item.association_settings?.settings || createDefaultSettings(),
+      settings: item.association_settings?.settings 
+        ? (item.association_settings.settings as unknown as AssociationSettings) 
+        : createDefaultSettings(),
     }));
   } catch (error) {
     console.error('Error fetching associations:', error);
@@ -80,11 +83,12 @@ export const createSupabaseAssociation = async (association: Omit<Association, '
     
     // Insert settings
     if (newAssociation) {
+      const settingsObj = association.settings || createDefaultSettings();
       const { error: settingsError } = await supabase
         .from('association_settings')
         .insert({
           association_id: newAssociation.id,
-          settings: association.settings || createDefaultSettings()
+          settings: settingsObj as unknown as Json
         });
       
       if (settingsError) throw settingsError;
@@ -171,7 +175,7 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
         const { error: updateError } = await supabase
           .from('association_settings')
           .update({
-            settings: updates.settings,
+            settings: updates.settings as unknown as Json,
             updated_at: new Date().toISOString()
           })
           .eq('association_id', id);
@@ -183,7 +187,7 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
           .from('association_settings')
           .insert({
             association_id: id,
-            settings: updates.settings
+            settings: updates.settings as unknown as Json
           });
         
         if (insertError) throw insertError;
@@ -222,7 +226,9 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
       foundedDate: updatedAssociation.founded_date || new Date().toISOString().split('T')[0],
       units: updatedAssociation.units || 0,
       status: (updatedAssociation.status as "active" | "inactive") || 'active',
-      settings: updatedAssociation.association_settings?.settings as AssociationSettings || createDefaultSettings(),
+      settings: updatedAssociation.association_settings?.settings 
+        ? (updatedAssociation.association_settings.settings as unknown as AssociationSettings) 
+        : createDefaultSettings(),
     };
   } catch (error) {
     console.error('Error updating association:', error);
@@ -262,7 +268,7 @@ export const updateSupabaseAssociationSetting = async (
       const { error: updateError } = await supabase
         .from('association_settings')
         .update({
-          settings: updatedSettings,
+          settings: updatedSettings as Json,
           updated_at: new Date().toISOString()
         })
         .eq('association_id', id);
@@ -274,7 +280,7 @@ export const updateSupabaseAssociationSetting = async (
         .from('association_settings')
         .insert({
           association_id: id,
-          settings: updatedSettings
+          settings: updatedSettings as Json
         });
       
       if (insertError) throw insertError;
@@ -405,7 +411,9 @@ const getSupabaseAssociationById = async (id: string): Promise<Association | nul
       foundedDate: data.founded_date || new Date().toISOString().split('T')[0],
       units: data.units || 0,
       status: (data.status as "active" | "inactive") || 'active',
-      settings: data.association_settings?.settings as AssociationSettings || createDefaultSettings(),
+      settings: data.association_settings?.settings 
+        ? (data.association_settings.settings as unknown as AssociationSettings) 
+        : createDefaultSettings(),
     };
   } catch (error) {
     console.error('Error fetching association by ID:', error);

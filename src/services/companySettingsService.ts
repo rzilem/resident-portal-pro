@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 // Default company settings as fallback
 const defaultCompanySettings = {
@@ -79,7 +80,7 @@ export const companySettingsService = {
         .from('association_settings')
         .upsert({ 
           id: COMPANY_SETTINGS_ID,
-          settings: newSettings,
+          settings: newSettings as Json,
           updated_at: new Date().toISOString()
         })
         .select();
