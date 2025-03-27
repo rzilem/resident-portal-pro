@@ -22,6 +22,8 @@ const Dashboard = () => {
   // Initialize dashboard from preferences
   useEffect(() => {
     if (preferences) {
+      console.log("Initializing dashboard from preferences:", preferences.dashboardLayout);
+      
       // Set columns
       if (preferences.dashboardLayout?.columns) {
         setColumns(preferences.dashboardLayout.columns);
@@ -83,15 +85,22 @@ const Dashboard = () => {
 
   // Save dashboard layout when it changes
   const handleSaveDashboard = async (widgets: Widget[], columnCount: number = columns) => {
+    console.log("Saving dashboard with widgets:", widgets);
+    console.log("Column count:", columnCount);
+    
     setDashboardWidgets(widgets);
     setColumns(columnCount);
     setIsCustomizing(false);
     
     try {
+      // Important - ensure we're using the correct structure that matches the UserPreferences type
       await updatePreference("dashboardLayout", {
         columns: columnCount,
         widgets: widgets
       });
+      
+      // Log the updated preferences to verify the change
+      console.log("Dashboard layout saved successfully");
       toast.success("Dashboard layout saved!");
     } catch (error) {
       console.error("Error saving dashboard layout:", error);
@@ -189,7 +198,15 @@ const Dashboard = () => {
       </motion.div>
       
       <motion.div
-        variants={container}
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1
+            }
+          }
+        }}
         initial="hidden"
         animate="show"
       >

@@ -1,9 +1,5 @@
 
-export * from './alertQueries';
+// Re-export all alert-related utilities for easier imports
 export * from './alertMutations';
+export * from './alertQueries';
 export * from './alertSolutions';
-export * from './alertInitialization';
-
-// Initialize solution actions on module load
-import { initializeSolutionActions } from './alertInitialization';
-initializeSolutionActions();
