@@ -1,286 +1,197 @@
-
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { Loader2 } from 'lucide-react';
-import FileUploader from './FileUploader';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useLocation } from 'react-router-dom';
-import { verifyDocumentsBucket } from '@/utils/documents/checkBucket';
-import { debugLog, errorLog } from '@/utils/debug';
+import { useAuth } from '@/contexts/AuthContext';
+import { initializeDocumentsBucket } from '@/utils/documents/bucketUtils';
+import { validateFileSize, validateFileType } from '@/utils/documents/fileUtils';
 
-interface DocumentMetadata {
-  title: string;
-  category: string;
-  description: string;
-}
+const DocumentUploadDialog: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState<string>(''); // Added for title input
+  const [category, setCategory] = useState<string>('GENERAL'); // Added for category input
+  const [description, setDescription] = useState<string>(''); // Added for description input
+  const [isPreparing, setIsPreparing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isStorageReady, setIsStorageReady] = useState(false);
 
-interface DocumentMetadataFormProps {
-  file: File;
-  onUploadComplete: () => void;
-  onCancel: () => void;
-  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
-  associationId: string;
-}
+  useEffect(() => {
+    const prepareStorage = async () => {
+      if (authLoading || !user) return; // Wait for auth to load
+      if (isPreparing) return; // Prevent multiple calls
+      setIsPreparing(true);
+      try {
+        const success = await initializeDocumentsBucket();
+        if (success) {
+          setIsStorageReady(true);
+          console.log("Storage initialized successfully");
+        } else {
+          toast.error("Failed to initialize document storage");
+          console.error("Storage initialization failed");
+        }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        console.error("Storage initialization error:", message);
+        toast.error("Document storage is not available");
+      } finally {
+        setIsPreparing(false);
+      }
+    };
+    prepareStorage();
+  }, [authLoading, user]);
 
-const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({ 
-  file, 
-  onUploadComplete, 
-  onCancel, 
-  setIsUploading,
-  associationId 
-}) => {
-  const [metadata, setMetadata] = useState<DocumentMetadata>({
-    title: file.name,
-    category: 'General',
-    description: '',
-  });
-  const { user } = useAuth();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setMetadata(prev => ({ ...prev, [name]: value }));
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const selectedFile = event.target.files[0];
+      setFile(selectedFile);
+      setTitle(selectedFile.name); // Auto-fill title with file name
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUploading(true);
+  const handleUpload = async () => {
+    if (!user) {
+      toast.error("Please log in to upload documents");
+      console.error("User not authenticated");
+      return;
+    }
+    if (!file) {
+      toast.error("Please select a file to upload");
+      console.error("No file selected");
+      return;
+    }
+    if (!isStorageReady) {
+      toast.error("Document storage is not ready");
+      console.error("Storage not ready");
+      return;
+    }
 
+    setIsUploading(true);
     try {
-      debugLog("Starting upload process for file:", file.name);
-      debugLog("Association ID:", associationId);
-      
-      if (!associationId) {
-        throw new Error("Association ID is required but not provided");
-      }
-      
-      // Verify the bucket exists and is accessible
-      const bucketExists = await verifyDocumentsBucket();
-      if (!bucketExists) {
-        throw new Error("Document storage is not accessible. Please try again later.");
-      }
-      
-      // Upload file directly to Supabase storage
-      const timestamp = Date.now();
-      const fileExtension = file.name.split('.').pop() || '';
-      const filePath = `${metadata.category}/${timestamp}-${metadata.title}`;
-      
-      debugLog(`Uploading to path: ${filePath}`);
-      
-      const { data, error } = await supabase.storage
+      // Validate file
+      console.log("Validating file:", file.name);
+      validateFileSize(file, 5); // 5MB limit
+      validateFileType(file, ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png']);
+
+      // Upload file
+      console.log("Starting upload for file:", file.name);
+      const filePath = `uploads/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-      
-      if (error) {
-        errorLog("Storage upload error:", error);
-        throw error;
+        .upload(filePath, file);
+
+      if (uploadError) {
+        toast.error(`Upload failed: ${uploadError.message}`);
+        console.error("Upload error:", uploadError);
+        return;
       }
-      
-      debugLog("Storage upload successful:", data);
-      
-      // Get the file URL
-      const { data: urlData } = await supabase.storage
+
+      // Get public URL
+      console.log("Getting public URL for file:", filePath);
+      const { data: { publicUrl }, error: urlError } = await supabase.storage
         .from('documents')
         .getPublicUrl(filePath);
-      
-      const fileUrl = urlData?.publicUrl;
-      
-      debugLog("File URL:", fileUrl);
-      
-      // Save document metadata to the database
-      const { data: documentData, error: documentError } = await supabase
-        .from('documents')
-        .insert({
-          name: metadata.title,
-          description: metadata.description,
-          file_size: file.size,
-          file_type: file.type,
-          url: fileUrl,
-          category: metadata.category,
-          uploaded_by: user?.id,
-          is_public: false,
-          version: 1,
-          association_id: associationId
-        });
-      
-      if (documentError) {
-        errorLog("Database error:", documentError);
-        throw documentError;
+
+      if (urlError) {
+        toast.error(`Failed to get URL: ${urlError.message}`);
+        console.error("URL error:", urlError);
+        return;
       }
-      
-      debugLog("Document metadata saved:", documentData);
-      toast.success(`${file.name} has been uploaded.`);
-      onUploadComplete();
-    } catch (error) {
-      errorLog("Upload error:", error);
-      toast.error(`Failed to upload ${file.name}. ${error instanceof Error ? error.message : 'Please try again.'}`);
+
+      toast.success("Document uploaded successfully");
+      console.log("Uploaded file URL:", publicUrl);
+      // Reset form
+      setFile(null);
+      setTitle('');
+      setCategory('GENERAL');
+      setDescription('');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Upload failed: ${message}`);
+      console.error("Upload error:", error);
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="title">Title</Label>
-        <Input
-          type="text"
-          id="title"
-          name="title"
-          value={metadata.title}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Label htmlFor="category">Category</Label>
-        <Input
-          type="text"
-          id="category"
-          name="category"
-          value={metadata.category}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Input
-          type="textarea"
-          id="description"
-          name="description"
-          value={metadata.description}
-          onChange={handleChange}
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">Upload</Button>
-      </div>
-    </form>
-  );
-};
-
-interface DocumentUploadDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  onSuccess?: () => void;
-  refreshDocuments?: () => void;
-  associationId?: string;
-}
-
-const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ 
-  open, 
-  setOpen, 
-  onSuccess,
-  refreshDocuments,
-  associationId: propAssociationId 
-}) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [currentAssociationId, setCurrentAssociationId] = useState<string>("");
-  const location = useLocation();
-  
-  // Determine association ID from props or from the URL
-  useEffect(() => {
-    if (propAssociationId) {
-      setCurrentAssociationId(propAssociationId);
-      debugLog("Using association ID from props:", propAssociationId);
-    } else {
-      // Try to extract association ID from URL path
-      const pathParts = location.pathname.split('/');
-      const associationPart = pathParts.findIndex(part => part === 'associations');
-      if (associationPart !== -1 && pathParts.length > associationPart + 1) {
-        setCurrentAssociationId(pathParts[associationPart + 1]);
-        debugLog("Using association ID from URL:", pathParts[associationPart + 1]);
-      } else {
-        // Default to first association for demo purposes
-        setCurrentAssociationId("00000000-0000-0000-0000-000000000000");
-        debugLog("No association ID found, using default");
-      }
-    }
-  }, [propAssociationId, location]);
-
-  const handleOpenChange = (open: boolean) => {
-    setOpen(open);
-    if (!open) {
-      setFile(null);
-    }
-  };
-
-  const handleFileSelection = (selectedFile: File | null) => {
-    if (selectedFile) {
-      setFile(selectedFile);
-      debugLog("File selected:", selectedFile.name);
-    }
-  };
-
-  const handleUploadComplete = () => {
-    setFile(null);
-    setOpen(false);
-    if (onSuccess) {
-      onSuccess();
-    }
-    if (refreshDocuments) {
-      refreshDocuments();
-    }
-  };
-
-  const handleCancel = () => {
-    setFile(null);
-    debugLog("File selection canceled");
-  };
-
-  if (!currentAssociationId) {
-    errorLog("No association ID available for document upload");
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
-          <DialogDescription>
-            Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.
-          </DialogDescription>
-        </DialogHeader>
-
-        {!file ? (
-          <FileUploader
-            onFileSelected={handleFileSelection} 
-            currentFile={null}
-          />
-        ) : (
-          <DocumentMetadataForm
-            file={file}
-            onUploadComplete={handleUploadComplete}
-            onCancel={handleCancel}
-            setIsUploading={setIsUploading}
-            associationId={currentAssociationId}
-          />
-        )}
-
-        {isUploading && (
-          <div className="flex justify-center my-2">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2">Uploading document...</span>
+    <div>
+      <h2>Upload Document</h2>
+      <p>Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.</p>
+      {authLoading ? (
+        <p>Loading authentication...</p>
+      ) : !user ? (
+        <p>Please log in to upload documents</p>
+      ) : isPreparing ? (
+        <div>
+          <p>Preparing document storage...</p>
+          <p>Almost ready! Checking storage accessibility...</p>
+        </div>
+      ) : !isStorageReady ? (
+        <div>
+          <p style={{ color: 'red' }}>Document storage is not available</p>
+          <p>Authentication required to use document storage</p>
+          <p>The system is having trouble accessing the document storage in Supabase.</p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <label>Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={isUploading}
+            />
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          <div>
+            <label>Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              disabled={isUploading}
+            >
+              <option value="GENERAL">General</option>
+              <option value="FINANCIAL">Financial</option>
+              <option value="LEGAL">Legal</option>
+              <option value="MAINTENANCE">Maintenance</option>
+            </select>
+          </div>
+          <div>
+            <label>Description</label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isUploading}
+            />
+          </div>
+          <div>
+            <input
+              type="file"
+              onChange={handleFileChange}
+              disabled={isUploading}
+            />
+          </div>
+          <button
+            onClick={() => {
+              setFile(null);
+              setTitle('');
+              setCategory('GENERAL');
+              setDescription('');
+            }}
+            disabled={isUploading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpload}
+            disabled={isUploading || !file}
+          >
+            {isUploading ? 'Uploading...' : 'Upload'}
+          </button>
+        </>
+      )}
+    </div>
   );
 };
 
