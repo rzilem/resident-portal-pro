@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,14 +16,12 @@ import {
 interface DashboardHeaderWithNavProps {
   toggleSidebar?: () => void;
   title?: string;
-  description?: string;
   icon?: React.ReactNode;
 }
 
 const DashboardHeaderWithNav = ({ 
   toggleSidebar, 
   title = "Accounting Dashboard",
-  description = "Manage all financial aspects of your properties and associations",
   icon
 }: DashboardHeaderWithNavProps) => {
   return (
@@ -44,9 +43,6 @@ const DashboardHeaderWithNav = ({
           {icon && <div className="text-muted-foreground">{icon}</div>}
           <div>
             <h1 className="text-xl font-semibold">{title}</h1>
-            {description && (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            )}
           </div>
         </div>
       </div>
