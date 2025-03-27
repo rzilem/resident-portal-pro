@@ -18,6 +18,11 @@ export interface Alert {
   assignedTo?: string;
   source?: string;
   actions?: AlertAction[];
+  
+  // Adding missing properties used in mockAlerts.ts
+  scope?: 'global' | 'association' | 'property';
+  isRecent?: boolean;
+  solutions?: AlertSolution[];
 }
 
 export interface AlertAction {
@@ -33,4 +38,7 @@ export interface AlertSolution {
   description: string;
   steps: string[];
   alertType?: string;
+  actionType?: 'workflow' | 'manual';
+  workflowTemplateId?: string;
+  action?: () => Promise<void>;
 }

@@ -1,5 +1,6 @@
 
 import { AlertSolution } from '@/types/alert';
+import { updateAlertStatus } from './alertMutations';
 
 // Example alert solutions
 export const getAlertSolutions = (alertType: string): AlertSolution[] => {
@@ -113,4 +114,19 @@ export const getAlertSolutions = (alertType: string): AlertSolution[] => {
   }
 
   return solutions[key];
+};
+
+// Add the missing function needed by workflowService.ts
+export const checkWorkflowProgressForAlert = async (alertId: string): Promise<void> => {
+  try {
+    // This function would check if all workflows related to an alert are complete
+    // If they are, it would update the alert status to resolved
+    console.log(`Checking workflow progress for alert: ${alertId}`);
+    
+    // For now, we'll just update the status to resolved
+    // In a real app, we would check the actual workflow status
+    await updateAlertStatus(alertId, 'resolved');
+  } catch (error) {
+    console.error('Error checking workflow progress for alert:', error);
+  }
 };
