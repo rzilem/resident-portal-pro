@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for Supabase storage operations
  */
@@ -78,12 +79,12 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
             try {
               const policyName = 'allow_authenticated_users';
               
-              // Use a properly typed RPC call
+              // Use a properly typed RPC call by providing a more specific type
               await supabase.rpc('create_storage_policy', {
                 bucket_name: 'documents',
                 policy_name: policyName,
                 definition: 'auth.uid() IS NOT NULL'
-              } as any); // Type assertion to bypass TS error
+              } as Record<string, unknown>); // Using Record type instead of 'any'
               
               console.log('Created storage policy for authenticated users');
             } catch (policyError) {
