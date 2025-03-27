@@ -75,9 +75,11 @@ import ResaleWizard from "@/pages/resale/wizard/ResaleWizard";
 // Import our migrations runner
 import '@/utils/supabase/migrations';
 
+import { AuthProvider } from './contexts/AuthContext';
+
 const App = () => {
   return (
-    <>
+    <AuthProvider>
       <DocumentStorageInitializer />
       <Routes>
         {/* Public routes without dashboard layout */}
@@ -154,7 +156,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
-    </>
+    </AuthProvider>
   );
 };
 

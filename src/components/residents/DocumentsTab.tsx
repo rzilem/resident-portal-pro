@@ -9,11 +9,17 @@ import { FileText, Download, Plus } from 'lucide-react';
 
 interface Document {
   id: string;
-  title: string;
+  name: string;
   category: string;
   description: string;
   url: string;
   created_at: string;
+  file_size: number;
+  file_type: string;
+  is_public: boolean;
+  is_archived: boolean;
+  last_modified: string;
+  version: number;
 }
 
 const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) => {
@@ -76,7 +82,7 @@ const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) =>
             {documents.map(doc => (
               <li key={doc.id} className="p-3 border rounded-md flex justify-between items-center">
                 <div>
-                  <div className="font-medium">{doc.title || doc.name}</div>
+                  <div className="font-medium">{doc.name}</div>
                   <div className="text-sm text-muted-foreground">{doc.category} - {doc.description}</div>
                 </div>
                 <a 

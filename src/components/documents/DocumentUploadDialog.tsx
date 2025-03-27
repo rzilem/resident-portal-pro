@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FileUpload, Upload, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, AlertCircle, Loader2 } from 'lucide-react';
 
 interface DocumentUploadDialogProps {
   open: boolean;
@@ -54,11 +54,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       setCategoriesLoading(true);
       try {
         const fetchedCategories = await getDocumentCategories();
-        setCategories(fetchedCategories);
+        setCategories(fetchedCategories.map(cat => cat.name));
         
         // Set default category from fetched categories if available
         if (fetchedCategories.length > 0 && !category) {
-          setCategory(fetchedCategories[0]);
+          setCategory(fetchedCategories[0].name);
         }
       } catch (error) {
         console.error("Error loading categories:", error);
@@ -149,7 +149,12 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     try {
       // Validate file
       console.log("Validating file:", file.name);
-      validateFileSize(file, 5); // 5MB limit
+      const isValidSize = validateFileSize(file, 5); // 5MB limit
+      if (!isValidSize) {
+        toast.error("File is too large (max 5MB)");
+        return;
+      }
+      
       const allowedTypes = [
         'application/pdf',
         'application/msword',
@@ -159,7 +164,12 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         'image/jpeg',
         'image/png',
       ];
-      validateFileType(file, allowedTypes);
+      
+      const isValidType = validateFileType(file, allowedTypes);
+      if (!isValidType) {
+        toast.error("Invalid file type. Please upload PDF, Word, Excel, or image files.");
+        return;
+      }
 
       // Generate a unique file path using timestamp and file name
       const timestamp = Date.now();
@@ -185,9 +195,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 
       // Get public URL
       console.log("Getting public URL for file:", filePath);
-      const { data: { publicUrl } } = await supabase.storage
+      const { data } = await supabase.storage
         .from('documents')
         .getPublicUrl(filePath);
+
+      const publicUrl = data?.publicUrl || '';
 
       // Save document metadata to database
       console.log("Saving document metadata");
@@ -239,7 +251,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileUpload className="h-5 w-5" />
+            <Upload className="h-5 w-5" />
             Upload Document
           </DialogTitle>
           <DialogDescription>

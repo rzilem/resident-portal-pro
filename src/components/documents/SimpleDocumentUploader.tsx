@@ -3,17 +3,80 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, FileCheck } from "lucide-react";
 import { toast } from 'sonner';
-import { uploadDocument } from '@/utils/documents/uploadUtils';
-import { handleDocumentStorageError } from '@/utils/documents/initializeBucket';
+import { supabase } from '@/integrations/supabase/client';
+import { validateFileSize, validateFileType } from '@/utils/documents/fileUtils';
+import { initializeDocumentsBucket } from '@/utils/documents/bucketUtils';
 
 interface SimpleDocumentUploaderProps {
   onSuccess?: (url: string) => void;
   className?: string;
+  associationId?: string;
 }
 
-const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploaderProps) => {
+const SimpleDocumentUploader = ({ onSuccess, className, associationId = '00000000-0000-0000-0000-000000000000' }: SimpleDocumentUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
+  const uploadDocument = async (file: File): Promise<{ success: boolean, url?: string, error?: string }> => {
+    try {
+      // Initialize storage
+      const storageReady = await initializeDocumentsBucket();
+      if (!storageReady) {
+        return { success: false, error: "Document storage is not available" };
+      }
+      
+      // Validate file
+      const isValidSize = validateFileSize(file, 5); // 5MB limit
+      if (!isValidSize) {
+        return { success: false, error: "File is too large (max 5MB)" };
+      }
+      
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/png',
+      ];
+      
+      const isValidType = validateFileType(file, allowedTypes);
+      if (!isValidType) {
+        return { success: false, error: "Invalid file type. Please upload PDF, Word, Excel, or image files." };
+      }
+      
+      // Generate file path
+      const timestamp = Date.now();
+      const filePath = `${associationId}/uploads/${timestamp}_${file.name}`;
+      
+      // Upload file
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        return { success: false, error: uploadError.message };
+      }
+      
+      // Get file URL
+      const { data } = await supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+        
+      const publicUrl = data?.publicUrl || '';
+      
+      return { success: true, url: publicUrl };
+    } catch (error) {
+      console.error("Unexpected upload error:", error);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: message };
+    }
+  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -37,7 +100,7 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
         toast.error(`Upload failed: ${error}`);
       }
     } catch (error) {
-      const errorMessage = handleDocumentStorageError(error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast.error(errorMessage);
     } finally {
       setIsUploading(false);

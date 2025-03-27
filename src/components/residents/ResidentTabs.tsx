@@ -14,6 +14,9 @@ interface ResidentTabsProps {
 }
 
 const ResidentTabs: React.FC<ResidentTabsProps> = ({ resident }) => {
+  // Get associationId from resident or use a default
+  const associationId = resident.associationId || '00000000-0000-0000-0000-000000000000';
+  
   return (
     <Tabs defaultValue="summary" className="space-y-6">
       <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full bg-background">
@@ -45,7 +48,7 @@ const ResidentTabs: React.FC<ResidentTabsProps> = ({ resident }) => {
       </TabsContent>
 
       <TabsContent value="documents" className="space-y-6">
-        <DocumentsTab documents={resident.documents} />
+        <DocumentsTab associationId={associationId} />
       </TabsContent>
 
       <TabsContent value="notes" className="space-y-6">

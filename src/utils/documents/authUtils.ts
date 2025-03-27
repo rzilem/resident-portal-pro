@@ -1,52 +1,91 @@
 
-/**
- * Auth utility functions for document management
- */
-
-import { supabase } from '@/integrations/supabase/client';
-import { debugLog, errorLog } from '@/utils/debug';
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Check if user is authenticated with Supabase
+ * Check if a user is authenticated
  * @returns Promise<boolean> True if authenticated
  */
 export const isUserAuthenticated = async (): Promise<boolean> => {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
     
     if (error) {
-      errorLog("Error checking authentication:", error);
+      console.error('Error checking authentication:', error.message);
       return false;
     }
     
-    if (!session) {
-      debugLog("No active session found");
-      return false;
-    }
-    
-    return true;
+    return !!data.session;
   } catch (error) {
-    errorLog("Exception in isUserAuthenticated:", error);
+    console.error('Unexpected error checking auth:', error);
     return false;
   }
 };
 
 /**
- * Get current user ID
- * @returns Promise<string|null> User ID if authenticated, null otherwise
+ * Get the current user ID
+ * @returns Promise<string|null> User ID or null
  */
 export const getCurrentUserId = async (): Promise<string | null> => {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
     
-    if (error || !session) {
+    if (error || !data.session) {
       return null;
     }
     
-    return session.user.id;
+    return data.session.user.id;
   } catch (error) {
-    errorLog("Exception in getCurrentUserId:", error);
+    console.error('Error getting user ID:', error);
     return null;
+  }
+};
+
+/**
+ * Get the current user's email
+ * @returns Promise<string|null> User email or null
+ */
+export const getCurrentUserEmail = async (): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error || !data.session) {
+      return null;
+    }
+    
+    return data.session.user.email;
+  } catch (error) {
+    console.error('Error getting user email:', error);
+    return null;
+  }
+};
+
+/**
+ * Check if the user has a specific role
+ * @param roles Array of roles to check against
+ * @returns Promise<boolean> True if user has one of the roles
+ */
+export const hasRole = async (roles: string[]): Promise<boolean> => {
+  try {
+    const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      return false;
+    }
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    if (error || !data) {
+      return false;
+    }
+    
+    return roles.includes(data.role);
+  } catch (error) {
+    console.error('Error checking user role:', error);
+    return false;
   }
 };
 
@@ -55,20 +94,6 @@ export const getCurrentUserId = async (): Promise<string | null> => {
  * @returns Promise<boolean> True if using demo credentials
  */
 export const isUsingDemoCredentials = async (): Promise<boolean> => {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error || !session) {
-      return false;
-    }
-    
-    // Check if email contains 'demo' or user has a demo flag in metadata
-    const isDemoEmail = session.user.email?.toLowerCase().includes('demo') || false;
-    const isDemoUser = session.user.user_metadata?.is_demo === true;
-    
-    return isDemoEmail || isDemoUser;
-  } catch (error) {
-    errorLog("Exception in isUsingDemoCredentials:", error);
-    return false;
-  }
+  const email = await getCurrentUserEmail();
+  return email === 'demo@example.com';
 };

@@ -49,7 +49,8 @@ export const validateFileType = (file: File, acceptedTypes: string[]): boolean =
  * @param maxSizeInBytes Maximum file size in bytes
  * @returns Boolean indicating if the file size is valid
  */
-export const validateFileSize = (file: File, maxSizeInBytes: number): boolean => {
+export const validateFileSize = (file: File, maxSizeInMB: number): boolean => {
+  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
   console.log(`Validating file size: ${file.size} bytes against max size: ${maxSizeInBytes} bytes`);
   return file.size <= maxSizeInBytes;
 };
@@ -66,4 +67,63 @@ export const downloadFile = (url: string, filename: string): void => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+/**
+ * Get file extension from a filename
+ * @param filename The filename to extract extension from
+ * @returns The file extension (without the dot)
+ */
+export const getFileExtension = (filename: string): string => {
+  return filename.split('.').pop() || '';
+};
+
+/**
+ * Generate a unique filename to avoid collisions
+ * @param originalName Original filename
+ * @returns Unique filename with timestamp
+ */
+export const generateUniqueFileName = (originalName: string): string => {
+  const extension = getFileExtension(originalName);
+  const timestamp = Date.now();
+  const baseName = originalName.substring(0, originalName.lastIndexOf('.'));
+  return `${baseName}_${timestamp}.${extension}`;
+};
+
+/**
+ * Get an icon name based on file type
+ * @param fileType MIME type of the file
+ * @returns Icon name to use for the file type
+ */
+export const getFileTypeIcon = (fileType: string): string => {
+  if (fileType.includes('pdf')) return 'file-text';
+  if (fileType.includes('word') || fileType.includes('document')) return 'file-text';
+  if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'file-spreadsheet';
+  if (fileType.includes('image')) return 'image';
+  if (fileType.includes('video')) return 'video';
+  if (fileType.includes('audio')) return 'headphones';
+  if (fileType.includes('zip') || fileType.includes('compressed')) return 'archive';
+  return 'file';
+};
+
+/**
+ * Read a file as a Data URL (base64)
+ * @param file File to read
+ * @returns Promise that resolves with the file contents as a Data URL
+ */
+export const readFileAsDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to read file as Data URL'));
+      }
+    };
+    reader.onerror = () => {
+      reject(reader.error);
+    };
+    reader.readAsDataURL(file);
+  });
 };
