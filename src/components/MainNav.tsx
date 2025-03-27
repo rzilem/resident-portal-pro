@@ -17,7 +17,9 @@ import { cn } from '@/lib/utils';
 const MainNav = () => {
   return (
     <div className="flex items-center justify-between w-full">
-      <div className="font-semibold text-lg">HOA Management</div>
+      <div className="font-semibold text-lg">
+        {/* Removed "HOA Management" text */}
+      </div>
       
       <NavigationMenu className="hidden md:flex">
         <NavigationMenuList>
