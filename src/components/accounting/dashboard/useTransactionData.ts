@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Transaction } from './TransactionsTable';
 
 export const useTransactionData = (transactions: Transaction[], associationId?: string) => {

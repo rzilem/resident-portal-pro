@@ -388,7 +388,7 @@ const transactionsByAssociation: Record<string, Transaction[]> = {
 };
 
 const TransactionsTab: React.FC<TransactionsTabProps> = ({ associationId }) => {
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>(transactionsByAssociation.default);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   
   // Update the transactions when the association changes
   useEffect(() => {

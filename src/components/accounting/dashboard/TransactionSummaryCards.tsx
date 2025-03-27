@@ -13,6 +13,11 @@ const TransactionSummaryCards: React.FC<TransactionSummaryCardsProps> = ({
   totalCredits, 
   totalDebits 
 }) => {
+  // Force component to re-render when values change
+  React.useEffect(() => {
+    console.log("TransactionSummaryCards updated - Credits:", totalCredits, "Debits:", totalDebits);
+  }, [totalCredits, totalDebits]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <Card>

@@ -28,11 +28,13 @@ const AccountingDashboard = () => {
   // Initialize selectedAssociationId when activeAssociation becomes available
   useEffect(() => {
     if (activeAssociation && !selectedAssociationId) {
+      console.log("Setting initial association ID:", activeAssociation.id);
       setSelectedAssociationId(activeAssociation.id);
     }
   }, [activeAssociation, selectedAssociationId]);
 
   const handleAssociationChange = (associationId: string) => {
+    console.log("Association changed to:", associationId);
     setSelectedAssociationId(associationId);
     const association = associations.find(a => a.id === associationId);
     
