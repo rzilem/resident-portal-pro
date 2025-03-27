@@ -6,12 +6,12 @@ import { DollarSign, CreditCard, AlertTriangle, FileText, Settings } from 'lucid
 import { useUser } from '@/contexts/UserContext';
 
 const Dashboard = () => {
-  const { user } = useUser();
+  const { profile } = useUser();
   
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold tracking-tight mb-2">
-        Welcome, {user?.profile?.first_name || 'User'}
+        Welcome, {profile?.first_name || 'User'}
       </h1>
       <p className="text-muted-foreground mb-6">
         Manage your HOA properties, finances, and compliance from your dashboard

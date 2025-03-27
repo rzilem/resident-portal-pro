@@ -26,24 +26,25 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ModeToggle } from '@/components/theme/mode-toggle';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useUser();
+  const { user, profile, isAuthenticated } = useUser();
   const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate('/login');
   };
 
   const getInitials = () => {
-    if (!user?.profile) return 'U';
-    const { first_name, last_name } = user.profile;
+    if (!profile) return 'U';
+    const { first_name, last_name } = profile;
     return `${first_name?.[0] || ''}${last_name?.[0] || ''}` || 'U';
   };
 
@@ -124,8 +125,8 @@ const Navbar = () => {
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={user?.profile?.profile_image_url || ''}
-                      alt={user?.profile?.first_name || 'User'}
+                      src={profile?.profile_image_url || ''}
+                      alt={profile?.first_name || 'User'}
                     />
                     <AvatarFallback>{getInitials()}</AvatarFallback>
                   </Avatar>
@@ -135,10 +136,10 @@ const Navbar = () => {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user?.profile?.first_name} {user?.profile?.last_name}
+                      {profile?.first_name} {profile?.last_name}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.profile?.email}
+                      {profile?.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
