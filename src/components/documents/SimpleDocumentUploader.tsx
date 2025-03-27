@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, FileCheck } from "lucide-react";
 import { toast } from 'sonner';
-import { uploadDocument } from '@/utils/documents/storageUtils';
+import { uploadDocument } from '@/utils/documents/uploadUtils';
 
 interface SimpleDocumentUploaderProps {
   onSuccess?: (url: string) => void;
@@ -53,7 +53,12 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
             // Create a hidden file input and trigger it
             const input = document.createElement('input');
             input.type = 'file';
-            input.onchange = (e) => handleFileChange(e as React.ChangeEvent<HTMLInputElement>);
+            input.onchange = (e) => {
+              // Using type assertion to safely convert Event to React.ChangeEvent<HTMLInputElement>
+              if (e.target && (e.target as HTMLInputElement).files) {
+                handleFileChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+              }
+            };
             input.click();
           }}
         >
