@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PostgrestError } from '@supabase/supabase-js';
@@ -38,9 +39,9 @@ export const initializeTables = async (): Promise<boolean> => {
             }]);
             
           if (error) {
-            // Fixed line: Cast error properly with type assertion
-            const errorMessage = (error as PostgrestError).message;
-            throw new Error(errorMessage);
+            // Fix for the TypeScript error by safely extracting the error message
+            const pgError = error as PostgrestError;
+            throw new Error(pgError.message);
           }
             
           console.log('Created association_settings table');
