@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Association } from "@/types/association";
 import { PostgrestError } from '@supabase/supabase-js';
