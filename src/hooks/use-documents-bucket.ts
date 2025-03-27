@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/storageUtils';
+import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,13 +19,9 @@ export const useDocumentsBucket = () => {
     setErrorMessage(null);
     
     try {
-      // Directly check authentication status with await
+      // Check user authentication
       const { data, error } = await supabase.auth.getSession();
       const isAuthValid = !!data?.session;
-      
-      console.log('Checking bucket, user authenticated via useAuth:', isAuthenticated);
-      console.log('Checking bucket, user authenticated via direct check:', isAuthValid);
-      console.log('User ID available:', user?.id);
       
       if (!isAuthValid && !isAuthenticated) {
         console.log('User is not authenticated, skipping bucket check');
@@ -35,39 +31,17 @@ export const useDocumentsBucket = () => {
         return;
       }
 
-      // Set a shorter timeout for the entire check process
-      const timeoutPromise = new Promise<boolean>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Connection to document storage timed out'));
-        }, 5000);
-      });
-      
-      // Race the bucket check against the timeout
-      const exists = await Promise.race([
-        ensureDocumentsBucketExists(),
-        timeoutPromise
-      ]).catch(error => {
-        console.log('Bucket check timed out or failed:', error.message);
-        setErrorMessage('Connection to document storage timed out or failed');
-        return false;
-      });
+      console.log('Checking document bucket exists...');
+      const exists = await ensureDocumentsBucketExists();
       
       if (exists) {
-        // Additionally check if we can actually use the bucket with shorter timeout
+        // Additionally check if we can actually use the bucket
         try {
-          const canAccess = await Promise.race([
-            testBucketAccess(),
-            new Promise<boolean>((_, reject) => {
-              setTimeout(() => {
-                reject(new Error('Bucket access test timed out'));
-              }, 4000);
-            })
-          ]);
+          const canAccess = await testBucketAccess();
           
           if (canAccess) {
             console.log('Document storage is ready and accessible');
             setBucketReady(true);
-            toast.success("Document storage is ready");
             setErrorMessage(null);
           } else {
             console.log('Document storage exists but is not accessible');
@@ -111,30 +85,6 @@ export const useDocumentsBucket = () => {
     let isMounted = true;
     let timeoutId: NodeJS.Timeout | null = null;
     
-    const checkWithTimeout = async () => {
-      try {
-        await checkBucket();
-      } catch (error) {
-        console.error('Unhandled error in bucket check:', error);
-        if (isMounted) {
-          setIsLoading(false);
-          setErrorMessage('Unhandled error checking bucket');
-          setBucketReady(false);
-        }
-      }
-      
-      // Safety timeout to prevent infinite loading state
-      timeoutId = setTimeout(() => {
-        if (isMounted && isLoading) {
-          console.log('Safety timeout triggered to exit loading state');
-          setIsLoading(false);
-          if (!bucketReady) {
-            setErrorMessage('Document storage check timed out');
-          }
-        }
-      }, 8000);
-    };
-    
     // Use async/await here to properly check the session
     const checkSessionAndBucket = async () => {
       try {
@@ -142,7 +92,7 @@ export const useDocumentsBucket = () => {
         const hasSession = !!data?.session;
         
         if (isAuthenticated || hasSession) {
-          checkWithTimeout();
+          checkBucket();
         } else {
           setIsLoading(false);
           setBucketReady(false);
@@ -163,7 +113,7 @@ export const useDocumentsBucket = () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [checkBucket, isLoading, bucketReady, isAuthenticated]);
+  }, [checkBucket, isAuthenticated]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
@@ -172,18 +122,8 @@ export const useDocumentsBucket = () => {
     setIsCreating(true);
     
     try {
-      // Force bucket creation with timeout
-      const success = await Promise.race([
-        ensureDocumentsBucketExists(true),
-        new Promise<boolean>((_, reject) => {
-          setTimeout(() => {
-            reject(new Error('Bucket creation timed out'));
-          }, 7000);
-        })
-      ]).catch(error => {
-        console.error('Bucket creation failed or timed out:', error.message);
-        return false;
-      });
+      // Force bucket creation
+      const success = await ensureDocumentsBucketExists(true);
       
       if (success) {
         // Check if we can use it
@@ -218,7 +158,7 @@ export const useDocumentsBucket = () => {
     setRetryCount(0); // Reset retry count
     setErrorMessage(null);
     setIsLoading(true); // Set to true to ensure the check runs
-    // The checkBucket function will be called via the useEffect
+    checkBucket();
   };
 
   return { 

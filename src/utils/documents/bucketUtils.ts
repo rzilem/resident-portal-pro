@@ -6,7 +6,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { isUserAuthenticated } from './authUtils';
-import { ensureStoragePolicies } from './policyUtils';
+import { ensureBucketExists, ensureStoragePolicies } from './policyUtils';
 
 /**
  * Check and create documents bucket if it doesn't exist
@@ -17,81 +17,16 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
   try {
     console.log('Checking if documents bucket exists...');
     
-    // Check if user is authenticated first with direct session check
+    // Check if user is authenticated first
     const isAuthenticated = await isUserAuthenticated();
     
     if (!isAuthenticated) {
       console.log('User not authenticated. Authentication is required to use document storage.');
-      toast.error('Please log in to access document storage');
       return false;
     }
     
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
-    
-    if (user) {
-      console.log('User authenticated:', user.id);
-    }
-    
-    // Check if bucket exists
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-    
-    if (listError) {
-      console.error('Error listing buckets:', listError);
-      toast.error('Failed to check document storage status');
-      return false;
-    }
-    
-    const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
-    
-    if (!documentsBucket || forceCreate) {
-      console.log('Documents bucket not found or force create requested, attempting to create it...');
-      
-      // Create the documents bucket
-      const { error: createError } = await supabase.storage.createBucket('documents', {
-        public: false, // Use policies to control access
-        fileSizeLimit: 10485760, // 10MB
-      });
-      
-      if (createError) {
-        console.error('Error creating documents bucket:', createError);
-        
-        // Check if error is due to bucket already existing
-        if (createError.message && createError.message.includes('already exists')) {
-          console.log('Bucket already exists but was not found in initial check');
-          toast.success('Using existing document storage');
-          await ensureStoragePolicies('documents');
-          return true;
-        }
-        
-        // Check if error is due to permissions
-        if (createError.message && (createError.message.includes('permission') || 
-            createError.message.includes('policy') || 
-            createError.message.includes('403'))) {
-          console.log('Permission error creating bucket. Will attempt to use it anyway.');
-          toast.info('Using existing document storage');
-          
-          // Log policy instructions for manual setup
-          await ensureStoragePolicies('documents');
-          
-          return true;
-        }
-        
-        toast.error('Failed to create document storage');
-        return false;
-      }
-      
-      console.log('Documents bucket created successfully');
-      toast.success('Document storage created successfully');
-      
-      // Set up storage policies
-      await ensureStoragePolicies('documents');
-      
-      return true;
-    }
-    
-    console.log('Documents bucket is available');
-    return true;
+    // Use the utility function to check and create the bucket if needed
+    return await ensureBucketExists('documents', forceCreate, false);
   } catch (error) {
     console.error('Error checking/creating documents bucket:', error);
     toast.error('Error checking document storage status');
@@ -102,19 +37,12 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
 // Test if we can upload to the documents bucket
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
-    // Check if user is authenticated first with direct session check
+    // Check if user is authenticated first
     const isAuthenticated = await isUserAuthenticated();
     
     if (!isAuthenticated) {
       console.log('User not authenticated. Authentication is required to test bucket access.');
       return false;
-    }
-    
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
-    
-    if (user) {
-      console.log('User authenticated for bucket access test:', user.id);
     }
     
     // Create a tiny test file
@@ -156,6 +84,7 @@ export const testBucketAccess = async (): Promise<boolean> => {
       .from('documents')
       .remove([testFilePath]);
     
+    console.log('Bucket access test successful');
     return true;
   } catch (error) {
     console.error('Exception during bucket access test:', error);

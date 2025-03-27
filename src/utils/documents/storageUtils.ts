@@ -9,3 +9,27 @@ export * from './authUtils';
 export * from './bucketUtils';
 export * from './policyUtils';
 export * from './uploadUtils';
+
+// Export a convenience function to initialize all storage components
+export const initializeDocumentStorage = async (forceBucketCreation = false): Promise<boolean> => {
+  try {
+    // Import and use functions from other modules
+    const { isUserAuthenticated } = await import('./authUtils');
+    const { ensureBucketExists } = await import('./policyUtils');
+    
+    // Check authentication 
+    const isAuthenticated = await isUserAuthenticated();
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping storage initialization');
+      return false;
+    }
+    
+    // Create documents bucket if it doesn't exist
+    const bucketCreated = await ensureBucketExists('documents', forceBucketCreation, false);
+    
+    return bucketCreated;
+  } catch (error) {
+    console.error('Error initializing document storage:', error);
+    return false;
+  }
+};

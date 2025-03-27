@@ -12,7 +12,7 @@ import { toast } from 'sonner';
  * @returns {Promise<void>}
  */
 export const ensureStoragePolicies = async (bucketName: string = 'documents'): Promise<void> => {
-  console.log(`Apply these policies in Supabase Dashboard > Storage > Policies > ${bucketName}:`);
+  console.log(`Storage bucket '${bucketName}' needs the following policies in Supabase Dashboard > Storage > Policies > ${bucketName}:`);
   console.log(`
     CREATE POLICY "Allow authenticated uploads" ON storage.objects
     FOR INSERT
@@ -23,6 +23,11 @@ export const ensureStoragePolicies = async (bucketName: string = 'documents'): P
     FOR SELECT
     TO authenticated
     WITH CHECK (bucket_id = '${bucketName}' AND auth.uid() IS NOT NULL);
+    
+    CREATE POLICY "Allow public reads for public assets" ON storage.objects
+    FOR SELECT
+    TO authenticated, anon
+    WITH CHECK (bucket_id = '${bucketName}' AND is_public = true);
     
     CREATE POLICY "Allow authenticated updates" ON storage.objects
     FOR UPDATE
@@ -35,7 +40,10 @@ export const ensureStoragePolicies = async (bucketName: string = 'documents'): P
     WITH CHECK (bucket_id = '${bucketName}' AND auth.uid() = owner);
   `);
   
-  toast.info("Please ensure correct storage policies are configured in Supabase");
+  toast.info("Ensure correct storage policies are configured in Supabase", {
+    duration: 5000,
+    id: "storage-policy-reminder",
+  });
 };
 
 /**
@@ -118,21 +126,15 @@ export const ensureBucketExists = async (
   isPublic: boolean = false
 ): Promise<boolean> => {
   try {
-    // Authentication check
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session?.user) {
-      console.log('Authentication required to access storage');
-      toast.error('Please log in to access storage');
-      return false;
-    }
-    
     // Check if bucket exists
     const exists = await checkBucketExists(bucketName);
     
     if (!exists || forceCreate) {
+      console.log(`Bucket ${bucketName} doesn't exist or force create requested. Creating...`);
       return await createBucket(bucketName, isPublic);
     }
     
+    console.log(`Bucket ${bucketName} already exists`);
     return true;
   } catch (error) {
     console.error(`Error in ensureBucketExists for ${bucketName}:`, error);

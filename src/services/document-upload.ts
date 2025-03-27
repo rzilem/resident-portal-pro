@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/storageUtils';
+import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
 
 interface UploadDocumentParams {
   file: File;
@@ -46,14 +46,14 @@ export const uploadDocument = async ({
     const canUpload = await testBucketAccess();
     if (!canUpload) {
       console.error('Document storage not accessible for uploads');
-      toast.error('Cannot upload to document storage. Please contact support.');
+      toast.error('Cannot upload to document storage. Please check your permissions.');
       return false;
     }
     
     // Create a unique file name using uuid
-    const fileExtension = file.name.split('.').pop();
+    const fileExtension = file.name.split('.').pop() || '';
     const fileName = `${uuidv4()}.${fileExtension}`;
-    const filePath = fileName;
+    const filePath = `${category}/${fileName}`;
 
     console.log(`Uploading file to path: ${filePath}`);
     
@@ -71,7 +71,7 @@ export const uploadDocument = async ({
       return false;
     }
 
-    console.log('Document uploaded successfully to storage:', storageData);
+    console.log('Document uploaded successfully to storage');
     
     // Ensure associationId is a valid UUID
     let validAssociationId = associationId;
@@ -107,6 +107,13 @@ export const uploadDocument = async ({
     
     console.log(`Using association ID: ${validAssociationId}`);
     
+    // Get the file URL
+    const { data: urlData } = await supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath);
+    
+    const fileUrl = urlData?.publicUrl || filePath;
+    
     // Save document metadata to the documents table
     try {
       const { data: documentData, error: documentError } = await supabase
@@ -116,7 +123,7 @@ export const uploadDocument = async ({
           description: description,
           file_size: file.size,
           file_type: file.type,
-          url: filePath,
+          url: fileUrl,
           category: category,
           tags: tags.length > 0 ? tags : null,
           uploaded_by: user.id,
