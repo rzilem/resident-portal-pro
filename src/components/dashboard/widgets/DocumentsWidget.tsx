@@ -1,9 +1,9 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Plus, ArrowUpDown, UserCircle, Calendar, FileCode, Bookmark, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 
 interface DocumentsWidgetProps {
   size?: 'small' | 'medium' | 'large';
@@ -11,6 +11,8 @@ interface DocumentsWidgetProps {
 }
 
 const DocumentsWidget = ({ size = 'medium', cardClass = '' }: DocumentsWidgetProps) => {
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+
   // Sample documents data with realistic HOA documents
   const documents = [
     { 
@@ -85,56 +87,72 @@ const DocumentsWidget = ({ size = 'medium', cardClass = '' }: DocumentsWidgetPro
   };
   
   return (
-    <Card className={`${cardClass}`}>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-md">Recent Documents</CardTitle>
-          {size === 'large' && (
-            <Button variant="ghost" size="sm">
-              <ArrowUpDown className="h-4 w-4 mr-2" /> Sort
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {displayedDocs.map(doc => (
-            <li key={doc.id} className="flex items-start gap-3">
-              {getDocumentIcon(doc.type)}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{doc.name}</p>
-                {size !== 'small' && (
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    <span className="mr-2">{new Date(doc.date).toLocaleDateString()}</span>
-                    {size === 'large' && (
-                      <>
-                        <UserCircle className="h-3 w-3 mr-1" />
-                        <span>{doc.user}</span>
-                      </>
-                    )}
-                  </div>
-                )}
-                {size === 'large' && doc.tags && doc.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {doc.tags.map((tag, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs px-1 py-0">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-      <CardFooter className="pt-0">
-        <Button variant="outline" size="sm" className="w-full">
-          <Plus className="h-4 w-4 mr-2" /> Upload Document
-        </Button>
-      </CardFooter>
-    </Card>
+    <>
+      <Card className={`${cardClass}`}>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-md">Recent Documents</CardTitle>
+            {size === 'large' && (
+              <Button variant="ghost" size="sm">
+                <ArrowUpDown className="h-4 w-4 mr-2" /> Sort
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-3">
+            {displayedDocs.map(doc => (
+              <li key={doc.id} className="flex items-start gap-3">
+                {getDocumentIcon(doc.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{doc.name}</p>
+                  {size !== 'small' && (
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      <span className="mr-2">{new Date(doc.date).toLocaleDateString()}</span>
+                      {size === 'large' && (
+                        <>
+                          <UserCircle className="h-3 w-3 mr-1" />
+                          <span>{doc.user}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {size === 'large' && doc.tags && doc.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {doc.tags.map((tag, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs px-1 py-0">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+        <CardFooter className="pt-0">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={() => setShowUploadDialog(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" /> Upload Document
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <DocumentUploadDialog
+        isOpen={showUploadDialog}
+        onClose={() => setShowUploadDialog(false)}
+        onSuccess={() => {
+          console.log("Document uploaded successfully");
+          // Additional refresh logic if needed
+        }}
+      />
+    </>
   );
 };
 
