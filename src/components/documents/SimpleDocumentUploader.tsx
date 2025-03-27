@@ -24,12 +24,17 @@ const SimpleDocumentUploader = ({ onSuccess, className }: SimpleDocumentUploader
     setIsUploading(true);
     
     try {
-      const { success, url, error } = await uploadDocument(file);
+      // Call uploadDocument with correct parameter structure
+      const success = await uploadDocument({
+        file,
+        category: 'uncategorized',
+        description: '',
+        tags: []
+      });
       
-      if (success && url) {
-        setUploadedUrl(url);
+      if (success && uploadedUrl) {
         if (onSuccess) {
-          onSuccess(url);
+          onSuccess(uploadedUrl);
         }
       }
       

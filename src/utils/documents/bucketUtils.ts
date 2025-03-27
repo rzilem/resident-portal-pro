@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for Supabase storage bucket operations
  */
@@ -160,6 +159,24 @@ export const testBucketAccess = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Exception during bucket access test:', error);
     return false;
+  }
+};
+
+/**
+ * Get a download URL for a file path
+ * @param {string} filePath - Path to the file in storage
+ * @returns {Promise<string>} The download URL
+ */
+export const getDownloadUrl = async (filePath: string): Promise<string> => {
+  try {
+    const { data } = await supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath);
+    
+    return data?.publicUrl || '';
+  } catch (error) {
+    console.error('Error generating download URL:', error);
+    return '';
   }
 };
 

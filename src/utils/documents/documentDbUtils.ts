@@ -9,15 +9,70 @@ import { toast } from 'sonner';
 import { getDownloadUrl } from './bucketUtils';
 
 /**
+ * Map database object to DocumentFile type
+ * @param {any} dbObject - Database object with snake_case properties
+ * @returns {DocumentFile} Document with camelCase properties
+ */
+const mapDbObjectToDocumentFile = (dbObject: any): DocumentFile => {
+  return {
+    id: dbObject.id,
+    name: dbObject.name,
+    description: dbObject.description || '',
+    fileSize: dbObject.file_size,
+    fileType: dbObject.file_type,
+    url: dbObject.url || '',
+    path: dbObject.url, // Using url field as path
+    category: dbObject.category || 'uncategorized',
+    tags: dbObject.tags || [],
+    uploadedBy: dbObject.uploaded_by,
+    uploadedDate: dbObject.uploaded_date,
+    lastModified: dbObject.last_modified,
+    version: dbObject.version || 1,
+    isPublic: dbObject.is_public || false,
+    isArchived: dbObject.is_archived || false,
+    associationId: dbObject.association_id
+  };
+};
+
+/**
+ * Map DocumentFile type to database object
+ * @param {Partial<DocumentFile>} documentData - Document data with camelCase properties
+ * @returns {any} Database object with snake_case properties
+ */
+const mapDocumentFileToDbObject = (documentData: Partial<DocumentFile>): any => {
+  const dbObject: any = {};
+  
+  if (documentData.id !== undefined) dbObject.id = documentData.id;
+  if (documentData.name !== undefined) dbObject.name = documentData.name;
+  if (documentData.description !== undefined) dbObject.description = documentData.description;
+  if (documentData.fileSize !== undefined) dbObject.file_size = documentData.fileSize;
+  if (documentData.fileType !== undefined) dbObject.file_type = documentData.fileType;
+  if (documentData.url !== undefined) dbObject.url = documentData.url;
+  if (documentData.category !== undefined) dbObject.category = documentData.category;
+  if (documentData.tags !== undefined) dbObject.tags = documentData.tags;
+  if (documentData.uploadedBy !== undefined) dbObject.uploaded_by = documentData.uploadedBy;
+  if (documentData.uploadedDate !== undefined) dbObject.uploaded_date = documentData.uploadedDate;
+  if (documentData.lastModified !== undefined) dbObject.last_modified = documentData.lastModified;
+  if (documentData.version !== undefined) dbObject.version = documentData.version;
+  if (documentData.isPublic !== undefined) dbObject.is_public = documentData.isPublic;
+  if (documentData.isArchived !== undefined) dbObject.is_archived = documentData.isArchived;
+  if (documentData.associationId !== undefined) dbObject.association_id = documentData.associationId;
+  
+  return dbObject;
+};
+
+/**
  * Create a document record in the database
  * @param {Partial<DocumentFile>} documentData - Document data
  * @returns {Promise<DocumentFile | null>} Created document or null
  */
 export const createDocument = async (documentData: Partial<DocumentFile>): Promise<DocumentFile | null> => {
   try {
+    const dbObject = mapDocumentFileToDbObject(documentData);
+    
     const { data, error } = await supabase
       .from('documents')
-      .insert([documentData])
+      .insert([dbObject])
       .select()
       .single();
     
@@ -26,7 +81,7 @@ export const createDocument = async (documentData: Partial<DocumentFile>): Promi
       return null;
     }
     
-    return data as DocumentFile;
+    return mapDbObjectToDocumentFile(data);
   } catch (error) {
     console.error('Exception in createDocument:', error);
     return null;
@@ -51,17 +106,19 @@ export const getDocumentById = async (id: string): Promise<DocumentFile | null> 
       return null;
     }
     
+    const document = mapDbObjectToDocumentFile(data);
+    
     // Get the download URL for the document
-    if (data && data.path) {
+    if (document && document.path) {
       try {
-        data.url = await getDownloadUrl(data.path);
+        document.url = await getDownloadUrl(document.path);
       } catch (urlError) {
         console.error('Error generating download URL:', urlError);
-        data.url = ''; // Set empty URL if we can't generate one
+        document.url = ''; // Set empty URL if we can't generate one
       }
     }
     
-    return data as DocumentFile;
+    return document;
   } catch (error) {
     console.error('Exception in getDocumentById:', error);
     return null;
@@ -87,7 +144,7 @@ export const getDocuments = async (
     let query = supabase
       .from('documents')
       .select('*')
-      .order('uploadedDate', { ascending: false });
+      .order('uploaded_date', { ascending: false });
     
     // Apply filters
     if (filters.query) {
@@ -99,7 +156,7 @@ export const getDocuments = async (
     }
     
     if (filters.fileTypes && filters.fileTypes.length > 0) {
-      query = query.in('fileType', filters.fileTypes);
+      query = query.in('file_type', filters.fileTypes);
     }
     
     if (filters.tags && filters.tags.length > 0) {
@@ -109,21 +166,21 @@ export const getDocuments = async (
     
     if (filters.dateRange) {
       if (filters.dateRange.start) {
-        query = query.gte('uploadedDate', filters.dateRange.start);
+        query = query.gte('uploaded_date', filters.dateRange.start);
       }
       if (filters.dateRange.end) {
-        query = query.lte('uploadedDate', filters.dateRange.end);
+        query = query.lte('uploaded_date', filters.dateRange.end);
       }
     }
     
     if (filters.uploadedBy && filters.uploadedBy.length > 0) {
-      query = query.in('uploadedBy', filters.uploadedBy);
+      query = query.in('uploaded_by', filters.uploadedBy);
     }
     
     if (associationId) {
       // For now, assume the documents table has an associationId column
       // In a real application, this might be more complex, e.g., a junction table
-      query = query.eq('associationId', associationId);
+      query = query.eq('association_id', associationId);
     }
     
     // Apply access level filtering based on user role
@@ -133,18 +190,18 @@ export const getDocuments = async (
       // role structure and data model
       if (userRole !== 'admin' && userRole !== 'manager') {
         // If not admin/manager, filter out restricted documents
-        query = query.neq('accessLevel', 'management');
+        query = query.neq('access_level', 'management');
         
         if (userRole !== 'board_member') {
           // If not board member, filter out board-only documents
-          query = query.neq('accessLevel', 'board');
+          query = query.neq('access_level', 'board');
         }
       }
     }
     
     // Exclude archived documents unless specifically requested
     if (filters.isArchived === undefined || filters.isArchived === false) {
-      query = query.eq('isArchived', false);
+      query = query.eq('is_archived', false);
     }
     
     // Get the results
@@ -155,8 +212,11 @@ export const getDocuments = async (
       return [];
     }
     
+    // Map database objects to DocumentFile interface
+    const documents = data.map(item => mapDbObjectToDocumentFile(item));
+    
     // Since we'll need download URLs for all documents, process them in parallel
-    const documentsWithUrls = await Promise.all(data.map(async (doc) => {
+    const documentsWithUrls = await Promise.all(documents.map(async (doc) => {
       if (doc.path) {
         try {
           doc.url = await getDownloadUrl(doc.path);
@@ -171,7 +231,7 @@ export const getDocuments = async (
     }));
     
     console.log(`Found ${documentsWithUrls.length} documents`);
-    return documentsWithUrls as DocumentFile[];
+    return documentsWithUrls;
   } catch (error) {
     console.error('Exception in getDocuments:', error);
     return [];
@@ -189,9 +249,11 @@ export const updateDocument = async (
   updates: Partial<DocumentFile>
 ): Promise<DocumentFile | null> => {
   try {
+    const dbObject = mapDocumentFileToDbObject(updates);
+    
     const { data, error } = await supabase
       .from('documents')
-      .update(updates)
+      .update(dbObject)
       .eq('id', id)
       .select()
       .single();
@@ -202,7 +264,7 @@ export const updateDocument = async (
       return null;
     }
     
-    return data as DocumentFile;
+    return mapDbObjectToDocumentFile(data);
   } catch (error) {
     console.error('Exception in updateDocument:', error);
     return null;
@@ -243,7 +305,7 @@ export const deleteDocument = async (id: string, hardDelete: boolean = false): P
       // Soft delete - mark as archived
       const { error } = await supabase
         .from('documents')
-        .update({ isArchived: true })
+        .update({ is_archived: true })
         .eq('id', id);
       
       if (error) {
@@ -292,7 +354,7 @@ export const updateDocumentAccessLevel = async (
   try {
     const { error } = await supabase
       .from('documents')
-      .update({ accessLevel })
+      .update({ access_level: accessLevel })
       .eq('id', id);
     
     if (error) {
@@ -351,11 +413,11 @@ export const getDocumentStatistics = async (associationId?: string): Promise<{
     let query = supabase
       .from('documents')
       .select('*')
-      .eq('isArchived', false);
+      .eq('is_archived', false);
     
     // Filter by association if provided
     if (associationId) {
-      query = query.eq('associationId', associationId);
+      query = query.eq('association_id', associationId);
     }
     
     // Execute query
@@ -366,6 +428,9 @@ export const getDocumentStatistics = async (associationId?: string): Promise<{
       return { total: 0, byCategory: {}, byType: {}, recent: 0 };
     }
     
+    // Map database results to DocumentFile objects
+    const documents = data.map(item => mapDbObjectToDocumentFile(item));
+    
     // Calculate statistics
     const byCategory: Record<string, number> = {};
     const byType: Record<string, number> = {};
@@ -375,7 +440,7 @@ export const getDocumentStatistics = async (associationId?: string): Promise<{
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    data.forEach(doc => {
+    documents.forEach(doc => {
       // Count by category
       const category = doc.category || 'uncategorized';
       byCategory[category] = (byCategory[category] || 0) + 1;
@@ -392,7 +457,7 @@ export const getDocumentStatistics = async (associationId?: string): Promise<{
     });
     
     return {
-      total: data.length,
+      total: documents.length,
       byCategory,
       byType,
       recent
