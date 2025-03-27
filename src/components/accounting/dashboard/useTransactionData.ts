@@ -1,14 +1,15 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Transaction } from './TransactionsTable';
 
-export const useTransactionData = (transactions: Transaction[]) => {
+export const useTransactionData = (transactions: Transaction[], associationId?: string) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [transactionType, setTransactionType] = useState('all');
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(transactions);
 
-  // Filter transactions based on search query and type
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(transaction => {
+  // Filter transactions based on search query, type, and association ID
+  useEffect(() => {
+    const filtered = transactions.filter(transaction => {
       const matchesSearch = 
         transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         transaction.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -19,22 +20,29 @@ export const useTransactionData = (transactions: Transaction[]) => {
         (transactionType === 'debit' && transaction.type === 'debit') || 
         (transactionType === 'credit' && transaction.type === 'credit');
       
-      return matchesSearch && matchesType;
+      // Filter by association if associationId is provided
+      const matchesAssociation = 
+        !associationId || 
+        transaction.associationId === associationId;
+      
+      return matchesSearch && matchesType && matchesAssociation;
     });
-  }, [transactions, searchQuery, transactionType]);
 
-  // Calculate summary amounts
+    setFilteredTransactions(filtered);
+  }, [transactions, searchQuery, transactionType, associationId]);
+
+  // Calculate summary amounts for the filtered transactions
   const totalDebits = useMemo(() => {
-    return transactions
+    return filteredTransactions
       .filter(t => t.type === 'debit')
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions]);
+  }, [filteredTransactions]);
   
   const totalCredits = useMemo(() => {
-    return transactions
+    return filteredTransactions
       .filter(t => t.type === 'credit')
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   return {
     searchQuery,
