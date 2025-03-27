@@ -39,9 +39,9 @@ export const initializeTables = async (): Promise<boolean> => {
             }]);
             
           if (error) {
-            // Fix for the TypeScript error by safely extracting the error message
-            const pgError = error as PostgrestError;
-            throw new Error(pgError.message);
+            // Fix for the TypeScript error - use proper error handling
+            const errorMessage = error.message || 'Unknown database error';
+            throw new Error(errorMessage);
           }
             
           console.log('Created association_settings table');
