@@ -21,7 +21,7 @@ if (!rootElement) {
   root.render(
     <React.StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <BrowserRouter basename="/projects/3d3233c6-ee7c-4383-8ccf-b42d6efe67e1">
+        <BrowserRouter>
           <App />
         </BrowserRouter>
       </ThemeProvider>
