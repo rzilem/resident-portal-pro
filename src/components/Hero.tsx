@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import AnimatedImage from './AnimatedImage';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 const Hero = () => {
   const { user } = useAuth();
@@ -31,7 +31,7 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-2 animate-slide-in" style={{ animationDelay: '200ms' }}>
-              <Link to={user ? "/dashboard" : "/auth"}>
+              <Link to={user ? "/dashboard" : "/login"}>
                 <Button size="lg" className="w-full sm:w-auto">
                   {user ? 'Go to Dashboard' : 'Get Started'}
                 </Button>
