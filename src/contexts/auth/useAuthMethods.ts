@@ -17,13 +17,25 @@ export const useAuthMethods = ({
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("useAuthMethods: Starting sign-in process for:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      return { error };
+      if (error) {
+        console.error("useAuthMethods: Sign-in error:", error);
+        return { error };
+      }
+      
+      console.log("useAuthMethods: Sign-in successful for user:", data.user?.id);
+      
+      // The auth state change listener in AuthProvider will update the user state
+      // No need to manually set user or isAuthenticated here
+      
+      return { error: null };
     } catch (error) {
+      console.error("useAuthMethods: Exception during sign in:", error);
       return { error };
     }
   };

@@ -1,6 +1,5 @@
 
-// src/components/Login.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 
@@ -8,7 +7,7 @@ const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const { signIn, user } = useAuth();
+  const { signIn, user, loading } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,18 +15,32 @@ const Login = () => {
   console.log('Login component: Current user:', user);
   console.log('Login component: Redirecting from:', location.state?.from);
 
+  // Get the intended destination from location state, or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Effect to redirect if user is already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      console.log('Login component: User already logged in, redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [user, loading, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
     try {
+      console.log('Login component: Attempting signIn with email:', email);
       const { error } = await signIn(email, password);
+      
       if (error) {
+        console.error('Login component: Sign-in error:', error.message);
         throw error;
       }
       
-      console.log('Login component: Redirecting to:', from);
-      navigate(from, { replace: true });
+      console.log('Login component: signIn successful, waiting for auth state to update');
+      // The redirection will happen in the useEffect when user state updates
     } catch (err: any) {
       setError('Failed to log in. Please check your credentials.');
       console.error('Login component: Error:', err.message);
