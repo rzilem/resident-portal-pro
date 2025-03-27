@@ -1,82 +1,68 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnsIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Columns } from 'lucide-react';
 
-// Default columns for the violations table
-const availableColumns = [
-  { id: 'propertyAddress', label: 'Property Address', default: true },
-  { id: 'ownerName', label: 'Owner Name', default: true },
-  { id: 'violationType', label: 'Violation Type', default: true },
-  { id: 'reportDate', label: 'Report Date', default: true },
-  { id: 'status', label: 'Status', default: true },
-  { id: 'priority', label: 'Priority', default: true },
-  { id: 'dueDate', label: 'Due Date', default: true },
-  { id: 'description', label: 'Description', default: false },
-  { id: 'assignedTo', label: 'Assigned To', default: false },
-  { id: 'lastContactDate', label: 'Last Contact Date', default: false },
-  { id: 'fineAmount', label: 'Fine Amount', default: false },
-  { id: 'notes', label: 'Notes', default: false },
-];
+export interface ComplianceColumn {
+  id: string;
+  label: string;
+  checked: boolean;
+}
 
-const ComplianceColumnsSelector: React.FC = () => {
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    availableColumns.filter(col => col.default).map(col => col.id)
-  );
+const ComplianceColumnsSelector = () => {
+  const [columns, setColumns] = useState<ComplianceColumn[]>([
+    { id: 'property', label: 'Property', checked: true },
+    { id: 'violation_type', label: 'Violation Type', checked: true },
+    { id: 'date_reported', label: 'Date Reported', checked: true },
+    { id: 'status', label: 'Status', checked: true },
+    { id: 'severity', label: 'Severity', checked: true },
+    { id: 'assigned_to', label: 'Assigned To', checked: false },
+    { id: 'due_date', label: 'Due Date', checked: false },
+    { id: 'created_by', label: 'Created By', checked: false },
+    { id: 'description', label: 'Description', checked: false },
+  ]);
 
-  const toggleColumn = (columnId: string) => {
-    setSelectedColumns(current => 
-      current.includes(columnId)
-        ? current.filter(id => id !== columnId)
-        : [...current, columnId]
+  const toggleColumn = (id: string) => {
+    setColumns(
+      columns.map((column) =>
+        column.id === id ? { ...column, checked: !column.checked } : column
+      )
     );
   };
 
-  const resetToDefault = () => {
-    setSelectedColumns(availableColumns.filter(col => col.default).map(col => col.id));
-  };
+  // Get visible columns
+  const visibleColumns = columns.filter((column) => column.checked);
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 gap-1">
-          <ColumnsIcon className="h-4 w-4" />
-          Columns
+          <Columns className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline-block">Columns</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[220px] p-4" align="end">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="font-medium leading-none">Toggle Columns</h4>
-            <p className="text-sm text-muted-foreground">
-              Select which columns to display in the table.
-            </p>
-          </div>
-          <div className="grid gap-2">
-            {availableColumns.map(column => (
-              <div key={column.id} className="flex items-center space-x-2">
-                <Checkbox 
-                  id={`column-${column.id}`}
-                  checked={selectedColumns.includes(column.id)}
-                  onCheckedChange={() => toggleColumn(column.id)}
-                />
-                <label 
-                  htmlFor={`column-${column.id}`}
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  {column.label}
-                </label>
-              </div>
-            ))}
-          </div>
-          <Button size="sm" variant="outline" className="w-full" onClick={resetToDefault}>
-            Reset to Default
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[180px]">
+        <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {columns.map((column) => (
+          <DropdownMenuCheckboxItem
+            key={column.id}
+            checked={column.checked}
+            onCheckedChange={() => toggleColumn(column.id)}
+          >
+            {column.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

@@ -1,43 +1,76 @@
 
 import React from 'react';
-import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { ViolationTemplateFilter } from '@/types/compliance';
+import { getViolationGroupsByAssociation } from '@/data/violationTemplates';
+import { Search } from 'lucide-react';
 
 interface TemplateFiltersProps {
   filters: ViolationTemplateFilter;
   onFilterChange: (filters: ViolationTemplateFilter) => void;
 }
 
-const TemplateFilters = ({ filters, onFilterChange }: TemplateFiltersProps) => {
-  const handleFilterChange = (key: keyof ViolationTemplateFilter, value: string | boolean) => {
-    onFilterChange({
-      ...filters,
-      [key]: value
-    });
+const TemplateFilters: React.FC<TemplateFiltersProps> = ({ 
+  filters, 
+  onFilterChange 
+}) => {
+  // In a real app, we would fetch these from the API
+  const groups = getViolationGroupsByAssociation('1'); // Using a default association for now
+  
+  const handleFilterChange = (key: keyof ViolationTemplateFilter, value: string) => {
+    onFilterChange({ ...filters, [key]: value });
   };
-
+  
   return (
-    <div className="flex flex-col sm:flex-row gap-3 mb-4">
-      <div className="relative flex-grow">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+      <div className="relative">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search by item or description..."
-          className="pl-9"
+        <Input 
+          placeholder="Search templates..." 
+          className="pl-8"
           value={filters.item || ''}
           onChange={(e) => handleFilterChange('item', e.target.value)}
         />
       </div>
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={() => onFilterChange({})}
-        className="whitespace-nowrap"
+      
+      <Select 
+        value={filters.group || ''} 
+        onValueChange={(value) => handleFilterChange('group', value)}
       >
-        Clear Filters
-      </Button>
+        <SelectTrigger>
+          <SelectValue placeholder="Filter by group" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Groups</SelectItem>
+          {groups.map(group => (
+            <SelectItem key={group.id} value={group.name}>
+              {group.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      <Select 
+        value={filters.description || ''} 
+        onValueChange={(value) => handleFilterChange('description', value)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Filter by description" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Descriptions</SelectItem>
+          <SelectItem value="article">Contains Article Reference</SelectItem>
+          <SelectItem value="approval">About Approval Process</SelectItem>
+          <SelectItem value="prior">Requires Prior Notice</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 };

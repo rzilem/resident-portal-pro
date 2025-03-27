@@ -1,43 +1,40 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAssociations } from '@/hooks/use-associations';
-import { Association } from '@/types/association';
+import { getViolationGroupsByAssociation } from '@/data/violationTemplates';
 
 interface TemplateHeaderProps {
-  associationId?: string;
+  associationId: string;
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
 const TemplateHeader: React.FC<TemplateHeaderProps> = ({ 
-  associationId,
+  associationId, 
   activeTab, 
   onTabChange 
 }) => {
-  const { associations } = useAssociations();
+  // Get violation groups for the selected association
+  const groups = getViolationGroupsByAssociation(associationId);
   
-  // Find the association by ID
-  const association = associations.find(a => a.id === associationId) || {} as Association;
-
   return (
-    <div className="mb-6">
-      <h2 className="text-xl font-semibold mb-2">
-        Violation Templates
-        {association.name && <span className="ml-2 text-muted-foreground">for {association.name}</span>}
-      </h2>
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight mb-1">Violation Templates</h2>
+        <p className="text-sm text-muted-foreground">
+          Create and manage templates for common violations
+        </p>
+      </div>
       
-      <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="association">
-            Association Templates
-          </TabsTrigger>
-          <TabsTrigger value="custom">
-            Custom Templates
-          </TabsTrigger>
-          <TabsTrigger value="unused">
-            Unused Templates
-          </TabsTrigger>
+      <Tabs 
+        value={activeTab} 
+        onValueChange={onTabChange}
+        className="w-full"
+      >
+        <TabsList className="grid grid-cols-3 mb-6">
+          <TabsTrigger value="association">Association Templates</TabsTrigger>
+          <TabsTrigger value="unused">Unused Templates</TabsTrigger>
+          <TabsTrigger value="community">Community Templates</TabsTrigger>
         </TabsList>
       </Tabs>
     </div>

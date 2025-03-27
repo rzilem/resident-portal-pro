@@ -1,58 +1,73 @@
 
 import { Alert } from '@/types/alert';
-import { mockAlerts } from '@/data/mockAlerts';
+import { supabase } from '@/integrations/supabase/client';
 
-// Function to get all alerts
-export const getAllAlerts = (): Alert[] => {
-  return mockAlerts;
-};
+export const fetchViolations = async (associationId?: string) => {
+  let query = supabase
+    .from('violations')
+    .select(`
+      id,
+      violation_type,
+      description,
+      status,
+      severity,
+      reported_date,
+      resolved_date,
+      property_id,
+      association_id
+    `)
+    .order('reported_date', { ascending: false });
 
-// Function to get an alert by ID
-export const getAlertById = (id: string): Alert | undefined => {
-  return mockAlerts.find(alert => alert.id === id);
-};
-
-// Function to get recent alerts, optionally filtered by association ID
-export const getRecentAlerts = (associationId?: string): Alert[] => {
-  const allAlerts = getAllAlerts();
-  
-  // If an association ID is provided, filter alerts for that association
   if (associationId) {
-    return allAlerts.filter(alert => 
-      alert.associationId === associationId || 
-      alert.scope === 'global'
-    );
+    query = query.eq('association_id', associationId);
   }
-  
-  // Otherwise, return alerts marked as recent or sorted by date
-  return allAlerts
-    .filter(alert => alert.isRecent || alert.scope === 'global')
-    .sort((a, b) => {
-      // Sort by severity first (critical > high > medium > low)
-      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-      if (severityOrder[a.severity] !== severityOrder[b.severity]) {
-        return severityOrder[a.severity] - severityOrder[b.severity];
-      }
-      
-      // Then sort by date (newest first)
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching violations:', error);
+    throw new Error('Failed to fetch violations');
+  }
+
+  // Convert to Alert type
+  return data.map((violation): Alert => ({
+    id: violation.id,
+    title: violation.violation_type,
+    description: violation.description || '',
+    category: 'compliance',
+    severity: (violation.severity as Alert['severity']) || 'medium',
+    status: (violation.status as Alert['status']) || 'new',
+    createdAt: violation.reported_date,
+    resolvedAt: violation.resolved_date,
+    propertyId: violation.property_id,
+    associationId: violation.association_id
+  }));
 };
 
-// Function to get alerts for a specific association
-export const getAlertsForAssociation = async (associationId: string): Promise<Alert[]> => {
-  // In a real app, this would be an API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const filteredAlerts = mockAlerts.filter(
-        alert => alert.associationId === associationId || alert.scope === 'global'
-      );
-      resolve(filteredAlerts);
-    }, 500);
-  });
-};
+export const fetchAlertById = async (alertId: string): Promise<Alert | null> => {
+  // Example function to fetch a specific alert
+  // In a real app, we would fetch from the database
+  const { data, error } = await supabase
+    .from('violations')
+    .select()
+    .eq('id', alertId)
+    .single();
 
-// Function to get alerts by severity
-export const getAlertsBySeverity = (severity: Alert['severity']): Alert[] => {
-  return mockAlerts.filter(alert => alert.severity === severity);
+  if (error || !data) {
+    console.error('Error fetching alert:', error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    title: data.violation_type,
+    description: data.description || '',
+    category: 'compliance',
+    severity: (data.severity as Alert['severity']) || 'medium',
+    status: (data.status as Alert['status']) || 'new',
+    createdAt: data.reported_date,
+    resolvedAt: data.resolved_date,
+    propertyId: data.property_id,
+    associationId: data.association_id
+  };
 };

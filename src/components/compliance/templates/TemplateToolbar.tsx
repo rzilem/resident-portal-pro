@@ -1,39 +1,38 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, X, FileText, Settings, Eye } from 'lucide-react';
+import { PlusCircle, Save, X, FileDown } from 'lucide-react';
 
 interface TemplateToolbarProps {
   onSave: () => void;
   onCancel: () => void;
   onExport: () => void;
-  onPreview?: () => void;
 }
 
-const TemplateToolbar = ({ onSave, onCancel, onExport, onPreview }: TemplateToolbarProps) => {
+const TemplateToolbar: React.FC<TemplateToolbarProps> = ({ 
+  onSave, 
+  onCancel,
+  onExport
+}) => {
   return (
-    <div className="flex gap-2 mb-6">
-      <Button variant="default" size="sm" onClick={onSave} className="flex items-center gap-1">
-        <Save className="h-4 w-4" />
-        Save changes
+    <div className="flex flex-col sm:flex-row justify-between gap-2 mt-2 mb-4">
+      <Button variant="default" className="gap-1.5">
+        <PlusCircle className="h-4 w-4" />
+        New Template
       </Button>
-      <Button variant="outline" size="sm" onClick={onCancel} className="flex items-center gap-1">
-        <X className="h-4 w-4" />
-        Cancel changes
-      </Button>
-      <Button variant="outline" size="sm" onClick={onExport} className="flex items-center gap-1">
-        <FileText className="h-4 w-4" />
-        Export to Excel
-      </Button>
-      {onPreview && (
-        <Button variant="outline" size="sm" onClick={onPreview} className="flex items-center gap-1">
-          <Eye className="h-4 w-4" />
-          Preview
+      
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={onExport} className="gap-1.5">
+          <FileDown className="h-4 w-4" />
+          Export
         </Button>
-      )}
-      <div className="ml-auto">
-        <Button variant="ghost" size="icon">
-          <Settings className="h-4 w-4" />
+        <Button variant="outline" size="sm" onClick={onCancel} className="gap-1.5">
+          <X className="h-4 w-4" />
+          Cancel
+        </Button>
+        <Button variant="default" size="sm" onClick={onSave} className="gap-1.5">
+          <Save className="h-4 w-4" />
+          Save Changes
         </Button>
       </div>
     </div>

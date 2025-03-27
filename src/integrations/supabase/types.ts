@@ -303,6 +303,141 @@ export type Database = {
           },
         ]
       }
+      violation_attachments: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+          violation_id: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          violation_id?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          violation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violation_attachments_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "violations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      violation_communications: {
+        Row: {
+          communication_type: string | null
+          created_at: string | null
+          delivery_status: string | null
+          id: string
+          message: string
+          sent_by: string | null
+          sent_date: string | null
+          sent_to: string | null
+          violation_id: string | null
+        }
+        Insert: {
+          communication_type?: string | null
+          created_at?: string | null
+          delivery_status?: string | null
+          id?: string
+          message: string
+          sent_by?: string | null
+          sent_date?: string | null
+          sent_to?: string | null
+          violation_id?: string | null
+        }
+        Update: {
+          communication_type?: string | null
+          created_at?: string | null
+          delivery_status?: string | null
+          id?: string
+          message?: string
+          sent_by?: string | null
+          sent_date?: string | null
+          sent_to?: string | null
+          violation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violation_communications_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "violations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      violation_templates: {
+        Row: {
+          association_id: string | null
+          category: string | null
+          created_at: string | null
+          default_due_days: number | null
+          default_fine: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          severity: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          association_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          default_due_days?: number | null
+          default_fine?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          default_due_days?: number | null
+          default_fine?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violation_templates_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       violations: {
         Row: {
           association_id: string | null

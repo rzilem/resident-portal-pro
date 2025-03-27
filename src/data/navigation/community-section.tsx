@@ -1,5 +1,5 @@
 
-import { PanelsTopLeft, Building, Users, Castle } from 'lucide-react';
+import { PanelsTopLeft, Building, Users, Castle, FileWarning } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getCommunitySection = (currentPath: string): NavItem => ({
@@ -7,6 +7,7 @@ export const getCommunitySection = (currentPath: string): NavItem => ({
   icon: PanelsTopLeft,
   active: currentPath.startsWith("/properties") || 
           currentPath.startsWith("/residents") || 
+          currentPath.startsWith("/compliance") ||
           currentPath.startsWith("/community-hub"),
   href: "/properties", // Default href
   items: [
@@ -21,6 +22,12 @@ export const getCommunitySection = (currentPath: string): NavItem => ({
       icon: Users,
       href: "/residents",
       active: currentPath === "/residents"
+    },
+    {
+      label: "Compliance",
+      icon: FileWarning,
+      href: "/compliance",
+      active: currentPath === "/compliance"
     },
     {
       label: "Community Hub",

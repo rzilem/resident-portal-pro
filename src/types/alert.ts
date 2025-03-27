@@ -1,33 +1,36 @@
 
-export type AlertType = 'financial' | 'operational' | 'compliance' | 'governance' | 'maintenance' | 'security' | 'engagement';
-export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low';
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AlertCategory = 'financial' | 'maintenance' | 'security' | 'compliance' | 'engagement' | 'other';
 export type AlertStatus = 'new' | 'in-progress' | 'resolved' | 'dismissed';
-export type AlertScope = 'global' | 'association';
-export type AlertSource = 'system' | 'analytics' | 'manual';
-export type AlertCategory = 'financial' | 'security' | 'compliance' | 'maintenance' | 'engagement';
 
 export interface Alert {
   id: string;
   title: string;
   description: string;
+  category: AlertCategory;
   severity: AlertSeverity;
   status: AlertStatus;
   createdAt: string;
-  scope: AlertScope;
-  source: AlertSource;
-  category: AlertCategory;
-  associationId: string | null;
-  isRecent?: boolean;
-  relatedWorkflowId?: string;
-  solutions: AlertSolution[];
+  updatedAt?: string;
+  resolvedAt?: string;
+  propertyId?: string;
+  associationId?: string;
+  assignedTo?: string;
+  source?: string;
+  actions?: AlertAction[];
+}
+
+export interface AlertAction {
+  id: string;
+  label: string;
+  type: 'primary' | 'secondary' | 'destructive';
+  handler: () => void;
 }
 
 export interface AlertSolution {
   id: string;
   title: string;
   description: string;
-  actionType: 'workflow' | 'notification' | 'manual';
-  workflowTemplateId?: string;
-  steps?: string[];
-  action?: () => Promise<void>;
+  steps: string[];
+  alertType?: string;
 }
