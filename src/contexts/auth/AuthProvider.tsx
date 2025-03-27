@@ -30,7 +30,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSession, 
     setUser,
     setProfile,
-    setIsAuthenticated
+    setIsAuthenticated,
+    setLoading
   } = useAuthState();
 
   const { signIn, signUp, signOut, refreshProfile } = useAuthMethods({ 
@@ -78,14 +79,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       subscription.unsubscribe();
     };
   }, []);
-
-  const [setLoading] = useState<React.Dispatch<React.SetStateAction<boolean>>>(
-    useState(() => {
-      // This is needed because we can't access setLoading from useAuthState directly
-      // in the useEffect above, as it's a callback. This is a workaround.
-      return setLoading;
-    })[1]
-  );
 
   const fetchProfile = async (userId: string) => {
     try {
