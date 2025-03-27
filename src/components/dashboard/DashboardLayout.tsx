@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Widget } from '@/types/dashboard';
 import { cn } from '@/lib/utils';
@@ -45,44 +46,48 @@ const DashboardLayout = ({ widgets, columns = 2, className, animate = false }: D
         className
       )}
     >
-      {visibleWidgets.map((widget, index) => (
-        animate ? (
-          <motion.div 
-            key={widget.id}
-            variants={item}
-            className={cn(
-              widget.size === 'small' && "col-span-1",
-              widget.size === 'medium' && "col-span-1",
-              widget.size === 'large' && columns === 2 && "col-span-2",
-              "transform-gpu hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            )}
-          >
-            <DynamicWidget
-              type={widget.type}
-              size={widget.size}
-              config={widget.config}
-              cardClass={cn(cardClass, "h-full")}
-            />
-          </motion.div>
-        ) : (
-          <div 
-            key={widget.id}
-            className={cn(
-              widget.size === 'small' && "col-span-1",
-              widget.size === 'medium' && "col-span-1",
-              widget.size === 'large' && columns === 2 && "col-span-2",
-              "hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            )}
-          >
-            <DynamicWidget
-              type={widget.type}
-              size={widget.size}
-              config={widget.config}
-              cardClass={cn(cardClass, "h-full")}
-            />
-          </div>
-        )
-      ))}
+      {visibleWidgets.map((widget, index) => {
+        if (animate) {
+          return (
+            <motion.div 
+              key={widget.id}
+              variants={item}
+              className={cn(
+                widget.size === 'small' && "col-span-1",
+                widget.size === 'medium' && "col-span-1",
+                widget.size === 'large' && columns === 2 && "col-span-2",
+                "transform-gpu hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              )}
+            >
+              <DynamicWidget
+                type={widget.type}
+                size={widget.size}
+                config={widget.config}
+                cardClass={cn(cardClass, "h-full")}
+              />
+            </motion.div>
+          );
+        } else {
+          return (
+            <div 
+              key={widget.id}
+              className={cn(
+                widget.size === 'small' && "col-span-1",
+                widget.size === 'medium' && "col-span-1",
+                widget.size === 'large' && columns === 2 && "col-span-2",
+                "hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              )}
+            >
+              <DynamicWidget
+                type={widget.type}
+                size={widget.size}
+                config={widget.config}
+                cardClass={cn(cardClass, "h-full")}
+              />
+            </div>
+          );
+        }
+      })}
     </div>
   );
 };
