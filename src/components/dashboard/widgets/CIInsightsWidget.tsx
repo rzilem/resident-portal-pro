@@ -1,69 +1,68 @@
 
-import React, { useState } from 'react';
-import { Bot, ArrowRight, ChevronRight, AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import AnalysisAlert from '@/components/alerts/AnalysisAlert';
-import { Alert } from '@/types/alert';
-import { getRecentAlerts } from '@/utils/alerts/alertQueries';
-import { useAssociations } from '@/hooks/use-associations';
+import React from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Widget } from '@/types/dashboard';
 
 interface CIInsightsWidgetProps {
-  className?: string;
-  size?: 'small' | 'medium' | 'large';
-  cardClass?: string;
+  widget: Widget;
 }
 
-const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, cardClass }) => {
-  const [expanded, setExpanded] = useState(false);
-  const { activeAssociation } = useAssociations();
-  
-  // Fetch recent alerts, optionally filtered by the active association
-  const alerts = getRecentAlerts(activeAssociation?.id);
-  const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
-  const highAlerts = alerts.filter(alert => alert.severity === 'high');
-  
-  const totalAlerts = alerts.length;
-  const criticalCount = criticalAlerts.length;
-  const highCount = highAlerts.length;
-  
-  const displayedAlerts = expanded ? alerts : alerts.slice(0, 2);
-  
+const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ widget }) => {
+  // Sample alerts data - in a real app, this would come from an API
+  const alerts = [
+    {
+      id: 1,
+      title: 'Insurance Renewal',
+      description: 'Property insurance policy renewal is due in 30 days. Begin gathering quotes now.',
+      severity: 'high'
+    },
+    {
+      id: 2,
+      title: 'Delinquency Increase',
+      description: 'Delinquency rate has increased by 8% this month. Consider reviewing collection procedures.',
+      severity: 'medium'
+    }
+  ];
+
   return (
-    <Card className={cardClass || className}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Bot className="h-4 w-4" />
-          CI Insights
+    <Card className="dashboard-widget-container h-full">
+      <CardHeader className="dashboard-card-header">
+        <CardTitle className="text-md font-medium flex items-center gap-2">
+          <span className="inline-block">{widget.title}</span>
+          <span className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs font-semibold rounded-full px-2 py-1 ml-2">
+            {alerts.length} Alerts
+          </span>
         </CardTitle>
-        <Badge variant="secondary">
-          {totalAlerts} Alerts
-        </Badge>
       </CardHeader>
-      <CardContent>
-        {totalAlerts === 0 ? (
-          <div className="text-center py-6">
-            <AlertTriangle className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">No alerts found</p>
+      <CardContent className="p-4">
+        {alerts.length > 0 ? (
+          <div className="space-y-4">
+            {alerts.map((alert) => (
+              <div 
+                key={alert.id} 
+                className="border border-red-100 rounded-lg p-4"
+              >
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mr-3">
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-red-500 font-medium text-lg">{alert.title}</h4>
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      {alert.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <ul className="space-y-3">
-            {displayedAlerts.map(alert => (
-              <li key={alert.id}>
-                <AnalysisAlert alert={alert} />
-              </li>
-            ))}
-          </ul>
+          <div className="text-center py-6">
+            <p className="text-muted-foreground">No alerts at this time</p>
+          </div>
         )}
       </CardContent>
-      {totalAlerts > 2 && (
-        <CardFooter className="flex justify-center">
-          <Button variant="link" size="sm" onClick={() => setExpanded(!expanded)}>
-            {expanded ? 'Show Less' : 'Show All'} <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };

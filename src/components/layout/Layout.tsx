@@ -3,6 +3,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useUser } from '@/contexts/UserContext';
+import { Sidebar } from '@/components/Sidebar';
 
 const Layout = () => {
   const { loading } = useUser();
@@ -18,9 +19,12 @@ const Layout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1">
-        <Outlet />
-      </main>
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 pb-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };
