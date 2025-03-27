@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "sonner";
-import { Loader2 } from 'lucide-react';
+import { Loader2, InfoIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Predefined credentials for internal employee (kept for demo purposes)
 const INTERNAL_CREDENTIALS = {
@@ -20,7 +21,7 @@ const INTERNAL_CREDENTIALS = {
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, signIn, signUp } = useAuth();
+  const { isAuthenticated, user, profile, signIn, signUp } = useAuth();
   const [loginValues, setLoginValues] = useState({
     email: '',
     password: '',
@@ -32,9 +33,15 @@ const Login = () => {
     password: '',
   });
 
+  // Display auth state for debugging
+  useEffect(() => {
+    console.log('Auth state:', { isAuthenticated, user, profile });
+  }, [isAuthenticated, user, profile]);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('User is authenticated, redirecting to dashboard...');
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
@@ -137,6 +144,25 @@ const Login = () => {
         <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-blue-300/20 rounded-full filter blur-3xl opacity-50 animate-blob" style={{ animationDelay: '4s' }}></div>
         
         <div className="glass-panel bg-white/95 p-8 rounded-xl border border-border shadow-lg backdrop-blur-md relative z-10 animate-scale-in">
+          {/* Auth status display for debugging */}
+          {isAuthenticated ? (
+            <Alert className="mb-4 bg-green-50 border-green-200">
+              <InfoIcon className="h-4 w-4 text-green-500" />
+              <AlertDescription>
+                Logged in as: {profile?.first_name} {profile?.last_name} ({user?.email})
+                <br />
+                <span className="text-xs text-muted-foreground">You should be redirected to dashboard soon...</span>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert className="mb-4 bg-blue-50 border-blue-200">
+              <InfoIcon className="h-4 w-4 text-blue-500" />
+              <AlertDescription>
+                Not currently logged in. Please sign in or create an account.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="mb-6 text-center">
             <Link to="/" className="inline-block">
               <h1 className="text-2xl font-bold text-gradient">ResidentPro</h1>
