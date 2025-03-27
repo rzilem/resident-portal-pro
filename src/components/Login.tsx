@@ -14,7 +14,7 @@ const Login = () => {
   // Get the page the user was trying to access (default to /dashboard)
   const from = location.state?.from?.pathname || '/dashboard';
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(email, password);

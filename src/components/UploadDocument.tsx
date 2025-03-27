@@ -2,7 +2,6 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 
 const UploadDocument = () => {
   const { user, supabase } = useContext(AuthContext);
@@ -11,24 +10,12 @@ const UploadDocument = () => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState('');
 
-  // Ensure the documents bucket exists when component mounts
-  React.useEffect(() => {
-    const initializeBucket = async () => {
-      if (user) {
-        try {
-          await ensureDocumentsBucketExists();
-        } catch (error) {
-          console.error('Error initializing document bucket:', error);
-        }
-      }
-    };
-    
-    initializeBucket();
-  }, [user]);
-
-  const handleUpload = async (e) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    const file = e.target.elements[0].files[0];
+    const form = e.target as HTMLFormElement;
+    const fileInput = form.elements[0] as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    
     if (!file) {
       setUploadError('Please select a file to upload');
       return;
@@ -39,9 +26,6 @@ const UploadDocument = () => {
     setUploadSuccess(false);
 
     try {
-      // Initialize the bucket if it doesn't exist
-      await ensureDocumentsBucketExists();
-      
       // Upload the file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('documents')
@@ -52,7 +36,7 @@ const UploadDocument = () => {
 
       if (error) throw error;
       setUploadSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
       setUploadError(`Failed to upload document: ${error.message}`);
     } finally {
