@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import DashboardLayout from '@/components/DashboardLayout';
+import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
 
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
@@ -76,6 +78,7 @@ import '@/utils/supabase/migrations';
 const App = () => {
   return (
     <>
+      <DocumentStorageInitializer />
       <Routes>
         {/* Public routes without dashboard layout */}
         <Route path="/" element={<Index />} />

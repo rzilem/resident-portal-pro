@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { FileText, Download } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Document } from '@/types/resident';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface DocumentsTabProps {
   documents?: Document[];
