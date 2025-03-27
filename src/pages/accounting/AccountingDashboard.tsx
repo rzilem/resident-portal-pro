@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import InvoiceQueue from '@/components/accounting/InvoiceQueue';
@@ -49,9 +48,7 @@ const AccountingDashboard = () => {
       <div className="grid gap-4 md:gap-6 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
           <div className="hidden md:block">
-            <p className="text-muted-foreground">
-              Manage all financial aspects of your properties and associations
-            </p>
+            {/* Removed redundant paragraph */}
           </div>
           
           <div className="md:w-72 mt-4 md:mt-0">
