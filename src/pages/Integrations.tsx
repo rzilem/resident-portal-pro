@@ -17,7 +17,7 @@ const Integrations = () => {
   }, []);
 
   return (
-    <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+    <div className="animate-fade-in">
       <IntegrationSettings />
     </div>
   );
