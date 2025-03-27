@@ -32,10 +32,10 @@ export const initializeTables = async (): Promise<boolean> => {
           // The issue is in this block. We need to properly handle the insert operation
           const { error } = await supabase
             .from('association_settings')
-            .insert({
+            .insert([{
               id: '00000000-0000-0000-0000-000000000001',
               settings: {} as Json,
-            });
+            }]);
             
           if (error) throw error;
             
@@ -56,10 +56,10 @@ export const initializeTables = async (): Promise<boolean> => {
       if (!defaultSettings && !settingsError) {
         await supabase
           .from('association_settings')
-          .insert({
+          .insert([{
             id: '00000000-0000-0000-0000-000000000001',
             settings: {} as Json,
-          });
+          }]);
       }
     }
     

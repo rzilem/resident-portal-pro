@@ -1,16 +1,15 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Association } from '@/types/association';
 import { toast } from 'sonner';
 import { 
   fetchAssociations,
-  createSupabaseAssociation,
-  updateSupabaseAssociation,
-  updateSupabaseAssociationSetting,
-  deleteSupabaseAssociation,
-  setDefaultSupabaseAssociation,
-  toggleSupabaseAssociationStatus
-} from '@/utils/supabase/associationUtils';
+  createAssociation,
+  updateAssociation,
+  updateAssociationSetting,
+  deleteAssociation,
+  setDefaultAssociation,
+  toggleAssociationStatus
+} from '@/utils/supabase/association';
 
 export const useAssociations = () => {
   const [associations, setAssociations] = useState<Association[]>([]);
@@ -25,7 +24,6 @@ export const useAssociations = () => {
       const data = await fetchAssociations();
       setAssociations(data);
       
-      // Set active association to default or first one if no active
       if (!activeAssociation && data.length > 0) {
         const defaultAssociation = data.find(a => a.settings?.isDefault) || data[0];
         setActiveAssociation(defaultAssociation);
@@ -48,7 +46,7 @@ export const useAssociations = () => {
 
   const addAssociation = useCallback(async (newAssociation: Omit<Association, 'id'>) => {
     try {
-      const created = await createSupabaseAssociation(newAssociation);
+      const created = await createAssociation(newAssociation);
       if (created) {
         setAssociations(prev => [...prev, created]);
         toast.success('Association created successfully');
@@ -63,7 +61,7 @@ export const useAssociations = () => {
 
   const updateAssociationData = useCallback(async (id: string, updates: Partial<Association>) => {
     try {
-      const updated = await updateSupabaseAssociation(id, updates);
+      const updated = await updateAssociation(id, updates);
       if (updated) {
         setAssociations(prev => prev.map(a => a.id === id ? updated : a));
         
@@ -87,7 +85,7 @@ export const useAssociations = () => {
     value: any
   ) => {
     try {
-      const updated = await updateSupabaseAssociationSetting(associationId, settingName, value);
+      const updated = await updateAssociationSetting(associationId, settingName, value);
       if (updated) {
         setAssociations(prev => prev.map(a => a.id === associationId ? updated : a));
         
@@ -106,7 +104,7 @@ export const useAssociations = () => {
 
   const removeAssociation = useCallback(async (id: string) => {
     try {
-      const success = await deleteSupabaseAssociation(id);
+      const success = await deleteAssociation(id);
       if (success) {
         setAssociations(prev => prev.filter(a => a.id !== id));
         
@@ -127,7 +125,7 @@ export const useAssociations = () => {
 
   const makeDefaultAssociation = useCallback(async (id: string) => {
     try {
-      const updated = await setDefaultSupabaseAssociation(id);
+      const updated = await setDefaultAssociation(id);
       if (updated && updated.length > 0) {
         setAssociations(updated);
         toast.success('Default association updated');
@@ -142,7 +140,7 @@ export const useAssociations = () => {
 
   const toggleStatus = useCallback(async (id: string) => {
     try {
-      const updated = await toggleSupabaseAssociationStatus(id);
+      const updated = await toggleAssociationStatus(id);
       if (updated) {
         setAssociations(prev => prev.map(a => a.id === id ? updated : a));
         
