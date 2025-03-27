@@ -1,190 +1,404 @@
 
 /**
- * Utility functions for document database operations
+ * Database utilities for document management
  */
 
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
+import { toast } from 'sonner';
+import { getDownloadUrl } from './bucketUtils';
 
-// Get documents with optional filters
+/**
+ * Create a document record in the database
+ * @param {Partial<DocumentFile>} documentData - Document data
+ * @returns {Promise<DocumentFile | null>} Created document or null
+ */
+export const createDocument = async (documentData: Partial<DocumentFile>): Promise<DocumentFile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .insert([documentData])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating document record:', error);
+      return null;
+    }
+    
+    return data as DocumentFile;
+  } catch (error) {
+    console.error('Exception in createDocument:', error);
+    return null;
+  }
+};
+
+/**
+ * Get document by ID
+ * @param {string} id - Document ID
+ * @returns {Promise<DocumentFile | null>} Document or null
+ */
+export const getDocumentById = async (id: string): Promise<DocumentFile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error getting document by ID:', error);
+      return null;
+    }
+    
+    // Get the download URL for the document
+    if (data && data.path) {
+      try {
+        data.url = await getDownloadUrl(data.path);
+      } catch (urlError) {
+        console.error('Error generating download URL:', urlError);
+        data.url = ''; // Set empty URL if we can't generate one
+      }
+    }
+    
+    return data as DocumentFile;
+  } catch (error) {
+    console.error('Exception in getDocumentById:', error);
+    return null;
+  }
+};
+
+/**
+ * Get documents with optional filtering
+ * @param {DocumentSearchFilters} filters - Search and filter criteria
+ * @param {string} [associationId] - Optional association ID to filter by
+ * @param {string} [userRole] - User role for access control
+ * @returns {Promise<DocumentFile[]>} Array of matching documents
+ */
 export const getDocuments = async (
   filters: DocumentSearchFilters = {}, 
   associationId?: string,
   userRole?: string
 ): Promise<DocumentFile[]> => {
   try {
-    console.log('Fetching documents with filters:', { filters, associationId, userRole });
+    console.log('Getting documents with filters:', JSON.stringify(filters), 'associationId:', associationId, 'userRole:', userRole);
     
-    // Start query builder
+    // Start with base query
     let query = supabase
       .from('documents')
-      .select('*');
+      .select('*')
+      .order('uploadedDate', { ascending: false });
     
-    // Apply association filter if provided
-    if (associationId) {
-      console.log(`Filtering by association ID: ${associationId}`);
-      try {
-        // Validate if this is a UUID
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(associationId)) {
-          // If it's a simple numeric ID, try to fetch the actual UUID first
-          const { data: associationData } = await supabase
-            .from('associations')
-            .select('id')
-            .eq('id', associationId)
-            .maybeSingle();
-            
-          if (associationData) {
-            query = query.eq('association_id', associationData.id);
-          } else {
-            // If we can't find it, still use the original ID (will likely return no results)
-            query = query.eq('association_id', associationId);
-          }
-        } else {
-          // It's already a valid UUID
-          query = query.eq('association_id', associationId);
-        }
-      } catch (error) {
-        console.error('Error validating association ID:', error);
-        query = query.eq('association_id', associationId);
-      }
+    // Apply filters
+    if (filters.query) {
+      query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%`);
     }
     
-    // Apply search query if provided
-    if (filters.query && filters.query.trim() !== '') {
-      const searchTerm = `%${filters.query.toLowerCase()}%`;
-      query = query.or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`);
-    }
-    
-    // Apply category filter
     if (filters.categories && filters.categories.length > 0) {
       query = query.in('category', filters.categories);
     }
     
-    // Apply tags filter
+    if (filters.fileTypes && filters.fileTypes.length > 0) {
+      query = query.in('fileType', filters.fileTypes);
+    }
+    
     if (filters.tags && filters.tags.length > 0) {
-      // For array columns, we need to check if any of the tags are in the array
-      for (const tag of filters.tags) {
-        query = query.contains('tags', [tag]);
+      // Note: This assumes the tags column is an array type in the database
+      query = query.overlaps('tags', filters.tags);
+    }
+    
+    if (filters.dateRange) {
+      if (filters.dateRange.start) {
+        query = query.gte('uploadedDate', filters.dateRange.start);
+      }
+      if (filters.dateRange.end) {
+        query = query.lte('uploadedDate', filters.dateRange.end);
       }
     }
     
-    // Apply date range filter
-    if (filters.dateRange) {
-      if (filters.dateRange.start) {
-        query = query.gte('uploaded_date', filters.dateRange.start);
+    if (filters.uploadedBy && filters.uploadedBy.length > 0) {
+      query = query.in('uploadedBy', filters.uploadedBy);
+    }
+    
+    if (associationId) {
+      // For now, assume the documents table has an associationId column
+      // In a real application, this might be more complex, e.g., a junction table
+      query = query.eq('associationId', associationId);
+    }
+    
+    // Apply access level filtering based on user role
+    if (userRole) {
+      // Implement role-based access filtering logic
+      // This is just a placeholder - your actual implementation will depend on your 
+      // role structure and data model
+      if (userRole !== 'admin' && userRole !== 'manager') {
+        // If not admin/manager, filter out restricted documents
+        query = query.neq('accessLevel', 'management');
+        
+        if (userRole !== 'board_member') {
+          // If not board member, filter out board-only documents
+          query = query.neq('accessLevel', 'board');
+        }
       }
-      if (filters.dateRange.end) {
-        query = query.lte('uploaded_date', filters.dateRange.end);
+    }
+    
+    // Exclude archived documents unless specifically requested
+    if (filters.isArchived === undefined || filters.isArchived === false) {
+      query = query.eq('isArchived', false);
+    }
+    
+    // Get the results
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error getting documents:', error);
+      return [];
+    }
+    
+    // Since we'll need download URLs for all documents, process them in parallel
+    const documentsWithUrls = await Promise.all(data.map(async (doc) => {
+      if (doc.path) {
+        try {
+          doc.url = await getDownloadUrl(doc.path);
+        } catch (urlError) {
+          console.error(`Error generating URL for document ${doc.id}:`, urlError);
+          doc.url = ''; // Set empty URL if we can't generate one
+        }
+      } else {
+        doc.url = ''; // Default empty URL
       }
+      return doc;
+    }));
+    
+    console.log(`Found ${documentsWithUrls.length} documents`);
+    return documentsWithUrls as DocumentFile[];
+  } catch (error) {
+    console.error('Exception in getDocuments:', error);
+    return [];
+  }
+};
+
+/**
+ * Update document metadata
+ * @param {string} id - Document ID
+ * @param {Partial<DocumentFile>} updates - Fields to update
+ * @returns {Promise<DocumentFile | null>} Updated document or null
+ */
+export const updateDocument = async (
+  id: string, 
+  updates: Partial<DocumentFile>
+): Promise<DocumentFile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating document:', error);
+      toast.error('Failed to update document');
+      return null;
+    }
+    
+    return data as DocumentFile;
+  } catch (error) {
+    console.error('Exception in updateDocument:', error);
+    return null;
+  }
+};
+
+/**
+ * Delete document by ID
+ * @param {string} id - Document ID
+ * @param {boolean} [hardDelete=false] - If true, actually deletes the record, otherwise marks as archived
+ * @returns {Promise<boolean>} True if deleted
+ */
+export const deleteDocument = async (id: string, hardDelete: boolean = false): Promise<boolean> => {
+  try {
+    // Get the document first to know its storage path
+    const document = await getDocumentById(id);
+    if (!document) {
+      console.error('Document not found for deletion:', id);
+      return false;
+    }
+    
+    let success = false;
+    
+    if (hardDelete) {
+      // Actually delete the record
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting document record:', error);
+        return false;
+      }
+      
+      success = true;
+    } else {
+      // Soft delete - mark as archived
+      const { error } = await supabase
+        .from('documents')
+        .update({ isArchived: true })
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error archiving document:', error);
+        return false;
+      }
+      
+      success = true;
+    }
+    
+    // If the database operation was successful and we have a storage path,
+    // also remove the file from storage (for hard deletes only)
+    if (success && hardDelete && document.path) {
+      try {
+        const { error } = await supabase.storage
+          .from('documents')
+          .remove([document.path]);
+        
+        if (error) {
+          console.error('Error removing file from storage:', error);
+          // We still consider this a success since the database record was deleted
+        }
+      } catch (storageError) {
+        console.error('Exception removing file from storage:', storageError);
+        // Still a success since the database record was deleted
+      }
+    }
+    
+    return success;
+  } catch (error) {
+    console.error('Exception in deleteDocument:', error);
+    return false;
+  }
+};
+
+/**
+ * Update document access level
+ * @param {string} id - Document ID 
+ * @param {string} accessLevel - New access level
+ * @returns {Promise<boolean>} True if updated
+ */
+export const updateDocumentAccessLevel = async (
+  id: string,
+  accessLevel: string
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('documents')
+      .update({ accessLevel })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error updating document access level:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Exception in updateDocumentAccessLevel:', error);
+    return false;
+  }
+};
+
+/**
+ * Get all unique tags used in documents
+ * @returns {Promise<string[]>} Array of unique tags
+ */
+export const getAllDocumentTags = async (): Promise<string[]> => {
+  try {
+    // This assumes the tags are stored as an array in each document record
+    // The approach depends on your database schema
+    const { data, error } = await supabase
+      .from('documents')
+      .select('tags');
+    
+    if (error) {
+      console.error('Error fetching document tags:', error);
+      return [];
+    }
+    
+    // Flatten array of arrays and filter out duplicates
+    const allTags = data.flatMap(doc => doc.tags || []);
+    const uniqueTags = [...new Set(allTags)];
+    
+    return uniqueTags;
+  } catch (error) {
+    console.error('Exception in getAllDocumentTags:', error);
+    return [];
+  }
+};
+
+/**
+ * Get document statistics
+ * @param {string} [associationId] - Optional association ID to filter by
+ * @returns {Promise<{total: number, byCategory: Record<string, number>, byType: Record<string, number>}>} Document statistics
+ */
+export const getDocumentStatistics = async (associationId?: string): Promise<{
+  total: number,
+  byCategory: Record<string, number>,
+  byType: Record<string, number>,
+  recent: number
+}> => {
+  try {
+    // Base query
+    let query = supabase
+      .from('documents')
+      .select('*')
+      .eq('isArchived', false);
+    
+    // Filter by association if provided
+    if (associationId) {
+      query = query.eq('associationId', associationId);
     }
     
     // Execute query
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching documents:', error);
-      throw error;
+      console.error('Error getting document statistics:', error);
+      return { total: 0, byCategory: {}, byType: {}, recent: 0 };
     }
     
-    console.log(`Found ${data?.length || 0} documents`);
+    // Calculate statistics
+    const byCategory: Record<string, number> = {};
+    const byType: Record<string, number> = {};
+    let recent = 0;
     
-    // Transform the Supabase data to match our DocumentFile interface
-    const documents: DocumentFile[] = (data || []).map(doc => ({
-      id: doc.id,
-      name: doc.name,
-      description: doc.description || undefined,
-      fileSize: doc.file_size,
-      fileType: doc.file_type,
-      url: doc.url,
-      category: doc.category,
-      tags: doc.tags || [],
-      uploadedBy: doc.uploaded_by,
-      uploadedDate: doc.uploaded_date,
-      lastModified: doc.last_modified || undefined,
-      version: doc.version,
-      previousVersions: [], // We'll implement version history later
-      expirationDate: undefined,
-      isPublic: doc.is_public,
-      isArchived: doc.is_archived,
-      properties: [],
-      associations: [doc.association_id],
-      metadata: {}
-    }));
+    // Current date minus 30 days for recent count
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    return documents;
+    data.forEach(doc => {
+      // Count by category
+      const category = doc.category || 'uncategorized';
+      byCategory[category] = (byCategory[category] || 0) + 1;
+      
+      // Count by file type
+      const fileType = doc.fileType || 'unknown';
+      byType[fileType] = (byType[fileType] || 0) + 1;
+      
+      // Count recent documents
+      const uploadDate = new Date(doc.uploadedDate);
+      if (uploadDate >= thirtyDaysAgo) {
+        recent++;
+      }
+    });
+    
+    return {
+      total: data.length,
+      byCategory,
+      byType,
+      recent
+    };
   } catch (error) {
-    console.error('Error in getDocuments:', error);
-    return [];
-  }
-};
-
-// Delete document from database and storage
-export const deleteDocument = async (documentId: string): Promise<boolean> => {
-  try {
-    // First get the document to get the URL
-    const { data: document, error: fetchError } = await supabase
-      .from('documents')
-      .select('url')
-      .eq('id', documentId)
-      .maybeSingle();
-    
-    if (fetchError) {
-      console.error('Error fetching document for deletion:', fetchError);
-      throw fetchError;
-    }
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('documents')
-      .remove([document.url]);
-    
-    if (storageError) {
-      console.error('Error deleting document from storage:', storageError);
-      // Continue with database deletion even if storage deletion fails
-    }
-    
-    // Delete from database
-    const { error: dbError } = await supabase
-      .from('documents')
-      .delete()
-      .eq('id', documentId);
-    
-    if (dbError) {
-      console.error('Error deleting document from database:', dbError);
-      throw dbError;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error in deleteDocument:', error);
-    return false;
-  }
-};
-
-// Get download URL for a document
-export const downloadDocument = async (document: DocumentFile): Promise<string> => {
-  try {
-    // Get download URL
-    const { data, error } = await supabase.storage
-      .from('documents')
-      .createSignedUrl(document.url, 60); // 60 seconds expiry
-    
-    if (error) {
-      console.error('Error creating signed URL:', error);
-      throw error;
-    }
-    
-    if (!data || !data.signedUrl) {
-      throw new Error('Failed to generate download URL');
-    }
-    
-    return data.signedUrl;
-  } catch (error) {
-    console.error('Error in downloadDocument:', error);
-    throw error;
+    console.error('Exception in getDocumentStatistics:', error);
+    return { total: 0, byCategory: {}, byType: {}, recent: 0 };
   }
 };

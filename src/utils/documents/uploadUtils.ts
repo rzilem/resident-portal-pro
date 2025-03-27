@@ -6,148 +6,214 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { isUserAuthenticated } from './authUtils';
+import { isUserAuthenticated, getCurrentUserId } from './authUtils';
 import { ensureDocumentsBucketExists } from './bucketUtils';
+import { createDocument } from './documentDbUtils';
+import { generateUniqueFileName, isAllowedFileType, isFileSizeValid } from './fileUtils';
 
 /**
- * Upload a document to storage
- * @param {File} file - File to upload
- * @param {string} [customPath] - Optional custom file path
- * @returns {Promise<{success: boolean, url?: string, error?: string}>} Upload result
+ * Upload a document to storage and create database record
+ * @param {Object} options - Upload options
+ * @param {File} options.file - File to upload
+ * @param {string} options.category - Document category
+ * @param {string} options.description - Document description
+ * @param {string[]} options.tags - Document tags
+ * @param {string} options.associationId - Association ID
+ * @returns {Promise<boolean>} True if upload succeeded
  */
-export const uploadDocument = async (
-  file: File, 
-  customPath?: string
-): Promise<{success: boolean, url?: string, error?: string}> => {
+export const uploadDocument = async ({
+  file,
+  category = 'uncategorized',
+  description = '',
+  tags = [],
+  associationId
+}: {
+  file: File;
+  category?: string;
+  description?: string;
+  tags?: string[];
+  associationId?: string;
+}): Promise<boolean> => {
   try {
     // Check if user is authenticated
     const isAuthenticated = await isUserAuthenticated();
     if (!isAuthenticated) {
       toast.error('Please log in to upload files');
-      return { success: false, error: 'Authentication required' };
+      return false;
+    }
+    
+    // Get current user ID
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      toast.error('User identification failed');
+      return false;
+    }
+    
+    // Validate file type and size
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain', 'image/jpeg', 'image/png'];
+    const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+    
+    if (!isAllowedFileType(file, allowedTypes)) {
+      toast.error('File type not allowed. Please upload PDF, Word, Excel, or image files.');
+      return false;
+    }
+    
+    if (!isFileSizeValid(file, maxSizeBytes)) {
+      toast.error(`File size exceeds maximum allowed (${maxSizeBytes / (1024 * 1024)}MB)`);
+      return false;
     }
     
     // Ensure bucket exists
     const bucketExists = await ensureDocumentsBucketExists();
     if (!bucketExists) {
-      return { success: false, error: 'Document storage is not available' };
+      toast.error('Document storage is not available');
+      return false;
     }
     
-    // Create a unique file path using timestamp + original name or use custom path
-    const fileExtension = file.name.split('.').pop() || '';
-    const timestamp = Date.now();
-    const uniqueId = uuidv4().substring(0, 8);
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    
-    const filePath = customPath || `${timestamp}-${uniqueId}-${sanitizedFileName}`;
+    // Create a unique file name
+    const uniqueFileName = generateUniqueFileName(file);
+    const filePath = `${category}/${uniqueFileName}`;
     
     console.log(`Uploading file to path: ${filePath}`);
     
-    // Upload file to storage with a timeout of 60 seconds
-    const uploadPromise = supabase.storage
+    // Upload file to storage
+    const { data, error } = await supabase.storage
       .from('documents')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: true // Use upsert to overwrite if file exists
+        upsert: false
       });
-    
-    // Add a timeout
-    const timeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => {
-      setTimeout(() => {
-        reject({ data: null, error: new Error('Upload timed out after 60 seconds') });
-      }, 60000); // 60 seconds timeout
-    });
-    
-    // Race the upload against the timeout
-    const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
     
     if (error) {
       console.error('Error uploading document:', error);
-      toast.error(`Upload failed: ${error.message}`);
-      return { success: false, error: error.message };
+      
+      const errorMessage = error.message || 'Upload failed';
+      
+      // Provide more specific error messages based on the error
+      if (error.message?.includes('duplicate')) {
+        toast.error('A file with this name already exists');
+      } else if (error.message?.includes('permission')) {
+        toast.error('Permission denied. Please check your account access.');
+      } else if (error.message?.includes('network')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error(`Upload failed: ${errorMessage}`);
+      }
+      
+      return false;
     }
     
-    console.log('Document uploaded successfully');
+    console.log('Document uploaded successfully to storage');
     
-    // Get the public URL of the uploaded file
-    const { data: publicUrlData } = await supabase.storage
+    // Get the URL of the uploaded file
+    const { data: urlData } = await supabase.storage
       .from('documents')
       .getPublicUrl(filePath);
     
-    const url = publicUrlData?.publicUrl;
+    // Create document record in database
+    const documentRecord = {
+      id: uuidv4(),
+      name: file.name,
+      description,
+      fileSize: file.size,
+      fileType: file.type,
+      url: urlData?.publicUrl || '',
+      path: filePath,
+      category,
+      tags,
+      uploadedBy: userId,
+      uploadedDate: new Date().toISOString(),
+      version: 1,
+      isPublic: false,
+      isArchived: false,
+      associationId: associationId || null
+    };
     
-    if (!url) {
-      console.error('Failed to generate download URL');
-      toast.error('File uploaded but URL generation failed');
-      return { success: true, error: 'URL generation failed' };
+    const createdDocument = await createDocument(documentRecord);
+    
+    if (!createdDocument) {
+      console.error('Failed to create document record in database');
+      toast.warning('File uploaded but metadata could not be saved');
+      return false;
     }
     
-    toast.success('File uploaded successfully');
-    return { success: true, url };
+    console.log('Document record created in database');
+    toast.success('Document uploaded successfully');
+    return true;
   } catch (error) {
     console.error('Unexpected upload error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     toast.error(`Upload failed: ${errorMessage}`);
-    return { success: false, error: errorMessage };
-  }
-};
-
-/**
- * Generate download URL for a document
- * @param {string} filePath - Path to the file
- * @returns {Promise<string>} Download URL
- */
-export const getDownloadUrl = async (filePath: string): Promise<string> => {
-  try {
-    // Get public URL if bucket is public
-    const { data: publicUrlData } = await supabase.storage
-      .from('documents')
-      .getPublicUrl(filePath);
-    
-    if (publicUrlData && publicUrlData.publicUrl) {
-      return publicUrlData.publicUrl;
-    }
-    
-    // Fall back to signed URL if not public
-    const { data, error } = await supabase.storage
-      .from('documents')
-      .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
-    
-    if (error) {
-      console.error('Error creating signed URL:', error);
-      throw error;
-    }
-    
-    if (!data || !data.signedUrl) {
-      throw new Error('Failed to generate download URL');
-    }
-    
-    return data.signedUrl;
-  } catch (error) {
-    console.error('Error generating download URL:', error);
-    throw error;
-  }
-};
-
-/**
- * Delete file from storage
- * @param {string} filePath - Path to the file
- * @returns {Promise<boolean>} True if file was deleted
- */
-export const deleteStorageFile = async (filePath: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase.storage
-      .from('documents')
-      .remove([filePath]);
-    
-    if (error) {
-      console.error('Error deleting file from storage:', error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error in deleteStorageFile:', error);
     return false;
   }
 };
+
+/**
+ * Create a service for uploading documents in background
+ */
+export class DocumentUploadService {
+  private queue: Array<{
+    file: File;
+    options: {
+      category?: string;
+      description?: string;
+      tags?: string[];
+      associationId?: string;
+    };
+    resolve: (result: boolean) => void;
+  }> = [];
+  
+  private isProcessing = false;
+  
+  /**
+   * Add a document to the upload queue
+   * @param {File} file - File to upload
+   * @param {Object} options - Upload options
+   * @returns {Promise<boolean>} Promise resolving to true if upload succeeded
+   */
+  public queueUpload(
+    file: File,
+    options: {
+      category?: string;
+      description?: string;
+      tags?: string[];
+      associationId?: string;
+    } = {}
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.queue.push({ file, options, resolve });
+      this.processQueue();
+    });
+  }
+  
+  /**
+   * Process the upload queue
+   */
+  private async processQueue() {
+    if (this.isProcessing || this.queue.length === 0) {
+      return;
+    }
+    
+    this.isProcessing = true;
+    
+    const { file, options, resolve } = this.queue.shift()!;
+    
+    try {
+      const result = await uploadDocument({
+        file,
+        ...options
+      });
+      
+      resolve(result);
+    } catch (error) {
+      console.error('Error in upload queue processing:', error);
+      resolve(false);
+    } finally {
+      this.isProcessing = false;
+      this.processQueue();
+    }
+  }
+}
+
+// Export singleton instance
+export const documentUploadService = new DocumentUploadService();
