@@ -3,7 +3,9 @@
  * Export all document utility functions
  */
 
-export * from './documentUtils';
-export * from './documentDbUtils';
+// Export utility functions from dedicated files
+export * from './fileUtils';
 export * from './categoryUtils';
+export * from './bucketUtils';
+export * from './documentDbUtils';
 export * from './authUtils';

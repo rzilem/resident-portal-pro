@@ -39,6 +39,7 @@ export const formatDate = (dateStr: string): string => {
  * @returns Boolean indicating if the file type is valid
  */
 export const validateFileType = (file: File, acceptedTypes: string[]): boolean => {
+  console.log(`Validating file type: ${file.type} against accepted types:`, acceptedTypes);
   return acceptedTypes.includes(file.type);
 };
 
@@ -49,6 +50,7 @@ export const validateFileType = (file: File, acceptedTypes: string[]): boolean =
  * @returns Boolean indicating if the file size is valid
  */
 export const validateFileSize = (file: File, maxSizeInBytes: number): boolean => {
+  console.log(`Validating file size: ${file.size} bytes against max size: ${maxSizeInBytes} bytes`);
   return file.size <= maxSizeInBytes;
 };
 
