@@ -16,7 +16,6 @@ export function useDashboardWidgets({
 }: UseDashboardWidgetsProps) {
   const [widgets, setWidgets] = useState<Widget[]>(initialWidgets);
   const [columnCount, setColumnCount] = useState(initialColumns);
-  const [open, setOpen] = useState(false);
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -115,15 +114,12 @@ export function useDashboardWidgets({
 
   const saveChanges = () => {
     onSave(widgets, columnCount);
-    setOpen(false);
     toast.success("Dashboard layout saved!");
   };
 
   return {
     widgets,
     columnCount,
-    open,
-    setOpen,
     handleDragEnd,
     addWidget,
     removeWidget,

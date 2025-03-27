@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Check, Settings } from 'lucide-react';
@@ -18,11 +18,11 @@ interface DashboardCustomizerProps {
 
 const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomizerProps) => {
   const { cardClass } = useCardStyle();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
   const {
     widgets: currentWidgets,
     columnCount,
-    open,
-    setOpen,
     handleDragEnd,
     addWidget,
     removeWidget,
@@ -35,11 +35,14 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
   } = useDashboardWidgets({
     initialWidgets: widgets,
     initialColumns: columns,
-    onSave
+    onSave: (updatedWidgets, updatedColumns) => {
+      onSave(updatedWidgets, updatedColumns);
+      setDialogOpen(false);
+    }
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="mb-4">
           <Settings className="h-4 w-4 mr-2" /> Customize Dashboard
@@ -73,7 +76,7 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => setDialogOpen(false)}>
             Cancel
           </Button>
           <Button onClick={saveChanges}>
