@@ -3,44 +3,65 @@
  * Utility functions for document categories
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { debugLog, errorLog } from '@/utils/debug';
 import { DocumentCategory } from '@/types/documents';
+import { debugLog, errorLog } from '@/utils/debug';
 
 /**
- * Get all document categories
- * @returns Promise<DocumentCategory[]> List of document categories
+ * Create a new document category
+ * @param category Category data
+ * @returns Promise<{ success: boolean, id?: string, error?: string }>
  */
-export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
+export const createDocumentCategory = async (category: Partial<DocumentCategory>): Promise<{ success: boolean, id?: string, error?: string }> => {
   try {
-    const defaultCategories: DocumentCategory[] = [
-      { id: 'general', name: 'General', description: 'General documents', sortOrder: 1 },
-      { id: 'financial', name: 'Financial', description: 'Financial documents', sortOrder: 2 },
-      { id: 'legal', name: 'Legal', description: 'Legal documents', sortOrder: 3 },
-      { id: 'meetings', name: 'Meetings', description: 'Meeting minutes and agendas', sortOrder: 4 },
-      { id: 'maintenance', name: 'Maintenance', description: 'Maintenance records and reports', sortOrder: 5 },
-      { id: 'compliance', name: 'Compliance', description: 'Compliance documents', sortOrder: 6 },
-      { id: 'communications', name: 'Communications', description: 'Community communications', sortOrder: 7 }
-    ];
+    // This is a placeholder - in a real app, this would save to a database
+    const id = `cat_${Date.now()}`;
     
-    return defaultCategories;
+    debugLog("Created category:", { ...category, id });
+    
+    return {
+      success: true,
+      id
+    };
   } catch (error) {
-    errorLog("Error getting document categories:", error);
-    return [];
+    errorLog("Error creating category:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error creating category"
+    };
   }
 };
 
 /**
- * Get category by ID
+ * Update a document category
  * @param categoryId Category ID
- * @returns Promise<DocumentCategory|null> Category or null if not found
+ * @param updates Category updates
+ * @returns Promise<boolean> Success status
  */
-export const getCategoryById = async (categoryId: string): Promise<DocumentCategory | null> => {
+export const updateDocumentCategory = async (categoryId: string, updates: Partial<DocumentCategory>): Promise<boolean> => {
   try {
-    const categories = await getDocumentCategories();
-    return categories.find(cat => cat.id === categoryId) || null;
+    // This is a placeholder - in a real app, this would update a database
+    debugLog("Updated category:", { id: categoryId, ...updates });
+    
+    return true;
   } catch (error) {
-    errorLog("Error getting category by ID:", error);
-    return null;
+    errorLog("Error updating category:", error);
+    return false;
+  }
+};
+
+/**
+ * Delete a document category
+ * @param categoryId Category ID
+ * @returns Promise<boolean> Success status
+ */
+export const deleteDocumentCategory = async (categoryId: string): Promise<boolean> => {
+  try {
+    // This is a placeholder - in a real app, this would delete from a database
+    debugLog("Deleted category:", categoryId);
+    
+    return true;
+  } catch (error) {
+    errorLog("Error deleting category:", error);
+    return false;
   }
 };

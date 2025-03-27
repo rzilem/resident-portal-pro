@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface VendorDocumentsTabProps {
   vendorId: string;

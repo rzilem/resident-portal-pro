@@ -44,30 +44,3 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
     return [];
   }
 };
-
-/**
- * Get documents from the database
- * @param associationId Optional association ID to filter documents
- * @returns Promise with list of documents
- */
-export const getDocuments = async (associationId?: string) => {
-  try {
-    let query = supabase.from('documents').select('*');
-    
-    if (associationId) {
-      query = query.eq('association_id', associationId);
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      errorLog("Error fetching documents:", error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (error) {
-    errorLog("Exception in getDocuments:", error);
-    return [];
-  }
-};

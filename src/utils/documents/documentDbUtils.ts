@@ -1,10 +1,10 @@
-
 /**
  * Utility functions for document database operations
  */
 
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog, errorLog } from '@/utils/debug';
+import { DocumentSearchFilters } from '@/types/documents';
 
 /**
  * Save document metadata to the database
@@ -136,5 +136,64 @@ export const archiveDocument = async (documentId: string): Promise<boolean> => {
   } catch (error) {
     errorLog("Exception in archiveDocument:", error);
     return false;
+  }
+};
+
+/**
+ * Get documents from the database
+ * @param filters Optional document filters
+ * @param associationId Optional association ID to filter documents
+ * @param role Optional user role for access control
+ * @returns Promise with list of documents
+ */
+export const getDocuments = async (filters?: DocumentSearchFilters, associationId?: string, role?: string) => {
+  try {
+    let query = supabase.from('documents').select('*');
+    
+    if (associationId) {
+      query = query.eq('association_id', associationId);
+    }
+    
+    if (filters?.query) {
+      query = query.ilike('name', `%${filters.query}%`);
+    }
+    
+    if (filters?.categories && filters.categories.length > 0) {
+      query = query.in('category', filters.categories);
+    }
+    
+    if (filters?.tags && filters.tags.length > 0) {
+      // Use overlap operator for array fields
+      query = query.overlaps('tags', filters.tags);
+    }
+    
+    if (filters?.dateRange) {
+      if (filters.dateRange.start) {
+        query = query.gte('uploaded_date', filters.dateRange.start);
+      }
+      if (filters.dateRange.end) {
+        query = query.lte('uploaded_date', filters.dateRange.end);
+      }
+    }
+    
+    if (filters?.isPublic !== undefined) {
+      query = query.eq('is_public', filters.isPublic);
+    }
+    
+    if (filters?.isArchived !== undefined) {
+      query = query.eq('is_archived', filters.isArchived);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      errorLog("Error fetching documents:", error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    errorLog("Exception in getDocuments:", error);
+    return [];
   }
 };

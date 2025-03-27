@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
