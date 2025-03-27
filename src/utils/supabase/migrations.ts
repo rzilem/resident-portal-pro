@@ -39,13 +39,8 @@ export const initializeTables = async (): Promise<boolean> => {
 
       // Use RPC to create table if available
       try {
-        const { error: rpcError } = await supabase
-          .rpc('create_association_settings_table') as { data: any; error: PostgrestError | null };
-
-        if (rpcError) {
-          // Using 'any' cast to bypass TypeScript error
-          throw new Error((rpcError as any).message || 'Failed to create association_settings table via RPC');
-        }
+        // Skip RPC since we created the table in Supabase
+console.log('Skipping RPC call; table should already exist in Supabase.');
       } catch (rpcError: unknown) {
         console.error('Error creating association_settings table using RPC:', rpcError);
 
