@@ -7,12 +7,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sun, Moon, Monitor, Palette, Image as ImageIcon, Grid } from "lucide-react";
+import { Sun, Moon, Monitor, Palette, Image as ImageIcon, Grid, Building } from "lucide-react";
 import { useSettings } from '@/hooks/use-settings';
 import { useTheme } from '@/hooks/use-theme';
 import ThemePresets from './display/ThemePresets';
 import CustomBackground from './display/CustomBackground';
 import ColorCustomizer from './display/ColorCustomizer';
+import LogoUploader from './display/LogoUploader';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
@@ -77,7 +78,7 @@ const DisplaySettings = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
+              <TabsList className="grid grid-cols-5 mb-4">
                 <TabsTrigger value="basic">
                   <Monitor className="h-4 w-4 mr-2" />
                   Basic
@@ -93,6 +94,10 @@ const DisplaySettings = () => {
                 <TabsTrigger value="colors">
                   <Palette className="h-4 w-4 mr-2" />
                   Colors
+                </TabsTrigger>
+                <TabsTrigger value="branding">
+                  <Building className="h-4 w-4 mr-2" />
+                  Branding
                 </TabsTrigger>
               </TabsList>
               
@@ -182,6 +187,12 @@ const DisplaySettings = () => {
               
               <TabsContent value="colors">
                 <ColorCustomizer />
+              </TabsContent>
+              
+              <TabsContent value="branding">
+                <div className="space-y-6">
+                  <LogoUploader />
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

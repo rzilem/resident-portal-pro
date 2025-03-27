@@ -14,6 +14,7 @@ import { getNavItems, NavItem } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useState } from "react";
 import HoaSidebar from "./HoaSidebar";
+import { useCompanySettings } from "@/hooks/use-company-settings";
 
 export function Sidebar({
   className,
@@ -21,6 +22,7 @@ export function Sidebar({
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const { settings } = useCompanySettings();
   
   // Check if we're on one of the HOA management pages
   const isHoaPage = 
@@ -46,9 +48,19 @@ export function Sidebar({
       <div className={cn("pb-12 border-r min-h-screen bg-background", className)}>
         <SidebarContent className="space-y-4 py-4">
           <SidebarHeader className="px-4 py-2">
-            <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
-              HOA Management
-            </h2>
+            <div className="mb-2 px-2">
+              {settings.logoUrl ? (
+                <img 
+                  src={settings.logoUrl} 
+                  alt={settings.companyName || "Company Logo"} 
+                  className="h-10 max-w-full object-contain"
+                />
+              ) : (
+                <div className="text-xl font-semibold tracking-tight">
+                  {settings.companyName || "HOA Management"}
+                </div>
+              )}
+            </div>
           </SidebarHeader>
           <ScrollArea className="h-[calc(100vh-8rem)] px-3">
             <div className="space-y-1">

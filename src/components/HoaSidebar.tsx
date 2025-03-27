@@ -19,6 +19,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useCompanySettings } from '@/hooks/use-company-settings';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   collapsed?: boolean;
@@ -33,6 +34,7 @@ export const HoaSidebar = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { settings } = useCompanySettings();
   
   const navItems = [
     { name: 'Dashboard', path: '/hoa/dashboard', icon: <Home size={20} /> },
@@ -53,13 +55,21 @@ export const HoaSidebar = ({
     >
       <div className="h-full flex flex-col">
         <div className="p-4 flex items-center justify-between border-b">
-          {!collapsed && (
-            <img 
-              src="/lovable-uploads/75230129-3746-4768-9d0c-a4c8ebdb352e.png" 
-              alt="CI Logo" 
-              className="h-8 w-auto object-contain"
-            />
-          )}
+          {!collapsed ? (
+            settings.logoUrl ? (
+              <img 
+                src={settings.logoUrl} 
+                alt={settings.companyName || "Company Logo"} 
+                className="h-8 w-auto object-contain"
+              />
+            ) : (
+              <img 
+                src="/lovable-uploads/75230129-3746-4768-9d0c-a4c8ebdb352e.png" 
+                alt="CI Logo" 
+                className="h-8 w-auto object-contain"
+              />
+            )
+          ) : null}
           <Button 
             variant="ghost" 
             size="sm" 

@@ -13,12 +13,21 @@ import {
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useCompanySettings } from '@/hooks/use-company-settings';
 
 const MainNav = () => {
+  const { settings } = useCompanySettings();
+  
   return (
     <div className="flex items-center justify-between w-full">
       <div className="font-semibold text-lg">
-        {/* Removed "HOA Management" text */}
+        {settings.logoUrl ? (
+          <img 
+            src={settings.logoUrl} 
+            alt={settings.companyName || "Company Logo"} 
+            className="h-8 max-w-[150px] object-contain" 
+          />
+        ) : null}
       </div>
       
       <NavigationMenu className="hidden md:flex">

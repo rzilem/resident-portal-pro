@@ -6,7 +6,8 @@ let companySettings: Record<string, any> = {
   phone: '(555) 123-4567',
   email: 'contact@associationmgmt.com',
   address: '123 Main St, Suite 100, Cityville, ST 12345',
-  description: 'Professional association management services for homeowners and community associations.'
+  description: 'Professional association management services for homeowners and community associations.',
+  logoUrl: null // Added for logo storage
 };
 
 export const companySettingsService = {
