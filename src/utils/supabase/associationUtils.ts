@@ -34,10 +34,10 @@ export const fetchAssociations = async (): Promise<Association[]> => {
         phone: item.contact_phone || '',
         website: item.contact_website || '',
       },
-      type: item.type || 'hoa',
+      type: (item.type as "hoa" | "condo" | "coop" | "other") || 'hoa',
       foundedDate: item.founded_date || new Date().toISOString().split('T')[0],
       units: item.units || 0,
-      status: item.status || 'active',
+      status: (item.status as "active" | "inactive") || 'active',
       settings: item.association_settings?.settings || createDefaultSettings(),
     }));
   } catch (error) {
@@ -79,14 +79,16 @@ export const createSupabaseAssociation = async (association: Omit<Association, '
     if (error) throw error;
     
     // Insert settings
-    const { error: settingsError } = await supabase
-      .from('association_settings')
-      .insert({
-        association_id: newAssociation.id,
-        settings: association.settings || createDefaultSettings()
-      });
-    
-    if (settingsError) throw settingsError;
+    if (newAssociation) {
+      const { error: settingsError } = await supabase
+        .from('association_settings')
+        .insert({
+          association_id: newAssociation.id,
+          settings: association.settings || createDefaultSettings()
+        });
+      
+      if (settingsError) throw settingsError;
+    }
     
     // Return full association object
     return {
@@ -104,10 +106,10 @@ export const createSupabaseAssociation = async (association: Omit<Association, '
         phone: newAssociation.contact_phone || '',
         website: newAssociation.contact_website || '',
       },
-      type: newAssociation.type || 'hoa',
+      type: (newAssociation.type as "hoa" | "condo" | "coop" | "other") || 'hoa',
       foundedDate: newAssociation.founded_date || new Date().toISOString().split('T')[0],
       units: newAssociation.units || 0,
-      status: newAssociation.status || 'active',
+      status: (newAssociation.status as "active" | "inactive") || 'active',
       settings: association.settings || createDefaultSettings(),
     };
   } catch (error) {
@@ -155,15 +157,37 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
     
     // Update settings if provided
     if (updates.settings) {
-      const { error: settingsError } = await supabase
+      // First check if settings record exists
+      const { data: existingSettings, error: checkError } = await supabase
         .from('association_settings')
-        .upsert({
-          association_id: id,
-          settings: updates.settings,
-          updated_at: new Date()
-        });
+        .select()
+        .eq('association_id', id)
+        .maybeSingle();
       
-      if (settingsError) throw settingsError;
+      if (checkError) throw checkError;
+      
+      if (existingSettings) {
+        // Update existing settings
+        const { error: updateError } = await supabase
+          .from('association_settings')
+          .update({
+            settings: updates.settings,
+            updated_at: new Date().toISOString()
+          })
+          .eq('association_id', id);
+        
+        if (updateError) throw updateError;
+      } else {
+        // Insert new settings
+        const { error: insertError } = await supabase
+          .from('association_settings')
+          .insert({
+            association_id: id,
+            settings: updates.settings
+          });
+        
+        if (insertError) throw insertError;
+      }
     }
     
     // Fetch updated association
@@ -194,11 +218,11 @@ export const updateSupabaseAssociation = async (id: string, updates: Partial<Ass
         phone: updatedAssociation.contact_phone || '',
         website: updatedAssociation.contact_website || '',
       },
-      type: updatedAssociation.type || 'hoa',
+      type: (updatedAssociation.type as "hoa" | "condo" | "coop" | "other") || 'hoa',
       foundedDate: updatedAssociation.founded_date || new Date().toISOString().split('T')[0],
       units: updatedAssociation.units || 0,
-      status: updatedAssociation.status || 'active',
-      settings: updatedAssociation.association_settings?.settings || createDefaultSettings(),
+      status: (updatedAssociation.status as "active" | "inactive") || 'active',
+      settings: updatedAssociation.association_settings?.settings as AssociationSettings || createDefaultSettings(),
     };
   } catch (error) {
     console.error('Error updating association:', error);
@@ -226,22 +250,35 @@ export const updateSupabaseAssociationSetting = async (
     if (fetchError) throw fetchError;
     
     // Prepare updated settings
-    let settings = currentData?.settings || createDefaultSettings();
-    settings = {
-      ...settings,
+    const currentSettings = currentData?.settings || createDefaultSettings();
+    const updatedSettings = {
+      ...currentSettings,
       [settingName]: value
     };
     
-    // Update settings
-    const { error: updateError } = await supabase
-      .from('association_settings')
-      .upsert({
-        association_id: id,
-        settings,
-        updated_at: new Date()
-      });
-    
-    if (updateError) throw updateError;
+    // Check if record exists
+    if (currentData) {
+      // Update settings
+      const { error: updateError } = await supabase
+        .from('association_settings')
+        .update({
+          settings: updatedSettings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('association_id', id);
+      
+      if (updateError) throw updateError;
+    } else {
+      // Insert new record
+      const { error: insertError } = await supabase
+        .from('association_settings')
+        .insert({
+          association_id: id,
+          settings: updatedSettings
+        });
+      
+      if (insertError) throw insertError;
+    }
     
     // Get updated association
     return await getSupabaseAssociationById(id);
@@ -364,11 +401,11 @@ const getSupabaseAssociationById = async (id: string): Promise<Association | nul
         phone: data.contact_phone || '',
         website: data.contact_website || '',
       },
-      type: data.type || 'hoa',
+      type: (data.type as "hoa" | "condo" | "coop" | "other") || 'hoa',
       foundedDate: data.founded_date || new Date().toISOString().split('T')[0],
       units: data.units || 0,
-      status: data.status || 'active',
-      settings: data.association_settings?.settings || createDefaultSettings(),
+      status: (data.status as "active" | "inactive") || 'active',
+      settings: data.association_settings?.settings as AssociationSettings || createDefaultSettings(),
     };
   } catch (error) {
     console.error('Error fetching association by ID:', error);

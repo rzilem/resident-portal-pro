@@ -13,6 +13,9 @@ const defaultCompanySettings = {
   logoUrl: null
 };
 
+// Settings ID for company-wide settings
+const COMPANY_SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
+
 // Cache for company settings
 let cachedSettings: Record<string, any> | null = null;
 
@@ -29,8 +32,9 @@ export const companySettingsService = {
       
       // Try to get settings from Supabase
       const { data, error } = await supabase
-        .from('company_settings')
+        .from('association_settings')
         .select('*')
+        .eq('id', COMPANY_SETTINGS_ID)
         .maybeSingle();
       
       if (error) {
@@ -40,10 +44,10 @@ export const companySettingsService = {
         return { ...defaultCompanySettings };
       }
       
-      if (data) {
+      if (data && data.settings) {
         // Cache the settings
-        cachedSettings = data.settings;
-        return { ...data.settings };
+        cachedSettings = data.settings as Record<string, any>;
+        return { ...data.settings } as Record<string, any>;
       }
       
       // No settings found, create default settings
@@ -72,11 +76,11 @@ export const companySettingsService = {
       
       // Update in Supabase
       const { data, error } = await supabase
-        .from('company_settings')
+        .from('association_settings')
         .upsert({ 
-          id: 1, // Use a constant ID for company settings
+          id: COMPANY_SETTINGS_ID,
           settings: newSettings,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         })
         .select();
       

@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSettings } from '@/hooks/use-settings';
-import { FileUpload, Trash2, Image as ImageIcon } from "lucide-react";
+import { Upload, Trash2, Image as ImageIcon } from "lucide-react";
 import { toast } from 'sonner';
 
 const LogoUploader = () => {
@@ -93,7 +93,7 @@ const LogoUploader = () => {
                   onClick={() => fileInputRef.current?.click()} 
                   disabled={isLoading || isUploading}
                 >
-                  <FileUpload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2" />
                   Change Logo
                 </Button>
                 
@@ -126,7 +126,7 @@ const LogoUploader = () => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading || isUploading}
               >
-                <FileUpload className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 mr-2" />
                 Upload Logo
               </Button>
             </div>
