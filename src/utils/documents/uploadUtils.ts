@@ -1,41 +1,45 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { DocumentCategory } from "@/types/documents";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Fetch document categories from Supabase
- * @returns Array of category names
+ * Get available document categories
+ * @returns Promise<{id: string, name: string}[]> Array of categories
  */
-export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
+export const getDocumentCategories = async (): Promise<{id: string, name: string}[]> => {
   try {
+    // First try to get categories from database
     const { data, error } = await supabase
       .from('document_categories')
-      .select('*')
+      .select('id, name')
       .order('name');
-
+      
     if (error) {
-      console.error("Error fetching document categories:", error.message);
-      return [
-        { id: '1', name: 'GENERAL', description: 'General documents', accessLevel: 'all' },
-        { id: '2', name: 'FINANCIAL', description: 'Financial documents', accessLevel: 'board' },
-        { id: '3', name: 'LEGAL', description: 'Legal documents', accessLevel: 'board' },
-        { id: '4', name: 'MAINTENANCE', description: 'Maintenance documents', accessLevel: 'all' }
-      ]; // Fallback categories
+      console.error('Error fetching document categories:', error);
+      throw new Error('Failed to fetch document categories');
     }
-
-    return data || [
-      { id: '1', name: 'GENERAL', description: 'General documents', accessLevel: 'all' },
-      { id: '2', name: 'FINANCIAL', description: 'Financial documents', accessLevel: 'board' },
-      { id: '3', name: 'LEGAL', description: 'Legal documents', accessLevel: 'board' },
-      { id: '4', name: 'MAINTENANCE', description: 'Maintenance documents', accessLevel: 'all' }
-    ];
-  } catch (error: unknown) {
-    console.error("Unexpected error fetching document categories:", error);
+    
+    if (data && data.length > 0) {
+      return data;
+    }
+    
+    // If no categories in database, return default categories
     return [
-      { id: '1', name: 'GENERAL', description: 'General documents', accessLevel: 'all' },
-      { id: '2', name: 'FINANCIAL', description: 'Financial documents', accessLevel: 'board' },
-      { id: '3', name: 'LEGAL', description: 'Legal documents', accessLevel: 'board' },
-      { id: '4', name: 'MAINTENANCE', description: 'Maintenance documents', accessLevel: 'all' }
-    ]; // Fallback categories
+      { id: 'GENERAL', name: 'GENERAL' },
+      { id: 'FINANCIAL', name: 'FINANCIAL' },
+      { id: 'LEGAL', name: 'LEGAL' },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE' },
+      { id: 'MEETING', name: 'MEETING' }
+    ];
+  } catch (error) {
+    console.error('Unexpected error fetching document categories:', error);
+    
+    // Return default categories on error
+    return [
+      { id: 'GENERAL', name: 'GENERAL' },
+      { id: 'FINANCIAL', name: 'FINANCIAL' },
+      { id: 'LEGAL', name: 'LEGAL' },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE' },
+      { id: 'MEETING', name: 'MEETING' }
+    ];
   }
 };

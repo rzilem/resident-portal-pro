@@ -1,10 +1,12 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2, FileCheck } from "lucide-react";
+import { Upload, Loader2, FileCheck, LogIn } from "lucide-react";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { validateFileSize, validateFileType } from '@/utils/documents/fileUtils';
 import { initializeDocumentsBucket } from '@/utils/documents/bucketUtils';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface SimpleDocumentUploaderProps {
   onSuccess?: (url: string) => void;
@@ -15,9 +17,14 @@ interface SimpleDocumentUploaderProps {
 const SimpleDocumentUploader = ({ onSuccess, className, associationId = '00000000-0000-0000-0000-000000000000' }: SimpleDocumentUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const { isAuthenticated, user } = useAuth();
 
   const uploadDocument = async (file: File): Promise<{ success: boolean, url?: string, error?: string }> => {
     try {
+      if (!isAuthenticated || !user) {
+        return { success: false, error: "Authentication required to upload documents" };
+      }
+      
       // Initialize storage
       const storageReady = await initializeDocumentsBucket();
       if (!storageReady) {
@@ -86,6 +93,11 @@ const SimpleDocumentUploader = ({ onSuccess, className, associationId = '0000000
       return;
     }
     
+    if (!isAuthenticated) {
+      toast.error("Please log in to upload documents");
+      return;
+    }
+    
     setIsUploading(true);
     
     try {
@@ -109,6 +121,27 @@ const SimpleDocumentUploader = ({ onSuccess, className, associationId = '0000000
       event.target.value = '';
     }
   };
+
+  const handleLogin = () => {
+    window.location.href = '/login';
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className={`flex flex-col items-start gap-4 ${className}`}>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleLogin}
+          >
+            <LogIn className="mr-2 h-4 w-4" />
+            <span>Log in to upload</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex flex-col items-start gap-4 ${className}`}>

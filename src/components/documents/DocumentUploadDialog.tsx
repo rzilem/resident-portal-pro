@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import { initializeDocumentsBucket } from '@/utils/documents/bucketUtils';
 import { validateFileSize, validateFileType } from '@/utils/documents/fileUtils';
 import { getDocumentCategories } from '@/utils/documents/uploadUtils';
@@ -35,7 +36,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   refreshDocuments,
   associationId 
 }) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState<string>('');
   const [category, setCategory] = useState<string>('GENERAL');
@@ -75,8 +76,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 
   useEffect(() => {
     if (!open) return; // Only run when dialog is open
+    if (!isAuthenticated || !user) return; // Skip if not authenticated
+    
     const prepareStorage = async () => {
-      if (authLoading || !user) return; // Wait for auth to load
       if (isPreparing) return; // Prevent multiple calls
       setIsPreparing(true);
       try {
@@ -96,8 +98,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         setIsPreparing(false);
       }
     };
+    
     prepareStorage();
-  }, [authLoading, user, open]);
+  }, [isAuthenticated, user, open, isPreparing]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -124,7 +127,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   };
 
   const handleUpload = async () => {
-    if (!user) {
+    if (!isAuthenticated || !user) {
       toast.error("Please log in to upload documents");
       console.error("User not authenticated");
       return;
@@ -249,6 +252,15 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     }
   };
 
+  const handleLogin = () => {
+    // Close this dialog and navigate to login page
+    setOpen(false);
+    // Use a timeout to allow the dialog to close first
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 300);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[500px]">
@@ -262,12 +274,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        {authLoading ? (
-          <div className="flex flex-col items-center py-6">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading authentication...</p>
-          </div>
-        ) : !user ? (
+        {!isAuthenticated || !user ? (
           <div className="bg-destructive/10 p-4 rounded-md">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
@@ -276,6 +283,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
                 <p className="text-sm text-muted-foreground mt-1">
                   Please log in to upload documents.
                 </p>
+                <Button 
+                  onClick={handleLogin} 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-3"
+                >
+                  Go to Login
+                </Button>
               </div>
             </div>
           </div>

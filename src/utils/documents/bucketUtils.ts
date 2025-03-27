@@ -1,96 +1,73 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Ensure the documents bucket exists
- * @param forceCreate Force creation of the bucket even if it doesn't exist
- * @returns True if the bucket exists or was created, false otherwise
+ * Initialize the documents storage bucket
+ * @param forceCreate Force creation even if it exists
+ * @returns Promise<boolean> Success status
  */
-export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<boolean> => {
+export const initializeDocumentsBucket = async (forceCreate = false): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.storage.listBuckets();
-    if (error) {
-      console.error("Error listing buckets:", error.message);
+    console.log('Checking if documents bucket exists...');
+    
+    // First check if the bucket already exists
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    
+    if (listError) {
+      console.error('Error listing buckets:', listError);
       return false;
     }
     
-    if (data.some(bucket => bucket.name === 'documents')) {
-      console.log("Documents bucket already exists");
+    const bucketExists = buckets.some(bucket => bucket.name === 'documents');
+    
+    if (bucketExists && !forceCreate) {
+      console.log('Documents bucket already exists');
       return true;
     }
-
-    if (!forceCreate) {
-      console.log("Documents bucket doesn't exist and forceCreate is false");
-      return false;
-    }
-
-    const { error: createError } = await supabase.storage.createBucket('documents', {
-      public: false, // Private bucket for authenticated access
-    });
     
-    if (createError) {
-      console.error("Error creating bucket:", createError.message);
-      return false;
+    if (!bucketExists) {
+      console.log('Creating documents bucket...');
+      const { error: createError } = await supabase.storage.createBucket('documents', {
+        public: false,
+        fileSizeLimit: 5242880, // 5MB
+      });
+      
+      if (createError) {
+        console.error('Error creating documents bucket:', createError);
+        return false;
+      }
+      
+      console.log('Documents bucket created successfully');
     }
     
-    console.log("Documents bucket created");
     return true;
-  } catch (error: unknown) {
-    console.error("Unexpected error:", error);
+  } catch (error) {
+    console.error('Unexpected error initializing documents bucket:', error);
     return false;
   }
 };
 
 /**
- * Test access to the documents bucket
- * @returns True if the bucket is accessible, false otherwise
+ * Test if we can access the documents bucket
+ * @returns Promise<boolean> Access status
  */
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
-    // Try to list the root directory
+    console.log('Testing bucket access...');
+    // Try to list files in the bucket as a simple access test
     const { data, error } = await supabase.storage
       .from('documents')
-      .list();
+      .list('', { limit: 1 });
     
     if (error) {
-      console.error("Error accessing bucket:", error.message);
+      console.error('Bucket access test failed:', error);
       return false;
     }
     
-    console.log("Bucket access test successful");
-    return true;
-  } catch (error: unknown) {
-    console.error("Unexpected error testing bucket access:", error);
-    return false;
-  }
-};
-
-/**
- * Initialize the documents bucket if it doesn't exist
- * @returns True if the bucket is ready, false otherwise
- */
-export const initializeDocumentsBucket = async (): Promise<boolean> => {
-  try {
-    console.log('Initializing document storage...');
-    
-    // Create/ensure bucket exists
-    const bucketExists = await ensureDocumentsBucketExists();
-    if (!bucketExists) {
-      console.error('Failed to initialize document bucket');
-      return false;
-    }
-    
-    // Test bucket access
-    const canAccess = await testBucketAccess();
-    if (!canAccess) {
-      console.error('Document bucket exists but is not accessible');
-      return false;
-    }
-    
-    console.log('Document storage initialized successfully');
+    console.log('Bucket access test successful');
     return true;
   } catch (error) {
-    console.error('Error initializing document bucket:', error);
+    console.error('Unexpected error testing bucket access:', error);
     return false;
   }
 };
