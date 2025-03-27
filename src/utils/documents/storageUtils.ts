@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for Supabase storage operations
  */
@@ -38,7 +37,7 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
           return false;
         }
         
-        // User is authenticated but still getting permission errors
+        // User is authenticated but still getting permission issues
         console.log('User is authenticated but has permission issues. Attempting to use bucket anyway.');
         return true;
       }
@@ -84,7 +83,7 @@ export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<
                 bucket_name: 'documents',
                 policy_name: policyName,
                 definition: 'auth.uid() IS NOT NULL'
-              });
+              } as any); // Type assertion to bypass TS error
               
               console.log('Created storage policy for authenticated users');
             } catch (policyError) {
