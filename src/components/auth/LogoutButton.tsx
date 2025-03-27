@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useLogout } from '@/hooks/use-logout';
+import { useNavigate } from 'react-router-dom';
 
 interface LogoutButtonProps {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
@@ -15,24 +16,22 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
   size = 'default',
   className
 }) => {
-  const { isLoading, handleLogout } = useLogout();
+  const navigate = useNavigate();
+  
+  const handleLogoutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/logout');
+  };
 
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={handleLogout}
-      disabled={isLoading}
+      onClick={handleLogoutClick}
       className={className}
     >
-      {isLoading ? (
-        'Logging out...'
-      ) : (
-        <>
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </>
-      )}
+      <LogOut className="mr-2 h-4 w-4" />
+      Logout
     </Button>
   );
 };

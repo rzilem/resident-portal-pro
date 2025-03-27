@@ -1,9 +1,9 @@
-
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import DashboardLayout from '@/components/DashboardLayout';
 import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
+import { useLogout } from '@/hooks/use-logout';
 
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
@@ -83,6 +83,7 @@ const App = () => {
         {/* Public routes without dashboard layout */}
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/logout" element={<LogoutRedirect />} />
         
         {/* HOA routes with their own layout */}
         <Route path="/hoa/dashboard" element={<HoaDashboard />} />
@@ -155,6 +156,17 @@ const App = () => {
       <Toaster />
     </>
   );
+};
+
+// Create a component that handles logout redirection
+const LogoutRedirect = () => {
+  const { handleLogout } = useLogout();
+  
+  React.useEffect(() => {
+    handleLogout();
+  }, []);
+  
+  return <Navigate to="/login" replace />;
 };
 
 export default App;
