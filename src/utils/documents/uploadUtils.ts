@@ -11,7 +11,7 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
     // First try to get categories from database
     const { data, error } = await supabase
       .from('document_categories')
-      .select('id, name, access_level')
+      .select('id, name')
       .order('name');
       
     if (error) {
@@ -23,7 +23,8 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
       return data.map(category => ({
         id: category.id,
         name: category.name,
-        accessLevel: (category.access_level || 'all') as DocumentAccessLevel
+        // Since access_level doesn't exist in the table, default to 'all'
+        accessLevel: 'all' as DocumentAccessLevel
       }));
     }
     
