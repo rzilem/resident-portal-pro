@@ -47,13 +47,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session?.user);
         
-        // Important: Use setTimeout to prevent Supabase auth recursion issues
+        // Delay profile fetch to prevent Supabase auth recursion
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id);

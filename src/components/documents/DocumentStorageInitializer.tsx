@@ -1,35 +1,36 @@
 
-import { useEffect, useState } from 'react';
-import { initializeDocumentStorage } from '@/utils/documents/initializeBucket';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth/AuthProvider';
+import { ensureDocumentsBucketExists } from '@/utils/documents';
+import { toast } from 'sonner';
 
-/**
- * This is a silent initializer component that can be included
- * in the app layout to ensure document storage is properly initialized
- * when the app starts or the authentication state changes.
- */
-const DocumentStorageInitializer = () => {
-  const { isAuthenticated } = useAuth();
+const DocumentStorageInitializer: React.FC = () => {
+  const { user, isAuthenticated } = useAuth();
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Only initialize after authentication changes
-    if (!initialized || isAuthenticated) {
-      const initStorage = async () => {
+    const initStorage = async () => {
+      if (isAuthenticated && user && !initialized) {
         try {
-          await initializeDocumentStorage();
-          setInitialized(true);
+          const success = await ensureDocumentsBucketExists();
+          
+          if (success) {
+            console.log('Document storage initialized successfully');
+            setInitialized(true);
+          } else {
+            console.error('Failed to initialize document bucket');
+            toast.error('Failed to initialize document storage. Some features may not work properly.');
+          }
         } catch (error) {
-          console.error('Failed to initialize document storage:', error);
+          console.error('Error initializing document storage:', error);
         }
-      };
-      
-      initStorage();
-    }
-  }, [isAuthenticated, initialized]);
+      }
+    };
 
-  // This component doesn't render anything visible
-  return null;
+    initStorage();
+  }, [isAuthenticated, user, initialized]);
+
+  return null; // This component doesn't render anything
 };
 
 export default DocumentStorageInitializer;
