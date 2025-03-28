@@ -1,6 +1,5 @@
 
 import React from 'react';
-import AvatarDisplay from './AvatarDisplay';
 import UploadControls from './UploadControls';
 import { useProfilePhoto } from './hooks/useProfilePhoto';
 
@@ -19,9 +18,7 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
   } = useProfilePhoto(initialPhotoUrl || null, onPhotoChange);
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 items-center">
-      <AvatarDisplay photoUrl={photoUrl} size="lg" />
-      
+    <div>
       <UploadControls
         photoUrl={photoUrl}
         isUploading={isUploading}
