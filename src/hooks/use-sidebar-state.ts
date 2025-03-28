@@ -11,12 +11,14 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
   useEffect(() => {
     // More precise route-to-group mapping
     const pathToGroupMap: Record<string, string> = {
+      '/dashboard': 'Dashboard',
+      '/simple-dashboard': 'Dashboard',
       '/calendar': 'Operations',
       '/communications': 'Operations',
       '/compliance': 'Operations',
       '/workflows': 'Operations',
       '/print-queue': 'Operations',
-      '/accounting': 'Accounting', // New dedicated accounting section
+      '/accounting': 'Accounting',
       '/database': 'Records & Reports',
       '/documents': 'Records & Reports',
       '/reports': 'Records & Reports',
@@ -29,7 +31,8 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/community-hub': 'Community Management',
       '/email-workflows': 'System',
       '/system-uploads': 'System',
-      '/resale': 'Resale Management'
+      '/resale': 'Resale Management',
+      '/hoa': 'Community Management'
     };
 
     // Check current path against map

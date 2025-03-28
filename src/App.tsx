@@ -48,6 +48,7 @@ const App = () => {
         
         {/* Protected routes with DashboardLayout */}
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/simple-dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<UploadDocument />} />
@@ -68,6 +69,7 @@ const App = () => {
         </Route>
 
         <Route path="/" element={<Index />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );
