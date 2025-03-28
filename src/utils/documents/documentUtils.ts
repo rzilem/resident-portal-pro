@@ -43,3 +43,28 @@ export const sanitizeDocumentUrl = (url: string): string => {
   }
   return url;
 };
+
+/**
+ * Get available document categories
+ * @returns Promise<{id: string, name: string}[]> Array of categories
+ */
+export const getDocumentCategories = async (): Promise<{id: string, name: string, parent?: string, description?: string, isRestricted?: boolean, requiredPermission?: string, sortOrder?: number, accessLevel?: string}[]> => {
+  try {
+    // First try to get categories from database
+    // For now, we'll use the imported function from uploadUtils
+    // In a real app, we would implement the DB query here
+    const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
+    return fetchCategories();
+  } catch (error) {
+    console.error('Error fetching document categories:', error);
+    
+    // Return default categories on error
+    return [
+      { id: 'GENERAL', name: 'GENERAL' },
+      { id: 'FINANCIAL', name: 'FINANCIAL' },
+      { id: 'LEGAL', name: 'LEGAL' },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE' },
+      { id: 'MEETING', name: 'MEETING' }
+    ];
+  }
+};

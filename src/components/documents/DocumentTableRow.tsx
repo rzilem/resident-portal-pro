@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Eye, Download } from "lucide-react";
 import { DocumentFile } from '@/types/documents';
 import DocumentActions from './DocumentActions';
-import { getDocumentIcon, formatDate, formatFileSize } from './utils/documentIconUtils';
+import { getDocumentIcon, formatDate } from './utils/documentIconUtils';
+import { formatFileSize } from '@/utils/documents/documentUtils';
 import { toast } from "sonner";
 
 interface DocumentTableRowProps {

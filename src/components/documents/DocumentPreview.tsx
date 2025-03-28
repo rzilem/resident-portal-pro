@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Download, FileText, Calendar, User, Clock, Tag, Info, ExternalLink, AlertTriangle } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
-import { formatFileSize } from '@/utils/documents/documentUtils';
+import { formatFileSize, isFilePreviewable } from '@/utils/documents/documentUtils';
 import { toast } from 'sonner';
 
 interface DocumentPreviewProps {
@@ -77,13 +77,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
   
   const canPreview = () => {
-    const fileType = document.fileType.toLowerCase();
-    return fileType.includes('pdf') || 
-           fileType.includes('image') || 
-           fileType.includes('jpg') || 
-           fileType.includes('jpeg') || 
-           fileType.includes('png') || 
-           fileType.includes('gif');
+    return isFilePreviewable(document.fileType);
   };
   
   const renderPreview = () => {
