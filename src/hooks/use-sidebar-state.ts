@@ -58,7 +58,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/documents/association': 'Records & Reports',
       '/reports': 'Records & Reports',
       
-      // Resale Management routes
+      // Resale Management routes - fixing this section
       '/resale': 'Resale Management',
       '/resale/certificate': 'Resale Management',
       '/resale/questionnaire': 'Resale Management',
@@ -66,7 +66,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/resale/statements': 'Resale Management',
       '/resale/trec-forms': 'Resale Management',
       
-      // System routes
+      // System routes - fixing this section
       '/settings': 'System',
       '/settings/associations': 'System',
       '/settings/permissions': 'System',
@@ -75,7 +75,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/system-uploads': 'System',
     };
 
-    // Initialize groups to maintain current state
+    // Initialize the new state object with the current state to avoid losing open groups
     const newOpenGroups = { ...openGroups };
     
     // Match current path with exact routes
@@ -97,12 +97,12 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       }
     }
     
-    console.log("Updated open groups:", newOpenGroups);
     // Only update state if there are actual changes
     if (JSON.stringify(newOpenGroups) !== JSON.stringify(openGroups)) {
+      console.log("Updating open groups:", newOpenGroups);
       setOpenGroups(newOpenGroups);
     }
-  }, [location.pathname, openGroups]);
+  }, [location.pathname]);
 
   // Function to toggle a specific group
   const toggleGroup = (group: string) => {

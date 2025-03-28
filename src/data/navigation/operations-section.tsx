@@ -16,8 +16,8 @@ export const getOperationsSection = (currentPath: string): NavItem => {
     active: currentPath === "/calendar" || 
             currentPath.startsWith("/communications") || 
             currentPath === "/workflows" || 
-            currentPath === "/print-queue" ||
-            currentPath.startsWith("/resale"),
+            currentPath === "/print-queue",
+    href: "/calendar", // Default href for the section
     items: [
       {
         label: "Calendar",
@@ -29,20 +29,7 @@ export const getOperationsSection = (currentPath: string): NavItem => {
         label: "Communications",
         icon: MessageSquare,
         href: "/communications/messaging",
-        active: currentPath === "/communications/messaging" || 
-                currentPath === "/communications/announcements",
-        submenu: [
-          {
-            label: "Community Messaging",
-            href: "/communications/messaging",
-            active: currentPath === "/communications/messaging",
-          },
-          {
-            label: "Announcements",
-            href: "/communications/announcements",
-            active: currentPath === "/communications/announcements",
-          },
-        ],
+        active: currentPath.startsWith("/communications"),
       },
       {
         label: "Workflows",
@@ -56,12 +43,6 @@ export const getOperationsSection = (currentPath: string): NavItem => {
         href: "/print-queue",
         active: currentPath === "/print-queue",
       },
-      {
-        label: "Resale",
-        icon: ClipboardCheck,
-        href: "/resale",
-        active: currentPath.startsWith("/resale"),
-      }
     ],
   };
 };

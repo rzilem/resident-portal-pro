@@ -23,26 +23,34 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
     e.preventDefault(); // Prevent default behavior
     
     // Check if the click is on the chevron or its parent
-    const isChevronClick = (e.target as HTMLElement).tagName === 'svg' || 
-                         (e.target as HTMLElement).tagName === 'path' ||
-                         (e.target as HTMLElement).closest('button[data-chevron="true"]');
+    const target = e.target as HTMLElement;
+    const isChevronClick = target.tagName === 'svg' || 
+                         target.tagName === 'path' ||
+                         target.closest('button[data-chevron="true"]') !== null;
     
     if (isChevronClick) {
       // If clicking on the chevron, just toggle the menu
       e.stopPropagation();
       onToggle();
+      console.log('Toggling menu:', item.label);
     } else {
       // If clicking elsewhere on the button, navigate and optionally toggle
       if (item.href) {
         console.log('Navigating to:', item.href);
         navigate(item.href);
       }
+      
+      // For sections that should open on click (and not just navigate)
+      if (!isOpen) {
+        console.log('Auto-opening menu on navigation:', item.label);
+        onToggle();
+      }
     }
   };
 
   // Handle child item click
   const handleChildClick = (href: string) => {
-    console.log('Navigating to:', href);
+    console.log('Navigating to child item:', href);
     navigate(href);
   };
 
