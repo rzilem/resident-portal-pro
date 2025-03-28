@@ -6,7 +6,7 @@ import { userPreferencesService } from '@/services/userPreferencesService';
 
 interface UserPreferences {
   theme?: 'light' | 'dark' | 'system';
-  cardStyle?: 'default' | 'flat' | 'elevated';
+  cardStyle?: 'default' | 'flat' | 'glass' | 'rounded';
   colorMode?: 'default' | 'grayscale' | 'high-contrast';
   fontSize?: 'small' | 'medium' | 'large';
   dashboardLayout?: any;
@@ -16,6 +16,8 @@ interface UserPreferences {
   tableDensity?: 'compact' | 'default' | 'spacious';
   notificationsEnabled?: boolean;
   documentCategories?: any[];
+  logoUrl?: string | null;
+  companyName?: string;
   [key: string]: any;
 }
 
@@ -30,7 +32,9 @@ const defaultPreferences: UserPreferences = {
   databaseHomeownerColumns: [],
   tableDensity: 'default',
   notificationsEnabled: true,
-  documentCategories: []
+  documentCategories: [],
+  logoUrl: null,
+  companyName: 'ResidentPro'
 };
 
 export const useSettings = () => {
@@ -100,10 +104,44 @@ export const useSettings = () => {
     }
   }, [preferences, isAuthenticated, user?.id]);
 
+  // Special function for company logo upload
+  const uploadCompanyLogo = useCallback(async (file: File): Promise<string | null> => {
+    if (!isAuthenticated || !user?.id) {
+      toast.error('You must be logged in to upload a logo');
+      return null;
+    }
+
+    try {
+      // In a real implementation, this would upload to Supabase storage
+      // For now, we'll use a simulated URL
+      const fakeUrl = URL.createObjectURL(file);
+      
+      // Update the preferences with the logo URL
+      await updatePreference('logoUrl', fakeUrl);
+      
+      return fakeUrl;
+    } catch (error) {
+      console.error('Error uploading company logo:', error);
+      return null;
+    }
+  }, [isAuthenticated, user?.id, updatePreference]);
+
+  // Alias for better API compatibility
+  const updateCompanySetting = updatePreference;
+
+  // Company settings are just a subset of user preferences in this implementation
+  const companySettings = {
+    logoUrl: preferences.logoUrl,
+    companyName: preferences.companyName
+  };
+
   return {
     preferences,
+    companySettings,
     isLoading,
     savePreferences,
-    updatePreference
+    updatePreference,
+    uploadCompanyLogo,
+    updateCompanySetting
   };
 };

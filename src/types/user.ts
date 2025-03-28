@@ -38,6 +38,10 @@ export interface UserPreferences {
     type: 'url' | 'data' | 'pattern';
     value: string;
   } | null;
+  
+  // Company branding settings
+  logoUrl?: string | null;
+  companyName?: string;
 }
 
 export interface Widget {
