@@ -38,6 +38,7 @@ import CommunityMessaging from '@/pages/communications/CommunityMessaging';
 import Settings from '@/pages/Settings';
 import Integrations from '@/pages/Integrations';
 import SystemUploads from '@/pages/SystemUploads';
+import EmailWorkflows from '@/pages/settings/EmailWorkflows';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -111,7 +112,7 @@ const App = () => {
           <Route path="/settings/associations" element={<div>Association Settings</div>} />
           <Route path="/settings/permissions" element={<div>Permission Settings</div>} />
           <Route path="/integrations" element={<Integrations />} />
-          <Route path="/email-workflows" element={<div>Email Workflows</div>} />
+          <Route path="/email-workflows" element={<EmailWorkflows />} />
           <Route path="/system-uploads" element={<SystemUploads />} />
         </Route>
 
