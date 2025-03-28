@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
@@ -39,6 +39,13 @@ const LogoutRedirect = () => {
 };
 
 const App = () => {
+  const location = useLocation();
+  
+  // Log the current path for debugging
+  React.useEffect(() => {
+    console.log('Current location:', location.pathname);
+  }, [location]);
+
   return (
     <AuthProvider>
       <DocumentStorageInitializer />
@@ -72,6 +79,8 @@ const App = () => {
         </Route>
 
         <Route path="/" element={<Index />} />
+        
+        {/* Handle unknown routes by redirecting to Index page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>

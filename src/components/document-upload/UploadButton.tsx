@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { Upload } from 'lucide-react';
 
 interface UploadButtonProps {
   file: File | null;
@@ -23,41 +23,52 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
   setSuccess 
 }) => {
   const handleUpload = async () => {
-    console.log('Starting upload');
-    if (!file || !user) {
-      setError('Please select a file and ensure you are logged in.');
-      toast.error('Please select a file and ensure you are logged in.');
+    if (!file) {
+      setError('Please select a file');
       return;
     }
+
     setUploading(true);
     setError(null);
     setSuccess(false);
+    
     try {
-      console.log('Uploading to bucket: documents, path:', `${user.id}/${file.name}`);
-      const { data, error } = await supabase.storage
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      // Upload file to Supabase storage
+      const { error } = await supabase.storage
         .from('documents')
-        .upload(`${user.id}/${file.name}`, file, { upsert: true });
-      if (error) throw error;
-      console.log('Upload successful:', data);
+        .upload(filePath, file);
+        
+      if (error) {
+        throw error;
+      }
+      
       setSuccess(true);
-      toast.success('Document uploaded successfully!');
-    } catch (err: any) {
-      console.error('Upload failed:', err);
-      setError('Upload failed: ' + err.message);
-      toast.error('Upload failed: ' + err.message);
+    } catch (error: any) {
+      setError(error.message || 'Error uploading file');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <Button
-      onClick={handleUpload}
-      disabled={uploading || !file}
-      className="w-full"
-      variant="default"
+    <Button 
+      className="w-full" 
+      onClick={handleUpload} 
+      disabled={!file || uploading}
     >
-      {uploading ? 'Uploading...' : 'Upload Document'}
+      {uploading ? (
+        <span>Uploading...</span>
+      ) : (
+        <span className="flex items-center gap-2">
+          <Upload className="h-4 w-4" />
+          Upload Document
+        </span>
+      )}
     </Button>
   );
 };
