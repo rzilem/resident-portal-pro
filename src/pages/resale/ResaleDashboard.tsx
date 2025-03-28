@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -15,7 +14,8 @@ import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
 const ResaleDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(() => {
+  
+  const getInitialTab = () => {
     const path = location.pathname;
     if (path.includes('/certificate')) return 'certificate';
     if (path.includes('/questionnaire')) return 'questionnaire';
@@ -23,12 +23,17 @@ const ResaleDashboard = () => {
     if (path.includes('/statements')) return 'statements';
     if (path.includes('/trec-forms')) return 'trec-forms';
     return 'overview';
-  });
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  useEffect(() => {
+    setActiveTab(getInitialTab());
+  }, [location.pathname]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     
-    // Update URL without full page refresh
     const newPath = value === 'overview' 
       ? '/resale' 
       : `/resale/${value}`;
@@ -123,7 +128,6 @@ const ResaleDashboard = () => {
   );
 };
 
-// Overview component that shows quick links to all sections
 const ResaleOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }) => {
   const resaleModules = [
     {

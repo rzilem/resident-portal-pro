@@ -12,7 +12,7 @@ export const getResaleSection = (currentPath: string): NavItem => ({
       label: "Resale Certificate",
       icon: FileSpreadsheet,
       href: "/resale/certificate",
-      active: currentPath === "/resale/certificate" || currentPath === "/resale"
+      active: currentPath === "/resale/certificate"
     },
     {
       label: "Condo Questionnaire",
