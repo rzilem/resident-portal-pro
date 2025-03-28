@@ -1,128 +1,95 @@
 
-import { UserPreferences } from "@/types/user";
-import { InvoiceColumn } from "@/components/accounting/invoices/InvoiceColumnsSelector";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Mock storage for user settings
-let userSettings: Record<string, UserPreferences> = {};
-
-// Default invoice columns
-const defaultInvoiceColumns: InvoiceColumn[] = [
-  { id: 'invoiceNumber', label: 'Invoice #', checked: true },
-  { id: 'date', label: 'Date', checked: true },
-  { id: 'dueDate', label: 'Due Date', checked: true },
-  { id: 'vendor', label: 'Vendor', checked: true },
-  { id: 'association', label: 'Association', checked: true },
-  { id: 'amount', label: 'Amount', checked: true },
-  { id: 'status', label: 'Status', checked: true },
-  { id: 'recipient', label: 'Recipient', checked: false },
-  { id: 'category', label: 'Category', checked: false },
-  { id: 'createdAt', label: 'Created', checked: false }
-];
-
-// Initialize with some default settings
-const defaultPreferences: UserPreferences = {
-  theme: 'light',
-  cardStyle: 'default',
-  density: 'comfortable',
-  animations: true,
-  notifications: {
-    email: true,
-    push: true,
-    sms: false
-  },
-  calendarView: 'month',
-  dashboardLayout: {
-    columns: 2,
-    widgets: [
-      {
-        id: 'widget-1',
-        type: 'tasks',
-        title: 'Tasks',
-        size: 'medium',
-        position: 0,
-      },
-      {
-        id: 'widget-2',
-        type: 'calendar',
-        title: 'Calendar',
-        size: 'medium',
-        position: 1,
-      },
-      {
-        id: 'widget-3',
-        type: 'notifications',
-        title: 'Notifications',
-        size: 'small',
-        position: 2,
-      },
-      {
-        id: 'widget-4',
-        type: 'weather',
-        title: 'Weather',
-        size: 'small',
-        position: 3,
-      },
-      {
-        id: 'widget-5',
-        type: 'ci-insights',
-        title: 'CI Insights',
-        size: 'medium',
-        position: 4,
-      },
-    ]
-  },
-  dashboardWidgets: ['tasks', 'calendar', 'notices', 'weather', 'ci-insights'],
-  invoiceTableColumns: defaultInvoiceColumns
-};
-
+/**
+ * Service for managing user preferences in Supabase
+ */
 export const userPreferencesService = {
   /**
-   * Get user preferences for a specific user
+   * Saves user preferences to Supabase
+   * @param userId - The user's ID
+   * @param preferences - The preferences object to save
    */
-  getUserPreferences: (userId: string): UserPreferences => {
-    if (!userSettings[userId]) {
-      userSettings[userId] = { ...defaultPreferences };
+  async savePreferences(userId: string, preferences: any): Promise<void> {
+    if (!userId) {
+      console.error('Cannot save preferences: No user ID provided');
+      return;
     }
-    return userSettings[userId];
+
+    try {
+      console.log('Saving preferences for user:', userId);
+      
+      // First check if the user already has preferences
+      const { data: existing } = await supabase
+        .from('user_preferences')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existing) {
+        // Update existing preferences
+        const { error } = await supabase
+          .from('user_preferences')
+          .update({ 
+            preference_data: preferences,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+        console.log('Preferences updated successfully');
+      } else {
+        // Insert new preferences
+        const { error } = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: userId,
+            preference_data: preferences
+          });
+        
+        if (error) throw error;
+        console.log('Preferences created successfully');
+      }
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast.error('Failed to save preferences');
+    }
   },
 
   /**
-   * Update user preferences
+   * Retrieves user preferences from Supabase
+   * @param userId - The user's ID
+   * @returns The user preferences or null if not found
    */
-  updateUserPreferences: (userId: string, updates: Partial<UserPreferences>): UserPreferences => {
-    if (!userSettings[userId]) {
-      userSettings[userId] = { ...defaultPreferences };
+  async getPreferences(userId: string): Promise<any | null> {
+    if (!userId) {
+      console.error('Cannot get preferences: No user ID provided');
+      return null;
     }
 
-    userSettings[userId] = {
-      ...userSettings[userId],
-      ...updates
-    };
-
-    return userSettings[userId];
-  },
-
-  /**
-   * Update a specific preference
-   */
-  updatePreference: (userId: string, key: keyof UserPreferences, value: any): UserPreferences => {
-    if (!userSettings[userId]) {
-      userSettings[userId] = { ...defaultPreferences };
+    try {
+      console.log('Getting preferences for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('preference_data')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (data) {
+        console.log('Retrieved preferences:', data.preference_data);
+        return data.preference_data;
+      }
+      
+      console.log('No preferences found for user');
+      return null;
+    } catch (error) {
+      console.error('Error getting preferences:', error);
+      toast.error('Failed to load preferences');
+      return null;
     }
-
-    userSettings[userId] = {
-      ...userSettings[userId],
-      [key]: value
-    };
-
-    return userSettings[userId];
-  },
-
-  /**
-   * Reset user preferences to default
-   */
-  resetPreferences: (userId: string): UserPreferences => {
-    userSettings[userId] = { ...defaultPreferences };
-    return userSettings[userId];
   }
 };

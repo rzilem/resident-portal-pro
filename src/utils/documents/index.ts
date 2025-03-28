@@ -1,9 +1,5 @@
 
-/**
- * Export all document-related utilities
- */
-export * from './uploadUtils';
-export * from './bucketUtils';
-export * from './authUtils';
-export { validateFileSize, validateFileType, formatFileSize, downloadFile } from './fileUtils';
-export { getDocuments } from './documentDbUtils';
+// Export all document utilities
+export * from './documentDbUtils';
+export * from './documentUtils';
+export * from './ensureDocumentStorage';
