@@ -38,6 +38,10 @@ import SystemUploads from '@/pages/SystemUploads';
 import EmailWorkflows from '@/pages/settings/EmailWorkflows';
 import Associations from '@/pages/settings/Associations';
 import Permissions from '@/pages/settings/Permissions';
+import Records from '@/pages/database/Records';
+import Reports from '@/pages/Reports';
+import ResaleDashboard from '@/pages/resale/ResaleDashboard';
+import ResaleWizard from '@/pages/resale/wizard/ResaleWizard';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -93,12 +97,20 @@ const App = () => {
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
           
-          <Route path="/resale" element={<div>Resale Management</div>} />
-          <Route path="/resale/certificate" element={<div>Resale Certificate</div>} />
-          <Route path="/resale/questionnaire" element={<div>Condo Questionnaire</div>} />
-          <Route path="/resale/inspection" element={<div>Property Inspection</div>} />
-          <Route path="/resale/statements" element={<div>Account Statements</div>} />
-          <Route path="/resale/trec-forms" element={<div>TREC Forms</div>} />
+          {/* Database Records Page */}
+          <Route path="/database/records" element={<Records />} />
+          
+          {/* Reports Page */}
+          <Route path="/reports" element={<Reports />} />
+          
+          {/* Resale Management Routes */}
+          <Route path="/resale" element={<ResaleDashboard />} />
+          <Route path="/resale/certificate" element={<ResaleDashboard />} />
+          <Route path="/resale/questionnaire" element={<ResaleDashboard />} />
+          <Route path="/resale/inspection" element={<ResaleDashboard />} />
+          <Route path="/resale/statements" element={<ResaleDashboard />} />
+          <Route path="/resale/trec-forms" element={<ResaleDashboard />} />
+          <Route path="/resale/wizard" element={<ResaleWizard />} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
