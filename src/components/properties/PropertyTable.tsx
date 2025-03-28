@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,10 +26,7 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
   };
 
   const navigateToAssociation = (associationId: string) => {
-    // Only navigate if we're not already on this property's page
-    if (id !== associationId) {
-      navigate(`/properties/${associationId}`);
-    }
+    navigate(`/properties/${associationId}`);
   };
 
   const SortIcon = ({ field }: { field: string }) => {
@@ -117,23 +113,12 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
                   >
                     {property.name}
                   </button>
-                ) : col.id === 'status' ? (
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {property.status}
-                  </span>
-                ) : col.id === 'foundedDate' ? (
-                  new Date(property.onboardingDate).toLocaleDateString()
-                ) : col.id === 'assessmentFrequency' ? (
-                  <span className="flex items-center">
-                    <CalendarDays className="h-4 w-4 text-blue-600 mr-1" />
-                    {property.assessmentFrequency}
-                  </span>
-                ) : typeof property[col.id as keyof typeof property] === 'boolean' ? (
-                  renderBooleanValue(property[col.id as keyof typeof property] as boolean)
                 ) : (
-                  property[col.id as keyof typeof property]
+                  typeof property[col.id as keyof typeof property] === 'boolean' ? (
+                    renderBooleanValue(property[col.id as keyof typeof property] as boolean)
+                  ) : (
+                    property[col.id as keyof typeof property]
+                  )
                 )}
               </TableCell>
             ))}
