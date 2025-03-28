@@ -1,16 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { DocumentAccessLevel } from '@/types/documents';
 
 /**
  * Get available document categories
- * @returns Promise<{id: string, name: string}[]> Array of categories
+ * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
  */
-export const getDocumentCategories = async (): Promise<{id: string, name: string}[]> => {
+export const getDocumentCategories = async (): Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> => {
   try {
     // First try to get categories from database
     const { data, error } = await supabase
       .from('document_categories')
-      .select('id, name')
+      .select('id, name, access_level')
       .order('name');
       
     if (error) {
@@ -19,27 +20,31 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
     }
     
     if (data && data.length > 0) {
-      return data;
+      return data.map(category => ({
+        id: category.id,
+        name: category.name,
+        accessLevel: (category.access_level || 'all') as DocumentAccessLevel
+      }));
     }
     
     // If no categories in database, return default categories
     return [
-      { id: 'GENERAL', name: 'GENERAL' },
-      { id: 'FINANCIAL', name: 'FINANCIAL' },
-      { id: 'LEGAL', name: 'LEGAL' },
-      { id: 'MAINTENANCE', name: 'MAINTENANCE' },
-      { id: 'MEETING', name: 'MEETING' }
+      { id: 'GENERAL', name: 'GENERAL', accessLevel: 'all' },
+      { id: 'FINANCIAL', name: 'FINANCIAL', accessLevel: 'board' },
+      { id: 'LEGAL', name: 'LEGAL', accessLevel: 'management' },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE', accessLevel: 'all' },
+      { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' }
     ];
   } catch (error) {
     console.error('Unexpected error fetching document categories:', error);
     
     // Return default categories on error
     return [
-      { id: 'GENERAL', name: 'GENERAL' },
-      { id: 'FINANCIAL', name: 'FINANCIAL' },
-      { id: 'LEGAL', name: 'LEGAL' },
-      { id: 'MAINTENANCE', name: 'MAINTENANCE' },
-      { id: 'MEETING', name: 'MEETING' }
+      { id: 'GENERAL', name: 'GENERAL', accessLevel: 'all' },
+      { id: 'FINANCIAL', name: 'FINANCIAL', accessLevel: 'board' },
+      { id: 'LEGAL', name: 'LEGAL', accessLevel: 'management' },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE', accessLevel: 'all' },
+      { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' }
     ];
   }
 };

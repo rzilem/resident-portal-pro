@@ -46,25 +46,31 @@ export const sanitizeDocumentUrl = (url: string): string => {
 
 /**
  * Get available document categories
- * @returns Promise<{id: string, name: string}[]> Array of categories
+ * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
  */
-export const getDocumentCategories = async (): Promise<{id: string, name: string, parent?: string, description?: string, isRestricted?: boolean, requiredPermission?: string, sortOrder?: number, accessLevel?: string}[]> => {
+export const getDocumentCategories = async (): Promise<{id: string, name: string, parent?: string, description?: string, isRestricted?: boolean, requiredPermission?: string, sortOrder?: number, accessLevel?: import('@/types/documents').DocumentAccessLevel}[]> => {
   try {
     // First try to get categories from database
     // For now, we'll use the imported function from uploadUtils
     // In a real app, we would implement the DB query here
     const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
-    return fetchCategories();
+    const categories = await fetchCategories();
+    
+    // Ensure accessLevel is properly typed as DocumentAccessLevel
+    return categories.map(category => ({
+      ...category,
+      accessLevel: category.accessLevel as import('@/types/documents').DocumentAccessLevel || 'all'
+    }));
   } catch (error) {
     console.error('Error fetching document categories:', error);
     
     // Return default categories on error
     return [
-      { id: 'GENERAL', name: 'GENERAL' },
-      { id: 'FINANCIAL', name: 'FINANCIAL' },
-      { id: 'LEGAL', name: 'LEGAL' },
-      { id: 'MAINTENANCE', name: 'MAINTENANCE' },
-      { id: 'MEETING', name: 'MEETING' }
+      { id: 'GENERAL', name: 'GENERAL', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'FINANCIAL', name: 'FINANCIAL', accessLevel: 'board' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'LEGAL', name: 'LEGAL', accessLevel: 'management' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' as import('@/types/documents').DocumentAccessLevel }
     ];
   }
 };

@@ -54,14 +54,14 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
     
     // Create a temporary anchor element to trigger download
-    const link = document.createElement('a');
+    const link = window.document.createElement('a');
     link.href = document.url;
     link.download = document.name;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
     
     toast.success(`Downloading ${document.name}`);
   };
