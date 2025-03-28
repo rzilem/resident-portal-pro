@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -27,7 +26,11 @@ const availableWidgets: Array<{
   { type: 'documents', title: 'Documents', description: 'Recently accessed documents' },
   { type: 'announcements', title: 'Announcements', description: 'Community announcements' },
   { type: 'directory', title: 'Directory', description: 'Community directory' },
-  { type: 'ci-insights', title: 'CI Insights', description: 'AI-driven community intelligence insights' },
+  { 
+    type: 'ci-insights', 
+    title: 'CI Insights', 
+    description: 'AI-driven community insights' 
+  },
 ];
 
 const AvailableWidgets: React.FC<AvailableWidgetsProps> = ({ onAddWidget }) => {
