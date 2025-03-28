@@ -18,17 +18,26 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
   const navigate = useNavigate();
   const Icon = item.icon;
 
-  // Handle navigation when clicking on the main button
-  const handleNavigation = (e: React.MouseEvent) => {
-    if (item.href) {
-      navigate(item.href);
+  // Handle both toggle and navigation in a single function
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default behavior
+    
+    // Check if the click is on the chevron or its parent
+    const isChevronClick = (e.target as HTMLElement).tagName === 'svg' || 
+                         (e.target as HTMLElement).tagName === 'path' ||
+                         (e.target as HTMLElement).closest('button[data-chevron="true"]');
+    
+    if (isChevronClick) {
+      // If clicking on the chevron, just toggle the menu
+      e.stopPropagation();
+      onToggle();
+    } else {
+      // If clicking elsewhere on the button, navigate and optionally toggle
+      if (item.href) {
+        console.log('Navigating to:', item.href);
+        navigate(item.href);
+      }
     }
-  };
-  
-  // Handle toggle separately to avoid navigation conflicts
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
-    onToggle();
   };
 
   // Handle child item click
@@ -39,36 +48,28 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
 
   return (
     <Collapsible open={isOpen} onOpenChange={onToggle} className="w-full">
-      <div className="flex w-full">
+      <CollapsibleTrigger asChild>
         <Button
           variant="default"
           className={cn(
-            "flex-1 justify-start font-normal",
+            "w-full justify-between font-normal",
             item.active ? "font-medium" : "font-normal"
           )}
-          onClick={handleNavigation}
+          onClick={handleButtonClick}
         >
           <span className="flex items-center">
             {item.icon && <span className="mr-2"><Icon className="h-4 w-4" /></span>}
             {item.label}
           </span>
+          <ChevronDown
+            data-chevron="true"
+            className={cn(
+              "h-4 w-4 transition-transform",
+              isOpen ? "rotate-180" : ""
+            )}
+          />
         </Button>
-        <CollapsibleTrigger asChild>
-          <Button 
-            variant="default" 
-            size="icon" 
-            className="px-2"
-            onClick={handleToggle}
-          >
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 transition-transform",
-                isOpen ? "rotate-180" : ""
-              )}
-            />
-          </Button>
-        </CollapsibleTrigger>
-      </div>
+      </CollapsibleTrigger>
       <CollapsibleContent className="w-full pl-4 pt-1 space-y-1">
         <SidebarMenu>
           {item.items?.map((subItem) => {

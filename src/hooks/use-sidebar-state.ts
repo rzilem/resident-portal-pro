@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -74,7 +75,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/system-uploads': 'System',
     };
 
-    // Keep previously opened groups
+    // Initialize groups to maintain current state
     const newOpenGroups = { ...openGroups };
     
     // Match current path with exact routes
@@ -97,10 +98,13 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
     }
     
     console.log("Updated open groups:", newOpenGroups);
-    setOpenGroups(newOpenGroups);
-  }, [location.pathname]);
+    // Only update state if there are actual changes
+    if (JSON.stringify(newOpenGroups) !== JSON.stringify(openGroups)) {
+      setOpenGroups(newOpenGroups);
+    }
+  }, [location.pathname, openGroups]);
 
-  // Function to toggle a specific group - this is what handles the menu opening/closing
+  // Function to toggle a specific group
   const toggleGroup = (group: string) => {
     console.log(`Toggling group: ${group}`, !openGroups[group]);
     setOpenGroups(prev => ({
