@@ -51,7 +51,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/workflows': 'Operations',
       '/print-queue': 'Operations',
       
-      // Records & Reports routes
+      // Records & Reports routes - Explicitly ensure these routes open the Records section
       '/database': 'Records & Reports',
       '/database/records': 'Records & Reports',
       '/documents': 'Records & Reports',

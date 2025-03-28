@@ -22,17 +22,18 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
   const handleButtonClick = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default behavior
     
-    // Toggle the group open/closed
+    // Always toggle the group open/closed first
     onToggle();
     
-    // If the item has a href, navigate to it
-    if (item.href) {
+    // Navigate only if the user clicks on the button and not the chevron
+    if (item.href && !(e.target instanceof SVGElement)) {
       navigate(item.href);
     }
   };
 
   // Handle child item click
   const handleChildClick = (href: string) => {
+    console.log('Navigating to:', href);
     navigate(href);
   };
 

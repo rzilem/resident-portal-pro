@@ -8,7 +8,7 @@ export const getRecordsSection = (currentPath: string): NavItem => ({
   active: currentPath.startsWith("/database") || 
           currentPath.startsWith("/documents") || 
           currentPath.startsWith("/reports"),
-  href: "/database/records", // Default href
+  href: "/documents/association", // Changed default href to documents page
   items: [
     {
       label: "Records",
