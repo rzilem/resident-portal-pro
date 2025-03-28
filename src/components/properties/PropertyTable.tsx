@@ -28,7 +28,15 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
 
   const navigateToAssociation = (associationId: string) => {
     console.log('Navigating to association:', associationId);
-    navigate(`/properties/${associationId}`);
+    
+    // Force navigation even if it's the same route by replacing the current entry
+    if (id === associationId) {
+      // If we're already on this page, reload the component by replacing the route
+      navigate(`/properties/${associationId}`, { replace: true });
+    } else {
+      // Normal navigation to a different property
+      navigate(`/properties/${associationId}`);
+    }
   };
 
   const SortIcon = ({ field }: { field: string }) => {
