@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -36,6 +37,7 @@ import Integrations from '@/pages/Integrations';
 import SystemUploads from '@/pages/SystemUploads';
 import EmailWorkflows from '@/pages/settings/EmailWorkflows';
 import Associations from '@/pages/settings/Associations';
+import Permissions from '@/pages/settings/Permissions';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -100,7 +102,7 @@ const App = () => {
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
-          <Route path="/settings/permissions" element={<div>Permission Settings</div>} />
+          <Route path="/settings/permissions" element={<Permissions />} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/email-workflows" element={<EmailWorkflows />} />
           <Route path="/system-uploads" element={<SystemUploads />} />
