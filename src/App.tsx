@@ -8,7 +8,7 @@ import { useLogout } from '@/hooks/use-logout';
 
 import Index from '@/pages/Index';
 import Login from '@/components/Login';
-import Dashboard from '@/components/Dashboard';
+import Dashboard from '@/pages/Dashboard';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import UploadDocument from '@/components/UploadDocument';
 import Properties from '@/pages/Properties';
@@ -40,10 +40,14 @@ const App = () => {
             <Dashboard />
           </ProtectedRoute>
         } />
-        {/* Make /simple-dashboard redirect to /dashboard for consistency */}
+        {/* Return to using original dashboard at /simple-dashboard */}
         <Route
           path="/simple-dashboard"
-          element={<Navigate to="/dashboard" replace />}
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/upload"
