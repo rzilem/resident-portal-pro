@@ -17,6 +17,7 @@ import ResidentProfile from '@/pages/ResidentProfile';
 import HoaDashboard from '@/pages/hoa/Dashboard';
 import HoaFinances from '@/pages/hoa/Finances';
 import DashboardLayout from '@/components/DashboardLayout';
+import Compliance from '@/pages/compliance/Compliance';
 
 // Import accounting pages
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
@@ -55,8 +56,10 @@ const App = () => {
           <Route path="/hoa/dashboard" element={<HoaDashboard />} />
           <Route path="/hoa/finances" element={<HoaFinances />} />
           <Route path="/properties" element={<Properties />} />
+          <Route path="/properties/:id" element={<Properties />} />
           <Route path="/residents" element={<Residents />} />
           <Route path="/residents/:id" element={<ResidentProfile />} />
+          <Route path="/compliance" element={<Compliance />} />
           
           {/* Accounting routes */}
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />

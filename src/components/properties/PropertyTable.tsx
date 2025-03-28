@@ -25,7 +25,7 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
   };
 
   const navigateToAssociation = (associationId: string) => {
-    navigate(`/associations/${associationId}`);
+    navigate(`/properties/${associationId}`);
   };
 
   const SortIcon = ({ field }: { field: string }) => {

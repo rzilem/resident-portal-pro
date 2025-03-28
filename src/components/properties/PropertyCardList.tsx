@@ -15,7 +15,7 @@ const PropertyCardList = ({ properties, columns }: PropertyCardListProps) => {
   const navigate = useNavigate();
 
   const navigateToAssociation = (associationId: string) => {
-    navigate(`/associations/${associationId}`);
+    navigate(`/properties/${associationId}`);
   };
 
   return (
