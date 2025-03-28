@@ -1,108 +1,65 @@
-
-import React, { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../supabaseClient';
 
 const UploadDocument = () => {
-  const { user, supabase } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploadError, setUploadError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const fileInput = form.elements[0] as HTMLInputElement;
-    const file = fileInput.files?.[0];
-    
-    if (!file) {
-      setUploadError('Please select a file to upload');
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) setFile(e.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    console.log('Starting upload');
+    if (!file || !user) {
+      setError('Please select a file and ensure you are logged in.');
       return;
     }
-
     setUploading(true);
-    setUploadError('');
-    setUploadSuccess(false);
-
+    setError(null);
+    setSuccess(false);
     try {
-      // Upload the file to Supabase Storage
+      console.log('Uploading to bucket: documents, path:', `${user.id}/${file.name}`);
       const { data, error } = await supabase.storage
         .from('documents')
-        .upload(`${user.id}/${file.name}`, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
+        .upload(`${user.id}/${file.name}`, file, { upsert: true });
       if (error) throw error;
-      setUploadSuccess(true);
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      setUploadError(`Failed to upload document: ${error.message}`);
+      console.log('Upload successful:', data);
+      setSuccess(true);
+    } catch (err: any) {
+      console.error('Upload failed:', err);
+      setError('Upload failed: ' + err.message);
     } finally {
       setUploading(false);
     }
   };
 
   if (!user) {
-    return (
-      <div className="border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h3 className="text-xl font-semibold mb-2">Upload Document</h3>
-        <p className="text-gray-600 mb-4">
-          Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.
-        </p>
-        <div className="bg-red-50 p-4 rounded-lg border border-red-100 mb-4">
-          <p className="text-red-600 font-medium mb-2">Authentication Required</p>
-          <p className="text-gray-700 mb-3">Please log in to upload documents.</p>
-          <button 
-            onClick={() => navigate('/login')}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition-colors"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
+    return <div className="text-center mt-10">Please log in to upload documents.</div>;
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6 shadow-sm">
-      <h3 className="text-xl font-semibold mb-2">Upload Document</h3>
-      <p className="text-gray-600 mb-4">
-        Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.
-      </p>
-      
-      {uploadSuccess && (
-        <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-4">
-          <p className="text-green-600">Document uploaded successfully!</p>
-        </div>
-      )}
-      
-      {uploadError && (
-        <div className="bg-red-50 p-4 rounded-lg border border-red-100 mb-4">
-          <p className="text-red-600">{uploadError}</p>
-        </div>
-      )}
-      
-      <form onSubmit={handleUpload} className="space-y-4">
-        <div>
-          <input 
-            type="file" 
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png" 
-            className="block w-full text-gray-700 bg-white rounded border border-gray-300 cursor-pointer focus:outline-none"
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Maximum file size: 10MB
-          </p>
-        </div>
-        <button 
-          type="submit" 
-          disabled={uploading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
-        >
-          {uploading ? 'Uploading...' : 'Upload'}
-        </button>
-      </form>
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">Upload Document</h2>
+      <input
+        type="file"
+        onChange={handleFileChange}
+        disabled={uploading}
+        className="w-full mb-4"
+      />
+      <button
+        onClick={handleUpload}
+        disabled={uploading || !file}
+        className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+      >
+        {uploading ? 'Uploading...' : 'Upload'}
+      </button>
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {success && <p className="text-green-500 mt-4">Upload successful!</p>}
     </div>
   );
 };
