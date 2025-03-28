@@ -58,7 +58,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/documents/association': 'Records & Reports',
       '/reports': 'Records & Reports',
       
-      // Resale Management routes - fixing this section
+      // Resale Management routes
       '/resale': 'Resale Management',
       '/resale/certificate': 'Resale Management',
       '/resale/questionnaire': 'Resale Management',
@@ -66,7 +66,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/resale/statements': 'Resale Management',
       '/resale/trec-forms': 'Resale Management',
       
-      // System routes - fixing this section
+      // System routes
       '/settings': 'System',
       '/settings/associations': 'System',
       '/settings/permissions': 'System',
@@ -106,11 +106,15 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
 
   // Function to toggle a specific group
   const toggleGroup = (group: string) => {
-    console.log(`Toggling group: ${group}`, !openGroups[group]);
-    setOpenGroups(prev => ({
-      ...prev,
-      [group]: !prev[group]
-    }));
+    console.log(`Toggling group: ${group}, current state:`, openGroups[group]);
+    setOpenGroups(prev => {
+      const newState = {
+        ...prev,
+        [group]: !prev[group]
+      };
+      console.log(`New state for ${group}:`, newState[group]);
+      return newState;
+    });
   };
 
   return {

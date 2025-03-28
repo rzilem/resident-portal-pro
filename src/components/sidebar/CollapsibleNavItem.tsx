@@ -32,7 +32,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
       // If clicking on the chevron, just toggle the menu
       e.stopPropagation();
       onToggle();
-      console.log('Toggling menu:', item.label);
+      console.log('Chevron click - toggling menu:', item.label, 'Current state:', isOpen, 'New state:', !isOpen);
     } else {
       // If clicking elsewhere on the button, navigate and optionally toggle
       if (item.href) {
@@ -40,11 +40,12 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
         navigate(item.href);
       }
       
-      // For sections that should open on click (and not just navigate)
+      // Only toggle open if it's currently closed
       if (!isOpen) {
         console.log('Auto-opening menu on navigation:', item.label);
         onToggle();
       }
+      // We don't auto-close on navigation
     }
   };
 
