@@ -40,13 +40,10 @@ const App = () => {
             <Dashboard />
           </ProtectedRoute>
         } />
+        {/* Make /simple-dashboard redirect to /dashboard for consistency */}
         <Route
           path="/simple-dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/dashboard" replace />}
         />
         <Route
           path="/upload"
