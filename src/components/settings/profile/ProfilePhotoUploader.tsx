@@ -73,6 +73,7 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       // First update local state to show image immediately
       setPhotoUrl(publicUrl);
 
+      // Update the profile in the database
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: publicUrl })
@@ -112,15 +113,7 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       // First update local state to show changes immediately
       setPhotoUrl(null);
 
-      const { error: removeError } = await supabase.storage
-        .from('profile_photos')
-        .remove([filePath]);
-
-      if (removeError) {
-        console.error("Storage remove error:", removeError);
-        // Don't throw error here, still update profile even if storage remove fails
-      }
-
+      // Update the profile in the database first
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: null })
@@ -129,6 +122,16 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       if (updateError) {
         console.error("Profile update error:", updateError);
         throw updateError;
+      }
+
+      // Then try to remove the file from storage
+      const { error: removeError } = await supabase.storage
+        .from('profile_photos')
+        .remove([filePath]);
+
+      if (removeError) {
+        console.error("Storage remove error:", removeError);
+        // Don't throw error here, still update profile even if storage remove fails
       }
 
       onPhotoChange(null);

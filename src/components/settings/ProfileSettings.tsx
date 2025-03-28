@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import ProfilePhotoUploader from './profile/ProfilePhotoUploader';
+import { ensureStorageBucket } from '@/utils/supabase/ensureStorageBucket';
 
 const ProfileSettings = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -22,6 +23,17 @@ const ProfileSettings = () => {
     bio: ""
   });
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize storage bucket on component mount
+  useEffect(() => {
+    const initStorage = async () => {
+      await ensureStorageBucket('profile_photos', true);
+      setIsInitialized(true);
+    };
+    
+    initStorage();
+  }, []);
 
   useEffect(() => {
     console.log("Profile data:", profile);
@@ -87,11 +99,16 @@ const ProfileSettings = () => {
   };
 
   const handlePhotoChange = async (url: string | null) => {
+    console.log("Profile photo changed:", url);
     // Update local state immediately for better UX
     setProfileImageUrl(url);
     // Refresh profile data to ensure everything is in sync
     await refreshProfile();
   };
+
+  if (!isInitialized) {
+    return <div>Initializing...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit}>

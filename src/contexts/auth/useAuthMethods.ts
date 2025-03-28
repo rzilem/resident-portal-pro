@@ -19,13 +19,13 @@ export const useAuthMethods = ({
 }: UseAuthMethodsProps) => {
   const signIn = async (email: string, password: string) => {
     try {
+      // First make sure the storage bucket exists
+      await ensureStorageBucket('profile_photos', true);
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      // Ensure that the profile_photos bucket exists
-      await ensureStorageBucket('profile_photos', true);
       
       return { error };
     } catch (error) {
@@ -36,6 +36,9 @@ export const useAuthMethods = ({
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
+      // Ensure that the profile_photos bucket exists
+      await ensureStorageBucket('profile_photos', true);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
