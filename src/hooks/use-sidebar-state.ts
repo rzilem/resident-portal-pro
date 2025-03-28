@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -51,7 +50,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/workflows': 'Operations',
       '/print-queue': 'Operations',
       
-      // Records & Reports routes - Explicitly ensure these routes open the Records section
+      // Records & Reports routes
       '/database': 'Records & Reports',
       '/database/records': 'Records & Reports',
       '/documents': 'Records & Reports',
@@ -75,7 +74,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/system-uploads': 'System',
     };
 
-    // Initialize groups to maintain current state
+    // Keep previously opened groups
     const newOpenGroups = { ...openGroups };
     
     // Match current path with exact routes
@@ -98,14 +97,12 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
     }
     
     console.log("Updated open groups:", newOpenGroups);
-
-    // Update sidebar group state - only for the current path
     setOpenGroups(newOpenGroups);
   }, [location.pathname]);
 
-  // Function to toggle a specific group
+  // Function to toggle a specific group - this is what handles the menu opening/closing
   const toggleGroup = (group: string) => {
-    console.log(`Toggling group: ${group}`);
+    console.log(`Toggling group: ${group}`, !openGroups[group]);
     setOpenGroups(prev => ({
       ...prev,
       [group]: !prev[group]
