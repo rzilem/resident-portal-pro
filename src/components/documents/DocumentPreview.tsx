@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Download, FileText, Calendar, User, Clock, Tag, Info } from 'lucide-react';
+import { Eye, Download, FileText, Calendar, User, Clock, Tag, Info, ExternalLink, AlertTriangle } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
 import { formatFileSize } from '@/utils/documents/documentUtils';
+import { toast } from 'sonner';
 
 interface DocumentPreviewProps {
   document: DocumentFile | null;
@@ -21,6 +22,16 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   onClose
 }) => {
   const [activeTab, setActiveTab] = useState('preview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  
+  // Reset loading state when document changes
+  useEffect(() => {
+    if (document) {
+      setIsLoading(true);
+      setPreviewError(null);
+    }
+  }, [document]);
   
   if (!document) {
     return null;
@@ -34,6 +45,127 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       month: 'short',
       day: 'numeric'
     });
+  };
+  
+  const handleDownload = () => {
+    if (!document.url) {
+      toast.error("Document URL is not available");
+      return;
+    }
+    
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement('a');
+    link.href = document.url;
+    link.download = document.name;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Downloading ${document.name}`);
+  };
+  
+  const handleLoadError = () => {
+    setIsLoading(false);
+    setPreviewError("Failed to load document preview");
+  };
+  
+  const handleLoadSuccess = () => {
+    setIsLoading(false);
+    setPreviewError(null);
+  };
+  
+  const canPreview = () => {
+    const fileType = document.fileType.toLowerCase();
+    return fileType.includes('pdf') || 
+           fileType.includes('image') || 
+           fileType.includes('jpg') || 
+           fileType.includes('jpeg') || 
+           fileType.includes('png') || 
+           fileType.includes('gif');
+  };
+  
+  const renderPreview = () => {
+    const fileType = document.fileType.toLowerCase();
+    
+    if (isLoading) {
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      );
+    }
+    
+    if (previewError) {
+      return (
+        <div className="w-full h-full flex items-center justify-center p-8 text-center">
+          <div>
+            <AlertTriangle className="h-16 w-16 mx-auto text-destructive mb-4" />
+            <h3 className="text-lg font-medium mb-2">Preview Error</h3>
+            <p className="text-muted-foreground mb-4">{previewError}</p>
+            <Button onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Download Instead
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
+    if (fileType.includes('pdf')) {
+      return (
+        <iframe 
+          src={document.url} 
+          className="w-full h-full" 
+          title={document.name}
+          onLoad={handleLoadSuccess}
+          onError={handleLoadError}
+        />
+      );
+    } else if (
+      fileType.includes('image') || 
+      fileType.includes('jpg') || 
+      fileType.includes('jpeg') || 
+      fileType.includes('png') || 
+      fileType.includes('gif')
+    ) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-background/50">
+          <img 
+            src={document.url} 
+            alt={document.name} 
+            className="max-w-full max-h-full object-contain"
+            onLoad={handleLoadSuccess}
+            onError={handleLoadError}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div className="w-full h-full flex items-center justify-center p-8 text-center">
+          <div>
+            <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Preview not available</h3>
+            <p className="text-muted-foreground mb-4">
+              This file type cannot be previewed in the browser.
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={handleDownload}>
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+              {document.url && (
+                <Button variant="outline" onClick={() => window.open(document.url, '_blank')}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open in New Tab
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
   };
   
   return (
@@ -59,32 +191,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           </TabsList>
           
           <TabsContent value="preview" className="flex-1 flex flex-col">
-            <div className="bg-gray-100 border rounded-md flex-1 overflow-hidden">
-              {document.fileType.includes('pdf') ? (
-                <iframe 
-                  src={document.url} 
-                  className="w-full h-full" 
-                  title={document.name}
-                />
-              ) : document.fileType.includes('image') ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <img src={document.url} alt={document.name} className="max-w-full max-h-full" />
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center p-8 text-center">
-                  <div>
-                    <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Preview not available</h3>
-                    <p className="text-muted-foreground mb-4">
-                      This file type cannot be previewed in the browser.
-                    </p>
-                    <Button>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download to View
-                    </Button>
-                  </div>
-                </div>
-              )}
+            <div className="bg-muted/30 border rounded-md flex-1 overflow-hidden">
+              {renderPreview()}
             </div>
           </TabsContent>
           
@@ -124,6 +232,14 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                       File Size
                     </h3>
                     <p>{formatFileSize(document.fileSize)}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
+                      <Info className="h-4 w-4 mr-2" />
+                      File Type
+                    </h3>
+                    <p>{document.fileType}</p>
                   </div>
                   
                   <div>
@@ -215,7 +331,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          <Button>
+          <Button onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" />
             Download
           </Button>

@@ -9,6 +9,7 @@ import { Eye, Download } from "lucide-react";
 import { DocumentFile } from '@/types/documents';
 import DocumentActions from './DocumentActions';
 import { getDocumentIcon, formatDate, formatFileSize } from './utils/documentIconUtils';
+import { toast } from "sonner";
 
 interface DocumentTableRowProps {
   doc: DocumentFile;
@@ -25,6 +26,26 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
   onDelete,
   refreshDocuments
 }) => {
+  const handleDownload = () => {
+    if (!doc.url) {
+      toast.error("Document URL is not available");
+      return;
+    }
+    
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement('a');
+    link.href = doc.url;
+    link.download = doc.name;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Also call the provided onDownload callback
+    onDownload(doc);
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -69,7 +90,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
             variant="ghost" 
             size="icon" 
             title="Download"
-            onClick={() => onDownload(doc)}
+            onClick={handleDownload}
           >
             <Download className="h-4 w-4" />
           </Button>

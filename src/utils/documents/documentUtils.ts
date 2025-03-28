@@ -1,16 +1,8 @@
 
 /**
- * Utility functions for document management
- */
-
-import { supabase } from '@/integrations/supabase/client';
-import { debugLog, errorLog } from '@/utils/debug';
-import { DocumentCategory } from '@/types/documents';
-
-/**
- * Format file size in bytes to a human-readable format
+ * Format file size from bytes to human-readable format
  * @param bytes File size in bytes
- * @returns Formatted file size (e.g., "1.5 MB")
+ * @returns Formatted file size string
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
@@ -23,24 +15,31 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 /**
- * Get all document categories
- * @returns Promise<DocumentCategory[]> List of document categories
+ * Check if a file is previewable in browser
+ * @param fileType The file's MIME type or extension
+ * @returns Boolean indicating if file can be previewed
  */
-export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
-  try {
-    const defaultCategories: DocumentCategory[] = [
-      { id: 'general', name: 'General', description: 'General documents', sortOrder: 1 },
-      { id: 'financial', name: 'Financial', description: 'Financial documents', sortOrder: 2 },
-      { id: 'legal', name: 'Legal', description: 'Legal documents', sortOrder: 3 },
-      { id: 'meetings', name: 'Meetings', description: 'Meeting minutes and agendas', sortOrder: 4 },
-      { id: 'maintenance', name: 'Maintenance', description: 'Maintenance records and reports', sortOrder: 5 },
-      { id: 'compliance', name: 'Compliance', description: 'Compliance documents', sortOrder: 6 },
-      { id: 'communications', name: 'Communications', description: 'Community communications', sortOrder: 7 }
-    ];
-    
-    return defaultCategories;
-  } catch (error) {
-    errorLog("Error getting document categories:", error);
-    return [];
+export const isFilePreviewable = (fileType: string): boolean => {
+  const lowerType = fileType.toLowerCase();
+  
+  // Check for previewable file types
+  return lowerType.includes('pdf') || 
+         lowerType.includes('image') || 
+         lowerType.includes('jpg') || 
+         lowerType.includes('jpeg') || 
+         lowerType.includes('png') || 
+         lowerType.includes('gif');
+};
+
+/**
+ * Sanitize the URL to ensure it's valid and safe
+ * @param url The URL to sanitize
+ * @returns Sanitized URL
+ */
+export const sanitizeDocumentUrl = (url: string): string => {
+  // Ensure protocol is specified
+  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
   }
+  return url;
 };
