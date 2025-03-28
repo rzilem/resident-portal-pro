@@ -28,7 +28,8 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/residents': 'Community Management',
       '/community-hub': 'Community Management',
       '/email-workflows': 'System',
-      '/system-uploads': 'System'
+      '/system-uploads': 'System',
+      '/resale': 'Resale Management'
     };
 
     // Check current path against map

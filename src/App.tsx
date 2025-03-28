@@ -18,6 +18,15 @@ import HoaDashboard from '@/pages/hoa/Dashboard';
 import HoaFinances from '@/pages/hoa/Finances';
 import DashboardLayout from '@/components/DashboardLayout';
 
+// Import accounting pages
+import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
+import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
+import Transactions from '@/pages/accounting/Transactions';
+import Payments from '@/pages/accounting/Payments';
+import JournalEntries from '@/pages/accounting/JournalEntries';
+import GlAccounts from '@/pages/accounting/GlAccounts';
+import AccountingReports from '@/pages/accounting/AccountingReports';
+
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
   
@@ -47,6 +56,15 @@ const App = () => {
           <Route path="/properties" element={<Properties />} />
           <Route path="/residents" element={<Residents />} />
           <Route path="/residents/:id" element={<ResidentProfile />} />
+          
+          {/* Accounting routes */}
+          <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
+          <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} />
+          <Route path="/accounting/transactions" element={<Transactions />} />
+          <Route path="/accounting/payments" element={<Payments />} />
+          <Route path="/accounting/journal-entries" element={<JournalEntries />} />
+          <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
+          <Route path="/accounting/reports" element={<AccountingReports />} />
         </Route>
 
         <Route path="/" element={<Index />} />
