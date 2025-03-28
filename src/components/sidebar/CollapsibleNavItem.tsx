@@ -24,7 +24,13 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
     if (item.href) {
       navigate(item.href);
     }
-    // We don't call onToggle here because the CollapsibleTrigger will handle that
+    
+    // Always toggle the group open/closed when clicking the button
+    // This is important for user experience
+    onToggle();
+    
+    // Prevent default to avoid any conflicts
+    e.preventDefault();
   };
 
   return (

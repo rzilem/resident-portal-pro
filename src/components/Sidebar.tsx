@@ -12,7 +12,7 @@ import { RegularNavItem } from "./sidebar/RegularNavItem";
 import { NavSeparator } from "./sidebar/NavSeparator";
 import { getNavItems, NavItem } from "@/data/navigation";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HoaSidebar from "./HoaSidebar";
 import { useCompanySettings } from "@/hooks/use-company-settings";
 import { Settings } from "lucide-react";
@@ -39,11 +39,16 @@ export function Sidebar({
     return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
   }
   
-  // Initialize sidebar groups - don't set initial states here
-  // Let the useEffect in useSidebarState handle opening the correct section
-  const { openGroups, toggleGroup } = useSidebarState({});
+  // Initialize sidebar with empty state and let the hook handle opening the correct sections
+  const { openGroups, toggleGroup } = useSidebarState();
 
   const NAV_ITEMS = getNavItems(location.pathname);
+
+  // Debug logging to help identify issues
+  useEffect(() => {
+    console.log("Current path:", location.pathname);
+    console.log("Open groups:", openGroups);
+  }, [location.pathname, openGroups]);
 
   // Handler to navigate to logo settings
   const handleLogoClick = () => {
@@ -116,7 +121,7 @@ export function Sidebar({
                     <CollapsibleNavItem
                       key={navItem.label}
                       item={navItem}
-                      isOpen={openGroups[navItem.label]}
+                      isOpen={!!openGroups[navItem.label]}
                       onToggle={() => toggleGroup(navItem.label)}
                     />
                   );
