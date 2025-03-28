@@ -19,8 +19,17 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/workflows': 'Operations',
       '/print-queue': 'Operations',
       '/accounting': 'Accounting',
+      '/accounting/dashboard': 'Accounting',
+      '/accounting/invoice-queue': 'Accounting',
+      '/accounting/transactions': 'Accounting',
+      '/accounting/payments': 'Accounting',
+      '/accounting/journal-entries': 'Accounting',
+      '/accounting/gl-accounts': 'Accounting',
+      '/accounting/reports': 'Accounting',
       '/database': 'Records & Reports',
+      '/database/records': 'Records & Reports',
       '/documents': 'Records & Reports',
+      '/documents/association': 'Records & Reports',
       '/reports': 'Records & Reports',
       '/settings': 'System',
       '/settings/associations': 'System',
@@ -32,7 +41,17 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/email-workflows': 'System',
       '/system-uploads': 'System',
       '/resale': 'Resale Management',
-      '/hoa': 'Community Management'
+      '/resale/certificate': 'Resale Management',
+      '/resale/questionnaire': 'Resale Management',
+      '/resale/inspection': 'Resale Management',
+      '/resale/statements': 'Resale Management',
+      '/resale/trec-forms': 'Resale Management',
+      '/hoa': 'Community Management',
+      '/hoa/dashboard': 'Community Management',
+      '/hoa/finances': 'Community Management',
+      '/hoa/maintenance': 'Community Management',
+      '/hoa/members': 'Community Management',
+      '/hoa/events': 'Community Management'
     };
 
     // Check current path against map
