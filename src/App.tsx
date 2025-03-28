@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -20,7 +19,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Compliance from '@/pages/compliance/Compliance';
 import AssociationDocuments from '@/pages/documents/AssociationDocuments';
 
-// Import accounting pages
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
 import Transactions from '@/pages/accounting/Transactions';
@@ -29,16 +27,15 @@ import JournalEntries from '@/pages/accounting/JournalEntries';
 import GlAccounts from '@/pages/accounting/GlAccounts';
 import AccountingReports from '@/pages/accounting/AccountingReports';
 
-// Import operational pages
 import Workflows from '@/pages/Workflows';
 import PrintQueue from '@/pages/PrintQueue';
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
 
-// Import system pages
 import Settings from '@/pages/Settings';
 import Integrations from '@/pages/Integrations';
 import SystemUploads from '@/pages/SystemUploads';
 import EmailWorkflows from '@/pages/settings/EmailWorkflows';
+import Associations from '@/pages/settings/Associations';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -53,7 +50,6 @@ const LogoutRedirect = () => {
 const App = () => {
   const location = useLocation();
   
-  // Log the current path for debugging
   React.useEffect(() => {
     console.log('Current location:', location.pathname);
   }, [location]);
@@ -66,7 +62,6 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<LogoutRedirect />} />
         
-        {/* Protected routes with DashboardLayout */}
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -80,10 +75,8 @@ const App = () => {
           <Route path="/residents/:id" element={<ResidentProfile />} />
           <Route path="/compliance" element={<Compliance />} />
           
-          {/* Documents routes */}
           <Route path="/documents/association" element={<AssociationDocuments />} />
           
-          {/* Accounting routes */}
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
           <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} />
           <Route path="/accounting/transactions" element={<Transactions />} />
@@ -92,14 +85,12 @@ const App = () => {
           <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
           <Route path="/accounting/reports" element={<AccountingReports />} />
           
-          {/* Operations routes */}
           <Route path="/calendar" element={<div>Calendar Page</div>} />
           <Route path="/communications/messaging" element={<CommunityMessaging />} />
           <Route path="/communications/announcements" element={<div>Announcements Page</div>} />
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
           
-          {/* Resale Management routes */}
           <Route path="/resale" element={<div>Resale Management</div>} />
           <Route path="/resale/certificate" element={<div>Resale Certificate</div>} />
           <Route path="/resale/questionnaire" element={<div>Condo Questionnaire</div>} />
@@ -107,9 +98,8 @@ const App = () => {
           <Route path="/resale/statements" element={<div>Account Statements</div>} />
           <Route path="/resale/trec-forms" element={<div>TREC Forms</div>} />
           
-          {/* System routes */}
           <Route path="/settings" element={<Settings />} />
-          <Route path="/settings/associations" element={<div>Association Settings</div>} />
+          <Route path="/settings/associations" element={<Associations />} />
           <Route path="/settings/permissions" element={<div>Permission Settings</div>} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/email-workflows" element={<EmailWorkflows />} />
@@ -118,7 +108,6 @@ const App = () => {
 
         <Route path="/" element={<Index />} />
         
-        {/* Handle unknown routes by redirecting to Index page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
