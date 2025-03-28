@@ -1,96 +1,121 @@
 
-// This utility uses a CSV approach since it doesn't require additional dependencies
-// For a full Excel export, you could add xlsx library
+import * as XLSX from 'xlsx';
 
-export function exportToExcel(data: any[], fileName: string = 'export') {
-  // Filter the data to only include visible columns
-  const processData = (dataArray: any[]) => {
-    if (!dataArray.length) return '';
+/**
+ * Export data to an Excel file and trigger download
+ * @param data Array of objects to export
+ * @param fileName Name for the downloaded file (without extension)
+ */
+export const exportToExcel = (data: any[], fileName: string) => {
+  try {
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
     
-    // Get headers
-    const headers = Object.keys(dataArray[0]);
+    // Convert data to worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data);
     
-    // Convert data to CSV format
-    const csvRows = [];
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
     
-    // Add headers row
-    csvRows.push(headers.join(','));
+    // Write the workbook and trigger download
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
     
-    // Add data rows
-    for (const row of dataArray) {
-      const values = headers.map(header => {
-        const value = row[header] || '';
-        // Handle values that contain commas, quotes, or newlines
-        const escaped = ('' + value).replace(/"/g, '""');
-        return `"${escaped}"`;
-      });
-      csvRows.push(values.join(','));
-    }
-    
-    return csvRows.join('\n');
-  };
+    return true;
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    return false;
+  }
+};
 
-  // Process the data
-  const csvString = processData(data);
+/**
+ * Generate and download a comprehensive onboarding template for new associations
+ */
+export const generateOnboardingTemplate = () => {
+  // Create a workbook with multiple sheets
+  const workbook = XLSX.utils.book_new();
   
-  // Create a Blob containing the data
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  // Association Information Sheet
+  const associationSheet = XLSX.utils.json_to_sheet([{
+    association_name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    phone: '',
+    email: '',
+    website: '',
+    year_established: '',
+    total_units: '',
+    type: '', // 'HOA', 'Condo', 'Co-op', etc.
+    fiscal_year_start: '',
+    tax_id: ''
+  }]);
+  XLSX.utils.book_append_sheet(workbook, associationSheet, 'Association Info');
   
-  // Create a download link
-  const link = document.createElement('a');
+  // Board Members Sheet
+  const boardSheet = XLSX.utils.json_to_sheet([{
+    first_name: '',
+    last_name: '',
+    position: '',
+    email: '',
+    phone: '',
+    term_start: '',
+    term_end: ''
+  }]);
+  XLSX.utils.book_append_sheet(workbook, boardSheet, 'Board Members');
   
-  // Create the URL for the Blob
-  const url = URL.createObjectURL(blob);
+  // Properties/Units Sheet
+  const propertiesSheet = XLSX.utils.json_to_sheet([{
+    unit_number: '',
+    address: '',
+    owner_name: '',
+    owner_email: '',
+    owner_phone: '',
+    square_feet: '',
+    bedrooms: '',
+    bathrooms: '',
+    purchase_date: '',
+    move_in_date: ''
+  }]);
+  XLSX.utils.book_append_sheet(workbook, propertiesSheet, 'Properties');
   
-  // Set the download attributes
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${fileName}.csv`);
-  link.style.visibility = 'hidden';
+  // Financial Accounts Sheet
+  const financialSheet = XLSX.utils.json_to_sheet([{
+    account_number: '',
+    account_name: '',
+    institution: '',
+    account_type: '',
+    purpose: '',
+    current_balance: '',
+    as_of_date: ''
+  }]);
+  XLSX.utils.book_append_sheet(workbook, financialSheet, 'Financial Accounts');
   
-  // Append to the DOM
-  document.body.appendChild(link);
+  // Vendors Sheet
+  const vendorSheet = XLSX.utils.json_to_sheet([{
+    vendor_name: '',
+    contact_person: '',
+    service_category: '',
+    email: '',
+    phone: '',
+    address: '',
+    contract_start: '',
+    contract_end: '',
+    payment_terms: ''
+  }]);
+  XLSX.utils.book_append_sheet(workbook, vendorSheet, 'Vendors');
   
-  // Trigger the download
-  link.click();
+  // Rules & Regulations Sheet
+  const rulesSheet = XLSX.utils.json_to_sheet([{
+    rule_category: '',
+    rule_title: '',
+    rule_description: '',
+    penalty_amount: '',
+    date_adopted: ''
+  }]);
+  XLSX.utils.book_append_sheet(workbook, rulesSheet, 'Rules');
   
-  // Clean up
-  document.body.removeChild(link);
-}
+  // Write the workbook and trigger download
+  XLSX.writeFile(workbook, 'Association_Onboarding_Template.xlsx');
+};
 
-// Add a template generator for onboarding CSV
-export function generateOnboardingTemplate() {
-  // Define all fields needed for onboarding
-  const templateFields = [
-    "name",
-    "type",
-    "units",
-    "location",
-    "city",
-    "county",
-    "taxId",
-    "hasPool",
-    "hasGate",
-    "hasPedestrianGate",
-    "status",
-    "foundedDate",
-    "annualFees",
-    "manager",
-    "contactEmail",
-    "contactPhone",
-    "residents",
-    "offsiteAddresses",
-    "leases",
-    "serviceType"
-  ];
-  
-  // Create an empty row with headers only
-  const templateData = [
-    templateFields.reduce((acc, field) => {
-      acc[field] = '';
-      return acc;
-    }, {} as Record<string, string>)
-  ];
-  
-  // Export the template
-  exportToExcel(templateData, 'Association_Onboarding_Template');
-}

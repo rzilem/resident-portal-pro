@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { FileText, Download } from 'lucide-react';
@@ -5,41 +6,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AssociationTemplateInfo from '@/components/database/AssociationTemplateInfo';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import SampleTemplatePreview from '@/components/database/SampleTemplatePreview';
 import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 import { 
   generateResidentTemplate,
   generatePropertyTemplate,
-  generateDocumentCategoriesTemplate
+  generateDocumentCategoriesTemplate,
+  generateViolationTemplate,
+  generateFinancialTemplate,
+  generateVendorTemplate
 } from '@/utils/templateExport';
 
 const DocumentTemplates = () => {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('association');
 
   const handleDownloadTemplate = (type: string) => {
-    switch (type) {
-      case 'association':
-        generateOnboardingTemplate();
-        break;
-      case 'homeowners':
-        generateResidentTemplate();
-        break;
-      case 'properties':
-        generatePropertyTemplate();
-        break;
-      case 'documents':
-        generateDocumentCategoriesTemplate();
-        break;
-      default:
-        generateOnboardingTemplate();
+    try {
+      switch (type) {
+        case 'association':
+          generateOnboardingTemplate();
+          break;
+        case 'homeowners':
+          generateResidentTemplate();
+          break;
+        case 'properties':
+          generatePropertyTemplate();
+          break;
+        case 'documents':
+          generateDocumentCategoriesTemplate();
+          break;
+        case 'violations':
+          generateViolationTemplate();
+          break;
+        case 'financial':
+          generateFinancialTemplate();
+          break;
+        case 'vendors':
+          generateVendorTemplate();
+          break;
+        default:
+          generateOnboardingTemplate();
+      }
+      
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} template downloaded successfully`);
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      toast.error('Failed to download template');
     }
-
-    toast({
-      title: "Template downloaded",
-      description: `${type} template has been downloaded to your device`,
-    });
   };
 
   return (
@@ -87,6 +101,27 @@ const DocumentTemplates = () => {
                   >
                     Document Categories
                   </Button>
+                  <Button 
+                    variant={activeTab === 'violations' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('violations')}
+                  >
+                    Violation Types
+                  </Button>
+                  <Button 
+                    variant={activeTab === 'financial' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('financial')}
+                  >
+                    Financial Accounts
+                  </Button>
+                  <Button 
+                    variant={activeTab === 'vendors' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('vendors')}
+                  >
+                    Vendors
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -101,6 +136,9 @@ const DocumentTemplates = () => {
                     {activeTab === 'homeowners' && 'Homeowners Data Template'}
                     {activeTab === 'properties' && 'Properties Data Template'}
                     {activeTab === 'documents' && 'Document Categories Template'}
+                    {activeTab === 'violations' && 'Violation Types Template'}
+                    {activeTab === 'financial' && 'Financial Accounts Template'}
+                    {activeTab === 'vendors' && 'Vendors Template'}
                   </CardTitle>
                   <Button 
                     variant="outline" 
@@ -116,6 +154,9 @@ const DocumentTemplates = () => {
                   {activeTab === 'homeowners' && 'Template for importing only homeowner records'}
                   {activeTab === 'properties' && 'Template for importing property and unit information'}
                   {activeTab === 'documents' && 'Standard document categories for organization'}
+                  {activeTab === 'violations' && 'Template for violation types and categories'}
+                  {activeTab === 'financial' && 'Template for financial accounts and GL codes'}
+                  {activeTab === 'vendors' && 'Template for vendor contact information'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -209,6 +250,109 @@ const DocumentTemplates = () => {
                           <li>• Audits</li>
                           <li>• Tax Returns</li>
                           <li>• Reserve Studies</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'violations' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Violation Types Structure</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Template for setting up standard violation types and categories.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Violation Fields</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• violation_name</li>
+                          <li>• category</li>
+                          <li>• description</li>
+                          <li>• severity</li>
+                          <li>• default_fine</li>
+                          <li>• default_due_days</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Common Categories</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• Architectural</li>
+                          <li>• Landscaping</li>
+                          <li>• Maintenance</li>
+                          <li>• Noise</li>
+                          <li>• Parking</li>
+                          <li>• Pets</li>
+                          <li>• Trash</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'financial' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Financial Accounts Structure</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Template for setting up financial accounts and GL codes.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Account Fields</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• account_number</li>
+                          <li>• account_name</li>
+                          <li>• account_type</li>
+                          <li>• account_category</li>
+                          <li>• is_reserve</li>
+                          <li>• starting_balance</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Account Types</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• Assets</li>
+                          <li>• Liabilities</li>
+                          <li>• Equity</li>
+                          <li>• Income</li>
+                          <li>• Expenses</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'vendors' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Vendors Template Structure</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Template for importing vendor information and contacts.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Vendor Fields</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• vendor_name</li>
+                          <li>• contact_name</li>
+                          <li>• email</li>
+                          <li>• phone</li>
+                          <li>• address</li>
+                          <li>• city</li>
+                          <li>• state</li>
+                          <li>• zip</li>
+                          <li>• services</li>
+                          <li>• tax_id</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Service Categories</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• Landscaping</li>
+                          <li>• Maintenance</li>
+                          <li>• Pool Service</li>
+                          <li>• Security</li>
+                          <li>• Plumbing</li>
+                          <li>• Electrical</li>
+                          <li>• HVAC</li>
+                          <li>• Legal</li>
+                          <li>• Accounting</li>
                         </ul>
                       </div>
                     </div>

@@ -9,7 +9,12 @@ import {
   generateViolationTemplate,
   generateFinancialTemplate,
   generateVendorTemplate,
-  generateDocumentCategoriesTemplate
+  generateDocumentCategoriesTemplate,
+  generateWorkOrderTemplate,
+  generateBoardMembersTemplate,
+  generateAmenitiesTemplate,
+  generateAccountingCodesTemplate,
+  generateUnitTemplate
 } from '@/utils/templateExport';
 import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 
@@ -125,6 +130,46 @@ const templates: Template[] = [
     format: 'Excel',
     size: '20KB',
     generateFunction: generateOnboardingTemplate
+  },
+  {
+    id: 8,
+    name: 'Work Orders',
+    description: 'Template for importing maintenance and work orders',
+    format: 'Excel',
+    size: '9KB',
+    generateFunction: generateWorkOrderTemplate
+  },
+  {
+    id: 9,
+    name: 'Board Members',
+    description: 'Template for importing board member information',
+    format: 'Excel',
+    size: '7KB',
+    generateFunction: generateBoardMembersTemplate
+  },
+  {
+    id: 10,
+    name: 'Amenities',
+    description: 'Template for importing amenity information',
+    format: 'Excel',
+    size: '8KB',
+    generateFunction: generateAmenitiesTemplate
+  },
+  {
+    id: 11,
+    name: 'Accounting Codes',
+    description: 'Template for importing chart of accounts',
+    format: 'Excel',
+    size: '11KB',
+    generateFunction: generateAccountingCodesTemplate
+  },
+  {
+    id: 12,
+    name: 'Unit Information',
+    description: 'Template for importing detailed unit/lot data',
+    format: 'Excel',
+    size: '13KB',
+    generateFunction: generateUnitTemplate
   }
 ];
 

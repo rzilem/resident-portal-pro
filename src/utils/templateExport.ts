@@ -110,3 +110,94 @@ export const generateDocumentCategoriesTemplate = () => {
   
   exportToExcel(templateData, 'Document_Categories_Template');
 };
+
+/**
+ * Generate and download a template for work orders
+ */
+export const generateWorkOrderTemplate = () => {
+  const templateData = [{
+    work_order_title: '',
+    description: '',
+    priority: '', // 'low', 'medium', 'high', 'emergency'
+    category: '',
+    location: '',
+    reported_by: '',
+    assigned_to: '',
+    due_date: ''
+  }];
+  
+  exportToExcel(templateData, 'Work_Order_Template');
+};
+
+/**
+ * Generate and download a template for board members
+ */
+export const generateBoardMembersTemplate = () => {
+  const templateData = [{
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    position: '', // 'President', 'Treasurer', 'Secretary', etc.
+    term_start: '',
+    term_end: '',
+    bio: ''
+  }];
+  
+  exportToExcel(templateData, 'Board_Members_Template');
+};
+
+/**
+ * Generate and download a template for amenity reservations
+ */
+export const generateAmenitiesTemplate = () => {
+  const templateData = [{
+    amenity_name: '',
+    description: '',
+    capacity: '',
+    hours: '',
+    reservation_fee: '',
+    deposit_amount: '',
+    rules: '',
+    status: '' // 'active', 'inactive', 'maintenance'
+  }];
+  
+  exportToExcel(templateData, 'Amenities_Template');
+};
+
+/**
+ * Generate and download a template for accounting codes/chart of accounts
+ */
+export const generateAccountingCodesTemplate = () => {
+  const templateData = [{
+    account_code: '',
+    account_name: '',
+    account_type: '', // 'asset', 'liability', 'equity', 'revenue', 'expense'
+    parent_account: '',
+    description: '',
+    is_active: '' // 'Yes' or 'No'
+  }];
+  
+  exportToExcel(templateData, 'Accounting_Codes_Template');
+};
+
+/**
+ * Generate and download a template for unit/lot information
+ */
+export const generateUnitTemplate = () => {
+  const templateData = [{
+    unit_number: '',
+    unit_type: '', // 'residential', 'commercial'
+    floor: '',
+    square_feet: '',
+    bedrooms: '',
+    bathrooms: '',
+    parking_spaces: '',
+    assessment_amount: '',
+    special_features: '',
+    status: '' // 'occupied', 'vacant', 'for_sale', etc.
+  }];
+  
+  exportToExcel(templateData, 'Unit_Information_Template');
+};
+
