@@ -7,7 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AssociationTemplateInfo from '@/components/database/AssociationTemplateInfo';
 import { useToast } from '@/hooks/use-toast';
 import SampleTemplatePreview from '@/components/database/SampleTemplatePreview';
-import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
+import { generateOnboardingTemplate } from '@/utils/exportToExcel';
+import { 
+  generateResidentTemplate,
+  generatePropertyTemplate,
+  generateDocumentCategoriesTemplate
+} from '@/utils/templateExport';
 
 const DocumentTemplates = () => {
   const { toast } = useToast();
@@ -19,10 +24,13 @@ const DocumentTemplates = () => {
         generateOnboardingTemplate();
         break;
       case 'homeowners':
-        exportToExcel([{ name: '', email: '', phone: '', unit: '' }], 'Homeowners_Template');
+        generateResidentTemplate();
         break;
       case 'properties':
-        exportToExcel([{ name: '', type: '', address: '', units: '' }], 'Properties_Template');
+        generatePropertyTemplate();
+        break;
+      case 'documents':
+        generateDocumentCategoriesTemplate();
         break;
       default:
         generateOnboardingTemplate();

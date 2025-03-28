@@ -2,12 +2,42 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
+import { toast } from 'sonner';
+import { 
+  generateResidentTemplate,
+  generatePropertyTemplate,
+  generateViolationTemplate,
+  generateFinancialTemplate,
+  generateVendorTemplate,
+  generateDocumentCategoriesTemplate
+} from '@/utils/templateExport';
+import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 
 interface TemplatesTabProps {
   onOpenChange: () => void;
 }
 
+// Define a type for our templates
+interface Template {
+  id: number;
+  name: string;
+  description: string;
+  format: string;
+  size: string;
+  generateFunction: () => void;
+}
+
 const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
+  const handleDownloadTemplate = (template: Template) => {
+    try {
+      template.generateFunction();
+      toast.success(`${template.name} template downloaded successfully`);
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      toast.error('Failed to download template');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -24,7 +54,12 @@ const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
               <span>Format: {template.format}</span>
               <span>{template.size}</span>
             </div>
-            <Button variant="outline" size="sm" className="w-full" onClick={onOpenChange}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full" 
+              onClick={() => handleDownloadTemplate(template)}
+            >
               Download Template
             </Button>
           </div>
@@ -34,49 +69,63 @@ const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
   );
 };
 
-const templates = [
+const templates: Template[] = [
   {
     id: 1,
     name: 'Resident Data',
     description: 'Template for importing homeowner and resident information',
     format: 'Excel',
-    size: '12KB'
+    size: '12KB',
+    generateFunction: generateResidentTemplate
   },
   {
     id: 2,
     name: 'Property Data',
     description: 'Template for importing property and unit information',
     format: 'Excel',
-    size: '14KB'
+    size: '14KB',
+    generateFunction: generatePropertyTemplate
   },
   {
     id: 3,
     name: 'Violation Types',
     description: 'Template for importing violation types and categories',
     format: 'Excel',
-    size: '8KB'
+    size: '8KB',
+    generateFunction: generateViolationTemplate
   },
   {
     id: 4,
     name: 'Financial Accounts',
     description: 'Template for importing GL accounts and financial data',
     format: 'Excel',
-    size: '15KB'
+    size: '15KB',
+    generateFunction: generateFinancialTemplate
   },
   {
     id: 5,
     name: 'Vendors',
     description: 'Template for importing vendor information',
     format: 'Excel',
-    size: '10KB'
+    size: '10KB',
+    generateFunction: generateVendorTemplate
   },
   {
     id: 6,
     name: 'Document Categories',
     description: 'Template for importing document structure',
     format: 'Excel',
-    size: '6KB'
+    size: '6KB',
+    generateFunction: generateDocumentCategoriesTemplate
   },
+  {
+    id: 7,
+    name: 'Association Onboarding',
+    description: 'Complete template for onboarding a new association',
+    format: 'Excel',
+    size: '20KB',
+    generateFunction: generateOnboardingTemplate
+  }
 ];
 
 export default TemplatesTab;
