@@ -2,6 +2,7 @@
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/supabase';
+import { ensureStorageBucket } from '@/utils/supabase/ensureStorageBucket';
 
 interface UseAuthMethodsProps {
   user: User | null;
@@ -10,105 +11,80 @@ interface UseAuthMethodsProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
-export const useAuthMethods = ({ 
-  user, 
+export const useAuthMethods = ({
+  user,
   setUser,
   setProfile,
-  setIsAuthenticated 
+  setIsAuthenticated,
 }: UseAuthMethodsProps) => {
-
   const signIn = async (email: string, password: string) => {
     try {
-      console.log("useAuthMethods: Starting sign-in process for:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
+
+      // Ensure that the profile_photos bucket exists
+      await ensureStorageBucket('profile_photos', true);
       
-      if (error) {
-        console.error("useAuthMethods: Sign-in error:", error);
-        return { error };
-      }
-      
-      console.log("useAuthMethods: Sign-in successful for user:", data.user?.id);
-      
-      // Manually update state to avoid race conditions
-      setUser(data.user);
-      setIsAuthenticated(true);
-      
-      // Force a session refresh to ensure everything is synced
-      await supabase.auth.getSession();
-      
-      return { error: null };
+      return { error };
     } catch (error) {
-      console.error("useAuthMethods: Exception during sign in:", error);
+      console.error('Error in signIn:', error);
       return { error };
     }
   };
 
-  const signUp = async (email: string, password: string, userData = {}) => {
+  const signUp = async (email: string, password: string, userData: any) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData
-        }
+          data: userData,
+        },
       });
-      
+
       return { data, error };
     } catch (error) {
-      return { data: null, error };
+      console.error('Error in signUp:', error);
+      return { error, data: null };
     }
   };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-      } else {
-        // Reset authentication state
-        setIsAuthenticated(false);
-        setProfile(null);
-        setUser(null);
-      }
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setIsAuthenticated(false);
     } catch (error) {
-      console.error('Exception during sign out:', error);
+      console.error('Error in signOut:', error);
     }
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      console.log("Refreshing profile for user:", user.id);
-      await fetchProfile(user.id);
-    }
-  };
+    if (!user) return;
 
-  const fetchProfile = async (userId: string) => {
+    console.log("Refreshing profile for user:", user.id);
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single();
-      
+        
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error refreshing profile:', error);
         return;
       }
       
       console.log("Fetched profile data:", data);
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error refreshing profile:', error);
     }
   };
 
-  return {
-    signIn,
-    signUp,
-    signOut,
-    refreshProfile
-  };
+  return { signIn, signUp, signOut, refreshProfile };
 };

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserRound, Image, Upload, Trash2, Loader2 } from "lucide-react";
@@ -17,6 +18,13 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
   const [isRemoving, setIsRemoving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+
+  // Update local state when initialPhotoUrl changes from parent component
+  useEffect(() => {
+    if (initialPhotoUrl !== photoUrl) {
+      setPhotoUrl(initialPhotoUrl || null);
+    }
+  }, [initialPhotoUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,6 +70,9 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       const publicUrl = publicUrlData.publicUrl;
       console.log("Public URL generated:", publicUrl);
 
+      // First update local state to show image immediately
+      setPhotoUrl(publicUrl);
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: publicUrl })
@@ -72,7 +83,7 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         throw updateError;
       }
 
-      setPhotoUrl(publicUrl);
+      // Call onPhotoChange callback after successful update
       onPhotoChange(publicUrl);
       toast.success('Profile photo updated successfully');
     } catch (error) {
@@ -98,13 +109,16 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
       const filePath = filePathMatch[1];
       console.log("Removing file:", filePath);
 
+      // First update local state to show changes immediately
+      setPhotoUrl(null);
+
       const { error: removeError } = await supabase.storage
         .from('profile_photos')
         .remove([filePath]);
 
       if (removeError) {
         console.error("Storage remove error:", removeError);
-        throw removeError;
+        // Don't throw error here, still update profile even if storage remove fails
       }
 
       const { error: updateError } = await supabase
@@ -117,12 +131,13 @@ const ProfilePhotoUploader = ({ initialPhotoUrl, onPhotoChange }: ProfilePhotoUp
         throw updateError;
       }
 
-      setPhotoUrl(null);
       onPhotoChange(null);
       toast.success('Profile photo removed');
     } catch (error) {
       console.error('Error removing profile photo:', error);
       toast.error('Failed to remove profile photo');
+      // Restore photoUrl if operation fails
+      setPhotoUrl(photoUrl);
     } finally {
       setIsRemoving(false);
     }

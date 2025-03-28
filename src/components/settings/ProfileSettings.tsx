@@ -21,6 +21,7 @@ const ProfileSettings = () => {
     address: "",
     bio: ""
   });
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("Profile data:", profile);
@@ -34,6 +35,8 @@ const ProfileSettings = () => {
         address: "",   // Replace with actual field from profile when available
         bio: ""        // Replace with actual field from profile when available
       });
+      
+      setProfileImageUrl(profile.profile_image_url);
     }
   }, [user, profile]);
 
@@ -83,10 +86,11 @@ const ProfileSettings = () => {
     }
   };
 
-  const handlePhotoChange = (url: string | null) => {
-    // The ProfilePhotoUploader component handles the Supabase update
-    // This is just a callback for any additional state updates if needed
-    refreshProfile();
+  const handlePhotoChange = async (url: string | null) => {
+    // Update local state immediately for better UX
+    setProfileImageUrl(url);
+    // Refresh profile data to ensure everything is in sync
+    await refreshProfile();
   };
 
   return (
@@ -198,7 +202,7 @@ const ProfileSettings = () => {
           </CardHeader>
           <CardContent>
             <ProfilePhotoUploader 
-              initialPhotoUrl={profile?.profile_image_url} 
+              initialPhotoUrl={profileImageUrl} 
               onPhotoChange={handlePhotoChange}
             />
           </CardContent>
