@@ -9,6 +9,10 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
   const [openGroups, setOpenGroups] = useState<SidebarGroupState>(initialGroups);
 
   useEffect(() => {
+    // Debug logging to help identify issues
+    console.log("Current path:", location.pathname);
+    console.log("Current open groups:", openGroups);
+    
     // More comprehensive route-to-group mapping with nested paths
     const pathToGroupMap: Record<string, string> = {
       // Dashboard routes
@@ -20,6 +24,8 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/residents': 'Community Management',
       '/compliance': 'Community Management',
       '/community-hub': 'Community Management',
+      
+      // HOA routes
       '/hoa': 'Community Management',
       '/hoa/dashboard': 'Community Management',
       '/hoa/finances': 'Community Management',
@@ -69,12 +75,13 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/system-uploads': 'System',
     };
 
-    // Initialize an empty groups object
-    const newOpenGroups: SidebarGroupState = {};
+    // Initialize groups to maintain current state
+    const newOpenGroups = { ...openGroups };
     
     // Match current path with exact routes
     if (pathToGroupMap[location.pathname]) {
       newOpenGroups[pathToGroupMap[location.pathname]] = true;
+      console.log(`Setting group ${pathToGroupMap[location.pathname]} open for path ${location.pathname}`);
     } else {
       // If no exact match, check for parent path matches
       const pathParts = location.pathname.split('/').filter(Boolean);
@@ -84,19 +91,27 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
         const testPath = '/' + pathParts.slice(0, i).join('/');
         if (pathToGroupMap[testPath]) {
           newOpenGroups[pathToGroupMap[testPath]] = true;
+          console.log(`Setting group ${pathToGroupMap[testPath]} open for partial path ${testPath}`);
           break;
         }
       }
     }
 
+    // Force these sections to be open for testing
+    // Comment this out once we've verified the main issue is fixed
+    newOpenGroups['Records & Reports'] = true;
+    newOpenGroups['Resale Management'] = true;
+    newOpenGroups['System'] = true;
+    
+    console.log("Updated open groups:", newOpenGroups);
+
     // Update sidebar group state
-    setOpenGroups(prev => ({
-      ...prev,
-      ...newOpenGroups
-    }));
+    setOpenGroups(newOpenGroups);
   }, [location.pathname]);
 
+  // Function to toggle a specific group
   const toggleGroup = (group: string) => {
+    console.log(`Toggling group: ${group}`);
     setOpenGroups(prev => ({
       ...prev,
       [group]: !prev[group]

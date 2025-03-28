@@ -20,17 +20,24 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
 
   // Handle click on the collapsible trigger button
   const handleButtonClick = (e: React.MouseEvent) => {
-    // If the item has a href, navigate to it
+    e.preventDefault(); // Prevent default behavior
+    
+    // Always toggle the group open/closed
+    onToggle();
+    
+    // If the item has a href, navigate to it only if clicked directly
+    // but we still want to open the submenu first
     if (item.href) {
       navigate(item.href);
     }
     
-    // Always toggle the group open/closed when clicking the button
-    // This is important for user experience
-    onToggle();
-    
-    // Prevent default to avoid any conflicts
-    e.preventDefault();
+    // Add debug logging
+    console.log(`Clicked on ${item.label}, isOpen: ${isOpen}, href: ${item.href}`);
+  };
+
+  // Handle child item click
+  const handleChildClick = (href: string) => {
+    navigate(href);
   };
 
   return (
@@ -68,7 +75,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
                     "w-full justify-start text-sm px-2 py-1.5 h-8",
                     subItem.active ? "bg-accent" : "hover:bg-accent/50"
                   )}
-                  onClick={() => navigate(subItem.href)}
+                  onClick={() => handleChildClick(subItem.href)}
                 >
                   {subItem.icon && <span className="mr-2"><SubIcon className="h-4 w-4" /></span>}
                   {subItem.label}

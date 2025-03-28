@@ -48,7 +48,8 @@ export function Sidebar({
   useEffect(() => {
     console.log("Current path:", location.pathname);
     console.log("Open groups:", openGroups);
-  }, [location.pathname, openGroups]);
+    console.log("Navigation items:", NAV_ITEMS);
+  }, [location.pathname, openGroups, NAV_ITEMS]);
 
   // Handler to navigate to logo settings
   const handleLogoClick = () => {
@@ -114,6 +115,8 @@ export function Sidebar({
 
                 // Now we know item is a NavItem, not a string
                 const navItem = item as NavItem;
+
+                console.log(`Rendering nav item: ${navItem.label}, isOpen: ${!!openGroups[navItem.label]}`);
                 
                 // Render a nav group with dropdown
                 if (navItem.items && navItem.items.length > 0) {
