@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/hooks/use-settings';
 import { useAssociations } from '@/hooks/use-associations';
 import { usePropertyExport } from '@/hooks/usePropertyExport';
+import { useParams } from 'react-router-dom';
 import PropertyStats from '@/components/properties/PropertyStats';
 import PropertyList from '@/components/properties/PropertyList';
 import { 
@@ -13,11 +14,13 @@ import {
   Property
 } from '@/components/properties/PropertyHelpers';
 import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
+import PropertyListReport from '@/components/reports/property/PropertyListReport';
 
 const Properties = () => {
   const { preferences } = useSettings();
   const { associations } = useAssociations();
   const isMobile = useIsMobile();
+  const { id } = useParams();
   
   const properties: Property[] = associations && associations.length > 0 
     ? getPropertiesFromAssociations(associations) 
@@ -40,6 +43,8 @@ const Properties = () => {
       setColumns(newColumns);
     }
   };
+
+  const selectedProperty = id ? properties.find(p => p.associationId === id) : null;
   
   const { 
     isExporting,
@@ -49,15 +54,33 @@ const Properties = () => {
   
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
-      <PropertyStats />
+      {!id && <PropertyStats />}
       
-      <PropertyList 
-        properties={properties}
-        columns={columns}
-        onColumnsChange={handleColumnsChange}
-        onExport={() => handleVisibleColumnsExport(columns)}
-        onTemplateDownload={handleTemplateDownload}
-      />
+      {id && selectedProperty ? (
+        <div className="space-y-6">
+          <PropertyList 
+            properties={properties}
+            columns={columns}
+            onColumnsChange={handleColumnsChange}
+            onExport={() => handleVisibleColumnsExport(columns)}
+            onTemplateDownload={handleTemplateDownload}
+          />
+          
+          <PropertyListReport 
+            properties={[selectedProperty]}
+            timeRange={`As of ${new Date().toLocaleDateString()}`}
+            association={selectedProperty.name}
+          />
+        </div>
+      ) : (
+        <PropertyList 
+          properties={properties}
+          columns={columns}
+          onColumnsChange={handleColumnsChange}
+          onExport={() => handleVisibleColumnsExport(columns)}
+          onTemplateDownload={handleTemplateDownload}
+        />
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useParams } from 'react-router-dom';
 import PropertyTable from './PropertyTable';
 import PropertyCardList from './PropertyCardList';
 import PropertyHeader from './PropertyHeader';
@@ -24,6 +25,10 @@ const PropertyList = ({
   onTemplateDownload 
 }: PropertyListProps) => {
   const isMobile = useIsMobile();
+  const { id } = useParams();
+
+  // Filter to just the selected property if viewing a specific property
+  const displayProperties = id ? properties.filter(p => p.associationId === id) : properties;
 
   return (
     <Card className="animate-fade-in">
@@ -32,14 +37,16 @@ const PropertyList = ({
         onColumnsChange={onColumnsChange} 
         onExport={onExport} 
         onTemplateDownload={onTemplateDownload} 
+        isDetailView={!!id}
+        propertyName={id ? displayProperties[0]?.name : undefined}
       />
       <CardContent>
         {isMobile && (
-          <PropertyCardList properties={properties} columns={columns} />
+          <PropertyCardList properties={displayProperties} columns={columns} />
         )}
         
         <div className={isMobile ? "hidden" : "overflow-auto"}>
-          <PropertyTable properties={properties} columns={columns} />
+          <PropertyTable properties={displayProperties} columns={columns} />
         </div>
       </CardContent>
     </Card>

@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, X, CalendarClock, DollarSign, MapPin, MapPinned, Building2, FileText, Briefcase, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
 import { PropertyColumn } from './PropertyColumnsSelector';
@@ -12,6 +13,7 @@ interface PropertyTableProps {
 
 const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -25,7 +27,10 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
   };
 
   const navigateToAssociation = (associationId: string) => {
-    navigate(`/properties/${associationId}`);
+    // Only navigate if we're not already on this property's page
+    if (id !== associationId) {
+      navigate(`/properties/${associationId}`);
+    }
   };
 
   const SortIcon = ({ field }: { field: string }) => {
