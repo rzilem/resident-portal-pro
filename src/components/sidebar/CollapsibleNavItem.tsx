@@ -22,17 +22,13 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
   const handleButtonClick = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default behavior
     
-    // Always toggle the group open/closed
+    // Toggle the group open/closed
     onToggle();
     
-    // If the item has a href, navigate to it only if clicked directly
-    // but we still want to open the submenu first
+    // If the item has a href, navigate to it
     if (item.href) {
       navigate(item.href);
     }
-    
-    // Add debug logging
-    console.log(`Clicked on ${item.label}, isOpen: ${isOpen}, href: ${item.href}`);
   };
 
   // Handle child item click

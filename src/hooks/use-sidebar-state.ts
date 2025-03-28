@@ -96,16 +96,10 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
         }
       }
     }
-
-    // Force these sections to be open for testing
-    // Comment this out once we've verified the main issue is fixed
-    newOpenGroups['Records & Reports'] = true;
-    newOpenGroups['Resale Management'] = true;
-    newOpenGroups['System'] = true;
     
     console.log("Updated open groups:", newOpenGroups);
 
-    // Update sidebar group state
+    // Update sidebar group state - only for the current path
     setOpenGroups(newOpenGroups);
   }, [location.pathname]);
 
