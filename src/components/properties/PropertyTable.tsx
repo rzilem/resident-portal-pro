@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -26,6 +27,7 @@ const PropertyTable = ({ properties, columns }: PropertyTableProps) => {
   };
 
   const navigateToAssociation = (associationId: string) => {
+    console.log('Navigating to association:', associationId);
     navigate(`/properties/${associationId}`);
   };
 

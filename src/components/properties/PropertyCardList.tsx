@@ -17,10 +17,8 @@ const PropertyCardList = ({ properties, columns }: PropertyCardListProps) => {
   const { id } = useParams();
 
   const navigateToAssociation = (associationId: string) => {
-    // Navigate to the property profile page for the specific association
-    if (id !== associationId) {
-      navigate(`/properties/${associationId}`);
-    }
+    console.log('Navigating to association (card):', associationId);
+    navigate(`/properties/${associationId}`);
   };
 
   return (
