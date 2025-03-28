@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
+import { testBucketAccess } from '@/utils/documents/bucketUtils';
 
 interface UploadDocumentParams {
   file: File;
@@ -33,14 +33,6 @@ export const uploadDocument = async ({
     }
     
     console.log('User authenticated:', user.id);
-    
-    // First make sure the bucket exists
-    const bucketExists = await ensureDocumentsBucketExists();
-    if (!bucketExists) {
-      console.error('Document storage not available');
-      toast.error('Document storage is not available. Please try again later.');
-      return false;
-    }
     
     // Test if we can actually upload to the bucket
     const canUpload = await testBucketAccess();
@@ -112,7 +104,7 @@ export const uploadDocument = async ({
       .from('documents')
       .getPublicUrl(filePath);
     
-    const fileUrl = urlData?.publicUrl || filePath;
+    const fileUrl = urlData?.publicUrl || '';
     
     // Save document metadata to the documents table
     try {
@@ -129,7 +121,8 @@ export const uploadDocument = async ({
           uploaded_by: user.id,
           association_id: validAssociationId,
           is_public: false,
-          version: 1
+          version: 1,
+          last_modified: new Date().toISOString()
         })
         .select()
         .single();

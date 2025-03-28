@@ -15,10 +15,11 @@ export const initializeDocumentsBucket = async (forceCreate = false): Promise<bo
     
     if (listError) {
       console.error('Error listing buckets:', listError);
-      return false;
+      // Instead of failing, assume bucket might exist but we can't list it
+      return await testBucketAccess();
     }
     
-    const bucketExists = buckets.some(bucket => bucket.name === 'documents');
+    const bucketExists = buckets?.some(bucket => bucket.name === 'documents');
     
     if (bucketExists && !forceCreate) {
       console.log('Documents bucket already exists');
@@ -34,6 +35,14 @@ export const initializeDocumentsBucket = async (forceCreate = false): Promise<bo
       
       if (createError) {
         console.error('Error creating documents bucket:', createError);
+        
+        // If the error is due to RLS policy, we might still be able to use the bucket
+        // This happens when the bucket exists but the user doesn't have permission to create it
+        if (createError.message?.includes('row-level security policy')) {
+          console.log('RLS policy prevented bucket creation - checking if bucket is usable anyway');
+          return await testBucketAccess();
+        }
+        
         return false;
       }
       
@@ -78,5 +87,13 @@ export const testBucketAccess = async (): Promise<boolean> => {
  * @returns Promise<boolean> Success status
  */
 export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<boolean> => {
+  // First try to test if we can already access the bucket
+  const canAccess = await testBucketAccess();
+  if (canAccess) {
+    console.log('Documents bucket is already accessible');
+    return true;
+  }
+  
+  // If we can't access it, try to create it
   return await initializeDocumentsBucket(forceCreate);
 };

@@ -1,412 +1,322 @@
 
-import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { initializeDocumentsBucket } from '@/utils/documents/bucketUtils';
-import { validateFileSize, validateFileType } from '@/utils/documents/fileUtils';
-import { getDocumentCategories } from '@/utils/documents/uploadUtils';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, AlertCircle, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
+import { uploadDocument } from '@/services/document-upload';
+import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
+import { useAssociations } from '@/hooks/use-associations';
+import { FileUploader } from '../ui/file-uploader';
+import { Badge } from '@/components/ui/badge';
+import { X, Plus, Loader2 } from 'lucide-react';
 
 interface DocumentUploadDialogProps {
   open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
   onSuccess?: () => void;
   refreshDocuments?: () => void;
   associationId?: string;
 }
 
-const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({ 
-  open, 
-  setOpen, 
-  onSuccess, 
+const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
+  open,
+  setOpen,
+  onSuccess,
   refreshDocuments,
-  associationId 
+  associationId: propAssociationId
 }) => {
-  const { user, isAuthenticated } = useAuth();
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState<string>('');
-  const [category, setCategory] = useState<string>('GENERAL');
-  const [description, setDescription] = useState<string>('');
-  const [isPreparing, setIsPreparing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isStorageReady, setIsStorageReady] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
-
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  
+  const { toast } = useToast();
+  const { activeAssociation } = useAssociations();
+  
+  // Combine possible association IDs with a fallback
+  const effectiveAssociationId = propAssociationId || activeAssociation?.id || 'default';
+  
+  // Document categories
+  const categories = [
+    { id: 'governing', name: 'Governing Documents' },
+    { id: 'financial', name: 'Financial Documents' },
+    { id: 'meetings', name: 'Meeting Minutes' },
+    { id: 'legal', name: 'Legal Documents' },
+    { id: 'rules', name: 'Rules & Regulations' },
+    { id: 'contracts', name: 'Contracts' },
+    { id: 'maintenance', name: 'Maintenance' },
+    { id: 'correspondence', name: 'Correspondence' },
+    { id: 'other', name: 'Other' }
+  ];
+  
   useEffect(() => {
-    if (!open) return; // Only run when dialog is open
+    if (open) {
+      prepareStorage();
+    }
+  }, [open]);
+  
+  const prepareStorage = async () => {
+    if (!open) return;
     
-    const loadCategories = async () => {
-      setCategoriesLoading(true);
-      try {
-        const fetchedCategories = await getDocumentCategories();
-        setCategories(fetchedCategories.map(cat => cat.name));
-        
-        // Set default category from fetched categories if available
-        if (fetchedCategories.length > 0 && !category) {
-          setCategory(fetchedCategories[0].name);
-        }
-      } catch (error) {
-        console.error("Error loading categories:", error);
-        toast.error("Failed to load document categories");
-        
-        // Set fallback categories
-        setCategories(['GENERAL', 'FINANCIAL', 'LEGAL', 'MAINTENANCE']);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
+    setPreparing(true);
+    setStorageError(null);
     
-    loadCategories();
-  }, [open, category]);
-
-  useEffect(() => {
-    if (!open) return; // Only run when dialog is open
-    if (!isAuthenticated || !user) return; // Skip if not authenticated
-    
-    const prepareStorage = async () => {
-      if (isPreparing) return; // Prevent multiple calls
-      setIsPreparing(true);
-      try {
-        const success = await initializeDocumentsBucket();
-        if (success) {
-          setIsStorageReady(true);
-          console.log("Storage initialized successfully");
-        } else {
-          toast.error("Failed to initialize document storage");
-          console.error("Storage initialization failed");
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error("Storage initialization error:", message);
-        toast.error("Document storage is not available");
-      } finally {
-        setIsPreparing(false);
-      }
-    };
-    
-    prepareStorage();
-  }, [isAuthenticated, user, open, isPreparing]);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const selectedFile = event.target.files[0];
-      setFile(selectedFile);
-      if (!title) {
-        // Auto-fill title with file name (without extension)
-        const fileName = selectedFile.name.split('.').slice(0, -1).join('.');
-        setTitle(fileName || selectedFile.name);
-      }
-    }
-  };
-
-  const resetForm = () => {
-    setFile(null);
-    setTitle('');
-    setCategory('GENERAL');
-    setDescription('');
-  };
-
-  const handleClose = () => {
-    resetForm();
-    setOpen(false);
-  };
-
-  const handleUpload = async () => {
-    if (!isAuthenticated || !user) {
-      toast.error("Please log in to upload documents");
-      console.error("User not authenticated");
-      return;
-    }
-    if (!file) {
-      toast.error("Please select a file to upload");
-      console.error("No file selected");
-      return;
-    }
-    if (!title.trim()) {
-      toast.error("Please enter a title for the document");
-      return;
-    }
-    if (!isStorageReady) {
-      toast.error("Document storage is not ready");
-      console.error("Storage not ready");
-      return;
-    }
-
-    setIsUploading(true);
     try {
-      // Validate file
-      console.log("Validating file:", file.name);
-      try {
-        validateFileSize(file, 5); // 5MB limit
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "File is too large");
-        setIsUploading(false);
-        return;
+      console.log('Checking if documents bucket exists...');
+      const exists = await ensureDocumentsBucketExists();
+      
+      if (exists) {
+        // Double-check access with a separate call
+        const canAccess = await testBucketAccess();
+        if (canAccess) {
+          setStorageReady(true);
+        } else {
+          setStorageError('Document storage exists but cannot be accessed');
+        }
+      } else {
+        setStorageError('Document storage is not available');
       }
-      
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/jpeg',
-        'image/png',
-      ];
-      
-      try {
-        validateFileType(file, allowedTypes);
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Invalid file type");
-        setIsUploading(false);
-        return;
-      }
-
-      // Generate a unique file path using timestamp and file name
-      const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${category}/${timestamp}_${title}.${fileExt}`;
-
-      // Upload file
-      console.log("Starting upload for file:", file.name);
-      console.log("File path:", filePath);
-      
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) {
-        toast.error(`Upload failed: ${uploadError.message}`);
-        console.error("Upload error:", JSON.stringify(uploadError, null, 2));
-        return;
-      }
-
-      // Get public URL
-      console.log("Getting public URL for file:", filePath);
-      const { data } = await supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-
-      const publicUrl = data?.publicUrl || '';
-
-      // Save document metadata to database
-      console.log("Saving document metadata");
-      const { error: dbError } = await supabase
-        .from('documents')
-        .insert({
-          name: title,
-          description: description,
-          file_size: file.size,
-          file_type: file.type,
-          url: publicUrl,
-          category: category,
-          uploaded_by: user.id,
-          association_id: associationId || '00000000-0000-0000-0000-000000000000', // Default UUID if none provided
-          is_public: false,
-          version: 1
-        });
-
-      if (dbError) {
-        toast.error(`Failed to save document metadata: ${dbError.message}`);
-        console.error("Database error:", dbError);
-        
-        // Try to delete the uploaded file since metadata save failed
-        await supabase.storage.from('documents').remove([filePath]);
-        return;
-      }
-
-      toast.success("Document uploaded successfully");
-      console.log("Document uploaded successfully:", publicUrl);
-      
-      // Reset form and close dialog
-      resetForm();
-      setOpen(false);
-      
-      // Call success callbacks
-      if (onSuccess) onSuccess();
-      if (refreshDocuments) refreshDocuments();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error(`Upload failed: ${message}`);
-      console.error("Upload error:", error);
+    } catch (error) {
+      console.error('Storage initialization failed', error);
+      setStorageError('Failed to initialize document storage');
     } finally {
-      setIsUploading(false);
+      setPreparing(false);
     }
   };
-
-  const handleLogin = () => {
-    // Close this dialog and navigate to login page
-    setOpen(false);
-    // Use a timeout to allow the dialog to close first
-    setTimeout(() => {
-      window.location.href = '/login';
-    }, 300);
+  
+  const handleAddTag = () => {
+    if (tagInput && !tags.includes(tagInput)) {
+      setTags([...tags, tagInput]);
+      setTagInput('');
+    }
   };
-
+  
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!file) {
+      toast({
+        variant: "destructive",
+        title: "No file selected",
+        description: "Please select a file to upload."
+      });
+      return;
+    }
+    
+    if (!category) {
+      toast({
+        variant: "destructive",
+        title: "Category required",
+        description: "Please select a document category."
+      });
+      return;
+    }
+    
+    setUploading(true);
+    
+    try {
+      const success = await uploadDocument({
+        file,
+        description,
+        category,
+        tags,
+        associationId: effectiveAssociationId
+      });
+      
+      if (success) {
+        toast({
+          title: "Upload successful",
+          description: `${file.name} has been uploaded successfully.`
+        });
+        
+        // Reset form
+        setFile(null);
+        setDescription('');
+        setCategory('');
+        setTags([]);
+        
+        // Close dialog
+        setOpen(false);
+        
+        // Trigger success callback
+        if (onSuccess) onSuccess();
+        if (refreshDocuments) refreshDocuments();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Upload failed",
+          description: "There was an error uploading your document. Please try again."
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  const handleRetryStorage = () => {
+    prepareStorage();
+  };
+  
+  // Content to show based on storage status
+  const renderContent = () => {
+    if (preparing) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <h3 className="text-lg font-medium">Preparing document storage...</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Almost ready! Checking storage accessibility...
+          </p>
+        </div>
+      );
+    }
+    
+    if (storageError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="rounded-full bg-red-100 p-3 mb-4">
+            <X className="h-8 w-8 text-red-600" />
+          </div>
+          <h3 className="text-lg font-medium">Storage Not Available</h3>
+          <p className="text-sm text-muted-foreground mt-2 mb-6 text-center max-w-md">
+            {storageError}. This may be due to network issues or permissions.
+          </p>
+          <Button onClick={handleRetryStorage}>Retry</Button>
+        </div>
+      );
+    }
+    
+    // If storage is ready, show the upload form
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="file">File</Label>
+          <FileUploader file={file} setFile={setFile} disabled={uploading} />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="category">Category</Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(cat => (
+                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter a description for this document"
+            className="min-h-[80px]"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="tags">Tags</Label>
+          <div className="flex gap-2">
+            <Input
+              id="tags"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="Add tags..."
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag();
+                }
+              }}
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleAddTag}
+              disabled={!tagInput}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {tags.map(tag => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center bg-muted-foreground/20 hover:bg-muted-foreground/30 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <DialogFooter>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => setOpen(false)}
+            disabled={uploading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!file || uploading}>
+            {uploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>Upload</>
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
+  
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Upload Document
-          </DialogTitle>
+          <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>
             Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.
           </DialogDescription>
         </DialogHeader>
-        
-        {!isAuthenticated || !user ? (
-          <div className="bg-destructive/10 p-4 rounded-md">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-medium">Authentication Required</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Please log in to upload documents.
-                </p>
-                <Button 
-                  onClick={handleLogin} 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-3"
-                >
-                  Go to Login
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : isPreparing ? (
-          <div className="flex flex-col items-center py-6">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-center text-muted-foreground">
-              Preparing document storage...
-              <br />
-              <span className="text-sm">Almost ready! Checking storage accessibility...</span>
-            </p>
-          </div>
-        ) : !isStorageReady ? (
-          <div className="bg-destructive/10 p-4 rounded-md">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-medium">Document Storage Not Available</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  The system is having trouble accessing the document storage.
-                  Please try again later or contact support.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="file">Select File</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  disabled={isUploading}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Document title"
-                  disabled={isUploading}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select 
-                  value={category} 
-                  onValueChange={setCategory}
-                  disabled={isUploading || categoriesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriesLoading ? (
-                      <div className="flex items-center justify-center p-2">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span>Loading...</span>
-                      </div>
-                    ) : (
-                      categories.map(cat => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Optional document description"
-                  disabled={isUploading}
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                disabled={isUploading}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpload}
-                disabled={isUploading || !file || !title.trim()}
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
+        {renderContent()}
       </DialogContent>
     </Dialog>
   );
