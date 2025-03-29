@@ -14,6 +14,8 @@ import BidRequestWizard from './pages/resale/wizard/BidRequestWizard';
 import BidRequests from './pages/resale/BidRequests';
 import BidRequestDetail from './pages/resale/BidRequestDetail';
 import ProtectedRoute from './components/ProtectedRoute';
+import CommunityHub from './pages/CommunityHub';
+import ResaleDashboard from './pages/resale/ResaleDashboard';
 
 const router = createBrowserRouter([
   {
@@ -58,6 +60,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/community-hub',
+        element: (
+          <ProtectedRoute>
+            <CommunityHub />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/resale',
+        element: (
+          <ProtectedRoute>
+            <ResaleDashboard />
           </ProtectedRoute>
         ),
       },

@@ -6,75 +6,155 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  Loader2, 
   ArrowLeft, 
-  Calendar, 
-  Clock, 
-  User, 
-  BuildingIcon
+  Calendar,
+  FileClock,
+  Clock,
+  User,
+  Building,
+  MessageSquare,
+  CheckCircle2,
+  XCircle,
+  Loader2
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { BidRequest, BidRequestVendor, bidRequestService } from '@/services/bidRequestService';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { PROJECT_TYPES, PROJECT_TYPE_QUESTIONS } from './wizard/bid-request-data';
-import { Question } from './wizard/types';
-import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { PROJECT_TYPES, PROJECT_QUESTIONS } from './wizard/bid-request-data';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 
 const BidRequestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
   const [bidRequest, setBidRequest] = useState<BidRequest | null>(null);
-  const [vendors, setVendors] = useState<BidRequestVendor[]>([]);
+  const [bidVendors, setBidVendors] = useState<BidRequestVendor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      loadBidRequest(id);
-    }
-  }, [id]);
+    if (!id) return;
+    
+    const fetchBidRequestDetails = async () => {
+      setLoading(true);
+      try {
+        const requestData = await bidRequestService.getBidRequestById(id);
+        const vendorsData = await bidRequestService.getBidRequestVendors(id);
+        
+        if (requestData) {
+          setBidRequest(requestData);
+          setBidVendors(vendorsData);
+        } else {
+          toast.error('Bid request not found');
+          navigate('/resale/bid-requests');
+        }
+      } catch (error) {
+        console.error('Error fetching bid request details:', error);
+        toast.error('Failed to load bid request details');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadBidRequest = async (requestId: string) => {
-    setLoading(true);
+    fetchBidRequestDetails();
+  }, [id, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!bidRequest) {
+    return (
+      <div className="container mx-auto p-4 max-w-5xl">
+        <Alert variant="destructive">
+          <AlertTitle>Bid Request Not Found</AlertTitle>
+          <AlertDescription>
+            The bid request you are looking for could not be found. Please check the URL or go back to the bid requests page.
+          </AlertDescription>
+        </Alert>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => navigate('/resale/bid-requests')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Bid Requests
+        </Button>
+      </div>
+    );
+  }
+
+  const handleStatusUpdate = async (status: string) => {
+    if (!id) return;
+    
+    setUpdating(true);
     try {
-      const request = await bidRequestService.getBidRequestById(requestId);
-      if (request) {
-        setBidRequest(request);
-        const vendorData = await bidRequestService.getBidRequestVendors(requestId);
-        setVendors(vendorData);
-      } else {
-        toast.error('Bid request not found');
+      const success = await bidRequestService.updateBidRequestStatus(id, status);
+      if (success) {
+        setBidRequest(prev => prev ? { ...prev, status } : null);
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    
+    setDeleting(true);
+    try {
+      const success = await bidRequestService.deleteBidRequest(id);
+      if (success) {
         navigate('/resale/bid-requests');
       }
     } catch (error) {
-      console.error('Error loading bid request:', error);
-      toast.error('Failed to load bid request details');
+      console.error('Error deleting bid request:', error);
+      toast.error('Failed to delete bid request');
     } finally {
-      setLoading(false);
+      setDeleting(false);
     }
   };
 
-  const getProjectType = () => {
-    if (!bidRequest) return null;
-    return PROJECT_TYPES.find(type => type.id === bidRequest.project_type);
-  };
-
-  const getQuestions = () => {
-    const projectType = getProjectType();
-    if (!projectType) return [];
-    return PROJECT_TYPE_QUESTIONS[projectType.id] || [];
+  const getProjectTypeName = (typeId: string) => {
+    const projectType = PROJECT_TYPES.find(type => type.id === typeId);
+    return projectType?.name || typeId;
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -92,213 +172,254 @@ const BidRequestDetail: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4 flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!bidRequest) {
-    return (
-      <div className="container mx-auto p-4">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-2">Bid Request Not Found</h2>
-          <p className="text-muted-foreground mb-6">
-            The bid request you're looking for doesn't exist or you don't have permission to view it.
-          </p>
-          <Button onClick={() => navigate('/resale/bid-requests')}>
-            Back to Bid Requests
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const projectType = getProjectType();
-  const questions = getQuestions();
-
   return (
     <div className="container mx-auto p-4 max-w-5xl">
-      <Button 
-        variant="ghost" 
-        className="mb-6"
-        onClick={() => navigate('/resale/bid-requests')}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Bid Requests
-      </Button>
+      <div className="flex items-center mb-6">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate('/resale/bid-requests')}
+          className="mr-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Requests
+        </Button>
+        
+        <h1 className="text-2xl font-bold">Bid Request Details</h1>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-2xl">{projectType?.name || 'Project'}</CardTitle>
+                  <CardTitle className="text-xl">{getProjectTypeName(bidRequest.project_type)}</CardTitle>
                   <CardDescription>
-                    Created on {format(new Date(bidRequest.created_at), 'MMM d, yyyy')}
+                    Created on {format(new Date(bidRequest.created_at), 'MMMM d, yyyy')}
                   </CardDescription>
                 </div>
-                <Badge variant={getStatusBadgeVariant(bidRequest.status)}>
-                  {bidRequest.status}
-                </Badge>
+                <Badge variant={getStatusBadgeVariant(bidRequest.status)}>{bidRequest.status}</Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {bidRequest.due_date && (
-                  <div className="flex items-center text-sm">
-                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>Due by {format(new Date(bidRequest.due_date), 'MMMM d, yyyy')}</span>
-                  </div>
-                )}
-
-                {bidRequest.notes && (
-                  <div>
-                    <h3 className="text-sm font-medium mb-2">Additional Notes</h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">{bidRequest.notes}</p>
-                  </div>
-                )}
+            <CardContent className="space-y-4">
+              {bidRequest.due_date && (
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-muted-foreground" />
+                  <span>Due by {format(new Date(bidRequest.due_date), 'MMMM d, yyyy')}</span>
+                </div>
+              )}
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Project Details</h3>
+                <Card className="bg-muted/40">
+                  <CardContent className="p-4">
+                    {Object.entries(bidRequest.answers).map(([questionId, answer]) => {
+                      // Find the question by ID across all project types
+                      let question = null;
+                      const questions = PROJECT_QUESTIONS[bidRequest.project_type] || [];
+                      for (const q of questions) {
+                        if (q.id === questionId) {
+                          question = q;
+                          break;
+                        }
+                      }
+                      
+                      return (
+                        <div key={questionId} className="mb-3">
+                          <p className="font-medium">{question?.text || questionId}</p>
+                          <p>{typeof answer === 'object' ? JSON.stringify(answer) : answer?.toString()}</p>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
               </div>
+              
+              {bidRequest.notes && (
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Additional Notes</h3>
+                  <div className="p-4 bg-muted/40 rounded-md">
+                    <p className="whitespace-pre-line">{bidRequest.notes}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
-
+          
           <Card>
             <CardHeader>
-              <CardTitle>Project Details</CardTitle>
+              <CardTitle className="text-lg">Vendor Responses</CardTitle>
               <CardDescription>
-                Information provided for this bid request
+                Track responses from vendors for this bid request
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {questions.map((question: Question) => {
-                  const answer = bidRequest.answers[question.id];
-                  if (!answer) return null;
-
-                  return (
-                    <div key={question.id} className="border-b pb-3 last:border-0 last:pb-0">
-                      <h3 className="text-sm font-medium mb-1">{question.question}</h3>
-                      <p className="text-sm text-muted-foreground">{answer}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Vendor Responses</CardTitle>
-              <CardDescription>
-                Bids received from vendors
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {vendors.length === 0 ? (
+              {bidVendors.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Clock className="mx-auto h-10 w-10 mb-3 opacity-50" />
-                  <p>Waiting for vendor responses</p>
+                  <FileClock className="mx-auto h-12 w-12 mb-3 text-muted-foreground/50" />
+                  <p>No vendor responses yet</p>
+                  <p className="text-sm mt-1">Vendors will appear here when they respond to your bid request</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vendor</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Bid Amount</TableHead>
-                      <TableHead>Response Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {vendors.map(vendor => (
-                      <TableRow key={vendor.id}>
-                        <TableCell className="font-medium">{vendor.vendor_id}</TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusBadgeVariant(vendor.status)}>
+                <div className="space-y-4">
+                  {bidVendors.map((vendor) => (
+                    <Card key={vendor.id} className="overflow-hidden">
+                      <div className={`h-2 ${vendor.status === 'accepted' ? 'bg-green-500' : vendor.status === 'rejected' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">Vendor {vendor.vendor_id}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {vendor.response_date 
+                                ? `Responded on ${format(new Date(vendor.response_date), 'MMM d, yyyy')}`
+                                : 'Awaiting response'}
+                            </p>
+                          </div>
+                          <Badge variant={vendor.status === 'accepted' ? 'success' : vendor.status === 'rejected' ? 'destructive' : 'outline'}>
                             {vendor.status}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {vendor.bid_amount 
-                            ? `$${vendor.bid_amount.toLocaleString()}`
-                            : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {vendor.response_date 
-                            ? format(new Date(vendor.response_date), 'MMM d, yyyy')
-                            : '-'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </div>
+                        
+                        {vendor.bid_amount && (
+                          <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                            <p className="text-sm font-medium">Bid Amount:</p>
+                            <p className="text-lg font-bold">${vendor.bid_amount.toFixed(2)}</p>
+                          </div>
+                        )}
+                        
+                        {vendor.estimated_completion_date && (
+                          <div className="mt-3 flex items-center">
+                            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span className="text-sm">
+                              Estimated completion: {format(new Date(vendor.estimated_completion_date), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {vendor.response_notes && (
+                          <div className="mt-3">
+                            <p className="text-sm font-medium">Notes:</p>
+                            <p className="text-sm mt-1 whitespace-pre-line">{vendor.response_notes}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
-
+        
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Project Summary</CardTitle>
+              <CardTitle className="text-lg">Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <div className="mt-1">
-                    <Badge variant={getStatusBadgeVariant(bidRequest.status)}>
-                      {bidRequest.status}
-                    </Badge>
-                  </div>
-                </div>
-                <Separator />
-                <div>
-                  <span className="text-sm text-muted-foreground">Project Type</span>
-                  <p className="font-medium mt-1">{projectType?.name}</p>
-                </div>
-                <Separator />
-                <div>
-                  <span className="text-sm text-muted-foreground">Created On</span>
-                  <p className="font-medium mt-1">
-                    {format(new Date(bidRequest.created_at), 'MMM d, yyyy')}
-                  </p>
-                </div>
-                {bidRequest.due_date && (
-                  <>
-                    <Separator />
-                    <div>
-                      <span className="text-sm text-muted-foreground">Due Date</span>
-                      <p className="font-medium mt-1">
-                        {format(new Date(bidRequest.due_date), 'MMM d, yyyy')}
-                      </p>
-                    </div>
-                  </>
-                )}
-                <Separator />
-                <div>
-                  <span className="text-sm text-muted-foreground">Vendors</span>
-                  <p className="font-medium mt-1">{vendors.length} vendors contacted</p>
+            <CardContent className="space-y-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="secondary" className="w-full">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Send Message
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Send Message to Vendors</DialogTitle>
+                    <DialogDescription>
+                      Send a message to all vendors regarding this bid request.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Type your message here..."
+                    className="min-h-[100px]"
+                  />
+                  <DialogFooter>
+                    <Button type="submit">Send Message</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Update Status</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                    disabled={updating || bidRequest.status === 'accepted'}
+                    onClick={() => handleStatusUpdate('accepted')}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Accept
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    disabled={updating || bidRequest.status === 'rejected'}
+                    onClick={() => handleStatusUpdate('rejected')}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Reject
+                  </Button>
                 </div>
               </div>
+              
+              <Separator />
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    disabled={deleting}
+                  >
+                    {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Delete Request
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the bid request and all associated data.
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDelete}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
-
+          
           <Card>
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
+              <CardTitle className="text-lg">Vendor Portal</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Share this link with vendors to allow them to submit bids
+              </p>
+              <div className="p-3 bg-muted/40 rounded-md">
+                <code className="text-xs break-all text-blue-600">
+                  https://vendor.example.com/bid/{id}
+                </code>
+              </div>
               <Button className="w-full" variant="outline">
-                <User className="mr-2 h-4 w-4" />
-                Contact Vendors
-              </Button>
-              <Button className="w-full" variant="outline">
-                <BuildingIcon className="mr-2 h-4 w-4" />
-                Add Vendor
+                Copy Vendor Link
               </Button>
             </CardContent>
           </Card>

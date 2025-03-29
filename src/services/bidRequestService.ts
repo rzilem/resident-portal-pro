@@ -47,7 +47,7 @@ export const bidRequestService = {
           user_id: session.user.id,
           project_type: formData.projectType,
           notes: formData.notes || null,
-          due_date: formData.dueDate || null,
+          due_date: formData.dueDate ? formData.dueDate.toISOString() : null,
           answers: formData.answers
         })
         .select('id')
@@ -101,7 +101,13 @@ export const bidRequestService = {
         return [];
       }
 
-      return data || [];
+      // Convert JSON answers to Record<string, any>
+      return (data || []).map(item => ({
+        ...item,
+        answers: typeof item.answers === 'string' 
+          ? JSON.parse(item.answers) 
+          : item.answers
+      }));
     } catch (error) {
       console.error('Unexpected error fetching bid requests:', error);
       toast.error('An unexpected error occurred');
@@ -126,7 +132,13 @@ export const bidRequestService = {
         return null;
       }
 
-      return data;
+      // Convert JSON answers to Record<string, any>
+      return {
+        ...data,
+        answers: typeof data.answers === 'string'
+          ? JSON.parse(data.answers)
+          : data.answers
+      };
     } catch (error) {
       console.error('Unexpected error fetching bid request:', error);
       toast.error('An unexpected error occurred');

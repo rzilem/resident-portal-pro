@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BidRequestFormData, ProjectType, Question } from './types';
-import { PROJECT_TYPES, PROJECT_TYPE_QUESTIONS } from './bid-request-data';
+import { PROJECT_TYPES, PROJECT_QUESTIONS } from './bid-request-data';
 import ProjectTypeSlide from './slides/ProjectTypeSlide';
 import QuestionSlide from './slides/QuestionSlide';
 import SummarySlide from './slides/SummarySlide';
 import VendorSelectionSlide from './slides/VendorSelectionSlide';
-import WizardProgress from './components/WizardProgress';
+import { WizardProgress } from './components/WizardProgress';
 import { CalendarIcon, Clock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -40,7 +40,7 @@ const BidRequestWizard: React.FC = () => {
   };
 
   const selectedType = PROJECT_TYPES.find(type => type.id === formData.projectType);
-  const questions = selectedType ? PROJECT_TYPE_QUESTIONS[selectedType.id] || [] : [];
+  const questions = selectedType ? PROJECT_QUESTIONS[selectedType.id] || [] : [];
 
   // Current question based on the step
   const currentQuestion = questions[currentStep - 1];
@@ -146,7 +146,7 @@ const BidRequestWizard: React.FC = () => {
           {isVendorStep && (
             <VendorSelectionSlide 
               selectedVendors={formData.vendors} 
-              onSelect={handleSelectVendors} 
+              onSelectVendors={handleSelectVendors} 
             />
           )}
 

@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BidRequestFormData, Question } from '../types';
-import { PROJECT_TYPES } from '../bid-request-data';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface SummarySlideProps {
   formData: BidRequestFormData;
@@ -10,40 +9,36 @@ interface SummarySlideProps {
 }
 
 const SummarySlide: React.FC<SummarySlideProps> = ({ formData, questions }) => {
-  const projectType = PROJECT_TYPES.find(type => type.id === formData.projectType);
-  
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Review Your Bid Request</h2>
-      <p className="text-muted-foreground mb-6">
-        Please review the information below to ensure everything is correct before proceeding.
-      </p>
+      <div>
+        <h2 className="text-2xl font-semibold mb-2">Project Summary</h2>
+        <p className="text-muted-foreground mb-6">
+          Review your project details before proceeding
+        </p>
+      </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            {projectType && React.createElement(projectType.icon, { className: "mr-2 h-5 w-5" })}
-            {projectType?.name} Project
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {questions.map((question) => {
-            const answer = formData.answers[question.id];
-            if (!answer) return null;
-            
-            return (
-              <div key={question.id} className="grid grid-cols-3 gap-4 py-2 border-b last:border-0">
-                <div className="font-medium">{question.question}</div>
-                <div className="col-span-2">{answer}</div>
-              </div>
-            );
-          })}
+      <Card className="bg-muted/30">
+        <CardContent className="p-6 space-y-4">
+          {questions.map(question => (
+            <div key={question.id} className="space-y-1">
+              <h3 className="font-medium">{question.text}</h3>
+              <p>
+                {typeof formData.answers[question.id] === 'string'
+                  ? formData.answers[question.id]
+                  : Array.isArray(formData.answers[question.id])
+                  ? formData.answers[question.id].join(', ')
+                  : JSON.stringify(formData.answers[question.id])}
+              </p>
+            </div>
+          ))}
         </CardContent>
       </Card>
       
-      <div className="bg-muted p-4 rounded-md">
+      <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
         <p className="text-sm">
-          Next, you'll select the vendors you want to request bids from. You can select up to 5 vendors.
+          In the next steps, you'll select vendors to receive this request and 
+          add any additional details before submitting.
         </p>
       </div>
     </div>
