@@ -2,13 +2,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useComposer } from './ComposerContext';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-import { workflowEventService } from '@/services/calendar/workflowEventService';
-import { CalendarEvent } from '@/types/calendar';
-import { format } from 'date-fns';
 import { Loader2, Send, Calendar, MessageSquare } from 'lucide-react';
 import { emailService } from '@/services/emailService';
+import { communicationService } from '@/services/communicationService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ComposerActionsProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -83,55 +81,20 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         return false;
       }
       
-      // Generate a unique ID for this scheduled message
-      const messageId = uuidv4();
-      
-      // Store the message details in local storage
-      const scheduledMessageData = {
-        id: messageId,
-        subject,
-        content,
-        recipients: selectedRecipients,
-        messageType,
-        scheduledAt: scheduledDateTime.toISOString(),
-      };
-      
-      // Get existing scheduled messages or initialize empty array
-      const existingMessages = JSON.parse(localStorage.getItem('scheduledMessages') || '[]');
-      existingMessages.push(scheduledMessageData);
-      localStorage.setItem('scheduledMessages', JSON.stringify(existingMessages));
-      
-      // Create a calendar event for this scheduled message
-      const calendarEvent: Partial<CalendarEvent> = {
-        id: uuidv4(),
-        title: `Scheduled: ${messageType === 'email' ? subject : 'SMS Message'}`,
-        description: `Scheduled ${messageType} to ${selectedRecipients.length} recipients`,
-        start: scheduledDateTime,
-        end: new Date(scheduledDateTime.getTime() + 30 * 60000), // End 30 minutes later
-        allDay: false,
-        type: 'workflow',
-        workflowId: messageId,
-        accessLevel: 'admin', // Using accessLevel property instead of userId
-        associationId: 'default', // Use a default association ID
-        metadata: {
-          scheduled: true,
-          recipientCount: selectedRecipients.length,
-          messageFormat: contentFormat,
-          messageType: messageType
-        }
-      };
-      
-      // Add the event to the calendar
-      await workflowEventService.createWorkflowEvent(
-        messageId, 
-        `Scheduled: ${messageType === 'email' ? subject : 'SMS Message'}`, 
-        scheduledDateTime,
-        'default' // Use a default association ID
+      // Save the message to the database as scheduled
+      const messageId = await communicationService.saveMessage(
+        { subject, content, recipients: selectedRecipients },
+        true,
+        scheduledDateTime
       );
+      
+      if (!messageId) {
+        throw new Error('Failed to save scheduled message');
+      }
       
       setIsScheduled(true);
       toast.success(
-        `${messageType.toUpperCase()} scheduled for ${format(scheduledDateTime, 'PPP p')}`,
+        `${messageType.toUpperCase()} scheduled for ${scheduledDateTime.toLocaleString()}`,
         {
           description: `To ${selectedRecipients.length} recipient${selectedRecipients.length > 1 ? 's' : ''}`
         }
@@ -147,10 +110,25 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
 
   const sendImmediateMessage = async () => {
     try {
-      // Create a timestamp for the sent message
-      const sentTimestamp = new Date().toISOString();
+      // Check if the user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Attempt to send the message to each recipient
+      if (!user) {
+        toast.error('You must be logged in to send messages');
+        return false;
+      }
+      
+      // Save the message to the database
+      const messageId = await communicationService.saveMessage(
+        { subject, content, recipients: selectedRecipients },
+        false
+      );
+      
+      if (!messageId) {
+        throw new Error('Failed to save message');
+      }
+      
+      // Send the message to each recipient
       let successCount = 0;
       
       for (const recipient of selectedRecipients) {
@@ -178,23 +156,10 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         }
       }
       
-      // Store the sent message in history
-      const sentMessageData = {
-        id: uuidv4(),
-        subject: messageType === 'email' ? subject : 'SMS Message',
-        content,
-        recipients: selectedRecipients,
-        sentAt: sentTimestamp,
-        status: successCount === selectedRecipients.length ? 'sent' : 'partial',
-        successCount,
-        totalCount: selectedRecipients.length,
-        messageType
-      };
-      
-      // Get existing sent messages or initialize empty array
-      const sentMessages = JSON.parse(localStorage.getItem('sentMessages') || '[]');
-      sentMessages.push(sentMessageData);
-      localStorage.setItem('sentMessages', JSON.stringify(sentMessages));
+      // Update message status
+      if (successCount > 0) {
+        await communicationService.markAsSent(messageId);
+      }
       
       // Show appropriate toast based on success rate
       if (successCount === selectedRecipients.length) {

@@ -181,6 +181,122 @@ export type Database = {
         }
         Relationships: []
       }
+      communication_recipients: {
+        Row: {
+          communication_id: string | null
+          created_at: string
+          id: string
+          recipient_email: string
+          recipient_type: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          communication_id?: string | null
+          created_at?: string
+          id?: string
+          recipient_email: string
+          recipient_type?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          communication_id?: string | null
+          created_at?: string
+          id?: string
+          recipient_email?: string
+          recipient_type?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_recipients_communication_id_fkey"
+            columns: ["communication_id"]
+            isOneToOne: false
+            referencedRelation: "communications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          subject: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      communications: {
+        Row: {
+          content: string
+          created_at: string
+          format: string
+          id: string
+          message_type: string
+          scheduled_for: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          format?: string
+          id?: string
+          message_type?: string
+          scheduled_for?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          format?: string
+          id?: string
+          message_type?: string
+          scheduled_for?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       document_categories: {
         Row: {
           created_at: string | null

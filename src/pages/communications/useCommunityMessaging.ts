@@ -1,7 +1,7 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { MessageTemplate } from './types';
+import { MessageTemplate, CompositionMessage } from './types';
+import { communicationService } from '@/services/communicationService';
 
 // Sample template data to share between components
 export const INITIAL_TEMPLATES = [
@@ -98,41 +98,124 @@ export const INITIAL_TEMPLATES = [
 export const useCommunityMessaging = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("compose");
-  const [templates, setTemplates] = useState<MessageTemplate[]>(INITIAL_TEMPLATES);
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
   const [composeKey, setComposeKey] = useState<string>("initial");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = (message: { subject: string; content: string; recipients: string[] }) => {
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setIsLoading(true);
+      try {
+        const dbTemplates = await communicationService.getTemplates();
+        
+        if (dbTemplates && dbTemplates.length > 0) {
+          setTemplates(dbTemplates);
+        } else {
+          for (const template of INITIAL_TEMPLATES) {
+            await communicationService.saveTemplate(template);
+          }
+          setTemplates(INITIAL_TEMPLATES);
+        }
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+        setTemplates(INITIAL_TEMPLATES);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchTemplates();
+  }, []);
+
+  const handleSendMessage = async (message: CompositionMessage) => {
     console.log("Sending message:", message);
-    // Here you would integrate with your backend service
     
     toast({
-      title: "Message sent",
-      description: `Your message has been sent to ${message.recipients.length} recipients.`,
+      title: "Message action completed",
+      description: "Your message has been processed successfully.",
     });
+    
+    setSelectedTemplate(null);
+    setComposeKey(`new-${Date.now()}`);
+    
+    setActiveTab("history");
   };
 
   const handleTemplateSelect = (template: MessageTemplate) => {
-    console.log("Template selected:", template);
     setSelectedTemplate(template);
-    setComposeKey(template.id); // Force re-render of MessageComposer
+    setComposeKey(template.id);
     
-    // Immediately switch to the compose tab when a template is selected
     setActiveTab("compose");
   };
 
-  const handleTemplateCreate = (newTemplate: MessageTemplate) => {
-    setTemplates([...templates, newTemplate]);
+  const handleTemplateCreate = async (newTemplate: MessageTemplate) => {
+    try {
+      const templateId = await communicationService.saveTemplate(newTemplate);
+      
+      if (templateId) {
+        const createdTemplate = {
+          ...newTemplate,
+          id: templateId
+        };
+        
+        setTemplates(prev => [...prev, createdTemplate]);
+        toast({
+          title: "Template created",
+          description: `Template "${newTemplate.name}" has been created successfully.`
+        });
+      }
+    } catch (error) {
+      console.error('Error creating template:', error);
+      toast({
+        title: "Error creating template",
+        description: "There was a problem creating your template."
+      });
+    }
   };
 
-  const handleTemplateUpdate = (updatedTemplate: MessageTemplate) => {
-    setTemplates(templates.map(t => 
-      t.id === updatedTemplate.id ? updatedTemplate : t
-    ));
+  const handleTemplateUpdate = async (updatedTemplate: MessageTemplate) => {
+    try {
+      const success = await communicationService.updateTemplate(updatedTemplate);
+      
+      if (success) {
+        setTemplates(templates.map(t => 
+          t.id === updatedTemplate.id ? updatedTemplate : t
+        ));
+        
+        toast({
+          title: "Template updated",
+          description: `Template "${updatedTemplate.name}" has been updated successfully.`
+        });
+      }
+    } catch (error) {
+      console.error('Error updating template:', error);
+      toast({
+        title: "Error updating template",
+        description: "There was a problem updating your template."
+      });
+    }
   };
 
-  const handleTemplateDelete = (templateId: string) => {
-    setTemplates(templates.filter(t => t.id !== templateId));
+  const handleTemplateDelete = async (templateId: string) => {
+    try {
+      const success = await communicationService.deleteTemplate(templateId);
+      
+      if (success) {
+        setTemplates(templates.filter(t => t.id !== templateId));
+        
+        toast({
+          title: "Template deleted",
+          description: "The template has been deleted successfully."
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast({
+        title: "Error deleting template",
+        description: "There was a problem deleting your template."
+      });
+    }
   };
 
   return {
@@ -141,6 +224,7 @@ export const useCommunityMessaging = () => {
     templates,
     selectedTemplate,
     composeKey,
+    isLoading,
     handleSendMessage,
     handleTemplateSelect,
     handleTemplateCreate,
