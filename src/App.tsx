@@ -70,11 +70,13 @@ const App = () => {
       <DocumentStorageInitializer />
       <Toaster />
       <Routes>
+        {/* Landing page as the root route */}
+        <Route path="/" element={<Index />} />
+        
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<LogoutRedirect />} />
         
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/simple-dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<UploadDocument />} />
@@ -130,8 +132,6 @@ const App = () => {
           <Route path="/email-workflows" element={<EmailWorkflows />} />
           <Route path="/system-uploads" element={<SystemUploads />} />
         </Route>
-
-        <Route path="/" element={<Index />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

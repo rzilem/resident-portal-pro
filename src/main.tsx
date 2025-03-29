@@ -1,8 +1,7 @@
 
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
+import Routes from './routes'
 import './index.css'
 import './styles/theme.css'
 import { ThemeProvider } from "@/components/theme-provider"
@@ -21,9 +20,7 @@ if (!rootElement) {
   root.render(
     <React.StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <Routes />
       </ThemeProvider>
     </React.StrictMode>
   );

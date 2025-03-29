@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
@@ -16,6 +17,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import CommunityHub from './pages/CommunityHub';
 import ResaleDashboard from './pages/resale/ResaleDashboard';
 import ProjectImagesPage from './pages/resale/admin/ProjectImages';
+import Index from './pages/Index';
 
 const router = createBrowserRouter([
   {
@@ -25,7 +27,15 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Dashboard />,
+        element: <Index />,
+      },
+      {
+        path: '/dashboard',
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/login',
