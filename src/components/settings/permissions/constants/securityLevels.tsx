@@ -1,4 +1,3 @@
-
 import { SecurityLevel } from '@/types/user';
 import { Shield, ShieldAlert, ShieldCheck, ShieldOff, ShieldQuestion } from "lucide-react";
 import React from 'react';
@@ -170,6 +169,23 @@ export const rolePermissionsData: Record<string, {
       compliance: 'none',
       resale: 'none'
     }
+  },
+  invoice_approver: {
+    securityLevel: 'limited_access',
+    globalPermission: 'approve',
+    modules: {
+      properties: 'view',
+      accounting: 'approve',
+      communications: 'view',
+      calendar: 'view',
+      documents: 'view',
+      reports: 'view',
+      settings: 'none',
+      residents: 'view',
+      maintenance: 'view',
+      compliance: 'view',
+      resale: 'view'
+    }
   }
 };
 
@@ -205,6 +221,10 @@ export const defaultRolePermissions: Record<string, { securityLevel: SecurityLev
   guest: {
     securityLevel: 'restricted',
     description: 'Restricted access to public features only'
+  },
+  invoice_approver: {
+    securityLevel: 'limited_access',
+    description: 'Special access for board members to approve invoices and financial documents'
   }
 };
 

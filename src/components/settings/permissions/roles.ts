@@ -6,4 +6,5 @@ export const roles = [
   { value: "board", label: "Board Member" },
   { value: "resident", label: "Resident" },
   { value: "vendor", label: "Vendor" },
+  { value: "invoice_approver", label: "Invoice Approver" },
 ];

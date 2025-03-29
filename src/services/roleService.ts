@@ -1,4 +1,3 @@
-
 import { User, UserRole } from '@/types/user';
 
 // Define permission levels for various features
@@ -105,6 +104,18 @@ const rolePermissionsMap: Record<UserRole, ModulePermissions> = {
     communications: [],
     maintenance: [],
     compliance: [],
+    settings: []
+  },
+  invoice_approver: {
+    resale: ['view'],
+    accounting: ['view', 'approve', 'print', 'report'],
+    properties: ['view'],
+    residents: ['view'],
+    calendar: ['view'],
+    documents: ['view', 'print'],
+    communications: ['view'],
+    maintenance: ['view'],
+    compliance: ['view'],
     settings: []
   }
 };

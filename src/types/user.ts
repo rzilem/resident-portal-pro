@@ -1,4 +1,3 @@
-
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   cardStyle: 'default' | 'flat' | 'rounded' | 'glass';
@@ -120,7 +119,7 @@ export interface CommunicationPreferences {
   subscribedTopics?: string[];
 }
 
-export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member' | 'board' | 'committee' | 'guest';
+export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member' | 'board' | 'committee' | 'guest' | 'invoice_approver';
 
 export type SecurityLevel = 'full_access' | 'moderate_access' | 'limited_access' | 'view_only' | 'full' | 'advanced' | 'basic' | 'restricted' | 'elevated';
 
@@ -183,5 +182,15 @@ export const moduleFeatures: ModuleFeatures = {
     { feature: 'Print Resident Reports', description: 'Generate printable resident reports', requiredPermission: 'print' },
     { feature: 'Invite Residents', description: 'Send system invitations to residents', requiredPermission: 'invite' },
     { feature: 'Assign Tags', description: 'Add categorization tags to residents', requiredPermission: 'assign' }
+  ],
+  accounting: [
+    { feature: 'View Financial Data', description: 'Access to view financial information', requiredPermission: 'view' },
+    { feature: 'Edit Financial Records', description: 'Modify financial data and records', requiredPermission: 'edit' },
+    { feature: 'Create Financial Entries', description: 'Add new financial entries', requiredPermission: 'create' },
+    { feature: 'Approve Invoices', description: 'Review and approve pending invoices', requiredPermission: 'approve' },
+    { feature: 'Delete Financial Records', description: 'Remove financial records', requiredPermission: 'delete' },
+    { feature: 'Export Financial Data', description: 'Export financial information', requiredPermission: 'export' },
+    { feature: 'Print Financial Reports', description: 'Generate printable financial reports', requiredPermission: 'print' },
+    { feature: 'Generate Financial Reports', description: 'Create custom financial reports', requiredPermission: 'report' }
   ]
 };
