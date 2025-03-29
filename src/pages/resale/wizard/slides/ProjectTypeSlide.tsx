@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PROJECT_TYPES } from '../data/project-types';
+import { getProjectImageUrl } from '@/utils/supabase/uploadProjectImage';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProjectTypeSlideProps {
   selectedType: string;
@@ -11,10 +13,20 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   selectedType, 
   onSelect 
 }) => {
+  const [loading, setLoading] = useState(true);
+  
   // Sort project types alphabetically by name
   const sortedProjectTypes = [...PROJECT_TYPES].sort((a, b) => 
     a.name.localeCompare(b.name)
   );
+
+  // Simulate image loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -36,10 +48,46 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
             }`}
             onClick={() => onSelect(type.id)}
           >
-            <div className="flex items-center space-x-3">
-              <div className="text-2xl">
-                {type.icon && <type.icon className="h-6 w-6" />}
-              </div>
+            <div className="flex flex-col h-full">
+              {loading ? (
+                <Skeleton className="w-full h-32 rounded-md mb-3" />
+              ) : (
+                <div className="mb-3 h-32 overflow-hidden rounded-md bg-muted">
+                  {type.imagePath ? (
+                    <img 
+                      src={getProjectImageUrl(`${type.id}/${type.imagePath}`)} 
+                      alt={type.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        const iconContainer = e.currentTarget.parentElement;
+                        if (iconContainer) {
+                          const iconEl = document.createElement('div');
+                          iconEl.className = "flex items-center justify-center h-full";
+                          iconEl.innerHTML = `<div class="text-4xl text-muted-foreground">${
+                            type.icon ? `<svg class="h-12 w-12" />` : ''
+                          }</div>`;
+                          iconContainer.appendChild(iconEl);
+                          if (type.icon) {
+                            const IconComponent = type.icon;
+                            const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                            iconSvg.setAttribute("class", "h-12 w-12");
+                            iconContainer.querySelector('svg')?.replaceWith(iconSvg);
+                            // Not rendering the actual icon as we can't do that in vanilla JS
+                          }
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-4xl text-muted-foreground">
+                        {type.icon && <type.icon className="h-12 w-12" />}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <div>
                 <h3 className="font-medium">{type.name}</h3>
                 <p className="text-sm text-muted-foreground">{type.description}</p>

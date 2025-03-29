@@ -1,4 +1,3 @@
-
 import { LucideIcon } from 'lucide-react';
 
 export interface ProjectType {
@@ -6,6 +5,7 @@ export interface ProjectType {
   name: string;
   description: string;
   icon: LucideIcon;
+  imagePath?: string;
 }
 
 export interface ImageOption {
@@ -41,20 +41,16 @@ export interface BidRequestFormData {
   dueDate: Date | null;
 }
 
-// Updated FormData interface to use string types for all numeric fields
 export interface FormData {
-  // Common properties
   property?: string;
   owner?: string;
   
-  // Properties used in resaleWizard
   propertyAddress?: string;
   associationName?: string;
   ownerName?: string;
   closingDate?: string;
   propertyType?: string;
   
-  // Account statement properties
   accountNumber?: string;
   statementDate?: string;
   previousBalance?: string;
@@ -63,7 +59,6 @@ export interface FormData {
   currentBalance?: string;
   transactions?: any[][];
   
-  // Condo questionnaire properties
   condoName?: string;
   unitNumber?: string;
   managementCompany?: string;
@@ -77,13 +72,11 @@ export interface FormData {
   policyNumber?: string;
   expirationDate?: string;
   
-  // Property inspection properties
   inspectionDate?: string;
   inspectionTime?: string;
   inspectionType?: string;
   inspectionNotes?: string;
   
-  // Resale certificate properties
   regularAssessment?: string;
   assessmentFrequency?: string;
   specialAssessment?: string;
@@ -92,6 +85,5 @@ export interface FormData {
   violations?: string;
   litigation?: string;
   
-  // TREC forms properties
   selectedForms?: string[];
 }
