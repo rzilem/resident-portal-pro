@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { Info } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { moduleFeatures, FeaturePermission, UserRole } from '@/types/user';
-import { roleService } from '@/services/roleService';
+import { roleService, Permission } from '@/services/roleService';
 
 interface FeaturePermissionsTabProps {
   rolePermissions: Record<UserRole, any>;
@@ -30,12 +30,16 @@ const FeaturePermissionsTab: React.FC<FeaturePermissionsTabProps> = ({ rolePermi
     if (!permissions) return false;
     
     // Check if the role has the specific permission needed for this feature
-    return permissions.includes(feature.requiredPermission) || permissions.includes('admin');
+    // Make sure we're only using valid Permission types
+    const requiredPermission = feature.requiredPermission as Permission;
+    return permissions.includes(requiredPermission) || permissions.includes('admin');
   };
   
   const handlePermissionToggle = (role: UserRole, module: string, feature: FeaturePermission, checked: boolean) => {
     if (onPermissionChange) {
-      onPermissionChange(role, module, feature.requiredPermission, checked);
+      // Convert the requiredPermission to a valid Permission type
+      const permissionValue = feature.requiredPermission as Permission;
+      onPermissionChange(role, module, permissionValue, checked);
     }
   };
   
@@ -75,7 +79,7 @@ const FeaturePermissionsTab: React.FC<FeaturePermissionsTabProps> = ({ rolePermi
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <InfoCircledIcon className="h-4 w-4 text-muted-foreground" />
+                                  <Info className="h-4 w-4 text-muted-foreground" />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>{feature.description}</p>
