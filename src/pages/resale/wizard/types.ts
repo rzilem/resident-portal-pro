@@ -1,4 +1,4 @@
-import { Step } from './types';
+
 import { VendorTag } from '@/types/vendor';
 
 export interface FormData {
