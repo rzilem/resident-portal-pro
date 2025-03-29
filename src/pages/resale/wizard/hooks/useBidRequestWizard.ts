@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BidRequestFormData } from '../types';
-import { bidRequestService } from '@/services/bidRequestService';
+import { bidRequestService } from '@/services/bid-request';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useBidRequestWizard = () => {

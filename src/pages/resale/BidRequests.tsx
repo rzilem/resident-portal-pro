@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, PlusCircle, ExternalLink, Calendar, Trash2 } from 'lucide-react';
-import { BidRequest, bidRequestService } from '@/services/bidRequestService';
+import { BidRequest, bidRequestService } from '@/services/bid-request';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { 

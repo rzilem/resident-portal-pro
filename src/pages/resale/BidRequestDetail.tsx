@@ -22,7 +22,7 @@ import {
   XCircle,
   Loader2
 } from 'lucide-react';
-import { BidRequest, BidRequestVendor, bidRequestService } from '@/services/bidRequestService';
+import { BidRequest, BidRequestVendor, bidRequestService } from '@/services/bid-request';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
