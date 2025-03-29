@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MessageTemplate } from './types';
+import { mergeTagService } from '@/services/mergeTagService';
+import { Loader2 } from 'lucide-react';
 
 interface TemplatePreviewDialogProps {
   isOpen: boolean;
@@ -17,6 +19,33 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
   template,
   onUseTemplate
 }) => {
+  const [processedContent, setProcessedContent] = useState<string>('');
+  const [processedSubject, setProcessedSubject] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (isOpen && template) {
+      setIsLoading(true);
+      
+      // Process the merge tags in content
+      Promise.all([
+        mergeTagService.processMergeTags(template.content || ''),
+        mergeTagService.processMergeTags(template.subject || '')
+      ])
+        .then(([processedContentResult, processedSubjectResult]) => {
+          setProcessedContent(processedContentResult);
+          setProcessedSubject(processedSubjectResult);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('Error processing merge tags:', error);
+          setProcessedContent(template.content || '');
+          setProcessedSubject(template.subject || '');
+          setIsLoading(false);
+        });
+    }
+  }, [isOpen, template]);
+
   if (!template) return null;
 
   const handleUseTemplate = () => {
@@ -51,23 +80,30 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
         <DialogHeader>
           <DialogTitle>{template.name} - Preview</DialogTitle>
           <DialogDescription>
-            Subject: {template.subject}
+            Subject: {processedSubject || template.subject}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="border rounded-md flex-1 overflow-hidden my-4">
-          <iframe
-            srcDoc={`<!DOCTYPE html>
-              <html>
-                <head>
-                  <style>${getIframeStyle()}</style>
-                </head>
-                <body>${template.content || '<p>No content available</p>'}</body>
-              </html>`}
-            className="w-full h-[500px]"
-            title="Template Preview"
-            sandbox="allow-same-origin"
-          />
+        <div className="border rounded-md flex-1 overflow-hidden my-4 relative">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-[500px]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Processing merge tags...</span>
+            </div>
+          ) : (
+            <iframe
+              srcDoc={`<!DOCTYPE html>
+                <html>
+                  <head>
+                    <style>${getIframeStyle()}</style>
+                  </head>
+                  <body>${processedContent || '<p>No content available</p>'}</body>
+                </html>`}
+              className="w-full h-[500px]"
+              title="Template Preview"
+              sandbox="allow-same-origin"
+            />
+          )}
         </div>
         
         <DialogFooter>

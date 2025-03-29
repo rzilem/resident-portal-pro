@@ -1,7 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { mergeTagService } from '@/services/mergeTagService';
+import { useComposer } from './ComposerContext';
+import { Loader2 } from 'lucide-react';
 
 interface MessagePreviewProps {
   open: boolean;
@@ -16,11 +19,33 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
   content,
   format
 }) => {
+  const [processedContent, setProcessedContent] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { subject } = useComposer();
+
+  useEffect(() => {
+    if (open && content) {
+      setIsLoading(true);
+      
+      // Process the merge tags
+      mergeTagService.processMergeTags(content)
+        .then(processed => {
+          setProcessedContent(processed);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('Error processing merge tags:', error);
+          setProcessedContent(content);
+          setIsLoading(false);
+        });
+    }
+  }, [open, content]);
+
   const emptyContent = format === 'html' 
     ? '<p>No content to preview</p>' 
     : 'No content to preview';
 
-  const contentToDisplay = content || emptyContent;
+  const contentToDisplay = processedContent || emptyContent;
 
   // Apply appropriate styling for iframe content
   const getIframeStyle = () => {
@@ -48,22 +73,37 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
         <DialogHeader>
           <DialogTitle>Preview with Merge Tags</DialogTitle>
         </DialogHeader>
-        <div className="border rounded-md flex-1 overflow-auto">
-          {format === 'html' ? (
-            <iframe
-              srcDoc={`<!DOCTYPE html>
-                <html>
-                  <head>
-                    <style>${getIframeStyle()}</style>
-                  </head>
-                  <body>${contentToDisplay}</body>
-                </html>`}
-              className="w-full h-[500px]"
-              title="Message Preview"
-              sandbox="allow-same-origin"
-            />
+        
+        {subject && (
+          <div className="border-b pb-2 mb-2">
+            <div className="text-sm text-muted-foreground">Subject:</div>
+            <div className="font-medium">{subject}</div>
+          </div>
+        )}
+        
+        <div className="border rounded-md flex-1 overflow-auto relative">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-[500px]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Processing merge tags...</span>
+            </div>
           ) : (
-            <div className="whitespace-pre-wrap p-4">{contentToDisplay}</div>
+            format === 'html' ? (
+              <iframe
+                srcDoc={`<!DOCTYPE html>
+                  <html>
+                    <head>
+                      <style>${getIframeStyle()}</style>
+                    </head>
+                    <body>${contentToDisplay}</body>
+                  </html>`}
+                className="w-full h-[500px]"
+                title="Message Preview"
+                sandbox="allow-same-origin"
+              />
+            ) : (
+              <div className="whitespace-pre-wrap p-4">{contentToDisplay}</div>
+            )
           )}
         </div>
         <DialogFooter>

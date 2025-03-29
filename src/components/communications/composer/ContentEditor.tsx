@@ -9,6 +9,7 @@ import { Tags, Wand2, Eye, Clock } from 'lucide-react';
 import { useComposer } from './ComposerContext';
 import FormatSelector from './FormatSelector';
 import ScheduledMessagesDialog from './ScheduledMessagesDialog';
+import { toast } from 'sonner';
 
 interface ContentEditorProps {
   onOpenAiAssistant: () => void;
@@ -25,14 +26,30 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     format, 
     setFormat,
     setPreviewContent,
-    setShowMergeTagPreview
+    setShowMergeTagPreview,
+    previewProcessedContent
   } = useComposer();
   
   const [showScheduledMessages, setShowScheduledMessages] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
-  const handlePreviewClick = () => {
-    setPreviewContent(content);
-    setShowMergeTagPreview(true);
+  const handlePreviewClick = async () => {
+    if (!content.trim()) {
+      toast.error("Please add content before previewing");
+      return;
+    }
+
+    setIsPreviewLoading(true);
+    try {
+      // We'll set the raw content for preview and let the MessagePreview component handle processing
+      setPreviewContent(content);
+      setShowMergeTagPreview(true);
+    } catch (error) {
+      console.error("Error preparing preview:", error);
+      toast.error("Failed to generate preview");
+    } finally {
+      setIsPreviewLoading(false);
+    }
   };
 
   return (
@@ -72,6 +89,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               variant="outline" 
               size="sm"
               onClick={handlePreviewClick}
+              disabled={isPreviewLoading}
             >
               <Eye className="h-4 w-4 mr-2" />
               Preview
