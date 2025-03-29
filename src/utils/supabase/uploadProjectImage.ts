@@ -72,6 +72,11 @@ export const bulkUploadProjectImages = async (
  * @returns Public URL of the image
  */
 export const getProjectImageUrl = (path: string): string => {
+  // Check if it's already a fully qualified URL or a lovable-uploads path
+  if (path.startsWith('http') || path.startsWith('/lovable-uploads/')) {
+    return path;
+  }
+  
   const { data } = supabase.storage
     .from('project_images')
     .getPublicUrl(path);
