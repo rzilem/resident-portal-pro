@@ -38,6 +38,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: '/simple-dashboard',
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: '/login',
         element: <Login />,
       },

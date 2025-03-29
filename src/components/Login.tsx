@@ -17,7 +17,7 @@ const Login = () => {
   console.log('Login component: Redirecting from:', location.state?.from);
 
   // Get the intended destination from location state, or default to dashboard
-  const from = location.state?.from?.pathname || '/simple-dashboard';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   // Effect to redirect if user is already logged in
   useEffect(() => {
