@@ -24,9 +24,9 @@ export const PEST_CONTROL_QUESTIONS: ProjectTypeQuestions = {
           image: '/lovable-uploads/b3f8fde4-3ae2-423e-b6c5-8568c0e8d926.png'
         },
         {
-          label: 'Inspection',
-          value: 'Inspection',
-          image: '/lovable-uploads/6ad7f4c2-c53b-49d4-adea-eff2b4164744.png'
+          label: 'Mold Remediation',
+          value: 'Mold Remediation',
+          image: '/lovable-uploads/581a4026-ef10-4c0b-80e8-9e2bb3f3e034.png'
         }
       ],
       required: true,

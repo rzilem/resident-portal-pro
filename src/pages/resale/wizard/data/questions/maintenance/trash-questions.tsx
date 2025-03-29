@@ -47,12 +47,12 @@ export const TRASH_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Dumpster Pick-up Service',
           value: 'Dumpster Pick-up Service',
-          image: '/public/lovable-uploads/dumpster-pickup.jpg'
+          image: '/lovable-uploads/581a4026-ef10-4c0b-80e8-9e2bb3f3e034.png'
         },
         {
           label: 'Per Unit Pick-up Service',
           value: 'Per Unit Pick-up Service',
-          image: '/public/lovable-uploads/unit-pickup.jpg'
+          image: '/lovable-uploads/bc3e85f7-95c4-4155-9b89-ebbebcbb80e5.png'
         }
       ],
       required: true,

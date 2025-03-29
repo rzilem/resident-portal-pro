@@ -7,7 +7,28 @@ export const HVAC_QUESTIONS: ProjectTypeQuestions = {
       id: 'requestType',
       text: 'What is the type of bid request?',
       type: 'radio',
-      options: ['Installation', 'Replacement', 'Repair', 'Maintenance Contract'],
+      options: [
+        {
+          label: 'Installation',
+          value: 'Installation',
+          image: '/lovable-uploads/6ad7f4c2-c53b-49d4-adea-eff2b4164744.png'
+        },
+        {
+          label: 'Replacement',
+          value: 'Replacement',
+          image: '/lovable-uploads/549fefb9-39cb-4663-9fb3-dcb67f37ff3d.png'
+        },
+        {
+          label: 'Repair',
+          value: 'Repair',
+          image: '/lovable-uploads/cda1b3c1-7171-4c13-9cbf-d8a7c523aa18.png'
+        },
+        {
+          label: 'Maintenance Contract',
+          value: 'Maintenance Contract',
+          image: '/lovable-uploads/a4f31575-9935-4c37-ad51-c5a0d8c0783a.png'
+        }
+      ],
       required: true,
     },
     {

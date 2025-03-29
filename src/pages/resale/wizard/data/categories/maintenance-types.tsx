@@ -31,16 +31,22 @@ export const MAINTENANCE_TYPES: ProjectType[] = [
     description: 'General repairs and maintenance services'
   },
   { 
+    id: 'fitness_equipment', 
+    name: 'Fitness Equipment', 
+    icon: Wrench, 
+    description: 'Fitness equipment repair and maintenance'
+  },
+  { 
     id: 'pond_servicing', 
     name: 'Pond Servicing', 
     icon: Droplets, 
     description: 'Pond maintenance and cleaning services'
   },
   { 
-    id: 'window_washing', 
-    name: 'Window Washing', 
+    id: 'windows', 
+    name: 'Window Services', 
     icon: Droplets, 
-    description: 'Professional window cleaning services'
+    description: 'Window cleaning, repair, and installation services'
   },
   { 
     id: 'gutter_cleaning', 
@@ -49,10 +55,16 @@ export const MAINTENANCE_TYPES: ProjectType[] = [
     description: 'Gutter cleaning and maintenance services'
   },
   { 
-    id: 'power_washing', 
+    id: 'pressure_washing', 
     name: 'Power Washing', 
     icon: Droplets, 
     description: 'Pressure washing services for various surfaces'
+  },
+  { 
+    id: 'trash', 
+    name: 'Trash Services', 
+    icon: HelpingHand, 
+    description: 'Waste management and disposal services'
   },
   { 
     id: 'other', 

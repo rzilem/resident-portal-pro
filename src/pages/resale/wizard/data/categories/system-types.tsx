@@ -38,9 +38,9 @@ export const SYSTEM_TYPES: ProjectType[] = [
   },
   { 
     id: 'appliance_repair', 
-    name: 'Appliance Repair', 
+    name: 'Equipment Repair', 
     icon: Wrench, 
-    description: 'Repair services for household appliances'
+    description: 'Repair services for fitness and other equipment'
   },
   { 
     id: 'elevator_repair', 
