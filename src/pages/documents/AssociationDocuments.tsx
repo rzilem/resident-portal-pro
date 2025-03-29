@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +12,8 @@ import { DOCUMENT_CATEGORIES } from '@/components/database/DocumentCategoryStruc
 import AssociationSelector from '@/components/documents/AssociationSelector';
 import { useAssociations } from '@/hooks/use-associations';
 import { DocumentFile, DocumentCategory, DocumentSearchFilters } from '@/types/documents';
-import { getDocuments, getDocumentCategories } from '@/utils/documents/index';
+import { getDocuments } from '@/utils/documents/index';
+import { getDocumentCategories } from '@/utils/documents/uploadUtils';
 import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
 import { Button } from '@/components/ui/button';

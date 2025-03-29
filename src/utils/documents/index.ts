@@ -4,6 +4,8 @@ export * from './documentDbUtils';
 export * from './documentUtils';
 // Avoid re-exporting the same named function
 export * from './ensureDocumentStorage';
-// Re-export specific function from uploadUtils to avoid naming conflicts
-import { getDocumentCategories as getDocumentCategoriesFromUpload } from './uploadUtils';
-export { getDocumentCategoriesFromUpload };
+// Export all functions from uploadUtils
+export * from './uploadUtils';
+
+// Export category utility functions
+export * from './categoryUtils';

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderIcon } from 'lucide-react';
 import { DocumentAccessLevel } from '@/types/documents';
-import { getDocumentCategories } from '@/utils/documents/documentUtils';
+import { getDocumentCategories } from '@/utils/documents/uploadUtils';
 import { DocumentCategory } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
 import SecuritySettingsLoading from './components/SecuritySettingsLoading';

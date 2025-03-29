@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { FileText, Save, FolderClosed } from "lucide-react";
-import { getDocumentCategories } from '@/utils/documents/documentUtils';
+import { getDocumentCategories } from '@/utils/documents/uploadUtils';
 import { DocumentCategory } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
 
