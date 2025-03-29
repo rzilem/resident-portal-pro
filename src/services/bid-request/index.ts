@@ -4,7 +4,7 @@ import { getBidRequests, getBidRequestById, getBidRequestVendors } from './read'
 import { updateBidRequestStatus } from './update';
 import { deleteBidRequest } from './delete';
 
-// Re-export types using the 'export type' syntax for isolatedModules
+// Re-export types
 export type { BidRequest, BidRequestVendor } from './types';
 
 // Re-export all functionality
