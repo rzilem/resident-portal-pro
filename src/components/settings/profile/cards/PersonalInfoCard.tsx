@@ -6,19 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { useProfileForm } from '../hooks/useProfileForm';
-import { ProfileFormValues } from '../types';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-
-interface FormAdapter {
-  getValues: (field: string) => string;
-  setValue: (field: string, value: string) => void;
-  formState?: {
-    errors?: Record<string, any>;
-  };
-  control?: any;
-}
+import { ProfileFormValues, FormAdapter } from '../types';
 
 interface PersonalInfoCardProps {
   form: Partial<UseFormReturn<ProfileFormValues>> | FormAdapter;
@@ -85,8 +75,8 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = fal
                 <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
                 <Input 
                   id="firstName" 
-                  value={form.getValues?.('firstName') || ''}
-                  onChange={(e) => form.setValue?.('firstName', e.target.value)}
+                  value={(form.getValues && form.getValues('firstName')) || ''}
+                  onChange={(e) => form.setValue && form.setValue('firstName', e.target.value)}
                   placeholder="Enter your first name" 
                 />
               </div>
@@ -94,8 +84,8 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = fal
                 <label htmlFor="lastName" className="text-sm font-medium">Last Name</label>
                 <Input 
                   id="lastName" 
-                  value={form.getValues?.('lastName') || ''}
-                  onChange={(e) => form.setValue?.('lastName', e.target.value)}
+                  value={(form.getValues && form.getValues('lastName')) || ''}
+                  onChange={(e) => form.setValue && form.setValue('lastName', e.target.value)}
                   placeholder="Enter your last name" 
                 />
               </div>
@@ -139,8 +129,8 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = fal
                 <label htmlFor="email" className="text-sm font-medium">Email</label>
                 <Input 
                   id="email" 
-                  value={form.getValues?.('email') || ''}
-                  onChange={(e) => form.setValue?.('email', e.target.value)}
+                  value={(form.getValues && form.getValues('email')) || ''}
+                  onChange={(e) => form.setValue && form.setValue('email', e.target.value)}
                   placeholder="Enter your email" 
                 />
               </div>
@@ -148,8 +138,8 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = fal
                 <label htmlFor="phoneNumber" className="text-sm font-medium">Phone Number</label>
                 <Input 
                   id="phoneNumber" 
-                  value={form.getValues?.('phoneNumber') || ''}
-                  onChange={(e) => form.setValue?.('phoneNumber', e.target.value)}
+                  value={(form.getValues && form.getValues('phoneNumber')) || ''}
+                  onChange={(e) => form.setValue && form.setValue('phoneNumber', e.target.value)}
                   placeholder="Enter your phone number" 
                 />
               </div>
@@ -177,8 +167,8 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = fal
               <label htmlFor="address" className="text-sm font-medium">Address</label>
               <Input 
                 id="address" 
-                value={form.getValues?.('address') || ''}
-                onChange={(e) => form.setValue?.('address', e.target.value)}
+                value={(form.getValues && form.getValues('address')) || ''}
+                onChange={(e) => form.setValue && form.setValue('address', e.target.value)}
                 placeholder="Enter your address" 
               />
             </>
@@ -205,8 +195,8 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = fal
               <label htmlFor="bio" className="text-sm font-medium">Bio</label>
               <Textarea 
                 id="bio" 
-                value={form.getValues?.('bio') || ''}
-                onChange={(e) => form.setValue?.('bio', e.target.value)}
+                value={(form.getValues && form.getValues('bio')) || ''}
+                onChange={(e) => form.setValue && form.setValue('bio', e.target.value)}
                 placeholder="Write a short bio about yourself" 
               />
             </>

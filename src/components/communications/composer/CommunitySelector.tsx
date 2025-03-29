@@ -37,6 +37,7 @@ const CommunitySelector: React.FC<CommunitySelectorProps> = ({ onCommunityChange
           <SelectValue placeholder="Select a community" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="select_community">Select a community</SelectItem>
           {SAMPLE_COMMUNITIES.map(community => (
             <SelectItem key={community.id} value={community.id}>
               {community.name}

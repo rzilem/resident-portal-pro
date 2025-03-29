@@ -11,8 +11,22 @@ import { useQuery } from '@tanstack/react-query';
 import NotificationsCard from './profile/cards/NotificationsCard';
 import IntegrationsCard from './profile/cards/IntegrationsCard';
 import ExportDataCard from './profile/cards/ExportDataCard';
-import { UserProfile } from '@/types/user';
 import { useAuth } from '@/hooks/use-auth';
+import { User } from '@/types/user';
+
+// Define the UserProfile interface to match the structure we're using
+interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  address?: string;
+  bio?: string;
+  profilePicture?: string;
+  role?: string;
+  createdAt: string;
+}
 
 async function fetchProfile(): Promise<UserProfile> {
   // This would be an API call in a real app
