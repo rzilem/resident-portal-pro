@@ -34,31 +34,33 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ bidRequest }) => {
           </div>
         )}
         
-        <div>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Project Details</h3>
-          <Card className="bg-muted/40">
-            <CardContent className="p-4">
-              {Object.entries(bidRequest.answers).map(([questionId, answer]) => {
-                // Find the question by ID across all project types
-                let question = null;
-                const questions = PROJECT_QUESTIONS[bidRequest.project_type] || [];
-                for (const q of questions) {
-                  if (q.id === questionId) {
-                    question = q;
-                    break;
+        {bidRequest.answers && Object.keys(bidRequest.answers).length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Project Details</h3>
+            <Card className="bg-muted/40">
+              <CardContent className="p-4">
+                {Object.entries(bidRequest.answers).map(([questionId, answer]) => {
+                  // Find the question by ID across all project types
+                  let question = null;
+                  const questions = PROJECT_QUESTIONS[bidRequest.project_type] || [];
+                  for (const q of questions) {
+                    if (q.id === questionId) {
+                      question = q;
+                      break;
+                    }
                   }
-                }
-                
-                return (
-                  <div key={questionId} className="mb-3">
-                    <p className="font-medium">{question?.text || questionId}</p>
-                    <p>{typeof answer === 'object' ? JSON.stringify(answer) : answer?.toString()}</p>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        </div>
+                  
+                  return (
+                    <div key={questionId} className="mb-3">
+                      <p className="font-medium">{question?.text || questionId}</p>
+                      <p>{typeof answer === 'object' ? JSON.stringify(answer) : answer?.toString()}</p>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </div>
+        )}
         
         {bidRequest.notes && (
           <div>
