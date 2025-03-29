@@ -44,6 +44,8 @@ import Reports from '@/pages/Reports';
 import ResaleDashboard from '@/pages/resale/ResaleDashboard';
 import ResaleWizard from '@/pages/resale/wizard/ResaleWizard';
 import BidRequestWizard from '@/pages/resale/wizard/BidRequestWizard';
+import BidRequests from '@/pages/resale/BidRequests';
+import BidRequestDetail from '@/pages/resale/BidRequestDetail';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -115,8 +117,10 @@ const App = () => {
           <Route path="/resale/trec-forms" element={<ResaleDashboard />} />
           <Route path="/resale/wizard" element={<ResaleWizard />} />
           
-          {/* Bid Request Wizard Route */}
+          {/* Bid Request Routes */}
           <Route path="/resale/bid-request" element={<BidRequestWizard />} />
+          <Route path="/resale/bid-requests" element={<BidRequests />} />
+          <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
