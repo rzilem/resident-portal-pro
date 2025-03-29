@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PROJECT_TYPES } from '../bid-request-data';
+import { PROJECT_TYPES } from '../data/project-types';
 
 interface ProjectTypeSlideProps {
   selectedType: string;

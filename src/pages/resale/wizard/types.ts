@@ -33,3 +33,11 @@ export interface BidRequestFormData {
   notes: string;
   dueDate: Date | null;
 }
+
+// Adding this to prevent errors in useResaleWizard and other files
+export interface FormData {
+  // Add properties that are used in the wizard steps
+  property?: string;
+  owner?: string;
+  // Add other properties as needed
+}
