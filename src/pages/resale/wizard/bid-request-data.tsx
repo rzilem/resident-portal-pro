@@ -1,19 +1,54 @@
-
-import { Building, Wrench, Wind, Warehouse, Hammer, Castle, Fence, Trees } from 'lucide-react';
+import { 
+  Building, Wrench, Wind, Warehouse, Hammer, Fence, 
+  Droplets, Lock, Paintbrush, Bug, FileSpreadsheet, 
+  TreePine, Tool, HardHat, Construction, Calculator, 
+  Dog, Zap, HelpingHand, Trash2, Dumbbell
+} from 'lucide-react';
 import { ProjectType, ProjectTypeQuestions } from './types';
 
 export const PROJECT_TYPES: ProjectType[] = [
   { 
-    id: 'fencing', 
-    name: 'Fencing', 
-    icon: Fence, 
-    description: 'Fence installation, repair, or replacement services'
+    id: 'street_repairs', 
+    name: 'Street Repairs / Paving / Striping', 
+    icon: Construction, 
+    description: 'Road maintenance, paving, and line striping services'
   },
   { 
-    id: 'construction', 
-    name: 'Construction (Big Projects)', 
+    id: 'stucco', 
+    name: 'Stucco', 
+    icon: HardHat, 
+    description: 'Stucco application, repair, and finishing services'
+  },
+  { 
+    id: 'towing', 
+    name: 'Towing', 
     icon: Building, 
-    description: 'Large-scale construction and renovation projects'
+    description: 'Vehicle towing and roadside assistance services'
+  },
+  { 
+    id: 'trash_disposal', 
+    name: 'Trash Disposal', 
+    icon: Trash2, 
+    description: 'Waste collection and disposal services'
+  },
+  { 
+    id: 'welder', 
+    name: 'Welder', 
+    icon: Tool, 
+    description: 'Metal welding and fabrication services'
+  },
+  { 
+    id: 'window_washing', 
+    name: 'Window Washing', 
+    icon: Droplets, 
+    description: 'Professional window cleaning services'
+  },
+  
+  { 
+    id: 'handyman', 
+    name: 'Handyman', 
+    icon: Tool, 
+    description: 'General repairs and maintenance services'
   },
   { 
     id: 'hvac', 
@@ -22,10 +57,52 @@ export const PROJECT_TYPES: ProjectType[] = [
     description: 'Heating, ventilation, and air conditioning services'
   },
   { 
-    id: 'roofing', 
-    name: 'Roofing', 
-    icon: Warehouse, 
-    description: 'Roof repair, replacement, and maintenance'
+    id: 'junk_removal', 
+    name: 'Junk / Trash Removal', 
+    icon: Trash2, 
+    description: 'Removal of unwanted items and waste'
+  },
+  { 
+    id: 'landscaping', 
+    name: 'Landscaping', 
+    icon: TreePine, 
+    description: 'Landscape design, installation, and maintenance'
+  },
+  { 
+    id: 'leak_detection', 
+    name: 'Leak Detection', 
+    icon: Droplets, 
+    description: 'Water leak detection and repair services'
+  },
+  { 
+    id: 'locksmith', 
+    name: 'Locksmith', 
+    icon: Lock, 
+    description: 'Lock installation, repair, and key services'
+  },
+  { 
+    id: 'masonry', 
+    name: 'Masonry', 
+    icon: Construction, 
+    description: 'Stonework, brickwork, and concrete services'
+  },
+  { 
+    id: 'mold_remediation', 
+    name: 'Mold Remediation', 
+    icon: Bug, 
+    description: 'Mold detection and removal services'
+  },
+  { 
+    id: 'painting', 
+    name: 'Painting', 
+    icon: Paintbrush, 
+    description: 'Interior and exterior painting services'
+  },
+  { 
+    id: 'pest_control', 
+    name: 'Pest Control', 
+    icon: Bug, 
+    description: 'Pest management and extermination services'
   },
   { 
     id: 'plumbing', 
@@ -34,21 +111,154 @@ export const PROJECT_TYPES: ProjectType[] = [
     description: 'Plumbing installation, repair, and maintenance'
   },
   { 
-    id: 'landscaping', 
-    name: 'Landscaping', 
-    icon: Trees, 
-    description: 'Landscape design, installation, and maintenance'
+    id: 'privacy_gate', 
+    name: 'Privacy Gate', 
+    icon: Fence, 
+    description: 'Gate installation, repair, and access control'
   },
   { 
-    id: 'renovation', 
-    name: 'Renovation', 
-    icon: Hammer, 
-    description: 'Interior and exterior renovation services'
+    id: 'pool_service', 
+    name: 'Pool Service / Maintenance', 
+    icon: Droplets, 
+    description: 'Swimming pool cleaning and maintenance'
+  },
+  { 
+    id: 'power_washing', 
+    name: 'Power Washing', 
+    icon: Droplets, 
+    description: 'Pressure washing services for various surfaces'
+  },
+  { 
+    id: 'pond_servicing', 
+    name: 'Pond Servicing', 
+    icon: Droplets, 
+    description: 'Pond maintenance and cleaning services'
+  },
+  { 
+    id: 'pool_monitoring', 
+    name: 'Pool Monitoring', 
+    icon: Droplets, 
+    description: 'Swimming pool monitoring and management'
+  },
+  { 
+    id: 'reserve_study', 
+    name: 'Reserve Study', 
+    icon: FileSpreadsheet, 
+    description: 'Financial planning for future capital expenditures'
+  },
+  { 
+    id: 'roof_repair', 
+    name: 'Roof Repair / Replacement', 
+    icon: Warehouse, 
+    description: 'Roof repair, replacement, and maintenance'
+  },
+  { 
+    id: 'signs', 
+    name: 'Signs', 
+    icon: Building, 
+    description: 'Sign creation, installation, and maintenance'
+  },
+  { 
+    id: 'sports_courts', 
+    name: 'Sports Courts', 
+    icon: Building, 
+    description: 'Installation and maintenance of sports courts'
+  },
+  
+  { 
+    id: 'access_system', 
+    name: 'Access System', 
+    icon: Lock, 
+    description: 'Security and access control systems'
+  },
+  { 
+    id: 'appliance_repair', 
+    name: 'Appliance Repair', 
+    icon: Tool, 
+    description: 'Repair services for household appliances'
+  },
+  { 
+    id: 'arborist', 
+    name: 'Arborist', 
+    icon: TreePine, 
+    description: 'Tree care and maintenance services'
+  },
+  { 
+    id: 'construction', 
+    name: 'Construction (Big Projects)', 
+    icon: Building, 
+    description: 'Large-scale construction and renovation projects'
+  },
+  { 
+    id: 'concrete', 
+    name: 'Concrete', 
+    icon: Construction, 
+    description: 'Concrete installation and repair services'
+  },
+  { 
+    id: 'cpa', 
+    name: 'CPA', 
+    icon: Calculator, 
+    description: 'Certified Public Accountant services'
+  },
+  { 
+    id: 'dog_waste', 
+    name: 'Dog Waste', 
+    icon: Dog, 
+    description: 'Pet waste removal and management services'
+  },
+  { 
+    id: 'electric_work', 
+    name: 'Electric Work', 
+    icon: Zap, 
+    description: 'Electrical installation and repair services'
+  },
+  { 
+    id: 'engineer', 
+    name: 'Engineer', 
+    icon: HelpingHand, 
+    description: 'Engineering consultation and services'
+  },
+  { 
+    id: 'elevator_repair', 
+    name: 'Elevator Repair / Servicing', 
+    icon: Building, 
+    description: 'Elevator maintenance and repair services'
+  },
+  { 
+    id: 'fencing', 
+    name: 'Fencing', 
+    icon: Fence, 
+    description: 'Fence installation, repair, or replacement services'
+  },
+  { 
+    id: 'fire_hydrant', 
+    name: 'Fire Hydrant', 
+    icon: Droplets, 
+    description: 'Fire hydrant inspection and maintenance'
+  },
+  { 
+    id: 'foundation_repair', 
+    name: 'Foundation Repair', 
+    icon: Building, 
+    description: 'Building foundation repair services'
+  },
+  { 
+    id: 'gutter_cleaning', 
+    name: 'Gutter Cleaning', 
+    icon: Droplets, 
+    description: 'Gutter cleaning and maintenance services'
+  },
+  { 
+    id: 'gym_equipment', 
+    name: 'Gym Equipment', 
+    icon: Dumbbell, 
+    description: 'Fitness equipment installation and repair'
   },
   { 
     id: 'other', 
     name: 'Other', 
-    icon: Castle, 
+    icon: HelpingHand, 
     description: 'Other specialized services not listed above'
   }
 ];
@@ -174,7 +384,6 @@ export const PROJECT_QUESTIONS: ProjectTypeQuestions = {
       required: false,
     }
   ],
-  // Add minimal questions for other project types to get started
   roofing: [
     {
       id: 'requestType',
