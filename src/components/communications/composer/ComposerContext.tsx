@@ -20,6 +20,18 @@ interface ComposerContextProps {
   previewContent: string;
   setPreviewContent: (content: string) => void;
   previewProcessedContent: (content: string) => Promise<string>;
+  
+  // Add missing properties that are referenced in other components
+  selectedCommunity: string;
+  setSelectedCommunity: (community: string) => void;
+  selectedRecipients: string[];
+  setSelectedRecipients: (recipients: string[]) => void;
+  scheduledSend: boolean;
+  setScheduledSend: (scheduled: boolean) => void;
+  scheduledTime: string;
+  setScheduledTime: (time: string) => void;
+  isScheduled: boolean;
+  setIsScheduled: (isScheduled: boolean) => void;
 }
 
 interface ComposerProviderProps {
@@ -45,6 +57,13 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
   const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
+
+  // Add state for the missing properties
+  const [selectedCommunity, setSelectedCommunity] = useState(initialCommunity);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [scheduledSend, setScheduledSend] = useState(false);
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [isScheduled, setIsScheduled] = useState(false);
 
   // Function to process merge tags for preview
   const previewProcessedContent = async (contentToProcess: string): Promise<string> => {
@@ -77,6 +96,18 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
         previewContent,
         setPreviewContent,
         previewProcessedContent,
+        
+        // Add the missing properties
+        selectedCommunity,
+        setSelectedCommunity,
+        selectedRecipients,
+        setSelectedRecipients,
+        scheduledSend,
+        setScheduledSend,
+        scheduledTime,
+        setScheduledTime,
+        isScheduled,
+        setIsScheduled,
       }}
     >
       {children}
