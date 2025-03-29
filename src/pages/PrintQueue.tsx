@@ -6,6 +6,7 @@ import PrintQueueTable from '@/components/print-queue/PrintQueueTable';
 import PrintQueueSettings from '@/components/print-queue/PrintQueueSettings';
 import { usePrintQueue } from '@/hooks/use-print-queue';
 import PrintQueueFilters from '@/components/print-queue/PrintQueueFilters';
+import { useToast } from '@/components/ui/use-toast';
 
 const PrintQueue = () => {
   const {
@@ -16,10 +17,13 @@ const PrintQueue = () => {
     selectAllJobs,
     clearSelection,
     deleteJob,
+    reprintJob,
     printSelectedJobs,
-    sendToHOAMailers
+    sendToHOAMailers,
+    stats
   } = usePrintQueue();
   
+  const { toast } = useToast();
   const [includeMailingLabels, setIncludeMailingLabels] = useState(true);
   const [printPreview, setPrintPreview] = useState(true);
   const [activeTab, setActiveTab] = useState('queue');
@@ -37,21 +41,51 @@ const PrintQueue = () => {
 
   const handleSetCategoryFilter = (category: string) => {
     setCategoryFilter(category);
+    toast({
+      title: "Filter applied",
+      description: `Showing print jobs in category: ${category}`,
+    });
   };
 
   const handleSetAssociationFilter = (id: string, name: string) => {
     setAssociationFilter(id);
     setAssociationName(name);
+    toast({
+      title: "Filter applied",
+      description: `Showing print jobs for: ${name}`,
+    });
   };
 
   const handleClearCategoryFilter = () => {
     setCategoryFilter(undefined);
+    toast({
+      title: "Filter cleared",
+      description: "Category filter has been removed",
+    });
   };
 
   const handleClearAssociationFilter = () => {
     setAssociationFilter(undefined);
     setAssociationName(undefined);
+    toast({
+      title: "Filter cleared",
+      description: "Association filter has been removed",
+    });
   };
+  
+  const handleDeleteJob = (id: string) => {
+    deleteJob(id);
+  };
+  
+  const handleReprintJob = (id: string) => {
+    reprintJob(id);
+  };
+
+  const filteredJobs = printJobs.filter(job => {
+    const matchesCategory = categoryFilter ? job.category === categoryFilter : true;
+    const matchesAssociation = associationFilter ? job.associationId === associationFilter : true;
+    return matchesCategory && matchesAssociation;
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
@@ -92,12 +126,14 @@ const PrintQueue = () => {
           
           {activeTab === 'queue' && (
             <PrintQueueTable
-              jobs={printJobs}
+              jobs={filteredJobs}
               selectedJobs={selectedJobs}
               onToggleSelect={toggleJobSelection}
               onSelectAll={selectAllJobs}
               onSetCategoryFilter={handleSetCategoryFilter}
               onSetAssociationFilter={handleSetAssociationFilter}
+              onDeleteJob={handleDeleteJob}
+              onReprintJob={handleReprintJob}
             />
           )}
           

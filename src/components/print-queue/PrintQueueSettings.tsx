@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -7,14 +8,28 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { PrinterIcon, Mail, Ship, Settings } from 'lucide-react';
+import { Printer, Mail, Ship, Settings, Check } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const PrintQueueSettings: React.FC = () => {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('printers');
   const [defaultPrinter, setDefaultPrinter] = useState('Main Office Printer');
   const [duplexPrinting, setDuplexPrinting] = useState(true);
   const [certificateEnable, setCertificateEnable] = useState(true);
   const [certifiedMailProvider, setCertifiedMailProvider] = useState('usps');
+  const [returnName, setReturnName] = useState('HOA Management Company');
+  const [returnStreet, setReturnStreet] = useState('123 Management Blvd');
+  const [returnCity, setReturnCity] = useState('Austin');
+  const [returnState, setReturnState] = useState('TX');
+  const [returnZip, setReturnZip] = useState('78701');
+  
+  const handleSaveSettings = () => {
+    toast({
+      title: "Settings saved",
+      description: "Your print queue settings have been updated.",
+    });
+  };
   
   return (
     <Card>
@@ -31,7 +46,7 @@ const PrintQueueSettings: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="printers" className="flex items-center gap-2">
-              <PrinterIcon className="h-4 w-4" />
+              <Printer className="h-4 w-4" />
               <span>Printers</span>
             </TabsTrigger>
             <TabsTrigger value="mailing" className="flex items-center gap-2">
@@ -84,18 +99,32 @@ const PrintQueueSettings: React.FC = () => {
                         <p className="font-medium">{printer.name}</p>
                         <p className="text-sm text-gray-500">{printer.type} • {printer.location}</p>
                       </div>
-                      <Badge
-                        variant="outline"
-                        className={`${
-                          printer.status === 'Ready' ? "bg-green-50 text-green-700 border-green-200" :
-                          "bg-yellow-50 text-yellow-700 border-yellow-200"
-                        }`}
-                      >
-                        {printer.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={`${
+                            printer.status === 'Ready' ? "bg-green-50 text-green-700 border-green-200" :
+                            "bg-yellow-50 text-yellow-700 border-yellow-200"
+                          }`}
+                        >
+                          {printer.status}
+                        </Badge>
+                        {printer.name === defaultPrinter && (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                            Default
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
+              </div>
+              
+              <div className="flex justify-end pt-4">
+                <Button onClick={handleSaveSettings} className="gap-2">
+                  <Check className="h-4 w-4" />
+                  Save Printer Settings
+                </Button>
               </div>
             </div>
           </TabsContent>
@@ -149,29 +178,56 @@ const PrintQueueSettings: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="return-name">Name/Company</Label>
-                      <Input id="return-name" defaultValue="HOA Management Company" />
+                      <Input 
+                        id="return-name" 
+                        value={returnName}
+                        onChange={(e) => setReturnName(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="return-street">Street Address</Label>
-                      <Input id="return-street" defaultValue="123 Management Blvd" />
+                      <Input 
+                        id="return-street" 
+                        value={returnStreet}
+                        onChange={(e) => setReturnStreet(e.target.value)}
+                      />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="return-city">City</Label>
-                      <Input id="return-city" defaultValue="Austin" />
+                      <Input 
+                        id="return-city" 
+                        value={returnCity}
+                        onChange={(e) => setReturnCity(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="return-state">State</Label>
-                      <Input id="return-state" defaultValue="TX" />
+                      <Input 
+                        id="return-state" 
+                        value={returnState}
+                        onChange={(e) => setReturnState(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="return-zip">ZIP Code</Label>
-                      <Input id="return-zip" defaultValue="78701" />
+                      <Input 
+                        id="return-zip" 
+                        value={returnZip}
+                        onChange={(e) => setReturnZip(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              <div className="flex justify-end pt-4">
+                <Button onClick={handleSaveSettings} className="gap-2">
+                  <Check className="h-4 w-4" />
+                  Save Mailing Settings
+                </Button>
               </div>
             </div>
           </TabsContent>
@@ -182,7 +238,18 @@ const PrintQueueSettings: React.FC = () => {
                 <h3 className="text-xl font-medium">Shipping Settings</h3>
                 <p className="text-muted-foreground">Configure bulk shipping options for large mailings</p>
                 <p className="text-sm text-gray-500">Coming soon</p>
-                <Button className="mt-4" variant="outline">Request Early Access</Button>
+                <Button 
+                  className="mt-4" 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Request received",
+                      description: "Your request for early access has been submitted.",
+                    });
+                  }}
+                >
+                  Request Early Access
+                </Button>
               </div>
             </div>
           </TabsContent>

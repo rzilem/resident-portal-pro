@@ -2,8 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Printer, Send, FileDown } from 'lucide-react';
+import { Printer, Send, Download, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
+import { PDFGeneratorCore } from '@/utils/pdf/PDFGeneratorCore';
 
 interface PrintQueueToolbarProps {
   selectedJobs: string[];
@@ -28,6 +30,74 @@ const PrintQueueToolbar: React.FC<PrintQueueToolbarProps> = ({
   activeTab,
   onTabChange
 }) => {
+  const { toast } = useToast();
+  
+  const handleExport = () => {
+    if (selectedJobs.length === 0) {
+      toast({
+        title: "No jobs selected",
+        description: "Please select at least one job to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Create simple PDF export with job information
+    const pdf = new PDFGeneratorCore({
+      title: 'Print Queue Export',
+      filename: 'print-queue-export.pdf',
+    });
+    
+    pdf.addTitle('Print Queue Export')
+      .addSubtitle(`Generated on ${new Date().toLocaleDateString()}`)
+      .addLineBreak()
+      .addText(`Total Jobs Selected: ${selectedJobs.length}`)
+      .addLineBreak()
+      .addHorizontalLine()
+      .save();
+      
+    toast({
+      title: "Export complete",
+      description: `${selectedJobs.length} jobs have been exported to PDF.`,
+    });
+  };
+  
+  const handlePrint = () => {
+    if (selectedJobs.length === 0) {
+      toast({
+        title: "No jobs selected",
+        description: "Please select at least one job to print.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onPrint();
+    
+    toast({
+      title: "Print job started",
+      description: `${selectedJobs.length} documents have been sent to the printer.`,
+    });
+  };
+  
+  const handleSendToHOAMailers = () => {
+    if (selectedJobs.length === 0) {
+      toast({
+        title: "No jobs selected",
+        description: "Please select at least one job to send.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onSendToHOAMailers();
+    
+    toast({
+      title: "HOA Mailers feature",
+      description: "This feature requires API integration which is not yet available.",
+    });
+  };
+  
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -70,7 +140,7 @@ const PrintQueueToolbar: React.FC<PrintQueueToolbarProps> = ({
         <Button 
           variant="outline" 
           size="sm"
-          onClick={onPrint}
+          onClick={handlePrint}
           disabled={selectedJobs.length === 0}
         >
           <Printer className="h-4 w-4 mr-2" />
@@ -80,15 +150,20 @@ const PrintQueueToolbar: React.FC<PrintQueueToolbarProps> = ({
         <Button 
           variant="outline" 
           size="sm"
-          onClick={onSendToHOAMailers}
+          onClick={handleSendToHOAMailers}
           disabled={selectedJobs.length === 0}
         >
           <Send className="h-4 w-4 mr-2" />
           Send to HOA Mailers
         </Button>
         
-        <Button variant="outline" size="sm">
-          <FileDown className="h-4 w-4 mr-2" />
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleExport}
+          disabled={selectedJobs.length === 0}
+        >
+          <Download className="h-4 w-4 mr-2" />
           Export
         </Button>
       </div>

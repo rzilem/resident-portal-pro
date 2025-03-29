@@ -4,8 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tag, Building } from 'lucide-react';
+import { Tag, Building, Printer, RefreshCw, Trash2 } from 'lucide-react';
 import { PrintJob } from '@/hooks/use-print-queue';
+import { useToast } from '@/components/ui/use-toast';
 
 interface PrintQueueTableProps {
   jobs: PrintJob[];
@@ -14,6 +15,8 @@ interface PrintQueueTableProps {
   onSelectAll: () => void;
   onSetCategoryFilter: (category: string) => void;
   onSetAssociationFilter: (id: string, name: string) => void;
+  onDeleteJob?: (id: string) => void;
+  onReprintJob?: (id: string) => void;
 }
 
 const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
@@ -22,8 +25,12 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
   onToggleSelect,
   onSelectAll,
   onSetCategoryFilter,
-  onSetAssociationFilter
+  onSetAssociationFilter,
+  onDeleteJob,
+  onReprintJob
 }) => {
+  const { toast } = useToast();
+  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -36,6 +43,26 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
         return <Badge className="bg-red-500">Failed</Badge>;
       default:
         return <Badge>{status}</Badge>;
+    }
+  };
+  
+  const handleReprintJob = (id: string) => {
+    if (onReprintJob) {
+      onReprintJob(id);
+      toast({
+        title: "Job queued for reprinting",
+        description: "The selected job has been added to the print queue.",
+      });
+    }
+  };
+  
+  const handleDeleteJob = (id: string, name: string) => {
+    if (onDeleteJob) {
+      onDeleteJob(id);
+      toast({
+        title: "Job removed",
+        description: `"${name}" has been removed from the queue.`,
+      });
     }
   };
   
@@ -58,6 +85,7 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
             <TableHead>Copies</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Certified</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -98,11 +126,35 @@ const PrintQueueTable: React.FC<PrintQueueTableProps> = ({
                 <TableCell>{job.copies}</TableCell>
                 <TableCell>{getStatusBadge(job.status)}</TableCell>
                 <TableCell>{job.sendCertified ? "Yes" : "No"}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-1">
+                    {job.status === 'failed' || job.status === 'completed' ? (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleReprintJob(job.id)}
+                        title="Reprint"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        <span className="sr-only">Reprint</span>
+                      </Button>
+                    ) : null}
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDeleteJob(job.id, job.name)}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">
+              <TableCell colSpan={9} className="h-24 text-center">
                 No print jobs found in the queue.
               </TableCell>
             </TableRow>
