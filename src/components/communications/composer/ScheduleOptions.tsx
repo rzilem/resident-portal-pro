@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useComposer } from './ComposerContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -112,7 +111,7 @@ const ScheduleOptions: React.FC = () => {
                   className="w-auto p-0" 
                   align="start" 
                   side="top"
-                  alignOffset={-50}
+                  alignOffset={-30}
                   sideOffset={5}
                 >
                   <Input
