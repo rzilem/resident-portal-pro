@@ -1,6 +1,7 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 import EditorToolbar from './editor/EditorToolbar';
 import VisualEditor from './editor/VisualEditor';
 import HtmlSourceEditor from './editor/HtmlSourceEditor';
@@ -10,14 +11,44 @@ import { TabsContent } from '@/components/ui/tabs';
 interface HtmlEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onSave?: () => void;
+  isTemplate?: boolean;
 }
 
-const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
+const HtmlEditor: React.FC<HtmlEditorProps> = ({ 
+  value, 
+  onChange, 
+  onSave,
+  isTemplate = false 
+}) => {
   const [activeTab, setActiveTab] = useState<'visual' | 'html'>('visual');
-  const editorRef = useRef<HTMLDivElement | null>(null);
+  const [currentContent, setCurrentContent] = useState<string>(value);
+  const lastSavedContent = useRef<string>(value);
+  const hasUnsavedChanges = currentContent !== lastSavedContent.current;
+
+  // Update content when value prop changes (from parent)
+  useEffect(() => {
+    setCurrentContent(value);
+    lastSavedContent.current = value;
+  }, [value]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as 'visual' | 'html');
+  };
+
+  const handleContentChange = (newContent: string) => {
+    setCurrentContent(newContent);
+    onChange(newContent);
+  };
+
+  const handleSaveContent = () => {
+    if (onSave) {
+      lastSavedContent.current = currentContent;
+      onSave();
+      
+      // Show save confirmation
+      toast.success(isTemplate ? "Template saved successfully" : "Content saved successfully");
+    }
   };
 
   // Execute document command function
@@ -31,7 +62,7 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
         setTimeout(() => {
           const editorElement = document.querySelector('[contenteditable=true]');
           if (editorElement) {
-            onChange(editorElement.innerHTML);
+            handleContentChange(editorElement.innerHTML);
           }
         }, 0);
       }
@@ -56,7 +87,12 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
 
   return (
     <Card className="border overflow-hidden">
-      <EditorTabs activeTab={activeTab} onTabChange={handleTabChange}>
+      <EditorTabs 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        onSave={onSave ? handleSaveContent : undefined}
+        hasUnsavedChanges={hasUnsavedChanges}
+      >
         {activeTab === 'visual' && (
           <EditorToolbar 
             executeCommand={executeCommand}
@@ -66,15 +102,15 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
         )}
         <TabsContent value="visual" className="p-0">
           <VisualEditor 
-            value={value} 
-            onUpdate={onChange} 
+            value={currentContent} 
+            onUpdate={handleContentChange} 
           />
         </TabsContent>
         
         <TabsContent value="html" className="p-0">
           <HtmlSourceEditor 
-            value={value} 
-            onChange={onChange} 
+            value={currentContent} 
+            onChange={handleContentChange} 
           />
         </TabsContent>
       </EditorTabs>

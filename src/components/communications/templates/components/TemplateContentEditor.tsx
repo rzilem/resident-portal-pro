@@ -1,12 +1,9 @@
 
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Tag as TagIcon } from 'lucide-react';
 import HtmlEditor from '../../HtmlEditor';
+import FormatSelector from '../../composer/FormatSelector';
+import { Tags } from 'lucide-react';
 
 interface TemplateContentEditorProps {
   content: string;
@@ -14,6 +11,7 @@ interface TemplateContentEditorProps {
   onContentChange: (content: string) => void;
   onFormatChange: (isHtml: boolean) => void;
   onMergeTagsClick: () => void;
+  onSaveTemplate?: () => void;
 }
 
 const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
@@ -21,51 +19,44 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
   isHtmlFormat,
   onContentChange,
   onFormatChange,
-  onMergeTagsClick
+  onMergeTagsClick,
+  onSaveTemplate
 }) => {
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <Label htmlFor="template-content">Message Content*</Label>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
         <div className="flex items-center gap-2">
+          <FormatSelector 
+            format={isHtmlFormat ? 'html' : 'plain'} 
+            onChange={(format) => onFormatChange(format === 'html')}
+          />
+          
           <Button 
             type="button" 
+            size="sm" 
             variant="outline" 
-            size="sm"
             onClick={onMergeTagsClick}
+            className="flex items-center gap-1"
           >
-            <TagIcon className="mr-2 h-4 w-4" />
-            Insert Merge Tag
+            <Tags className="h-4 w-4" />
+            Insert Merge Tags
           </Button>
-          <Select 
-            value={isHtmlFormat ? 'html' : 'plain'} 
-            onValueChange={(v) => onFormatChange(v === 'html')}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Format" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="plain">Plain Text</SelectItem>
-              <SelectItem value="html">Rich HTML</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
       
       {isHtmlFormat ? (
-        <Card className="border">
-          <HtmlEditor 
-            value={content} 
-            onChange={onContentChange}
-          />
-        </Card>
-      ) : (
-        <Textarea 
-          id="template-content" 
+        <HtmlEditor 
           value={content} 
-          onChange={(e) => onContentChange(e.target.value)} 
-          placeholder="Your message content here. Use merge tags like {{resident.name}} for personalization."
-          rows={8}
+          onChange={onContentChange}
+          onSave={onSaveTemplate}
+          isTemplate={true}
+        />
+      ) : (
+        <textarea
+          value={content}
+          onChange={(e) => onContentChange(e.target.value)}
+          className="w-full min-h-[250px] p-4 border rounded-md"
+          placeholder="Enter template content here..."
         />
       )}
     </div>

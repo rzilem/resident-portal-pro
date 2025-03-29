@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 
 interface VisualEditorProps {
   value: string;
@@ -8,12 +8,19 @@ interface VisualEditorProps {
 
 const VisualEditor: React.FC<VisualEditorProps> = ({ value, onUpdate }) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
+  // Initialize the editor with content
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !isInitialized) {
+      editorRef.current.innerHTML = value;
+      setIsInitialized(true);
+    } else if (editorRef.current && value !== editorRef.current.innerHTML) {
+      // Only update innerHTML if the value has actually changed
+      // This prevents losing cursor position when parent re-renders
       editorRef.current.innerHTML = value;
     }
-  }, [value]);
+  }, [value, isInitialized]);
 
   // Make sure the editor has focus when commands are executed
   const focusEditor = useCallback(() => {
@@ -34,23 +41,24 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ value, onUpdate }) => {
     }
   }, []);
 
-  const updateContent = () => {
+  const updateContent = useCallback(() => {
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML;
-      onUpdate(newContent);
+      if (newContent !== value) {
+        onUpdate(newContent);
+      }
     }
-  };
+  }, [onUpdate, value]);
 
   return (
     <div
       ref={editorRef}
       contentEditable
-      className="min-h-[250px] p-4 focus:outline-none overflow-auto"
+      className="min-h-[250px] p-4 focus:outline-none overflow-auto border rounded-md"
       onInput={updateContent}
       onBlur={updateContent}
       onFocus={focusEditor}
       onClick={focusEditor}
-      dangerouslySetInnerHTML={{ __html: value }}
     />
   );
 };
