@@ -41,17 +41,17 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Wood',
           value: 'Wood',
-          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/wood.png'
+          image: '/lovable-uploads/581f6654-f38f-470b-b9b4-2f30f640e36e.png'
         },
         {
           label: 'Metal',
           value: 'Metal',
-          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/metal.png'
+          image: '/lovable-uploads/3df3a221-5e00-49dd-b5c9-dcebe9d0d23f.png'
         },
         {
           label: 'Vinyl',
           value: 'Vinyl',
-          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/vinyl.png'
+          image: '/lovable-uploads/d8b42e89-c3e9-4d23-867c-cc2cc43148c1.png'
         },
         {
           label: 'Chain Link',
@@ -61,12 +61,12 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Stone',
           value: 'Stone',
-          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/stone.png'
+          image: '/lovable-uploads/7bd5e63f-f122-42d7-ac91-05f34b1882e6.png'
         },
         {
           label: 'Horizontal Wood',
           value: 'Horizontal Wood',
-          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/horizontal-wood.png'
+          image: '/lovable-uploads/dc0928e4-9e80-4e37-a162-dfb57ceb7278.png'
         }
       ],
       required: true,

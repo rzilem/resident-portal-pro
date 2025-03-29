@@ -83,6 +83,11 @@ export const getMimeTypeFromFileName = (fileName: string): string => {
 export const sanitizeDocumentUrl = (url: string): string => {
   if (!url) return '';
   
+  // Special case for lovable uploads
+  if (url.startsWith('/lovable-uploads/')) {
+    return url;
+  }
+  
   // Ensure protocol is specified
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     return `https://${url}`;
