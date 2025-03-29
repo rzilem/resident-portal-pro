@@ -63,7 +63,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         <Label htmlFor="content">Message Content</Label>
         <div className="flex items-center gap-2">
           {/* Only show format selector for email messages */}
-          {messageType === 'email' && <FormatSelector />}
+          {messageType === 'email' && (
+            <FormatSelector 
+              format={format} 
+              onChange={setFormat}
+            />
+          )}
           
           <Button 
             type="button" 
@@ -110,7 +115,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
       ) : (
         format === 'html' ? (
           <HtmlEditor 
-            content={content} 
+            value={content} 
             onChange={handleContentChange} 
             onPreview={handlePreviewClick}
           />

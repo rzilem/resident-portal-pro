@@ -16,6 +16,7 @@ export interface HtmlEditorRef {
 interface HtmlEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onPreview?: () => void;
   onSave?: () => void;
   isTemplate?: boolean;
 }
@@ -23,6 +24,7 @@ interface HtmlEditorProps {
 const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(({ 
   value, 
   onChange, 
+  onPreview,
   onSave,
   isTemplate = false 
 }, ref) => {
