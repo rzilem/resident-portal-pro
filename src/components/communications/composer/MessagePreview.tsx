@@ -27,17 +27,12 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
     if (open && content) {
       setIsLoading(true);
       
-      // Process the merge tags
-      mergeTagService.processMergeTags(content)
-        .then(processed => {
-          setProcessedContent(processed);
-          setIsLoading(false);
-        })
-        .catch(error => {
-          console.error('Error processing merge tags:', error);
-          setProcessedContent(content);
-          setIsLoading(false);
-        });
+      // The content should already be processed when passed to this component,
+      // but we'll set it with a small delay to show the loading indicator
+      setTimeout(() => {
+        setProcessedContent(content);
+        setIsLoading(false);
+      }, 500);
     }
   }, [open, content]);
 

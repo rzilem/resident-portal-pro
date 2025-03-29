@@ -25,6 +25,7 @@ interface ScheduledMessage {
 
 const ScheduledMessagesDialog: React.FC<ScheduledMessagesDialogProps> = ({ open, onOpenChange }) => {
   const [scheduledMessages, setScheduledMessages] = useState<ScheduledMessage[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   useEffect(() => {
     if (open) {
@@ -33,6 +34,7 @@ const ScheduledMessagesDialog: React.FC<ScheduledMessagesDialogProps> = ({ open,
   }, [open]);
   
   const loadScheduledMessages = () => {
+    setIsLoading(true);
     try {
       // Get messages from local storage
       const storedMessages = JSON.parse(localStorage.getItem('scheduledMessages') || '[]') as ScheduledMessage[];
@@ -50,10 +52,18 @@ const ScheduledMessagesDialog: React.FC<ScheduledMessagesDialogProps> = ({ open,
         };
       });
       
-      setScheduledMessages(messagesWithEvents);
+      // Only show messages that haven't been sent yet
+      const pendingMessages = messagesWithEvents.filter(message => {
+        const event = events.find(e => e.workflowId === message.id);
+        return !event?.metadata?.executed;
+      });
+      
+      setScheduledMessages(pendingMessages);
     } catch (error) {
       console.error('Error loading scheduled messages:', error);
       toast.error('Failed to load scheduled messages');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -64,13 +74,12 @@ const ScheduledMessagesDialog: React.FC<ScheduledMessagesDialogProps> = ({ open,
         workflowEventService.cancelScheduledWorkflow(message.eventId);
         
         // Remove from local storage
-        const updatedMessages = scheduledMessages.filter(m => m.id !== message.id);
-        localStorage.setItem('scheduledMessages', JSON.stringify(
-          updatedMessages.map(({ eventId, ...rest }) => rest)
-        ));
+        const storedMessages = JSON.parse(localStorage.getItem('scheduledMessages') || '[]');
+        const updatedMessages = storedMessages.filter((m: ScheduledMessage) => m.id !== message.id);
+        localStorage.setItem('scheduledMessages', JSON.stringify(updatedMessages));
         
         // Update state
-        setScheduledMessages(updatedMessages);
+        setScheduledMessages(prev => prev.filter(m => m.id !== message.id));
         
         toast.success(`Scheduled message "${message.subject}" cancelled`);
       }
@@ -86,6 +95,10 @@ const ScheduledMessagesDialog: React.FC<ScheduledMessagesDialogProps> = ({ open,
     }
     return `${recipients.slice(0, 2).join(', ')} and ${recipients.length - 2} more`;
   };
+
+  const handleRefresh = () => {
+    loadScheduledMessages();
+  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,11 +110,23 @@ const ScheduledMessagesDialog: React.FC<ScheduledMessagesDialogProps> = ({ open,
           </DialogDescription>
         </DialogHeader>
         
+        <div className="my-2 flex justify-end">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            Refresh
+          </Button>
+        </div>
+        
         <ScrollArea className="flex-1 h-[400px] pr-4">
-          {scheduledMessages.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+              <Clock className="h-6 w-6 animate-spin text-muted-foreground" />
+              <span className="ml-2">Loading scheduled messages...</span>
+            </div>
+          ) : scheduledMessages.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No scheduled messages</p>
+              <p className="text-sm mt-2">Messages you schedule will appear here</p>
             </div>
           ) : (
             <div className="space-y-4">

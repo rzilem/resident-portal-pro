@@ -41,8 +41,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
 
     setIsPreviewLoading(true);
     try {
-      // We'll set the raw content for preview and let the MessagePreview component handle processing
-      setPreviewContent(content);
+      // Process the content with merge tags before showing the preview
+      const processedContent = await previewProcessedContent(content);
+      setPreviewContent(processedContent);
       setShowMergeTagPreview(true);
     } catch (error) {
       console.error("Error preparing preview:", error);
@@ -92,7 +93,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               disabled={isPreviewLoading}
             >
               <Eye className="h-4 w-4 mr-2" />
-              Preview
+              {isPreviewLoading ? 'Processing...' : 'Preview'}
             </Button>
           </div>
         </div>
