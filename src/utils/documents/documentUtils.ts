@@ -1,3 +1,4 @@
+
 /**
  * Format file size from bytes to human-readable format
  * @param bytes File size in bytes
@@ -19,6 +20,8 @@ export const formatFileSize = (bytes: number): string => {
  * @returns Boolean indicating if file can be previewed
  */
 export const isFilePreviewable = (fileType: string): boolean => {
+  if (!fileType) return false;
+  
   const lowerType = fileType.toLowerCase();
   
   // Expanded list of previewable file types
@@ -38,6 +41,8 @@ export const isFilePreviewable = (fileType: string): boolean => {
  * @returns The corresponding MIME type
  */
 export const getMimeTypeFromFileName = (fileName: string): string => {
+  if (!fileName) return 'application/octet-stream';
+  
   const extension = fileName.split('.').pop()?.toLowerCase() || '';
   
   const mimeTypes: Record<string, string> = {
@@ -76,8 +81,10 @@ export const getMimeTypeFromFileName = (fileName: string): string => {
  * @returns Sanitized URL
  */
 export const sanitizeDocumentUrl = (url: string): string => {
+  if (!url) return '';
+  
   // Ensure protocol is specified
-  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
     return `https://${url}`;
   }
   return url;
@@ -120,6 +127,8 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
  * @returns Boolean indicating if file can use Office Online viewer
  */
 export const canUseOfficeViewer = (fileType: string): boolean => {
+  if (!fileType) return false;
+  
   const lowerType = fileType.toLowerCase();
   
   return lowerType.includes('word') || 

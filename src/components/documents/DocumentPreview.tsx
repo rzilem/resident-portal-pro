@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -69,7 +70,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     
     // Create a temporary anchor element to trigger download
     const link = window.document.createElement('a');
-    link.href = document.url;
+    link.href = sanitizeDocumentUrl(document.url);
     link.download = document.name;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -83,6 +84,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const handleLoadError = () => {
     setIsLoading(false);
     setPreviewError("Failed to load document preview");
+    console.error("Failed to load document preview for:", document.name, document.url);
   };
   
   const handleLoadSuccess = () => {
@@ -115,10 +117,12 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
   
   const getPreviewUrl = () => {
+    if (!document.url) return '';
+    
     if (useOfficeViewer) {
       return getOfficeViewerUrl(document.url);
     }
-    return document.url;
+    return sanitizeDocumentUrl(document.url);
   };
   
   const renderPreview = () => {
@@ -143,7 +147,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 Download Instead
               </Button>
               {document.url && (
-                <Button variant="outline" onClick={() => window.open(document.url, '_blank')}>
+                <Button variant="outline" onClick={() => window.open(sanitizeDocumentUrl(document.url), '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in New Tab
                 </Button>
@@ -153,14 +157,31 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </div>
       );
     }
+
+    if (!document.url) {
+      return (
+        <div className="w-full h-full flex items-center justify-center p-8 text-center">
+          <div>
+            <AlertTriangle className="h-16 w-16 mx-auto text-destructive mb-4" />
+            <h3 className="text-lg font-medium mb-2">No URL Available</h3>
+            <p className="text-muted-foreground mb-4">The document URL is not available</p>
+          </div>
+        </div>
+      );
+    }
     
+    // Determine file type from mime type or file extension
     const fileType = document.fileType.toLowerCase();
+    const previewUrl = getPreviewUrl();
+    
+    console.log("Preview URL:", previewUrl);
+    console.log("File type:", fileType);
     
     // PDF preview
     if (fileType.includes('pdf')) {
       return (
         <iframe 
-          src={getPreviewUrl()} 
+          src={previewUrl} 
           className="w-full h-full" 
           title={document.name}
           onLoad={handleLoadSuccess}
@@ -177,12 +198,13 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       fileType.includes('png') || 
       fileType.includes('gif') ||
       fileType.includes('svg') ||
-      fileType.includes('webp')
+      fileType.includes('webp') ||
+      document.name.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)
     ) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-background/50">
           <img 
-            src={getPreviewUrl()} 
+            src={previewUrl} 
             alt={document.name} 
             className="max-w-full max-h-full object-contain"
             onLoad={handleLoadSuccess}
@@ -195,7 +217,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     else if (useOfficeViewer) {
       return (
         <iframe 
-          src={getPreviewUrl()} 
+          src={previewUrl} 
           className="w-full h-full" 
           title={document.name}
           onLoad={handleLoadSuccess}
@@ -220,7 +242,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 Download
               </Button>
               {document.url && (
-                <Button variant="outline" onClick={() => window.open(document.url, '_blank')}>
+                <Button variant="outline" onClick={() => window.open(sanitizeDocumentUrl(document.url), '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in New Tab
                 </Button>
@@ -238,7 +260,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getFileIcon(document.fileType)}
-            {document.name}
+            <span className="truncate">{document.name}</span>
           </DialogTitle>
           <DialogDescription>
             {document.description || 'No description provided'}
