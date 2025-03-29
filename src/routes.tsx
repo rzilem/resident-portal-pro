@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
@@ -16,6 +15,7 @@ import BidRequestDetail from './pages/resale/BidRequestDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import CommunityHub from './pages/CommunityHub';
 import ResaleDashboard from './pages/resale/ResaleDashboard';
+import ProjectImagesPage from './pages/resale/admin/ProjectImages';
 
 const router = createBrowserRouter([
   {
@@ -108,6 +108,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <BidRequestDetail />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/resale/admin/project-images',
+        element: (
+          <ProtectedRoute>
+            <ProjectImagesPage />
           </ProtectedRoute>
         ),
       },
