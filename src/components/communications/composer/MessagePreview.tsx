@@ -23,7 +23,14 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
 }) => {
   const [processedContent, setProcessedContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const composerContext = useComposer();
+  
+  // Try to use ComposerContext, but don't fail if it's not available
+  let composerContext = null;
+  try {
+    composerContext = useComposer();
+  } catch (error) {
+    // Component is being used outside of ComposerProvider, that's fine
+  }
 
   // Use subject from props if provided, otherwise from context
   const messageSubject = subject || composerContext?.subject;
