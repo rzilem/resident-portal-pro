@@ -71,7 +71,7 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-background">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] flex flex-col bg-background">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Tag className="mr-2 h-5 w-5" />
@@ -82,7 +82,7 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 mt-2">
+        <div className="space-y-4 mt-2 flex-1 overflow-hidden">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -93,25 +93,58 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
             />
           </div>
           
-          <Tabs defaultValue="all" value={activeCategory} onValueChange={handleCategoryChange}>
-            <ScrollArea className="w-full">
-              <TabsList className="w-full justify-start border-b pb-px mb-4">
-                <TabsTrigger value="all">All Categories</TabsTrigger>
+          <Tabs defaultValue="all" value={activeCategory} onValueChange={handleCategoryChange} className="flex flex-col h-full overflow-hidden">
+            <ScrollArea className="w-full border-b pb-px mb-4">
+              <TabsList className="w-full justify-start inline-flex h-auto space-x-1 p-1">
+                <TabsTrigger value="all" className="whitespace-nowrap">All Categories</TabsTrigger>
                 {tagGroups.map(group => (
-                  <TabsTrigger key={group.category} value={group.category}>
+                  <TabsTrigger key={group.category} value={group.category} className="whitespace-nowrap">
                     {group.name}
                   </TabsTrigger>
                 ))}
               </TabsList>
             </ScrollArea>
             
-            <ScrollArea className="h-[400px] overflow-y-auto">
-              <div className="space-y-6 pr-4">
-                {filteredGroups.length > 0 ? (
-                  filteredGroups.map(group => (
-                    <TabsContent key={group.category} value="all" className="m-0" forceMount={activeCategory === 'all' ? true : undefined}>
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-[350px] w-full pr-4">
+                <div className="space-y-4">
+                  {filteredGroups.length > 0 ? (
+                    filteredGroups.map(group => (
+                      <TabsContent key={group.category} value="all" className="m-0" forceMount={activeCategory === 'all' ? true : undefined}>
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium">{group.name}</h3>
+                          <div className="grid grid-cols-1 gap-2">
+                            {group.tags.map(tag => (
+                              <div
+                                key={tag.id}
+                                className="flex flex-col p-3 border rounded-md hover:border-primary cursor-pointer transition-colors"
+                                onClick={() => handleInsertTag(tag)}
+                              >
+                                <div className="flex justify-between items-start flex-wrap gap-2">
+                                  <span className="font-medium">{tag.name}</span>
+                                  <code className="text-xs bg-muted px-1 py-0.5 rounded break-all">{tag.tag}</code>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">{tag.description}</p>
+                                {tag.example && (
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    Example: <span className="italic">{tag.example}</span>
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </TabsContent>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No merge tags found for your search criteria
+                    </div>
+                  )}
+                  
+                  {filteredGroups.map(group => (
+                    <TabsContent key={group.category} value={group.category} className="m-0">
                       <div className="space-y-4">
-                        <h3 className="text-sm font-medium">{group.name}</h3>
                         <div className="grid grid-cols-1 gap-2">
                           {group.tags.map(tag => (
                             <div
@@ -119,9 +152,9 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
                               className="flex flex-col p-3 border rounded-md hover:border-primary cursor-pointer transition-colors"
                               onClick={() => handleInsertTag(tag)}
                             >
-                              <div className="flex justify-between items-start">
+                              <div className="flex justify-between items-start flex-wrap gap-2">
                                 <span className="font-medium">{tag.name}</span>
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded">{tag.tag}</code>
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded break-all">{tag.tag}</code>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">{tag.description}</p>
                               {tag.example && (
@@ -134,41 +167,10 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
                         </div>
                       </div>
                     </TabsContent>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No merge tags found for your search criteria
-                  </div>
-                )}
-                
-                {filteredGroups.map(group => (
-                  <TabsContent key={group.category} value={group.category} className="m-0">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 gap-2">
-                        {group.tags.map(tag => (
-                          <div
-                            key={tag.id}
-                            className="flex flex-col p-3 border rounded-md hover:border-primary cursor-pointer transition-colors"
-                            onClick={() => handleInsertTag(tag)}
-                          >
-                            <div className="flex justify-between items-start">
-                              <span className="font-medium">{tag.name}</span>
-                              <code className="text-xs bg-muted px-1 py-0.5 rounded">{tag.tag}</code>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">{tag.description}</p>
-                            {tag.example && (
-                              <p className="text-xs text-muted-foreground mt-2">
-                                Example: <span className="italic">{tag.example}</span>
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </TabsContent>
-                ))}
-              </div>
-            </ScrollArea>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
           </Tabs>
         </div>
       </DialogContent>
