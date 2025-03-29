@@ -8,14 +8,13 @@ import TemplateHeader from './TemplateHeader';
 import TemplateToolbar from './TemplateToolbar';
 import TemplateFilters from './TemplateFilters';
 import TemplateList from './TemplateList';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from "sonner";
 
 interface ViolationTemplatesManagerProps {
   associationId?: string;
 }
 
 const ViolationTemplatesManager: React.FC<ViolationTemplatesManagerProps> = ({ associationId }) => {
-  const { toast } = useToast();
   const { activeAssociation } = useAssociations();
   const [templates, setTemplates] = useState<ViolationTemplate[]>([]);
   const [activeTab, setActiveTab] = useState('association');
@@ -48,9 +47,8 @@ const ViolationTemplatesManager: React.FC<ViolationTemplatesManagerProps> = ({ a
 
   const handleSaveChanges = () => {
     // In a real app, you would save the changes to the server here
-    toast({
-      title: "Changes saved",
-      description: "Your template changes have been saved successfully.",
+    toast("Changes saved", {
+      description: "Your template changes have been saved successfully."
     });
     setHasChanges(false);
   };
@@ -62,8 +60,7 @@ const ViolationTemplatesManager: React.FC<ViolationTemplatesManagerProps> = ({ a
       setTemplates(associationTemplates);
     }
     setHasChanges(false);
-    toast({
-      title: "Changes canceled",
+    toast("Changes canceled", {
       description: "Your template changes have been discarded.",
       variant: "destructive"
     });
@@ -71,9 +68,8 @@ const ViolationTemplatesManager: React.FC<ViolationTemplatesManagerProps> = ({ a
 
   const handleExportToExcel = () => {
     // In a real app, you would export the data to Excel here
-    toast({
-      title: "Export initiated",
-      description: "Your templates are being exported to Excel.",
+    toast("Export initiated", {
+      description: "Your templates are being exported to Excel."
     });
   };
 

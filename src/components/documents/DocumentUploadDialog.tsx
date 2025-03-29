@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { uploadDocument } from '@/services/document-upload';
 import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
 import { useAssociations } from '@/hooks/use-associations';
@@ -39,13 +38,10 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [preparing, setPreparing] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
   
-  const { toast } = useToast();
   const { activeAssociation } = useAssociations();
   
-  // Combine possible association IDs with a fallback
   const effectiveAssociationId = propAssociationId || activeAssociation?.id || 'default';
   
-  // Document categories
   const categories = [
     { id: 'governing', name: 'Governing Documents' },
     { id: 'financial', name: 'Financial Documents' },
@@ -75,7 +71,6 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       const exists = await ensureDocumentsBucketExists();
       
       if (exists) {
-        // Double-check access with a separate call
         const canAccess = await testBucketAccess();
         if (canAccess) {
           setStorageReady(true);
@@ -108,18 +103,14 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     e.preventDefault();
     
     if (!file) {
-      toast({
-        variant: "destructive",
-        title: "No file selected",
+      toast.error("No file selected", {
         description: "Please select a file to upload."
       });
       return;
     }
     
     if (!category) {
-      toast({
-        variant: "destructive",
-        title: "Category required",
+      toast.error("Category required", {
         description: "Please select a document category."
       });
       return;
@@ -137,35 +128,27 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       });
       
       if (success) {
-        toast({
-          title: "Upload successful",
+        toast.success("Upload successful", {
           description: `${file.name} has been uploaded successfully.`
         });
         
-        // Reset form
         setFile(null);
         setDescription('');
         setCategory('');
         setTags([]);
         
-        // Close dialog
         setOpen(false);
         
-        // Trigger success callback
         if (onSuccess) onSuccess();
         if (refreshDocuments) refreshDocuments();
       } else {
-        toast({
-          variant: "destructive",
-          title: "Upload failed",
+        toast.error("Upload failed", {
           description: "There was an error uploading your document. Please try again."
         });
       }
     } catch (error) {
       console.error('Error uploading document:', error);
-      toast({
-        variant: "destructive",
-        title: "Upload error",
+      toast.error("Upload error", {
         description: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     } finally {
@@ -177,7 +160,6 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     prepareStorage();
   };
   
-  // Content to show based on storage status
   const renderContent = () => {
     if (preparing) {
       return (
@@ -206,7 +188,6 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       );
     }
     
-    // If storage is ready, show the upload form
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

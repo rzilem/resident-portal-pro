@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { FileText } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useSettings } from '@/hooks/use-settings';
 import { useInvoiceQueue } from '@/hooks/use-invoice-queue';
 import InvoiceFilters from './invoices/InvoiceFilters';
@@ -53,8 +53,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
   const handleColumnsChange = (updatedColumns: InvoiceColumn[]) => {
     setColumns(updatedColumns);
     updatePreference('invoiceTableColumns', updatedColumns);
-    toast({
-      title: "Column preferences saved",
+    toast("Column preferences saved", {
       description: "Your invoice table column preferences have been updated."
     });
   };
