@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Download, Plus } from 'lucide-react';
+import { FileText, Download, Plus, FileUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Document {
   id: string;
@@ -20,7 +21,6 @@ interface Document {
   is_archived: boolean;
   last_modified: string;
   version: number;
-  // Adding missing fields and making them optional
   uploaded_date?: string;
   uploaded_by?: string;
   association_id: string;
@@ -32,6 +32,7 @@ const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) =>
   const [documents, setDocuments] = useState<Document[]>([]);
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   const fetchDocuments = async () => {
     try {
@@ -82,6 +83,15 @@ const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) =>
     fetchDocuments();
   }, [associationId]);
 
+  // Format bytes to readable size (KB, MB, etc.)
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -106,25 +116,65 @@ const DocumentsTab: React.FC<{ associationId: string }> = ({ associationId }) =>
             </Button>
           </div>
         ) : (
-          <ul className="space-y-2">
-            {documents.map(doc => (
-              <li key={doc.id} className="p-3 border rounded-md flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{doc.name}</div>
-                  <div className="text-sm text-muted-foreground">{doc.category} - {doc.description}</div>
-                </div>
-                <a 
-                  href={doc.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="ml-4 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div>
+            {isMobile ? (
+              <div className="space-y-3">
+                {documents.map(doc => (
+                  <div key={doc.id} className="bg-card border rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-muted p-2 rounded">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm truncate">{doc.name}</h4>
+                        <p className="text-xs text-muted-foreground truncate">{doc.category}</p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground grid grid-cols-2 gap-x-2 gap-y-1 mb-3">
+                      <div>Size: {formatBytes(doc.file_size)}</div>
+                      <div>Type: {doc.file_type.split('/')[1]?.toUpperCase() || doc.file_type}</div>
+                      <div>Added: {new Date(doc.created_at || '').toLocaleDateString()}</div>
+                      <div>Version: {doc.version || 1}</div>
+                    </div>
+                    <div className="flex justify-end">
+                      <a 
+                        href={doc.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center text-xs bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 py-2 rounded-md transition-colors"
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {documents.map(doc => (
+                  <li key={doc.id} className="p-3 border rounded-md flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{doc.name}</div>
+                      <div className="text-sm text-muted-foreground">{doc.category} - {doc.description}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatBytes(doc.file_size)} • Added: {new Date(doc.created_at || '').toLocaleDateString()}
+                      </div>
+                    </div>
+                    <a 
+                      href={doc.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ml-4 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </CardContent>
       <DocumentUploadDialog

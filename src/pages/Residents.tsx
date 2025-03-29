@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserX, Search, ChevronRight, Settings2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Users, UserCheck, UserX, Search, ChevronRight, Settings2, ChevronUp, ChevronDown, Mail, Download, Trash2, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -9,6 +10,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useSettings } from '@/hooks/use-settings';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 // Column type definition for resident data
 export type ResidentColumn = {
@@ -48,6 +52,8 @@ const Residents = () => {
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedResidents, setSelectedResidents] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     if (preferences?.residentTableColumns) {
@@ -233,6 +239,73 @@ const Residents = () => {
     }
   });
 
+  // Toggle selection of a single resident
+  const toggleResidentSelection = (residentId: number) => {
+    setSelectedResidents(prev => 
+      prev.includes(residentId) 
+        ? prev.filter(id => id !== residentId) 
+        : [...prev, residentId]
+    );
+  };
+
+  // Toggle selection of all residents
+  const toggleSelectAll = () => {
+    if (selectAll || selectedResidents.length === sortedResidents.length) {
+      setSelectedResidents([]);
+      setSelectAll(false);
+    } else {
+      setSelectedResidents(sortedResidents.map(resident => resident.id));
+      setSelectAll(true);
+    }
+  };
+
+  // Bulk action handlers
+  const handleBulkEmail = () => {
+    if (selectedResidents.length === 0) {
+      toast.error("Please select at least one resident");
+      return;
+    }
+    
+    const selectedEmails = sortedResidents
+      .filter(resident => selectedResidents.includes(resident.id))
+      .map(resident => resident.email)
+      .join(', ');
+      
+    toast.success(`Preparing email to ${selectedResidents.length} residents`);
+    // In a real app, you would integrate with an email service or open a mail compose dialog
+    window.open(`mailto:${selectedEmails}`);
+  };
+
+  const handleBulkExport = () => {
+    if (selectedResidents.length === 0) {
+      toast.error("Please select at least one resident");
+      return;
+    }
+    
+    toast.success(`Exporting data for ${selectedResidents.length} residents`);
+    // In a real app, you would generate and download a CSV or PDF file
+  };
+
+  const handleBulkTag = () => {
+    if (selectedResidents.length === 0) {
+      toast.error("Please select at least one resident");
+      return;
+    }
+    
+    toast.success(`Apply tags to ${selectedResidents.length} residents`);
+    // In a real app, you would open a dialog to select and apply tags
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedResidents.length === 0) {
+      toast.error("Please select at least one resident");
+      return;
+    }
+    
+    toast.success(`${selectedResidents.length} residents would be deleted`);
+    // In a real app, you would show a confirmation dialog before deleting
+  };
+
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
       <div className="grid gap-4 md:gap-6 mb-6">
@@ -281,7 +354,7 @@ const Residents = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="h-10 gap-1">
@@ -319,17 +392,72 @@ const Residents = () => {
               </div>
             </div>
             
+            {selectedResidents.length > 0 && (
+              <div className="mb-4">
+                <Alert className="bg-muted/50 border border-muted">
+                  <AlertDescription className="flex items-center justify-between">
+                    <span><strong>{selectedResidents.length}</strong> resident{selectedResidents.length !== 1 ? 's' : ''} selected</span>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleBulkEmail}
+                        className="h-8"
+                      >
+                        <Mail className="h-3.5 w-3.5 mr-1" />
+                        Email
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleBulkExport}
+                        className="h-8"
+                      >
+                        <Download className="h-3.5 w-3.5 mr-1" />
+                        Export
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleBulkTag}
+                        className="h-8"
+                      >
+                        <Tag className="h-3.5 w-3.5 mr-1" />
+                        Tag
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleBulkDelete}
+                        className="h-8 text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+            
             {isMobile && (
               <div className="space-y-4 md:hidden">
                 {sortedResidents.map((resident, i) => (
                   <Card key={i} className="p-4 border">
-                    <div className="flex justify-between items-center mb-2">
-                      <Link
-                        to={`/resident/${resident.id}`}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        {resident.name}
-                      </Link>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          checked={selectedResidents.includes(resident.id)} 
+                          onCheckedChange={() => toggleResidentSelection(resident.id)}
+                          id={`mobile-resident-${resident.id}`}
+                        />
+                        <Link
+                          to={`/resident/${resident.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {resident.name}
+                        </Link>
+                      </div>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         resident.status === 'Active' ? 'bg-green-100 text-green-800' : 
                         resident.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 
@@ -376,6 +504,16 @@ const Residents = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[40px]">
+                      <Checkbox 
+                        checked={
+                          sortedResidents.length > 0 && 
+                          selectedResidents.length === sortedResidents.length
+                        } 
+                        onCheckedChange={toggleSelectAll}
+                        id="select-all-residents"
+                      />
+                    </TableHead>
                     {columns.filter(col => col.checked).map((column) => (
                       <TableHead 
                         key={column.id}
@@ -394,6 +532,13 @@ const Residents = () => {
                 <TableBody>
                   {sortedResidents.map((resident, i) => (
                     <TableRow key={i}>
+                      <TableCell>
+                        <Checkbox 
+                          checked={selectedResidents.includes(resident.id)} 
+                          onCheckedChange={() => toggleResidentSelection(resident.id)}
+                          id={`resident-${resident.id}`}
+                        />
+                      </TableCell>
                       {columns.filter(col => col.checked).map((column) => (
                         <TableCell key={column.id}>
                           {column.id === 'name' ? (
@@ -431,9 +576,36 @@ const Residents = () => {
                         </TableCell>
                       ))}
                       <TableCell>
-                        <Link to={`/resident/${resident.id}`}>
-                          <Button variant="ghost" size="sm">View</Button>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/resident/${resident.id}`}>
+                            <Button variant="ghost" size="sm">View</Button>
+                          </Link>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <ChevronDown className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => window.open(`mailto:${resident.email}`)}>
+                                <Mail className="h-4 w-4 mr-2" />
+                                Email
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => toast.success(`Exporting ${resident.name}'s data`)}>
+                                <Download className="h-4 w-4 mr-2" />
+                                Export Data
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => toast.success(`Tag dialog would open for ${resident.name}`)}>
+                                <Tag className="h-4 w-4 mr-2" />
+                                Manage Tags
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => toast.error(`Delete confirmation for ${resident.name}`)}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
