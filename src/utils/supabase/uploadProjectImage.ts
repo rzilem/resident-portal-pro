@@ -78,12 +78,21 @@ export const getProjectImageUrl = (path: string): string => {
     return path;
   }
   
+  // Handle UUIDs that are direct paths to lovable-uploads
+  if (path.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|jpeg|gif)$/i)) {
+    return `/lovable-uploads/${path}`;
+  }
+  
   debugLog(`Getting image URL for path: ${path}`);
   
   try {
-    // For arborist or any image in the maintenance-types folder, 
-    // use a direct path to the lovable-uploads folder
-    if (path.includes('maintenance-types/') || path === 'arborist.jpg') {
+    // Special case for arborist
+    if (path === 'arborist.jpg' || path === 'f882aa65-6796-4e85-85b6-1d4961276334.png') {
+      return `/lovable-uploads/f882aa65-6796-4e85-85b6-1d4961276334.png`;
+    }
+    
+    // For images in the maintenance-types folder
+    if (path.includes('maintenance-types/')) {
       return `/lovable-uploads/${path.split('/').pop() || path}`;
     }
     

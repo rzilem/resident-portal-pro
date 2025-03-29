@@ -1,4 +1,3 @@
-
 import { 
   Brush, TreePine, Wrench, Droplets, 
   Lock, HelpingHand
@@ -11,7 +10,7 @@ export const MAINTENANCE_TYPES: ProjectType[] = [
     name: 'Arborist', 
     icon: TreePine, 
     description: 'Tree care and maintenance services',
-    imagePath: 'arborist.jpg'
+    imagePath: 'f882aa65-6796-4e85-85b6-1d4961276334.png'
   },
   { 
     id: 'fitness_equipment', 

@@ -42,11 +42,11 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       return <Skeleton className="w-full h-full rounded-md" />;
     }
     
-    // Specifically handle arborist image
+    // Specifically handle arborist image with direct path
     if (type.id === 'arborist') {
       return (
         <img 
-          src="/lovable-uploads/arborist.jpg" 
+          src="/lovable-uploads/f882aa65-6796-4e85-85b6-1d4961276334.png" 
           alt={type.name}
           className="w-full h-full object-cover"
           onError={() => handleImageError(type.id)}
