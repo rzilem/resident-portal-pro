@@ -2,7 +2,7 @@
 import { User, UserRole } from '@/types/user';
 
 // Define permission levels for various features
-export type Permission = 'view' | 'edit' | 'create' | 'delete' | 'approve' | 'admin';
+export type Permission = 'view' | 'edit' | 'create' | 'delete' | 'approve' | 'admin' | 'export' | 'share' | 'print' | 'assign' | 'manage' | 'configure' | 'invite' | 'report';
 
 // Define module permissions
 export interface ModulePermissions {
@@ -12,52 +12,100 @@ export interface ModulePermissions {
 // Map roles to their permissions
 const rolePermissionsMap: Record<UserRole, ModulePermissions> = {
   admin: {
-    resale: ['view', 'edit', 'create', 'delete', 'approve', 'admin'],
-    accounting: ['view', 'edit', 'create', 'delete', 'approve', 'admin'],
-    properties: ['view', 'edit', 'create', 'delete', 'admin'],
-    residents: ['view', 'edit', 'create', 'delete', 'admin']
+    resale: ['view', 'edit', 'create', 'delete', 'approve', 'admin', 'export', 'share', 'print', 'manage', 'configure', 'report'],
+    accounting: ['view', 'edit', 'create', 'delete', 'approve', 'admin', 'export', 'share', 'print', 'manage', 'configure', 'report'],
+    properties: ['view', 'edit', 'create', 'delete', 'admin', 'export', 'share', 'print', 'manage', 'configure', 'report'],
+    residents: ['view', 'edit', 'create', 'delete', 'admin', 'export', 'share', 'print', 'assign', 'invite', 'report'],
+    calendar: ['view', 'edit', 'create', 'delete', 'admin', 'export', 'share', 'print'],
+    documents: ['view', 'edit', 'create', 'delete', 'admin', 'export', 'share', 'print', 'configure'],
+    communications: ['view', 'edit', 'create', 'delete', 'admin', 'export', 'share', 'print'],
+    maintenance: ['view', 'edit', 'create', 'delete', 'approve', 'admin', 'assign', 'report'],
+    compliance: ['view', 'edit', 'create', 'delete', 'approve', 'admin', 'export', 'report'],
+    settings: ['view', 'edit', 'create', 'delete', 'admin', 'configure']
   },
   manager: {
-    resale: ['view', 'edit', 'create', 'approve'],
-    accounting: ['view', 'edit', 'create'],
-    properties: ['view', 'edit'],
-    residents: ['view', 'edit', 'create']
+    resale: ['view', 'edit', 'create', 'approve', 'export', 'share', 'print', 'report'],
+    accounting: ['view', 'edit', 'create', 'export', 'print', 'report'],
+    properties: ['view', 'edit', 'export', 'print', 'report'],
+    residents: ['view', 'edit', 'create', 'export', 'print', 'assign', 'invite'],
+    calendar: ['view', 'edit', 'create', 'export', 'share', 'print'],
+    documents: ['view', 'edit', 'create', 'export', 'share', 'print'],
+    communications: ['view', 'edit', 'create', 'export', 'share', 'print'],
+    maintenance: ['view', 'edit', 'create', 'approve', 'export', 'assign', 'report'],
+    compliance: ['view', 'edit', 'create', 'approve', 'export', 'report'],
+    settings: ['view', 'edit']
   },
   staff: {
-    resale: ['view', 'create'],
-    accounting: ['view'],
-    properties: ['view'],
-    residents: ['view']
+    resale: ['view', 'create', 'print'],
+    accounting: ['view', 'print'],
+    properties: ['view', 'print'],
+    residents: ['view', 'print'],
+    calendar: ['view', 'create', 'print'],
+    documents: ['view', 'create', 'print'],
+    communications: ['view', 'create'],
+    maintenance: ['view', 'create', 'print'],
+    compliance: ['view', 'create', 'report'],
+    settings: []
   },
   resident: {
     resale: ['view'],
     accounting: [],
     properties: ['view'],
-    residents: ['view']
+    residents: ['view'],
+    calendar: ['view'],
+    documents: ['view'],
+    communications: ['view'],
+    maintenance: ['view', 'create'],
+    compliance: ['view'],
+    settings: []
   },
   board_member: {
-    resale: ['view', 'approve'],
-    accounting: ['view'],
-    properties: ['view'],
-    residents: ['view']
+    resale: ['view', 'approve', 'print'],
+    accounting: ['view', 'print'],
+    properties: ['view', 'print'],
+    residents: ['view', 'print'],
+    calendar: ['view', 'create', 'edit', 'share'],
+    documents: ['view', 'share', 'print'],
+    communications: ['view', 'create', 'share'],
+    maintenance: ['view', 'create', 'approve', 'print'],
+    compliance: ['view', 'approve', 'print'],
+    settings: ['view']
   },
   board: {
-    resale: ['view', 'approve'],
-    accounting: ['view'],
-    properties: ['view'],
-    residents: ['view']
+    resale: ['view', 'approve', 'print'],
+    accounting: ['view', 'print'],
+    properties: ['view', 'print'],
+    residents: ['view', 'print'],
+    calendar: ['view', 'create', 'edit', 'share'],
+    documents: ['view', 'share', 'print'],
+    communications: ['view', 'create', 'share'],
+    maintenance: ['view', 'create', 'approve', 'print'],
+    compliance: ['view', 'approve', 'print'],
+    settings: ['view']
   },
   committee: {
     resale: ['view'],
     accounting: [],
     properties: ['view'],
-    residents: ['view']
+    residents: ['view'],
+    calendar: ['view', 'create'],
+    documents: ['view', 'print'],
+    communications: ['view', 'create'],
+    maintenance: ['view', 'create'],
+    compliance: ['view', 'create'],
+    settings: []
   },
   guest: {
     resale: [],
     accounting: [],
     properties: [],
-    residents: []
+    residents: [],
+    calendar: ['view'],
+    documents: [],
+    communications: [],
+    maintenance: [],
+    compliance: [],
+    settings: []
   }
 };
 
@@ -74,6 +122,16 @@ export const roleService = {
   getUserPermissions: (user: User): ModulePermissions => {
     if (!user || !user.role) return {};
     return rolePermissionsMap[user.role];
+  },
+  
+  // Get all permissions for a specific role
+  getRolePermissions: (role: UserRole): ModulePermissions => {
+    return rolePermissionsMap[role] || {};
+  },
+  
+  // Get list of all available permissions
+  getAllPermissionTypes: (): Permission[] => {
+    return ['view', 'edit', 'create', 'delete', 'approve', 'admin', 'export', 'share', 'print', 'assign', 'manage', 'configure', 'invite', 'report'];
   },
   
   // Get all users with specific permission for a module

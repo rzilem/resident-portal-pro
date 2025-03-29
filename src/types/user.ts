@@ -124,17 +124,64 @@ export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_membe
 
 export type SecurityLevel = 'full_access' | 'moderate_access' | 'limited_access' | 'view_only' | 'full' | 'advanced' | 'basic' | 'restricted' | 'elevated';
 
-export type GlobalPermission = 'create' | 'read' | 'update' | 'delete' | 'admin' | 'manage' | 'contribute' | 'none';
+export type GlobalPermission = 'create' | 'read' | 'update' | 'delete' | 'admin' | 'manage' | 'contribute' | 'none' | 'view' | 'edit' | 'approve' | 'export' | 'share' | 'print' | 'assign' | 'configure' | 'invite' | 'report';
 
 export interface ModulePermissions {
   accounting: GlobalPermission[];
   communications: GlobalPermission[];
   properties: GlobalPermission[];
   residents: GlobalPermission[];
-  vendors: GlobalPermission[];
+  vendors?: GlobalPermission[];
   settings: GlobalPermission[];
   calendar?: GlobalPermission[];
   documents?: GlobalPermission[];
   reports?: GlobalPermission[];
   maintenance?: GlobalPermission[];
+  compliance?: GlobalPermission[];
+  resale?: GlobalPermission[];
 }
+
+// Permission Feature Maps
+export interface ModuleFeatures {
+  [key: string]: FeaturePermission[];
+}
+
+export interface FeaturePermission {
+  feature: string;
+  description: string;
+  requiredPermission: GlobalPermission;
+}
+
+// Define specific features for each module with required permissions
+export const moduleFeatures: ModuleFeatures = {
+  calendar: [
+    { feature: 'View Calendar', description: 'View all calendar events', requiredPermission: 'view' },
+    { feature: 'Create Events', description: 'Add new events to the calendar', requiredPermission: 'create' },
+    { feature: 'Edit Events', description: 'Modify existing calendar events', requiredPermission: 'edit' },
+    { feature: 'Delete Events', description: 'Remove events from the calendar', requiredPermission: 'delete' },
+    { feature: 'Export Calendar', description: 'Export calendar data to external formats', requiredPermission: 'export' },
+    { feature: 'Share Events', description: 'Share events with other users', requiredPermission: 'share' },
+    { feature: 'Print Calendar', description: 'Generate printable versions of the calendar', requiredPermission: 'print' },
+    { feature: 'Manage Workflows', description: 'Create automated event workflows', requiredPermission: 'admin' }
+  ],
+  documents: [
+    { feature: 'View Documents', description: 'Access and read documents', requiredPermission: 'view' },
+    { feature: 'Upload Documents', description: 'Add new documents to the system', requiredPermission: 'create' },
+    { feature: 'Edit Document Details', description: 'Modify document metadata', requiredPermission: 'edit' },
+    { feature: 'Delete Documents', description: 'Remove documents from the system', requiredPermission: 'delete' },
+    { feature: 'Share Documents', description: 'Share documents with others', requiredPermission: 'share' },
+    { feature: 'Print Documents', description: 'Generate printable versions', requiredPermission: 'print' },
+    { feature: 'Configure Categories', description: 'Manage document categories', requiredPermission: 'configure' },
+    { feature: 'Export Documents', description: 'Export documents to external formats', requiredPermission: 'export' }
+  ],
+  residents: [
+    { feature: 'View Residents', description: 'View resident information', requiredPermission: 'view' },
+    { feature: 'Add Residents', description: 'Create new resident records', requiredPermission: 'create' },
+    { feature: 'Edit Residents', description: 'Modify resident information', requiredPermission: 'edit' },
+    { feature: 'Delete Residents', description: 'Remove resident records', requiredPermission: 'delete' },
+    { feature: 'Export Resident Data', description: 'Export resident information', requiredPermission: 'export' },
+    { feature: 'Print Resident Reports', description: 'Generate printable resident reports', requiredPermission: 'print' },
+    { feature: 'Invite Residents', description: 'Send system invitations to residents', requiredPermission: 'invite' },
+    { feature: 'Assign Tags', description: 'Add categorization tags to residents', requiredPermission: 'assign' }
+  ]
+};

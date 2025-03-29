@@ -5,15 +5,15 @@ import React from 'react';
 
 // Security level descriptions
 export const securityLevelDescriptions: Record<SecurityLevel, string> = {
-  full_access: 'Complete access to all features and settings',
+  full_access: 'Complete access to all features, settings, and administrative functions',
   full: 'Complete access to all features and settings',
-  advanced: 'Advanced access to most features and settings',
-  elevated: 'Elevated access for users with higher responsibilities',
-  moderate_access: 'Moderate access to certain features',
-  limited_access: 'Limited access to assigned features',
-  basic: 'Basic access to common features',
-  restricted: 'Restricted access to specific features only',
-  view_only: 'Read-only access with no modification capabilities'
+  advanced: 'Advanced access to most features and settings with some administrative capabilities',
+  elevated: 'Elevated access for users with higher responsibilities, such as board members',
+  moderate_access: 'Moderate access to certain features with limited editing capabilities',
+  limited_access: 'Limited access to assigned features with mainly viewing permissions',
+  basic: 'Basic access to common features with minimal interaction permissions',
+  restricted: 'Restricted access to specific features only, primarily view-only access',
+  view_only: 'Read-only access with no modification capabilities across all modules'
 };
 
 // Security level icons with color variations
@@ -47,7 +47,9 @@ export const rolePermissionsData: Record<string, {
       reports: 'admin',
       settings: 'admin',
       residents: 'admin',
-      maintenance: 'admin'
+      maintenance: 'admin',
+      compliance: 'admin',
+      resale: 'admin'
     }
   },
   manager: {
@@ -62,7 +64,9 @@ export const rolePermissionsData: Record<string, {
       reports: 'view',
       settings: 'view',
       residents: 'edit',
-      maintenance: 'edit'
+      maintenance: 'edit',
+      compliance: 'edit',
+      resale: 'edit'
     }
   },
   board_member: {
@@ -75,9 +79,11 @@ export const rolePermissionsData: Record<string, {
       calendar: 'edit',
       documents: 'view',
       reports: 'view',
-      settings: 'none',
+      settings: 'view',
       residents: 'view',
-      maintenance: 'approve'
+      maintenance: 'approve',
+      compliance: 'approve',
+      resale: 'approve'
     }
   },
   board: {
@@ -90,9 +96,11 @@ export const rolePermissionsData: Record<string, {
       calendar: 'edit',
       documents: 'view',
       reports: 'view',
-      settings: 'none',
+      settings: 'view',
       residents: 'view',
-      maintenance: 'approve'
+      maintenance: 'approve',
+      compliance: 'approve',
+      resale: 'approve'
     }
   },
   committee: {
@@ -107,7 +115,9 @@ export const rolePermissionsData: Record<string, {
       reports: 'none',
       settings: 'none',
       residents: 'view',
-      maintenance: 'create'
+      maintenance: 'create',
+      compliance: 'create',
+      resale: 'view'
     }
   },
   staff: {
@@ -115,14 +125,16 @@ export const rolePermissionsData: Record<string, {
     globalPermission: 'contribute',
     modules: {
       properties: 'view',
-      accounting: 'none',
+      accounting: 'view',
       communications: 'create',
       calendar: 'create',
       documents: 'view',
-      reports: 'none',
+      reports: 'view',
       settings: 'none',
       residents: 'view',
-      maintenance: 'create'
+      maintenance: 'create',
+      compliance: 'create',
+      resale: 'create'
     }
   },
   resident: {
@@ -137,7 +149,9 @@ export const rolePermissionsData: Record<string, {
       reports: 'none',
       settings: 'none',
       residents: 'none',
-      maintenance: 'create'
+      maintenance: 'create',
+      compliance: 'view',
+      resale: 'view'
     }
   },
   guest: {
@@ -152,7 +166,9 @@ export const rolePermissionsData: Record<string, {
       reports: 'none',
       settings: 'none',
       residents: 'none',
-      maintenance: 'none'
+      maintenance: 'none',
+      compliance: 'none',
+      resale: 'none'
     }
   }
 };
@@ -160,34 +176,67 @@ export const rolePermissionsData: Record<string, {
 export const defaultRolePermissions: Record<string, { securityLevel: SecurityLevel, description: string }> = {
   admin: {
     securityLevel: 'full_access',
-    description: 'Complete access to all features and settings'
+    description: 'Complete access to all features, settings, and administrative functions'
   },
   manager: {
     securityLevel: 'advanced',
-    description: 'Advanced access to most features and settings'
+    description: 'Advanced access to most features and settings with some administrative capabilities'
   },
   board_member: {
     securityLevel: 'elevated',
-    description: 'Elevated access to board-related features'
+    description: 'Elevated access to board-related features including approvals'
   },
   board: {
     securityLevel: 'elevated',
-    description: 'Access to board-related features'
+    description: 'Access to board-related features including approvals'
   },
   committee: {
     securityLevel: 'moderate_access',
-    description: 'Moderate access to committee-related features'
+    description: 'Moderate access to committee-related features and contributions'
   },
   staff: {
     securityLevel: 'limited_access',
-    description: 'Limited access to assigned features'
+    description: 'Limited access to assigned features with some creation rights'
   },
   resident: {
     securityLevel: 'basic',
-    description: 'Basic access to resident features'
+    description: 'Basic access to resident-oriented features and self-service'
   },
   guest: {
     securityLevel: 'restricted',
-    description: 'Restricted access to specific features'
+    description: 'Restricted access to public features only'
   }
+};
+
+// Permission Descriptions
+export const permissionDescriptions = {
+  view: 'View and read information only',
+  edit: 'Modify existing content',
+  create: 'Create new content or records',
+  delete: 'Remove existing content or records',
+  approve: 'Provide formal approval on actions or content',
+  admin: 'Full administrative control',
+  export: 'Export data to external formats',
+  share: 'Share content with others',
+  print: 'Generate printable versions',
+  assign: 'Assign tasks or responsibilities to others',
+  manage: 'Oversee and coordinate activities',
+  configure: 'Adjust settings and preferences',
+  invite: 'Send invitations to new users',
+  report: 'Generate or view reports'
+};
+
+// Module descriptions for better understanding
+export const moduleDescriptions = {
+  properties: 'Property management and records',
+  accounting: 'Financial transactions and reporting',
+  communications: 'Messages, announcements, and notifications',
+  calendar: 'Events, schedules, and important dates',
+  documents: 'File storage, sharing, and management',
+  reports: 'Analytics, statistics, and summaries',
+  settings: 'System configuration and preferences',
+  residents: 'Homeowner and resident information',
+  maintenance: 'Work orders, repairs, and facility management',
+  compliance: 'Rules enforcement and violation tracking',
+  resale: 'Property transfer and document generation'
 };

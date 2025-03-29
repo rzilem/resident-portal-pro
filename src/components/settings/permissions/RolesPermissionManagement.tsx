@@ -8,10 +8,12 @@ import { toast } from "sonner";
 import { UserRole, SecurityLevel } from "@/types/user";
 import SecurityLevelsTab from './tabs/SecurityLevelsTab';
 import ModulePermissionsTab from './tabs/ModulePermissionsTab';
+import FeaturePermissionsTab from './tabs/FeaturePermissionsTab';
 import RoleEditDialog from './dialogs/RoleEditDialog';
 import { 
   securityLevelIcons,
   securityLevelDescriptions,
+  permissionDescriptions,
   rolePermissionsData 
 } from './constants/securityLevels';
 
@@ -47,6 +49,12 @@ const RolesPermissionManagement = () => {
     
     toast.success(`Module permission for ${role} updated`);
   };
+
+  const handleFeaturePermissionChange = (role: UserRole, module: string, permission: string, enabled: boolean) => {
+    // This would require a more complex implementation to handle individual feature permissions
+    // In a real app, you would need to update the specific permission for that feature
+    toast.success(`Feature permission ${permission} for ${role} ${enabled ? 'enabled' : 'disabled'}`);
+  };
   
   const openEditDialog = (role: UserRole) => {
     setEditingRole(role);
@@ -71,7 +79,7 @@ const RolesPermissionManagement = () => {
               Role-Based Permissions
             </CardTitle>
             <CardDescription>
-              Manage access levels and permissions by user role
+              Manage access levels, module permissions, and feature-specific rights by user role
             </CardDescription>
           </div>
           <Button variant="outline" onClick={() => toast.info("Changes to default role permissions will affect all users with these roles")}>
@@ -85,6 +93,7 @@ const RolesPermissionManagement = () => {
           <TabsList className="mb-4">
             <TabsTrigger value="security-levels">Security Levels</TabsTrigger>
             <TabsTrigger value="module-permissions">Module Permissions</TabsTrigger>
+            <TabsTrigger value="feature-permissions">Feature Permissions</TabsTrigger>
           </TabsList>
           
           <TabsContent value="security-levels">
@@ -100,6 +109,13 @@ const RolesPermissionManagement = () => {
             <ModulePermissionsTab 
               rolePermissions={rolePermissions}
               onPermissionChange={handleModulePermissionChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="feature-permissions">
+            <FeaturePermissionsTab 
+              rolePermissions={rolePermissions}
+              onPermissionChange={handleFeaturePermissionChange}
             />
           </TabsContent>
         </Tabs>

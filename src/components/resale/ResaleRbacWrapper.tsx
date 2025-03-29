@@ -39,7 +39,10 @@ const ResaleRbacWrapper = ({
   // Check if the actualPermission is a valid Permission type value
   // and cast it only if it matches one of the expected values
   const isValidPermission = (permission: string): permission is Permission => {
-    return ['view', 'edit', 'create', 'delete', 'approve', 'admin'].includes(permission);
+    return [
+      'view', 'edit', 'create', 'delete', 'approve', 'admin', 
+      'export', 'share', 'print', 'assign', 'manage', 'configure', 'invite', 'report'
+    ].includes(permission);
   };
   
   // Use type assertion with validation
