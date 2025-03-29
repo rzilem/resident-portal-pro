@@ -7,7 +7,18 @@ export const TRASH_QUESTIONS: ProjectTypeQuestions = {
       id: 'serviceType',
       text: 'Type of Trash Disposal needed',
       type: 'radio',
-      options: ['Individual Home / Unit Service', 'Community Dumpster Service'],
+      options: [
+        {
+          label: 'Individual Home / Unit Service',
+          value: 'Individual Home / Unit Service',
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/individual-home-service.png'
+        },
+        {
+          label: 'Community Dumpster Service',
+          value: 'Community Dumpster Service',
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/community-dumpster-service.png'
+        }
+      ],
       required: true,
     },
     {
@@ -18,22 +29,22 @@ export const TRASH_QUESTIONS: ProjectTypeQuestions = {
         {
           label: '2 Yard Dumpster',
           value: '2 Yard',
-          image: '/public/lovable-uploads/2yard-dumpster.jpg'
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/2yard-dumpster.png'
         },
         {
           label: '4 Yard Dumpster',
           value: '4 Yard',
-          image: '/public/lovable-uploads/4yard-dumpster.jpg'
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/4yard-dumpster.png'
         },
         {
           label: '6 Yard Dumpster',
           value: '6 Yard',
-          image: '/public/lovable-uploads/6yard-dumpster.jpg'
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/6yard-dumpster.png'
         },
         {
           label: '8 Yard Dumpster',
           value: '8 Yard',
-          image: '/public/lovable-uploads/8yard-dumpster.jpg'
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/8yard-dumpster.png'
         }
       ],
       required: true,
@@ -47,12 +58,35 @@ export const TRASH_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Dumpster Pick-up Service',
           value: 'Dumpster Pick-up Service',
-          image: '/lovable-uploads/581a4026-ef10-4c0b-80e8-9e2bb3f3e034.png'
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/dumpster-pickup.png'
         },
         {
           label: 'Per Unit Pick-up Service',
           value: 'Per Unit Pick-up Service',
-          image: '/lovable-uploads/bc3e85f7-95c4-4155-9b89-ebbebcbb80e5.png'
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/per-unit-pickup.png'
+        }
+      ],
+      required: true,
+    },
+    {
+      id: 'pickupFrequency',
+      text: 'How often is pickup needed?',
+      type: 'radio',
+      options: [
+        {
+          label: 'Twice Weekly',
+          value: 'Twice Weekly',
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/twice-weekly.png'
+        },
+        {
+          label: 'Weekly',
+          value: 'Weekly',
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/weekly.png'
+        },
+        {
+          label: 'Bi-Weekly',
+          value: 'Bi-Weekly',
+          image: 'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/trash/bi-weekly.png'
         }
       ],
       required: true,
