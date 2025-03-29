@@ -34,7 +34,7 @@ export interface BidRequestFormData {
   dueDate: Date | null;
 }
 
-// Adding this to prevent errors in useResaleWizard and other files
+// Updated FormData interface to use string types for all numeric fields
 export interface FormData {
   // Common properties
   property?: string;
@@ -44,43 +44,44 @@ export interface FormData {
   propertyAddress?: string;
   associationName?: string;
   ownerName?: string;
-  closingDate?: Date | string;
+  closingDate?: string;
+  propertyType?: string;
   
   // Account statement properties
   accountNumber?: string;
-  statementDate?: Date | string;
-  previousBalance?: number;
-  payments?: number;
-  newCharges?: number;
-  currentBalance?: number;
-  transactions?: any[];
+  statementDate?: string;
+  previousBalance?: string;
+  payments?: string;
+  newCharges?: string;
+  currentBalance?: string;
+  transactions?: any[][];
   
   // Condo questionnaire properties
   condoName?: string;
   unitNumber?: string;
   managementCompany?: string;
-  totalUnits?: number;
+  totalUnits?: string;
   yearBuilt?: string;
-  monthlyFee?: number;
-  reserveBalance?: number;
-  ownerOccupiedPercentage?: number;
-  arrearsPercentage?: number;
+  monthlyFee?: string;
+  reserveBalance?: string;
+  ownerOccupiedPercentage?: string;
+  arrearsPercentage?: string;
   insuranceCarrier?: string;
   policyNumber?: string;
-  expirationDate?: Date | string;
+  expirationDate?: string;
   
   // Property inspection properties
-  inspectionDate?: Date | string;
+  inspectionDate?: string;
   inspectionTime?: string;
   inspectionType?: string;
   inspectionNotes?: string;
   
   // Resale certificate properties
-  regularAssessment?: number;
+  regularAssessment?: string;
   assessmentFrequency?: string;
   specialAssessment?: string;
-  transferFee?: number;
-  outstandingBalance?: number;
+  transferFee?: string;
+  outstandingBalance?: string;
   violations?: string;
   litigation?: string;
   

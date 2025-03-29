@@ -12,32 +12,32 @@ export const useGeneratePdf = () => {
     switch (documentType) {
       case 'certificate':
         const certificateData: ResaleCertificateData = {
-          propertyAddress: formData.propertyAddress,
-          ownerName: formData.ownerName,
-          associationName: formData.associationName,
-          closingDate: formData.closingDate,
-          regularAssessment: formData.regularAssessment,
-          assessmentFrequency: formData.assessmentFrequency,
-          specialAssessment: formData.specialAssessment,
-          transferFee: formData.transferFee,
-          outstandingBalance: formData.outstandingBalance,
-          violations: formData.violations,
-          litigation: formData.litigation
+          propertyAddress: formData.propertyAddress || '',
+          ownerName: formData.ownerName || '',
+          associationName: formData.associationName || '',
+          closingDate: formData.closingDate || '',
+          regularAssessment: formData.regularAssessment || '',
+          assessmentFrequency: formData.assessmentFrequency || '',
+          specialAssessment: formData.specialAssessment || '',
+          transferFee: formData.transferFee || '',
+          outstandingBalance: formData.outstandingBalance || '',
+          violations: formData.violations || '',
+          litigation: formData.litigation || ''
         };
         pdf = PdfGenerator.createResaleCertificate(certificateData);
         break;
       case 'questionnaire':
         const questionnaireData: CondoQuestionnaireData = {
-          condoName: formData.condoName,
-          propertyAddress: formData.propertyAddress,
-          unitNumber: formData.unitNumber,
-          associationName: formData.associationName,
-          managementCompany: formData.managementCompany,
-          totalUnits: formData.totalUnits,
-          yearBuilt: formData.yearBuilt,
-          monthlyFee: formData.monthlyFee,
-          reserveBalance: formData.reserveBalance,
-          ownerOccupiedPercentage: formData.ownerOccupiedPercentage,
+          condoName: formData.condoName || '',
+          propertyAddress: formData.propertyAddress || '',
+          unitNumber: formData.unitNumber || '',
+          associationName: formData.associationName || '',
+          managementCompany: formData.managementCompany || '',
+          totalUnits: formData.totalUnits || '',
+          yearBuilt: formData.yearBuilt || '',
+          monthlyFee: formData.monthlyFee || '',
+          reserveBalance: formData.reserveBalance || '',
+          ownerOccupiedPercentage: formData.ownerOccupiedPercentage || '',
           arrearsPercentage: formData.arrearsPercentage || '0',
           insuranceCarrier: formData.insuranceCarrier || 'N/A',
           policyNumber: formData.policyNumber || 'N/A',
@@ -47,14 +47,14 @@ export const useGeneratePdf = () => {
         break;
       case 'statement':
         const statementData: AccountStatementData = {
-          ownerName: formData.ownerName,
-          propertyAddress: formData.propertyAddress,
-          accountNumber: formData.accountNumber,
-          statementDate: formData.statementDate,
-          previousBalance: formData.previousBalance,
-          payments: formData.payments,
-          newCharges: formData.newCharges,
-          currentBalance: formData.currentBalance,
+          ownerName: formData.ownerName || '',
+          propertyAddress: formData.propertyAddress || '',
+          accountNumber: formData.accountNumber || '',
+          statementDate: formData.statementDate || '',
+          previousBalance: formData.previousBalance || '',
+          payments: formData.payments || '',
+          newCharges: formData.newCharges || '',
+          currentBalance: formData.currentBalance || '',
           transactions: formData.transactions || []
         };
         pdf = PdfGenerator.createAccountStatement(statementData);

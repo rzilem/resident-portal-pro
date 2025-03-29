@@ -31,7 +31,7 @@ const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
             name="inspectionDate" 
             type="date" 
             min={new Date().toISOString().split('T')[0]}
-            value={formData.inspectionDate || ''}
+            value={typeof formData.inspectionDate === 'string' ? formData.inspectionDate : ''}
             onChange={onInputChange}
           />
         </div>

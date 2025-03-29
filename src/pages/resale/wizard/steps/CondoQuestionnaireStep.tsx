@@ -30,7 +30,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
           <Input 
             id="condoName" 
             name="condoName" 
-            value={formData.condoName}
+            value={formData.condoName || ''}
             onChange={onInputChange}
           />
         </div>
@@ -40,7 +40,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
           <Input 
             id="unitNumber" 
             name="unitNumber" 
-            value={formData.unitNumber}
+            value={formData.unitNumber || ''}
             onChange={onInputChange}
           />
         </div>
@@ -50,7 +50,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
           <Input 
             id="managementCompany" 
             name="managementCompany" 
-            value={formData.managementCompany}
+            value={formData.managementCompany || ''}
             onChange={onInputChange}
           />
         </div>
@@ -60,7 +60,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
           <Input 
             id="totalUnits" 
             name="totalUnits" 
-            value={formData.totalUnits}
+            value={formData.totalUnits || ''}
             onChange={onInputChange}
           />
         </div>
@@ -70,7 +70,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
           <Input 
             id="yearBuilt" 
             name="yearBuilt" 
-            value={formData.yearBuilt}
+            value={formData.yearBuilt || ''}
             onChange={onInputChange}
           />
         </div>
@@ -82,7 +82,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
             <Input 
               id="monthlyFee" 
               name="monthlyFee" 
-              value={formData.monthlyFee}
+              value={formData.monthlyFee || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -96,7 +96,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
             <Input 
               id="reserveBalance" 
               name="reserveBalance" 
-              value={formData.reserveBalance}
+              value={formData.reserveBalance || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -109,7 +109,7 @@ const CondoQuestionnaireStep: React.FC<CondoQuestionnaireStepProps> = ({
             <Input 
               id="ownerOccupiedPercentage" 
               name="ownerOccupiedPercentage" 
-              value={formData.ownerOccupiedPercentage}
+              value={formData.ownerOccupiedPercentage || ''}
               onChange={onInputChange}
               className="rounded-r-none"
             />

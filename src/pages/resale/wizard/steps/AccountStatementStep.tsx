@@ -29,7 +29,7 @@ const AccountStatementStep: React.FC<AccountStatementStepProps> = ({
           <Input 
             id="accountNumber" 
             name="accountNumber" 
-            value={formData.accountNumber}
+            value={formData.accountNumber || ''}
             onChange={onInputChange}
             readOnly
           />
@@ -41,7 +41,7 @@ const AccountStatementStep: React.FC<AccountStatementStepProps> = ({
             id="statementDate" 
             name="statementDate" 
             type="date" 
-            value={formData.statementDate}
+            value={typeof formData.statementDate === 'string' ? formData.statementDate : ''}
             onChange={onInputChange}
           />
         </div>
@@ -53,7 +53,7 @@ const AccountStatementStep: React.FC<AccountStatementStepProps> = ({
             <Input 
               id="previousBalance" 
               name="previousBalance" 
-              value={formData.previousBalance}
+              value={formData.previousBalance || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -67,7 +67,7 @@ const AccountStatementStep: React.FC<AccountStatementStepProps> = ({
             <Input 
               id="payments" 
               name="payments" 
-              value={formData.payments}
+              value={formData.payments || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -81,7 +81,7 @@ const AccountStatementStep: React.FC<AccountStatementStepProps> = ({
             <Input 
               id="newCharges" 
               name="newCharges" 
-              value={formData.newCharges}
+              value={formData.newCharges || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -95,7 +95,7 @@ const AccountStatementStep: React.FC<AccountStatementStepProps> = ({
             <Input 
               id="currentBalance" 
               name="currentBalance" 
-              value={formData.currentBalance}
+              value={formData.currentBalance || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />

@@ -36,7 +36,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
               id="regularAssessment" 
               name="regularAssessment" 
               placeholder="250.00" 
-              value={formData.regularAssessment}
+              value={formData.regularAssessment || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -46,7 +46,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
         <div className="space-y-2">
           <Label htmlFor="assessmentFrequency">Assessment Frequency</Label>
           <Select 
-            value={formData.assessmentFrequency} 
+            value={formData.assessmentFrequency || 'monthly'} 
             onValueChange={(value) => onSelectChange('assessmentFrequency', value)}
           >
             <SelectTrigger id="assessmentFrequency">
@@ -66,7 +66,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
             id="specialAssessment" 
             name="specialAssessment" 
             placeholder="None" 
-            value={formData.specialAssessment}
+            value={formData.specialAssessment || ''}
             onChange={onInputChange}
           />
         </div>
@@ -79,7 +79,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
               id="transferFee" 
               name="transferFee" 
               placeholder="150.00" 
-              value={formData.transferFee}
+              value={formData.transferFee || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -94,7 +94,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
               id="outstandingBalance" 
               name="outstandingBalance" 
               placeholder="0.00" 
-              value={formData.outstandingBalance}
+              value={formData.outstandingBalance || ''}
               onChange={onInputChange}
               className="rounded-l-none"
             />
@@ -107,7 +107,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
             id="violations" 
             name="violations" 
             placeholder="List any violations" 
-            value={formData.violations}
+            value={formData.violations || ''}
             onChange={onInputChange}
           />
         </div>
@@ -118,7 +118,7 @@ const ResaleCertificateStep: React.FC<ResaleCertificateStepProps> = ({
             id="litigation" 
             name="litigation" 
             placeholder="List any pending litigation" 
-            value={formData.litigation}
+            value={formData.litigation || ''}
             onChange={onInputChange}
           />
         </div>
