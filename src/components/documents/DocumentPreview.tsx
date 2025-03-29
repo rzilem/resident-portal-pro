@@ -35,7 +35,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [useOfficeViewer, setUseOfficeViewer] = useState(false);
   
-  // Reset loading state when document changes
+  // Reset loading state when document changes or when tab changes
   useEffect(() => {
     if (document) {
       setIsLoading(true);
@@ -44,8 +44,17 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       // Check if we should use Office viewer
       const shouldUseOfficeViewer = document.fileType && canUseOfficeViewer(document.fileType);
       setUseOfficeViewer(shouldUseOfficeViewer);
+      console.log(`Document: ${document.name}, Use Office Viewer: ${shouldUseOfficeViewer}`);
     }
   }, [document]);
+
+  // Reset loading state when tab changes to preview
+  useEffect(() => {
+    if (activeTab === 'preview') {
+      setIsLoading(true);
+      setPreviewError(null);
+    }
+  }, [activeTab]);
   
   if (!document) {
     return null;
@@ -61,28 +70,34 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     });
   };
   
-  // Sanitize URL to ensure it's safe and properly formatted
+  // Improve URL sanitization to ensure it's safe and properly formatted
   const sanitizeUrl = (url: string): string => {
     if (!url) return '';
     
-    // For debugging - remove in production
-    console.log("Original URL:", url);
+    // Log original URL for debugging
+    console.log("Original document URL:", url);
     
     // Handle relative URLs from storage
-    if (url.startsWith('/storage/')) {
-      return url;
+    if (url.startsWith('/')) {
+      const fullUrl = `${window.location.origin}${url}`;
+      console.log("Converted relative URL to:", fullUrl);
+      return fullUrl;
     }
     
-    // Handle Supabase storage URLs - ensure they are not double encoded
+    // Handle Supabase storage URLs
     if (url.includes('supabase.co/storage/v1/object/public/')) {
+      console.log("Using Supabase storage URL as is:", url);
       return url;
     }
     
     // Ensure URL has a protocol
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return `https://${url}`;
+      const urlWithProtocol = `https://${url}`;
+      console.log("Added https protocol to URL:", urlWithProtocol);
+      return urlWithProtocol;
     }
     
+    console.log("Using URL as is:", url);
     return url;
   };
   
@@ -114,6 +129,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const handleLoadSuccess = () => {
     setIsLoading(false);
     setPreviewError(null);
+    console.log("Successfully loaded preview for:", document.name);
   };
   
   const getFileIcon = (fileType: string) => {
@@ -136,28 +152,38 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
   };
   
+  // Improved file type detection
   const canPreview = () => {
     if (!document.fileType && !document.name) return false;
     
-    // Try to determine file type from extension if fileType is not available
-    const fileType = document.fileType || 
-                    document.name.split('.').pop()?.toLowerCase() || '';
-                    
-    return isFilePreviewable(fileType) || canUseOfficeViewer(fileType);
+    // Get file extension from name if fileType is not available
+    const fileExtension = document.name.split('.').pop()?.toLowerCase() || '';
+    const fileType = document.fileType || getMimeTypeFromFileName(document.name);
+    
+    console.log(`Checking if can preview: ${document.name}, type: ${fileType}, extension: ${fileExtension}`);
+    
+    return isFilePreviewable(fileType || fileExtension) || 
+           canUseOfficeViewer(fileType || fileExtension);
   };
   
   const getPreviewUrl = () => {
-    if (!document.url) return '';
+    if (!document.url) {
+      console.error("No URL available for document:", document.name);
+      return '';
+    }
     
-    // For debugging - remove in production
-    console.log("Processing URL for preview:", document.url);
+    // For debugging - log original URL
+    console.log("Document URL for preview:", document.url);
     
     // Sanitize URL first
     const sanitizedUrl = sanitizeUrl(document.url);
+    console.log("Sanitized URL:", sanitizedUrl);
     
     // If this is an Office document, use the Office Online viewer
     if (useOfficeViewer) {
-      return getOfficeViewerUrl(sanitizedUrl);
+      const officeUrl = getOfficeViewerUrl(sanitizedUrl);
+      console.log("Using Office viewer URL:", officeUrl);
+      return officeUrl;
     }
     
     return sanitizedUrl;
@@ -168,6 +194,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return (
         <div className="w-full h-full flex items-center justify-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <span className="ml-2">Loading preview...</span>
         </div>
       );
     }
@@ -208,17 +235,22 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       );
     }
     
-    // Determine file type from mime type or file extension
-    const fileType = (document.fileType || '').toLowerCase();
+    // Better file type detection
+    const fileType = document.fileType?.toLowerCase() || '';
     const fileExtension = document.name.split('.').pop()?.toLowerCase() || '';
     const previewUrl = getPreviewUrl();
     
-    console.log("Preview URL:", previewUrl);
-    console.log("File type:", fileType);
-    console.log("File extension:", fileExtension);
+    console.log("Preview rendering info:", {
+      documentName: document.name,
+      fileType,
+      fileExtension,
+      previewUrl,
+      canPreviewResult: canPreview()
+    });
     
     // PDF preview
     if (fileType.includes('pdf') || fileExtension === 'pdf') {
+      console.log("Rendering PDF preview:", previewUrl);
       return (
         <iframe 
           src={previewUrl} 
@@ -236,6 +268,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       fileExtension.match(/jpg|jpeg|png|gif|svg|webp/i) ||
       document.name.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)
     ) {
+      console.log("Rendering image preview:", previewUrl);
       return (
         <div className="w-full h-full flex items-center justify-center bg-background/50">
           <img 
@@ -250,6 +283,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
     // Office documents (Word, Excel, PowerPoint)
     else if (useOfficeViewer) {
+      console.log("Rendering Office document preview:", previewUrl);
       return (
         <iframe 
           src={previewUrl} 
@@ -263,6 +297,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
     // No preview available
     else {
+      console.log("No preview available for:", document.name);
       return (
         <div className="w-full h-full flex items-center justify-center p-8 text-center">
           <div>

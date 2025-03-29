@@ -1,152 +1,92 @@
 
-/**
- * Utility functions for document categories
- */
-
-import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
-import { debugLog, errorLog } from '@/utils/debug';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { DocumentCategory } from '@/types/documents';
 
 /**
- * Create a new document category
- * @param category Category data
- * @returns Promise<{ success: boolean, id?: string, error?: string }>
+ * Get all document categories with their access levels and descriptions
+ * @returns Promise<DocumentCategory[]> The list of document categories
  */
-export const createDocumentCategory = async (category: Partial<DocumentCategory>): Promise<{ success: boolean, id?: string, error?: string }> => {
+export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
   try {
-    // This is a placeholder - in a real app, this would save to a database
-    const id = `cat_${Date.now()}`;
-    
-    debugLog("Created category:", { ...category, id });
-    
-    return {
-      success: true,
-      id
-    };
-  } catch (error) {
-    errorLog("Error creating category:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error creating category"
-    };
-  }
-};
-
-/**
- * Update a document category
- * @param categoryId Category ID
- * @param updates Category updates
- * @returns Promise<boolean> Success status
- */
-export const updateDocumentCategory = async (categoryId: string, updates: Partial<DocumentCategory>): Promise<boolean> => {
-  try {
-    // This is a placeholder - in a real app, this would update a database
-    debugLog("Updated category:", { id: categoryId, ...updates });
-    
-    return true;
-  } catch (error) {
-    errorLog("Error updating category:", error);
-    return false;
-  }
-};
-
-/**
- * Delete a document category
- * @param categoryId Category ID
- * @returns Promise<boolean> Success status
- */
-export const deleteDocumentCategory = async (categoryId: string): Promise<boolean> => {
-  try {
-    // This is a placeholder - in a real app, this would delete from a database
-    debugLog("Deleted category:", categoryId);
-    
-    return true;
-  } catch (error) {
-    errorLog("Error deleting category:", error);
-    return false;
-  }
-};
-
-/**
- * Synchronize document categories with Supabase
- * @param categories Array of document categories to synchronize
- * @returns Promise<boolean> Success status
- */
-export const syncCategoriesToSupabase = async (categories: DocumentCategory[]): Promise<boolean> => {
-  try {
-    // First get existing categories from Supabase
-    const { data: existingCategories, error: fetchError } = await supabase
-      .from('document_categories')
-      .select('id, name, description, sort_order');
-      
-    if (fetchError) {
-      console.error('Error fetching existing categories:', fetchError);
-      toast.error('Failed to fetch existing categories from database');
-      return false;
-    }
-    
-    // Create a mapping of existing categories by name for quick lookup
-    const existingCategoryMap = new Map();
-    existingCategories?.forEach(cat => {
-      existingCategoryMap.set(cat.name.toLowerCase(), cat);
-    });
-    
-    // Process each category - update existing ones or insert new ones
-    const promises = categories.map(async (category, index) => {
-      // Check if this category already exists in Supabase
-      const existingCategory = existingCategoryMap.get(category.name.toLowerCase());
-      
-      if (existingCategory) {
-        // Category exists, update it
-        const { error } = await supabase
-          .from('document_categories')
-          .update({
-            name: category.name,
-            description: category.description || null,
-            sort_order: index
-          })
-          .eq('id', existingCategory.id);
-        
-        if (error) {
-          console.error(`Error updating category ${category.name}:`, error);
-          return false;
-        }
-        return true;
-      } else {
-        // Category doesn't exist, insert it
-        const { error } = await supabase
-          .from('document_categories')
-          .insert({
-            name: category.name,
-            description: category.description || null,
-            sort_order: index
-          });
-        
-        if (error) {
-          console.error(`Error creating category ${category.name}:`, error);
-          return false;
-        }
-        return true;
+    // In a real app, this would fetch from an API or database
+    // For now, returning mock data
+    const categories: DocumentCategory[] = [
+      {
+        id: 'governing',
+        name: 'Governing Documents',
+        description: 'Association bylaws, CC&Rs, articles of incorporation',
+        accessLevel: 'homeowner'
+      },
+      {
+        id: 'financial',
+        name: 'Financial Documents',
+        description: 'Budgets, financial statements, reserve studies',
+        accessLevel: 'board'
+      },
+      {
+        id: 'meetings',
+        name: 'Meeting Minutes',
+        description: 'Board meeting minutes and annual meeting notes',
+        accessLevel: 'homeowner'
+      },
+      {
+        id: 'legal',
+        name: 'Legal Documents',
+        description: 'Contracts, legal opinions, litigation documents',
+        accessLevel: 'management'
+      },
+      {
+        id: 'communication',
+        name: 'Communications',
+        description: 'Newsletters, announcements, community bulletins',
+        accessLevel: 'all'
+      },
+      {
+        id: 'resources',
+        name: 'Resources',
+        description: 'Helpful resources and guides for homeowners',
+        accessLevel: 'all'
+      },
+      {
+        id: 'inspections',
+        name: 'Inspections',
+        description: 'Property inspections and reports',
+        accessLevel: 'board'
+      },
+      {
+        id: 'insurance',
+        name: 'Insurance',
+        description: 'Insurance policies and claims',
+        accessLevel: 'management'
       }
-    });
+    ];
     
-    // Wait for all operations to complete
-    const results = await Promise.all(promises);
-    
-    // Check if any operation failed
-    const allSuccessful = results.every(result => result === true);
-    
-    if (allSuccessful) {
-      toast.success('Document categories synchronized successfully');
-    } else {
-      toast.error('Some categories failed to synchronize');
-    }
-    
-    return allSuccessful;
+    return categories;
   } catch (error) {
-    console.error('Unexpected error synchronizing categories:', error);
-    toast.error('Failed to synchronize document categories');
-    return false;
+    console.error('Error getting document categories:', error);
+    throw new Error('Failed to fetch document categories');
+  }
+};
+
+/**
+ * Update a document category's access level
+ * @param categoryId The ID of the category to update
+ * @param accessLevel The new access level
+ * @returns Promise<DocumentCategory> The updated category
+ */
+export const updateCategoryAccessLevel = async (
+  categoryId: string, 
+  accessLevel: string
+): Promise<DocumentCategory> => {
+  try {
+    // In a real app, this would update the database
+    // For now, just returning a mock response
+    return {
+      id: categoryId,
+      name: 'Updated Category',
+      accessLevel: accessLevel as any
+    };
+  } catch (error) {
+    console.error('Error updating category access level:', error);
+    throw new Error('Failed to update category access level');
   }
 };
