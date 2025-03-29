@@ -1,17 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Vendor } from '@/types/vendor';
 import VendorRating from './VendorRating';
+import VendorEditDialog from './VendorEditDialog';
 
 interface VendorProfileHeaderProps {
   vendor: Vendor;
 }
 
 const VendorProfileHeader: React.FC<VendorProfileHeaderProps> = ({ vendor }) => {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
   const initials = vendor.name
     .split(' ')
     .map(word => word[0])
@@ -42,11 +45,22 @@ const VendorProfileHeader: React.FC<VendorProfileHeaderProps> = ({ vendor }) => 
       </div>
       
       <div className="flex items-center gap-2 self-end md:self-auto mt-2 md:mt-0">
-        <Button variant="outline" size="sm" className="h-9 gap-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-9 gap-1"
+          onClick={() => setEditDialogOpen(true)}
+        >
           <Pencil className="h-4 w-4" />
           Edit Vendor
         </Button>
       </div>
+
+      <VendorEditDialog 
+        vendor={vendor} 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen}
+      />
     </div>
   );
 };
