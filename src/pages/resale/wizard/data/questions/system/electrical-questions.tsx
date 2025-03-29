@@ -37,6 +37,30 @@ export const ELECTRICAL_QUESTIONS: ProjectTypeQuestions = {
       required: true,
     },
     {
+      id: 'lightingType',
+      text: 'What type of lighting is needed?',
+      type: 'radio',
+      options: [
+        {
+          label: 'Wall Sconce/Light Fixture',
+          value: 'Wall Sconce/Light Fixture',
+          image: '/lovable-uploads/513bd063-fedf-4cdd-8130-e058e514dd6e.png'
+        },
+        {
+          label: 'Ceiling Light/Fan',
+          value: 'Ceiling Light/Fan',
+          image: '/lovable-uploads/adff2d0c-6478-4b92-bbf3-bcb4f1f5ae15.png'
+        },
+        {
+          label: 'Outdoor Lighting',
+          value: 'Outdoor Lighting',
+          image: '/lovable-uploads/a2b511bb-0ca9-4feb-becd-0c4d11515547.png'
+        }
+      ],
+      required: true,
+      conditionalShow: (answers) => answers.serviceType === 'Lighting Installation',
+    },
+    {
       id: 'urgency',
       text: 'What is the urgency level?',
       type: 'radio',
