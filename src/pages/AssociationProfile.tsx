@@ -19,19 +19,24 @@ import CalendarView from '@/components/calendar/CalendarView';
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { associations } = useAssociations();
+  const { associations, isLoading: associationsLoading } = useAssociations();
   const [association, setAssociation] = useState<Association | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (associations.length > 0 && id) {
+    console.log('Association ID from URL:', id);
+    console.log('Available associations:', associations);
+    
+    // When associations are loaded, find the matching one
+    if (!associationsLoading && associations.length > 0 && id) {
       const foundAssociation = associations.find(a => a.id === id);
+      console.log('Found association:', foundAssociation);
       setAssociation(foundAssociation || null);
       setLoading(false);
     }
-  }, [associations, id]);
+  }, [associations, associationsLoading, id]);
 
-  if (loading) {
+  if (loading || associationsLoading) {
     return (
       <div className="flex-1 p-8 flex items-center justify-center">
         <div className="text-center">
@@ -49,7 +54,7 @@ const AssociationProfile = () => {
           <Building className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h1 className="text-2xl font-bold mb-2">Association Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            We couldn't find the association you're looking for.
+            We couldn't find the association you're looking for. (ID: {id})
           </p>
           <button 
             className="bg-primary text-primary-foreground px-4 py-2 rounded"
