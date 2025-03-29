@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Shield, AlertTriangle, Droplet, ArrowUpDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/utils/formatters';
+
 interface CriticalDatesCardProps {
   criticalDates: {
     insuranceExpiration: string;
@@ -13,6 +15,7 @@ interface CriticalDatesCardProps {
   hasPool: boolean | undefined;
   hasElevator: boolean | undefined;
 }
+
 const CriticalDatesCard: React.FC<CriticalDatesCardProps> = ({
   criticalDates,
   hasPool,
@@ -49,7 +52,8 @@ const CriticalDatesCard: React.FC<CriticalDatesCardProps> = ({
     if (count === 3) return "grid-cols-1 md:grid-cols-3";
     return "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
   };
-  return <Card className="Please delete this area\n">
+
+  return <Card>
       <CardHeader>
         <CardTitle>Critical Dates</CardTitle>
       </CardHeader>
@@ -70,4 +74,5 @@ const CriticalDatesCard: React.FC<CriticalDatesCardProps> = ({
       </CardContent>
     </Card>;
 };
+
 export default CriticalDatesCard;

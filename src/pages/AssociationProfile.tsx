@@ -13,8 +13,6 @@ import AssociationStats from '@/components/associations/AssociationStats';
 import AssociationPhotos from '@/components/associations/AssociationPhotos';
 import AssociationAmenities from '@/components/associations/AssociationAmenities';
 import AssociationTabs from '@/components/associations/AssociationTabs';
-import { CriticalDatesCard } from '@/components/associations/tabs/details';
-import { QuickContactCard } from '@/components/associations/tabs/details';
 import CalendarView from '@/components/calendar/CalendarView';
 import { getAssociationById } from '@/services/associationService';
 
@@ -110,17 +108,6 @@ const AssociationProfile = () => {
     'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6'
   ];
 
-  const mockCriticalDates = {
-    insuranceExpiration: '2025-06-15',
-    poolPermitExpiration: '2024-05-30',
-    elevatorInspection: '2024-08-10',
-    fireInspection: '2024-07-22',
-    buildingPermit: '2025-03-15', // Keeping for backward compatibility but not displaying it
-  };
-
-  const hasPool = association.settings?.hasPool;
-  const hasElevator = association.settings?.hasElevator;
-
   // Standard user ID and access level for calendar - same as in Calendar.tsx
   const userId = 'current-user';
   const userAccessLevel = 'admin' as const;
@@ -131,19 +118,10 @@ const AssociationProfile = () => {
         <AssociationHeader association={association} fullAddress={fullAddress} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="space-y-6 lg:col-span-2">
+          <div className="space-y-6 lg:col-span-3">
             <AssociationStats association={association} />
             <AssociationPhotos associationName={association.name} propertyImages={propertyImages} />
             <AssociationAmenities association={association} />
-          </div>
-          
-          <div className="space-y-6">
-            <QuickContactCard association={association} fullAddress={fullAddress} />
-            <CriticalDatesCard 
-              criticalDates={mockCriticalDates}
-              hasPool={hasPool}
-              hasElevator={hasElevator}
-            />
           </div>
         </div>
 
