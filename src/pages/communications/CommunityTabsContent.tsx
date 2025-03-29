@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MessageComposer from '@/components/communications/MessageComposer';
 import MessageTemplates from '@/components/communications/MessageTemplates';
 import MessageHistory from '@/components/communications/MessageHistory';
 import { MessageTemplate, CompositionMessage } from './types';
+import { startScheduledMessageChecker, stopScheduledMessageChecker } from '@/services/scheduledMessageService';
 
 interface CommunityTabsContentProps {
   activeTab: string;
@@ -31,6 +32,21 @@ const CommunityTabsContent: React.FC<CommunityTabsContentProps> = ({
   onUpdateTemplate,
   onDeleteTemplate,
 }) => {
+  // Start the message checker when component mounts, stop when unmounts
+  useEffect(() => {
+    // Check for any messages that might be due already
+    import('@/services/scheduledMessageService').then((module) => {
+      module.scheduledMessageService.checkAndExecuteDueMessages();
+      module.startScheduledMessageChecker();
+    });
+    
+    return () => {
+      import('@/services/scheduledMessageService').then((module) => {
+        module.stopScheduledMessageChecker();
+      });
+    };
+  }, []);
+  
   return (
     <Tabs defaultValue="compose" value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="grid w-full grid-cols-3">

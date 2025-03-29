@@ -1,94 +1,108 @@
 
-import React from 'react';
-import { Label } from '@/components/ui/label';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import HtmlEditor from '../HtmlEditor';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
-import { Bot, TagIcon } from 'lucide-react';
-import HtmlEditor from '../HtmlEditor';
-import FormatSelector from './FormatSelector';
+import { Tags, Wand2, Eye, Clock } from 'lucide-react';
 import { useComposer } from './ComposerContext';
-import { mergeTagService } from '@/services/mergeTagService';
+import FormatSelector from './FormatSelector';
+import ScheduledMessagesDialog from './ScheduledMessagesDialog';
 
 interface ContentEditorProps {
   onOpenAiAssistant: () => void;
   onOpenMergeTagsDialog: () => void;
 }
 
-const ContentEditor: React.FC<ContentEditorProps> = ({
-  onOpenAiAssistant,
-  onOpenMergeTagsDialog,
+const ContentEditor: React.FC<ContentEditorProps> = ({ 
+  onOpenAiAssistant, 
+  onOpenMergeTagsDialog 
 }) => {
-  const { content, setContent, format, setPreviewContent, setShowMergeTagPreview } = useComposer();
+  const { 
+    content, 
+    setContent, 
+    format, 
+    setFormat,
+    setPreviewContent,
+    setShowMergeTagPreview
+  } = useComposer();
+  
+  const [showScheduledMessages, setShowScheduledMessages] = useState(false);
 
-  const handlePreviewWithMergeTags = async () => {
-    try {
-      const processed = await mergeTagService.processMergeTags(content, {});
-      setPreviewContent(processed);
-      setShowMergeTagPreview(true); // Open the preview dialog after setting the content
-      console.log("Preview dialog should open with content:", processed);
-    } catch (error) {
-      console.error("Error processing merge tags for preview:", error);
-    }
+  const handlePreviewClick = () => {
+    setPreviewContent(content);
+    setShowMergeTagPreview(true);
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <Label htmlFor="content">Message Content</Label>
-        <div className="flex items-center gap-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm"
-            onClick={onOpenAiAssistant}
-            className="gap-1"
-          >
-            <Bot className="h-4 w-4" />
-            AI Assist
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm"
-            onClick={onOpenMergeTagsDialog}
-          >
-            <TagIcon className="mr-2 h-4 w-4" />
-            Insert Merge Tag
-          </Button>
-          <FormatSelector />
-        </div>
-      </div>
-
-      {format === 'plain' ? (
-        <Textarea
-          id="content"
-          placeholder="Enter your message"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="min-h-[250px]"
-          required
-        />
-      ) : (
-        <Card className="border">
-          <HtmlEditor 
-            value={content} 
-            onChange={setContent}
+    <>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <FormatSelector 
+            format={format} 
+            onChange={setFormat} 
           />
-        </Card>
-      )}
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowScheduledMessages(true)}
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Scheduled
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onOpenMergeTagsDialog}
+            >
+              <Tags className="h-4 w-4 mr-2" />
+              Merge Tags
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onOpenAiAssistant}
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              AI Assistant
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handlePreviewClick}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Preview
+            </Button>
+          </div>
+        </div>
 
-      <div className="flex justify-end">
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm"
-          onClick={handlePreviewWithMergeTags}
-        >
-          Preview with Merge Tags
-        </Button>
+        <Card>
+          <CardContent className="p-0">
+            {format === 'plain' ? (
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Enter your message..."
+                className="min-h-[250px] border-0 focus-visible:ring-0 resize-none"
+              />
+            ) : (
+              <HtmlEditor
+                value={content}
+                onChange={setContent}
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </div>
+
+      <ScheduledMessagesDialog 
+        open={showScheduledMessages} 
+        onOpenChange={setShowScheduledMessages} 
+      />
+    </>
   );
 };
 

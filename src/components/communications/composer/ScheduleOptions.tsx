@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -17,8 +17,14 @@ const ScheduleOptions: React.FC = () => {
     scheduledDate, 
     setScheduledDate,
     scheduledTime,
-    setScheduledTime
+    setScheduledTime,
+    setIsScheduled
   } = useComposer();
+
+  useEffect(() => {
+    // Update the global scheduled state
+    setIsScheduled(scheduledSend);
+  }, [scheduledSend, setIsScheduled]);
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
@@ -26,11 +32,50 @@ const ScheduleOptions: React.FC = () => {
     }
   };
 
-  const timeOptions = [
-    '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
-    '06:00 PM', '07:00 PM', '08:00 PM'
-  ];
+  // Create time options from 7 AM to 8 PM
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 7; hour <= 20; hour++) {
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      
+      options.push(`${displayHour.toString().padStart(2, '0')}:00 ${period}`);
+      options.push(`${displayHour.toString().padStart(2, '0')}:30 ${period}`);
+    }
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  // Get the next half hour for default time
+  const getDefaultTime = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    
+    let defaultHour = hour;
+    let defaultMinute = minute < 30 ? 30 : 0;
+    
+    if (minute >= 30) {
+      defaultHour = (hour + 1) % 24;
+    }
+    
+    const period = defaultHour >= 12 ? 'PM' : 'AM';
+    const displayHour = defaultHour > 12 ? defaultHour - 12 : defaultHour === 0 ? 12 : defaultHour;
+    
+    return `${displayHour.toString().padStart(2, '0')}:${defaultMinute.toString().padStart(2, '0')} ${period}`;
+  };
+
+  // Set default time when schedule is enabled
+  useEffect(() => {
+    if (scheduledSend && !scheduledTime) {
+      setScheduledTime(getDefaultTime());
+    }
+    
+    if (scheduledSend && !scheduledDate) {
+      setScheduledDate(new Date());
+    }
+  }, [scheduledSend, scheduledTime, scheduledDate, setScheduledTime, setScheduledDate]);
 
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-card">
@@ -64,6 +109,7 @@ const ScheduleOptions: React.FC = () => {
                   selected={scheduledDate}
                   onSelect={handleDateChange}
                   initialFocus
+                  disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
                 />
               </PopoverContent>
             </Popover>
