@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import CalendarView from '@/components/calendar/CalendarView';
@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Plus, Settings } from 'lucide-react';
 import CalendarEventDialog from '@/components/calendar/CalendarEventDialog';
 import { useAssociations } from '@/hooks/use-associations';
+import { useAuthRole } from '@/hooks/use-auth-role';
 
 const Calendar = () => {
   const [searchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const navigate = useNavigate();
+  const { currentUser, isManager } = useAuthRole();
   
   const [activeTab, setActiveTab] = useState(tabFromUrl || "association");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
@@ -25,9 +27,8 @@ const Calendar = () => {
     navigate(`/calendar?tab=${value}`);
   };
   
-  // Example user and access level - in a real app, this would come from authentication
-  const userId = 'current-user';
-  const userAccessLevel = 'admin' as const;
+  // Default user access level based on role
+  const userAccessLevel = isManager ? 'admin' as const : 'residents' as const;
   
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
@@ -35,7 +36,7 @@ const Calendar = () => {
         <h1 className="text-3xl font-bold">Calendar Management</h1>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate('/settings/calendar')}>
+          <Button variant="outline" onClick={() => navigate('/settings')}>
             <Settings className="h-4 w-4 mr-2" />
             Calendar Settings
           </Button>
@@ -53,28 +54,32 @@ const Calendar = () => {
           <TabsTrigger value="global">Global Calendar</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="association">
-          <CalendarView 
-            userId={userId}
-            userAccessLevel={userAccessLevel}
-            associationId={activeAssociation?.id}
-            isGlobalAdmin={false}
-            associations={associations}
-            activeAssociation={activeAssociation}
-            onAssociationChange={selectAssociation}
-          />
+        <TabsContent value="association" className="min-h-[500px]">
+          {currentUser && (
+            <CalendarView 
+              userId={currentUser.id}
+              userAccessLevel={userAccessLevel}
+              associationId={activeAssociation?.id}
+              isGlobalAdmin={false}
+              associations={associations}
+              activeAssociation={activeAssociation}
+              onAssociationChange={selectAssociation}
+            />
+          )}
         </TabsContent>
         
-        <TabsContent value="global">
-          <CalendarView 
-            userId={userId}
-            userAccessLevel={userAccessLevel}
-            isGlobalAdmin={true}
-          />
+        <TabsContent value="global" className="min-h-[500px]">
+          {currentUser && (
+            <CalendarView 
+              userId={currentUser.id}
+              userAccessLevel={userAccessLevel}
+              isGlobalAdmin={true}
+            />
+          )}
         </TabsContent>
       </Tabs>
       
-      {showCreateEvent && (
+      {showCreateEvent && currentUser && (
         <CalendarEventDialog 
           open={showCreateEvent}
           onOpenChange={setShowCreateEvent}

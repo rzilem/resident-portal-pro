@@ -20,6 +20,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Compliance from '@/pages/compliance/Compliance';
 import AssociationDocuments from '@/pages/documents/AssociationDocuments';
 import AssociationProfile from '@/pages/AssociationProfile';
+import Calendar from '@/pages/Calendar';
 
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
@@ -96,7 +97,7 @@ const App = () => {
           <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
           <Route path="/accounting/reports" element={<AccountingReports />} />
           
-          <Route path="/calendar" element={<div>Calendar Page</div>} />
+          <Route path="/calendar" element={<Calendar />} />
           <Route path="/communications/messaging" element={<CommunityMessaging />} />
           <Route path="/communications/announcements" element={<div>Announcements Page</div>} />
           <Route path="/workflows" element={<Workflows />} />

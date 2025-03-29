@@ -1,10 +1,9 @@
 
 import { useState, useMemo } from 'react';
 import { isSameDay, parseISO } from 'date-fns';
-import { useCalendar } from '@/hooks/use-calendar';
+import { useCalendar } from '@/hooks/calendar';
 import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
 import { calendarStyles } from '@/components/ui/calendar';
-import { Association } from '@/types/association';
 
 interface UseCalendarViewProps {
   userId: string;

@@ -1,28 +1,28 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Workflow } from "lucide-react";
-import { CalendarEvent } from "@/types/calendar";
-import { Workflow as WorkflowType } from "@/types/workflow";
-import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
 
 interface QuickEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
-  onSaveEvent: (event: Omit<CalendarEvent, 'id'>) => void;
-  onScheduleWorkflow: (workflowId: string, title: string, start: Date) => void;
+  onSaveEvent: (event: any) => void;
+  onScheduleWorkflow: (workflowId: string, title: string, start: Date) => Promise<any>;
   associationId?: string;
-  userAccessLevel: string;
-  workflows: WorkflowType[];
+  userAccessLevel: CalendarAccessLevel;
+  workflows: any[];
 }
 
-const QuickEventDialog = ({
+const QuickEventDialog: React.FC<QuickEventDialogProps> = ({
   open,
   onOpenChange,
   date,
@@ -31,178 +31,140 @@ const QuickEventDialog = ({
   associationId,
   userAccessLevel,
   workflows
-}: QuickEventDialogProps) => {
-  const [activeTab, setActiveTab] = useState('event');
-  
-  // Event form state
-  const [eventTitle, setEventTitle] = useState('');
-  const [eventDescription, setEventDescription] = useState('');
-  const [eventType, setEventType] = useState('meeting');
-  const [eventAccess, setEventAccess] = useState('residents');
-  
-  // Workflow form state
-  const [selectedWorkflow, setSelectedWorkflow] = useState('');
-  const [workflowTitle, setWorkflowTitle] = useState('');
-  
-  const activeWorkflows = workflows.filter(w => w.status === 'active');
+}) => {
+  const [activeTab, setActiveTab] = useState<string>('event');
+  const [title, setTitle] = useState<string>('');
+  const [allDay, setAllDay] = useState<boolean>(false);
+  const [eventType, setEventType] = useState<CalendarEventType>('meeting');
+  const [workflowId, setWorkflowId] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   
   const handleSaveEvent = () => {
-    if (!eventTitle.trim()) return;
+    if (!title.trim()) return;
     
-    onSaveEvent({
-      title: eventTitle,
-      description: eventDescription,
+    const newEvent = {
+      title,
+      description: '',
       start: date,
-      type: eventType as any,
-      accessLevel: eventAccess as any,
-      associationId: associationId
-    });
+      allDay,
+      type: eventType,
+      associationId,
+      accessLevel: userAccessLevel === 'admin' ? 'residents' : 'public' as CalendarAccessLevel,
+    };
     
-    resetForm();
+    onSaveEvent(newEvent);
     onOpenChange(false);
   };
   
-  const handleScheduleWorkflow = () => {
-    if (!selectedWorkflow || !workflowTitle.trim()) return;
+  const handleScheduleWorkflow = async () => {
+    if (!workflowId || !title.trim()) return;
     
-    onScheduleWorkflow(selectedWorkflow, workflowTitle, date);
-    
-    resetForm();
-    onOpenChange(false);
-  };
-  
-  const resetForm = () => {
-    setEventTitle('');
-    setEventDescription('');
-    setEventType('meeting');
-    setEventAccess('residents');
-    setSelectedWorkflow('');
-    setWorkflowTitle('');
-    setActiveTab('event');
+    setLoading(true);
+    try {
+      await onScheduleWorkflow(workflowId, title, date);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error scheduling workflow:', error);
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            Add for {format(date, "MMMM d, yyyy")}
-          </DialogTitle>
-          <DialogDescription>
-            Quickly add an event or schedule a workflow
-          </DialogDescription>
+          <DialogTitle>Add for {format(date, 'MMMM d, yyyy')}</DialogTitle>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="event" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>Add Event</span>
-            </TabsTrigger>
-            <TabsTrigger value="workflow" className="flex items-center gap-2">
-              <Workflow className="h-4 w-4" />
-              <span>Schedule Workflow</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="event">Quick Event</TabsTrigger>
+            <TabsTrigger value="workflow" disabled={workflows.length === 0 || !associationId}>
+              Schedule Workflow
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="event" className="space-y-4 py-4">
+          <TabsContent value="event" className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">Event Title</Label>
-              <Input 
-                id="title" 
-                placeholder="Enter event title" 
-                value={eventTitle}
-                onChange={(e) => setEventTitle(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Input 
-                id="description" 
-                placeholder="Enter event description" 
-                value={eventDescription}
-                onChange={(e) => setEventDescription(e.target.value)}
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter event title"
               />
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label htmlFor="eventDate">Date</Label>
+                <div className="flex items-center h-10 px-3 border rounded-md bg-muted/50">
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                  <span>{format(date, 'PPP')}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
                 <Label htmlFor="eventType">Event Type</Label>
-                <Select value={eventType} onValueChange={setEventType}>
+                <Select value={eventType} onValueChange={(value) => setEventType(value as CalendarEventType)}>
                   <SelectTrigger id="eventType">
-                    <SelectValue />
+                    <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="meeting">Meeting</SelectItem>
                     <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="community">Community</SelectItem>
                     <SelectItem value="holiday">Holiday</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="eventAccess">Visibility</Label>
-                <Select value={eventAccess} onValueChange={setEventAccess}>
-                  <SelectTrigger id="eventAccess">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="residents">Residents Only</SelectItem>
-                    <SelectItem value="board">Board Only</SelectItem>
-                    <SelectItem value="admin">Admin Only</SelectItem>
+                    <SelectItem value="deadline">Deadline</SelectItem>
+                    <SelectItem value="community">Community</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="allDay" 
+                checked={allDay} 
+                onCheckedChange={setAllDay} 
+              />
+              <Label htmlFor="allDay">All day event</Label>
+            </div>
           </TabsContent>
           
-          <TabsContent value="workflow" className="space-y-4 py-4">
+          <TabsContent value="workflow" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="workflow">Select Workflow</Label>
-              <Select 
-                value={selectedWorkflow} 
-                onValueChange={setSelectedWorkflow}
-              >
-                <SelectTrigger id="workflow">
-                  <SelectValue placeholder="Select a workflow to schedule" />
+              <Label htmlFor="workflowId">Select Workflow</Label>
+              <Select value={workflowId} onValueChange={setWorkflowId}>
+                <SelectTrigger id="workflowId">
+                  <SelectValue placeholder="Select workflow" />
                 </SelectTrigger>
                 <SelectContent>
-                  {activeWorkflows.length > 0 ? (
-                    activeWorkflows.map((workflow) => (
-                      <SelectItem key={workflow.id} value={workflow.id}>
-                        {workflow.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      No active workflows available
+                  {workflows.map((workflow) => (
+                    <SelectItem key={workflow.id} value={workflow.id}>
+                      {workflow.name}
                     </SelectItem>
-                  )}
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="workflowTitle">Scheduled Title</Label>
-              <Input 
-                id="workflowTitle" 
-                placeholder="Enter a title for this scheduled workflow" 
-                value={workflowTitle}
-                onChange={(e) => setWorkflowTitle(e.target.value)}
+              <Label htmlFor="workflowTitle">Title</Label>
+              <Input
+                id="workflowTitle"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter workflow title"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="workflowDate">Date & Time</Label>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground border p-2 rounded-md">
-                <Calendar className="h-4 w-4" />
-                <span>{format(date, "MMMM d, yyyy")}</span>
-                <Clock className="h-4 w-4 ml-2" />
-                <span>{format(date, "h:mm a")}</span>
+              <Label htmlFor="workflowDate">Start Date</Label>
+              <div className="flex items-center h-10 px-3 border rounded-md bg-muted/50">
+                <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                <span>{format(date, 'PPP')}</span>
               </div>
             </div>
           </TabsContent>
@@ -213,13 +175,13 @@ const QuickEventDialog = ({
             Cancel
           </Button>
           {activeTab === 'event' ? (
-            <Button onClick={handleSaveEvent} disabled={!eventTitle.trim()}>
+            <Button onClick={handleSaveEvent} disabled={!title.trim()}>
               Add Event
             </Button>
           ) : (
             <Button 
               onClick={handleScheduleWorkflow} 
-              disabled={!selectedWorkflow || !workflowTitle.trim()}
+              disabled={loading || !workflowId || !title.trim()}
             >
               Schedule Workflow
             </Button>

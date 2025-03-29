@@ -1,18 +1,16 @@
 
 import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { CalendarEvent, CalendarAccessLevel } from '@/types/calendar';
-import { format, parseISO } from 'date-fns';
-import { Calendar, Clock, MapPin, Users, Tag, Globe, Trash, Edit, CalendarOff } from 'lucide-react';
-import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Clock, Calendar as CalendarIcon, Users, Trash, Edit } from 'lucide-react';
 
 interface EventDetailsProps {
   event: CalendarEvent;
   onClose: () => void;
-  onEdit: (event: Partial<CalendarEvent>) => void;
+  onEdit: (event: CalendarEvent) => void;
   onDelete: () => void;
   userAccessLevel: CalendarAccessLevel;
 }
@@ -24,160 +22,131 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   onDelete,
   userAccessLevel
 }) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   
-  const formatEventDateTime = (event: CalendarEvent) => {
-    const start = typeof event.start === 'string' ? parseISO(event.start) : event.start;
-    
-    if (event.allDay) {
-      return 'All Day';
-    }
-    
-    let dateTimeString = format(start, 'EEEE, MMMM d, yyyy');
-    dateTimeString += ' at ' + format(start, 'h:mm a');
-    
-    if (event.end) {
-      const end = typeof event.end === 'string' ? parseISO(event.end) : event.end;
-      dateTimeString += ` to ${format(end, 'h:mm a')}`;
-    }
-    
-    return dateTimeString;
+  // Format dates for display
+  const formatDate = (date: string | Date) => {
+    return format(new Date(date), 'PPP');
   };
   
-  const canEditEvent = () => {
-    // If user is admin, they can edit any event
-    if (userAccessLevel === 'admin') return true;
-    
-    // Otherwise, check access levels
-    const accessLevels: Record<CalendarAccessLevel, CalendarAccessLevel[]> = {
-      'public': [],
-      'residents': [],
-      'committee': ['committee', 'board', 'admin'],
-      'board': ['board', 'admin'],
-      'admin': ['admin']
-    };
-    
-    return accessLevels[event.accessLevel]?.includes(userAccessLevel) || false;
+  const formatTime = (date: string | Date) => {
+    return format(new Date(date), 'h:mm a');
   };
   
-  const handleDeleteConfirm = () => {
-    onDelete();
-    setIsDeleteDialogOpen(false);
-    toast.success('Event deleted successfully');
-    onClose();
+  // Check if user has edit/delete permissions based on access level
+  const canEditDelete = 
+    userAccessLevel === 'admin' || 
+    (userAccessLevel === 'board' && ['board', 'residents', 'public'].includes(event.accessLevel)) ||
+    (userAccessLevel === 'committee' && ['committee', 'residents', 'public'].includes(event.accessLevel));
+  
+  // Event type colors for badges
+  const typeColors: Record<string, string> = {
+    'meeting': 'bg-blue-100 text-blue-800 border-blue-300',
+    'maintenance': 'bg-amber-100 text-amber-800 border-amber-300',
+    'holiday': 'bg-red-100 text-red-800 border-red-300',
+    'deadline': 'bg-purple-100 text-purple-800 border-purple-300',
+    'workflow': 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    'community': 'bg-green-100 text-green-800 border-green-300',
+    'custom': 'bg-gray-100 text-gray-800 border-gray-300'
   };
   
-  const getAccessLevelBadge = () => {
-    switch(event.accessLevel) {
-      case 'public':
-        return <Badge variant="outline" className="bg-gray-100"><Globe className="h-3 w-3 mr-1" /> Public</Badge>;
-      case 'residents':
-        return <Badge variant="outline" className="bg-blue-100"><Users className="h-3 w-3 mr-1" /> Residents</Badge>;
-      case 'committee':
-        return <Badge variant="outline" className="bg-green-100"><Users className="h-3 w-3 mr-1" /> Committee</Badge>;
-      case 'board':
-        return <Badge variant="outline" className="bg-purple-100"><Users className="h-3 w-3 mr-1" /> Board Only</Badge>;
-      case 'admin':
-        return <Badge variant="outline" className="bg-red-100"><Users className="h-3 w-3 mr-1" /> Admin Only</Badge>;
-      default:
-        return null;
-    }
-  };
-  
-  return (
-    <>
-      <Sheet open={!!event} onOpenChange={onClose}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{event.title}</SheetTitle>
-            <SheetDescription className="flex flex-wrap gap-2 mt-2">
-              {getAccessLevelBadge()}
-              <Badge variant="outline" className="capitalize bg-gray-100">
-                <Tag className="h-3 w-3 mr-1" /> {event.type}
-              </Badge>
-              {event.recurring && (
-                <Badge variant="outline" className="bg-amber-100">
-                  <CalendarOff className="h-3 w-3 mr-1" /> Recurring
-                </Badge>
-              )}
-            </SheetDescription>
-          </SheetHeader>
-          
-          <div className="my-6 space-y-4">
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-gray-500 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">Date & Time</p>
-                <p className="text-sm text-muted-foreground">{formatEventDateTime(event)}</p>
-              </div>
-            </div>
-            
-            {event.location && (
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Location</p>
-                  <p className="text-sm text-muted-foreground">{event.location}</p>
-                </div>
-              </div>
-            )}
-            
-            {event.attendees && event.attendees.length > 0 && (
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-gray-500 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Attendees</p>
-                  <p className="text-sm text-muted-foreground">
-                    {event.attendees.length > 3 
-                      ? `${event.attendees.slice(0, 3).join(', ')} and ${event.attendees.length - 3} more` 
-                      : event.attendees.join(', ')}
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {event.description && (
-              <div className="pt-4 mt-4 border-t">
-                <p className="text-sm font-medium mb-2">Description</p>
-                <p className="text-sm whitespace-pre-line">{event.description}</p>
-              </div>
-            )}
-          </div>
-          
-          {canEditEvent() && (
-            <SheetFooter className="flex-row gap-2 sm:justify-end">
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(true)}>
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-              <Button>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Event
-              </Button>
-            </SheetFooter>
-          )}
-        </SheetContent>
-      </Sheet>
-      
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+  if (confirmDelete) {
+    return (
+      <Dialog open={true} onOpenChange={() => setConfirmDelete(false)}>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete Event</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this event? This action cannot be undone.
-            </DialogDescription>
           </DialogHeader>
+          
+          <div className="py-6">
+            <p>Are you sure you want to delete "{event.title}"?</p>
+            <p className="text-sm text-muted-foreground mt-2">This action cannot be undone.</p>
+          </div>
+          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>
-              Delete Event
+            <Button variant="destructive" onClick={onDelete}>
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    );
+  }
+  
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <div className="flex justify-between items-start">
+            <DialogTitle className="text-xl mr-2">{event.title}</DialogTitle>
+            <Badge className={typeColors[event.type] || 'bg-gray-100 text-gray-800'}>
+              {event.type}
+            </Badge>
+          </div>
+        </DialogHeader>
+        
+        <div className="py-4 space-y-4">
+          {event.description && (
+            <div className="text-sm">
+              {event.description}
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <span>
+                {formatDate(event.start)}
+                {event.end && event.end !== event.start && ` - ${formatDate(event.end)}`}
+              </span>
+            </div>
+            
+            {!event.allDay && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Clock className="mr-2 h-4 w-4" />
+                <span>
+                  {formatTime(event.start)}
+                  {event.end && ` - ${formatTime(event.end)}`}
+                </span>
+              </div>
+            )}
+            
+            {event.location && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <MapPin className="mr-2 h-4 w-4" />
+                <span>{event.location}</span>
+              </div>
+            )}
+            
+            {event.accessLevel && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Users className="mr-2 h-4 w-4" />
+                <span>Visible to: {event.accessLevel}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <DialogFooter>
+          {canEditDelete && (
+            <>
+              <Button variant="outline" size="icon" className="rounded-full" onClick={() => setConfirmDelete(true)}>
+                <Trash className="h-4 w-4 text-destructive" />
+              </Button>
+              <Button variant="outline" size="icon" className="rounded-full" onClick={() => onEdit(event)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+          <Button onClick={onClose}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

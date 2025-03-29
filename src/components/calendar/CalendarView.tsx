@@ -11,7 +11,6 @@ import CalendarHeader from './CalendarHeader';
 import EventsList from './EventsList';
 import CalendarDisplay from './CalendarDisplay';
 import { useCalendarView } from '@/hooks/use-calendar-view';
-import { useWorkflows } from '@/hooks/use-workflows';
 
 interface CalendarViewProps {
   userId: string;
@@ -36,8 +35,8 @@ const CalendarView = ({
   onAssociationChange,
   onManagerViewToggle
 }: CalendarViewProps) => {
-  // Get workflows for the association
-  const { workflows = [] } = useWorkflows({ associationId });
+  // Get workflows for the association (would be implemented in a real app)
+  const workflows = [];
   
   const [quickEventDate, setQuickEventDate] = useState<Date | null>(null);
   
