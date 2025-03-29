@@ -228,7 +228,7 @@ const AssociationDocumentsTab: React.FC<AssociationDocumentsTabProps> = ({ assoc
               <SelectValue placeholder="Filter by tag" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Tags</SelectItem>
+              <SelectItem value="all_tags">All Tags</SelectItem>
               <SelectItem value="financial">Financial</SelectItem>
               <SelectItem value="legal">Legal</SelectItem>
               <SelectItem value="meeting">Meeting</SelectItem>

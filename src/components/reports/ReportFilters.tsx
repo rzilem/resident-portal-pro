@@ -100,9 +100,10 @@ const ReportFilters = ({
           <Select value={selectedReport || "select_report"} onValueChange={setSelectedReport}>
             <SelectTrigger className="w-[220px]">
               <FileText className="h-4 w-4 mr-2" />
-              <SelectValue />
+              <SelectValue placeholder="Select a report" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="select_report" disabled>Select a report</SelectItem>
               {currentReports.map((report) => (
                 <SelectItem key={report.value} value={report.value}>
                   {report.label}
@@ -117,7 +118,7 @@ const ReportFilters = ({
           <Select value={timeRange || "month"} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[180px]">
               <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue />
+              <SelectValue placeholder="Select time period" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="month">This Month</SelectItem>
@@ -140,7 +141,7 @@ const ReportFilters = ({
           >
             <SelectTrigger className="w-[200px]">
               <Building className="h-4 w-4 mr-2" />
-              <SelectValue />
+              <SelectValue placeholder="Select association" />
             </SelectTrigger>
             <SelectContent className="z-50">
               <SelectItem value="all">All Associations</SelectItem>

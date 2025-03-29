@@ -54,7 +54,7 @@ const DocumentTableFilters: React.FC<DocumentTableFiltersProps> = ({
             <SelectValue placeholder="Filter by tag" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Tags</SelectItem>
+            <SelectItem value="all_tags">All Tags</SelectItem>
             <SelectItem value="budget">Budget</SelectItem>
             <SelectItem value="legal">Legal</SelectItem>
             <SelectItem value="meeting">Meeting</SelectItem>
@@ -69,7 +69,7 @@ const DocumentTableFilters: React.FC<DocumentTableFiltersProps> = ({
             <SelectValue placeholder="Date uploaded" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="all_time">All Time</SelectItem>
             <SelectItem value="today">Today</SelectItem>
             <SelectItem value="week">Last Week</SelectItem>
             <SelectItem value="month">Last Month</SelectItem>
