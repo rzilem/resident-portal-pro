@@ -79,20 +79,20 @@ const QuestionSlide: React.FC<QuestionSlideProps> = ({
                     <RadioGroupItem
                       id={option.value}
                       value={option.value}
-                      className="sr-only"
+                      className="peer sr-only"
                     />
                     <Label
                       htmlFor={option.value}
-                      className="flex flex-col items-center cursor-pointer rounded-lg border-2 border-gray-200 p-2 peer-data-[state=checked]:border-primary"
+                      className="flex flex-col items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 transition-all"
                     >
-                      <div className="w-full h-48 overflow-hidden rounded-md mb-2">
+                      <div className="w-full h-48 overflow-hidden rounded-md mb-3">
                         <img 
                           src={option.image} 
                           alt={option.label}
-                          className="w-full h-full object-cover" 
+                          className="w-full h-full object-cover transition-all duration-300 hover:scale-105" 
                         />
                       </div>
-                      <span className="text-center font-medium">{option.label}</span>
+                      <span className="text-center font-medium mt-1">{option.label}</span>
                     </Label>
                   </div>
                 ))}
