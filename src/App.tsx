@@ -5,7 +5,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
 import { useLogout } from '@/hooks/use-logout';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Index from '@/pages/Index';
 import Login from '@/components/Login';
@@ -51,9 +50,6 @@ import BidRequestDetail from '@/pages/resale/BidRequestDetail';
 import CommunityHub from '@/pages/CommunityHub';
 import Vendors from '@/pages/vendors/Vendors';
 import VendorProfile from '@/pages/vendors/VendorProfile';
-
-// Create a new QueryClient instance
-const queryClient = new QueryClient();
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -151,13 +147,11 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <DocumentStorageInitializer />
-          <Toaster />
-          <AppRoutes />
-        </AuthProvider>
-      </QueryClientProvider>
+      <AuthProvider>
+        <DocumentStorageInitializer />
+        <Toaster />
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 };

@@ -91,9 +91,9 @@ export const searchDocuments = async (
       uploadedDate: doc.uploaded_date || new Date().toISOString(),
       lastModified: doc.last_modified || new Date().toISOString(),
       version: doc.version || 1,
-      isPublic: doc.is_public || false,
-      isArchived: doc.is_archived || false,
-      associations: [doc.association_id] || [],
+      isPublic: Boolean(doc.is_public) || false,
+      isArchived: Boolean(doc.is_archived) || false,
+      associations: [doc.association_id].filter(Boolean) || [],
       properties: [],
       metadata: {}
     }));
