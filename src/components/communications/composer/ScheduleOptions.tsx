@@ -4,12 +4,12 @@ import { useComposer } from './ComposerContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { CalendarIcon, ClockIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
 
 const ScheduleOptions: React.FC = () => {
   const {
@@ -103,13 +103,26 @@ const ScheduleOptions: React.FC = () => {
               <Label htmlFor="scheduled-time" className="mb-2 block">
                 Time
               </Label>
-              <Input
-                id="scheduled-time"
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left"
+                    id="scheduled-time"
+                  >
+                    <ClockIcon className="mr-2 h-4 w-4" />
+                    {scheduledTime ? scheduledTime : 'Pick a time'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto">
+                  <Input
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         )}
@@ -119,3 +132,4 @@ const ScheduleOptions: React.FC = () => {
 };
 
 export default ScheduleOptions;
+
