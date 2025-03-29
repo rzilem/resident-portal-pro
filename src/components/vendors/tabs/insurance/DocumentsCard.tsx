@@ -1,46 +1,78 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FileCheck } from 'lucide-react';
 import { format } from 'date-fns';
-import { VendorInsurance } from '@/types/vendor';
 
-interface DocumentsCardProps {
-  insurance: VendorInsurance;
+interface Document {
+  id: string;
+  name: string;
+  url?: string;
+  uploadDate: string;
 }
 
-export const DocumentsCard: React.FC<DocumentsCardProps> = ({ insurance }) => {
+interface DocumentsCardProps {
+  documents: Document[];
+}
+
+const DocumentsCard: React.FC<DocumentsCardProps> = ({ documents }) => {
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  if (documents.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            Documents
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm">
+          <p className="text-muted-foreground">No insurance documents uploaded</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Insurance Documents</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          Insurance Documents
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        {!insurance.documents || insurance.documents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6">
-            <p className="text-muted-foreground text-center">No insurance documents have been uploaded.</p>
-            <Button variant="outline" className="mt-4">Upload Documents</Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {insurance.documents.map(doc => (
-              <div key={doc.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
-                <div className="flex items-center">
-                  <FileCheck className="h-5 w-5 text-muted-foreground mr-3" />
-                  <div>
-                    <p className="text-sm font-medium">{doc.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Uploaded on {format(new Date(doc.uploadDate), 'MMM d, yyyy')}
-                    </p>
-                  </div>
+      <CardContent className="text-sm">
+        <div className="space-y-2">
+          {documents.map(doc => (
+            <div key={doc.id} className="flex items-center justify-between border-b pb-2">
+              <div>
+                <div className="font-medium">{doc.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  Uploaded on {formatDate(doc.uploadDate)}
                 </div>
-                <Button variant="ghost" size="sm">View</Button>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex space-x-2">
+                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
 };
+
+export default DocumentsCard;

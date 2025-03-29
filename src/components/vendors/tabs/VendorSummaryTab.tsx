@@ -1,150 +1,147 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, MapPin, FileText, CalendarClock, CreditCard } from 'lucide-react';
-import { format } from 'date-fns';
+import { CardContent } from '@/components/ui/card';
 import { Vendor } from '@/types/vendor';
-import TagBadge from '@/components/residents/tags/TagBadge';
-import { Tag } from '@/types/resident';
+import { Phone, Mail, MapPin, CreditCard, Tag, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 interface VendorSummaryTabProps {
   vendor: Vendor;
 }
 
 const VendorSummaryTab: React.FC<VendorSummaryTabProps> = ({ vendor }) => {
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), 'MMMM d, yyyy');
+  };
+  
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+    <CardContent className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <Phone className="h-4 w-4 mt-1 mr-3 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">{vendor.email}</p>
+                  <p className="font-medium">{vendor.phone}</p>
+                  <p className="text-sm text-muted-foreground">Primary Phone</p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-2">
-                <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div className="flex items-start">
+                <Mail className="h-4 w-4 mt-1 mr-3 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Phone</p>
-                  <p className="text-sm text-muted-foreground">{vendor.phone}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Address</p>
-                  <p className="text-sm text-muted-foreground">{vendor.address}</p>
+                  <p className="font-medium">{vendor.email}</p>
+                  <p className="text-sm text-muted-foreground">Email</p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-2">
-                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div className="flex items-start">
+                <MapPin className="h-4 w-4 mt-1 mr-3 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Tax ID</p>
-                  <p className="text-sm text-muted-foreground">{vendor.taxId}</p>
+                  <p className="font-medium">{vendor.address}</p>
+                  <p className="text-sm text-muted-foreground">Business Address</p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Services</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {vendor.services?.map((service, index) => (
-                <div key={index} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                  {service}
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Payment Information</h3>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <CreditCard className="h-4 w-4 mt-1 mr-3 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{vendor.paymentMethod}</p>
+                  <p className="text-sm text-muted-foreground">Payment Method</p>
                 </div>
-              ))}
-              {!vendor.services?.length && (
-                <p className="text-sm text-muted-foreground">No services listed</p>
+              </div>
+              
+              <div className="flex items-start">
+                <Calendar className="h-4 w-4 mt-1 mr-3 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{vendor.paymentTerms}</p>
+                  <p className="text-sm text-muted-foreground">Payment Terms</p>
+                </div>
+              </div>
+              
+              {vendor.taxId && (
+                <div className="flex items-start">
+                  <div className="h-4 w-4 mt-1 mr-3 text-muted-foreground">#</div>
+                  <div>
+                    <p className="font-medium">{vendor.taxId}</p>
+                    <p className="text-sm text-muted-foreground">Tax ID</p>
+                  </div>
+                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Tags</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {vendor.tags?.map((tag) => (
-                <TagBadge key={tag.id} tag={tag as Tag} />
-              ))}
-              {!vendor.tags?.length && (
-                <p className="text-sm text-muted-foreground">No tags applied</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Payment Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-2">
-                <CalendarClock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Payment Terms</p>
-                  <p className="text-sm text-muted-foreground">{vendor.paymentTerms}</p>
-                </div>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Services</h3>
+            {vendor.services && vendor.services.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {vendor.services.map((service, index) => (
+                  <Badge key={index} variant="secondary">{service}</Badge>
+                ))}
               </div>
-              
-              <div className="flex items-start gap-2">
-                <CreditCard className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Payment Method</p>
-                  <p className="text-sm text-muted-foreground">{vendor.paymentMethod}</p>
-                </div>
+            ) : (
+              <p className="text-muted-foreground">No services listed</p>
+            )}
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Tags</h3>
+            {vendor.tags && vendor.tags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {vendor.tags.map((tag) => (
+                  <Badge 
+                    key={tag.id} 
+                    variant={
+                      tag.type === 'positive' ? 'default' : 
+                      tag.type === 'negative' ? 'destructive' : 
+                      'outline'
+                    }
+                  >
+                    {tag.label}
+                  </Badge>
+                ))}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Account Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+            ) : (
+              <p className="text-muted-foreground">No tags</p>
+            )}
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+            <div className="space-y-3">
               <div>
-                <p className="text-sm font-medium">Created</p>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(vendor.createdAt), 'MMM d, yyyy')}
-                </p>
+                <p className="text-sm text-muted-foreground">Vendor Since</p>
+                <p className="font-medium">{formatDate(vendor.createdAt)}</p>
               </div>
               
               {vendor.lastInvoiceDate && (
                 <div>
-                  <p className="text-sm font-medium">Last Invoice</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(vendor.lastInvoiceDate), 'MMM d, yyyy')}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Last Invoice</p>
+                  <p className="font-medium">{formatDate(vendor.lastInvoiceDate)}</p>
+                </div>
+              )}
+              
+              {vendor.notes && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Notes</p>
+                  <p className="font-medium">{vendor.notes}</p>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </div>
+    </CardContent>
   );
 };
 

@@ -50,6 +50,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/communications/announcements': 'Operations',
       '/workflows': 'Operations',
       '/print-queue': 'Operations',
+      '/vendors': 'Operations',
       
       // Records & Reports routes
       '/database': 'Records & Reports',

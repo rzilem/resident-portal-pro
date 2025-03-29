@@ -48,6 +48,8 @@ import BidRequestWizard from '@/pages/resale/wizard/BidRequestWizard';
 import BidRequests from '@/pages/resale/BidRequests';
 import BidRequestDetail from '@/pages/resale/BidRequestDetail';
 import CommunityHub from '@/pages/CommunityHub';
+import Vendors from '@/pages/vendors/Vendors';
+import VendorProfile from '@/pages/vendors/VendorProfile';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -106,6 +108,10 @@ const App = () => {
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
           <Route path="/community-hub" element={<CommunityHub />} />
+          
+          {/* Vendor Management Routes */}
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/vendors/:id" element={<VendorProfile />} />
           
           {/* Database Records Page */}
           <Route path="/database/records" element={<Records />} />

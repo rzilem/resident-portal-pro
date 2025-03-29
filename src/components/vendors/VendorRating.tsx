@@ -4,45 +4,43 @@ import { Star } from 'lucide-react';
 
 interface VendorRatingProps {
   rating: number;
+  maxRating?: number;
+  size?: 'small' | 'medium' | 'large';
 }
 
-const VendorRating = ({ rating }: VendorRatingProps) => {
-  const stars = [];
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
+const VendorRating: React.FC<VendorRatingProps> = ({ 
+  rating, 
+  maxRating = 5,
+  size = 'small'
+}) => {
+  const roundedRating = Math.round(rating * 2) / 2;
   
-  // Add full stars
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(
-      <Star key={`full-${i}`} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-    );
-  }
-  
-  // Add half star
-  if (hasHalfStar) {
-    stars.push(
-      <span key="half" className="relative">
-        <Star className="h-4 w-4 text-yellow-400" />
-        <Star 
-          className="h-4 w-4 fill-yellow-400 text-yellow-400 absolute top-0 left-0" 
-          style={{ clipPath: 'inset(0 50% 0 0)' }}
-        />
-      </span>
-    );
-  }
-  
-  // Add empty stars
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(
-      <Star key={`empty-${i}`} className="h-4 w-4 text-muted-foreground" />
-    );
-  }
+  const sizeClass = {
+    small: 'h-3 w-3',
+    medium: 'h-4 w-4', 
+    large: 'h-5 w-5'
+  }[size];
   
   return (
     <div className="flex items-center">
-      {stars}
-      <span className="ml-1 text-sm">{rating.toFixed(1)}</span>
+      {[...Array(maxRating)].map((_, index) => {
+        const starValue = index + 1;
+        let fillClass = 'text-muted-foreground/30';
+        
+        if (roundedRating >= starValue) {
+          fillClass = 'text-yellow-400';
+        } else if (roundedRating >= starValue - 0.5) {
+          fillClass = 'text-yellow-300';
+        }
+        
+        return (
+          <Star
+            key={index}
+            className={`${sizeClass} ${fillClass} fill-current`}
+          />
+        );
+      })}
+      <span className="ml-1 text-sm text-muted-foreground">{rating.toFixed(1)}</span>
     </div>
   );
 };

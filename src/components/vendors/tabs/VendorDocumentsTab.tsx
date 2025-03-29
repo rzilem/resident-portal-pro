@@ -1,57 +1,22 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, UploadCloud } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import React from 'react';
+import { CardContent } from '@/components/ui/card';
+import { Vendor } from '@/types/vendor';
+import { FileText } from 'lucide-react';
 
 interface VendorDocumentsTabProps {
-  vendorId: string;
+  vendor: Vendor;
 }
 
-const VendorDocumentsTab: React.FC<VendorDocumentsTabProps> = ({ vendorId }) => {
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const { isAuthenticated } = useAuth();
-
-  const handleUploadSuccess = () => {
-    console.log("Document uploaded successfully");
-    // Additional success handling if needed
-  };
-
+const VendorDocumentsTab = ({ vendor }: VendorDocumentsTabProps) => {
   return (
-    <div>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Documents</CardTitle>
-          <Button 
-            size="sm" 
-            className="gap-1"
-            onClick={() => setShowUploadDialog(true)}
-          >
-            <UploadCloud className="h-4 w-4" />
-            Upload Document
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="bg-muted/30 rounded-full p-6 mb-4">
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="font-semibold mb-1">No documents yet</h3>
-            <p className="text-muted-foreground text-sm max-w-md">
-              Upload contracts, insurance certificates, W-9 forms, or other important vendor documentation.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <DocumentUploadDialog 
-        open={showUploadDialog}
-        setOpen={setShowUploadDialog}
-        onSuccess={handleUploadSuccess}
-      />
-    </div>
+    <CardContent className="p-6 min-h-[300px] flex flex-col items-center justify-center">
+      <FileText className="h-12 w-12 text-muted-foreground/40" />
+      <h3 className="mt-4 text-xl font-medium">Documents</h3>
+      <p className="mt-2 text-center text-muted-foreground max-w-md">
+        View and manage documents associated with this vendor. This feature will be implemented in the next phase.
+      </p>
+    </CardContent>
   );
 };
 

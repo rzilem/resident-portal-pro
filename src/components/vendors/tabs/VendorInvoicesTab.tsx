@@ -1,92 +1,22 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { getVendorInvoices } from '@/data/vendorProfiles';
-import { VendorInvoice } from '@/types/vendor';
+import React from 'react';
+import { CardContent } from '@/components/ui/card';
+import { Vendor } from '@/types/vendor';
+import { CreditCard } from 'lucide-react';
 
 interface VendorInvoicesTabProps {
-  vendorId: string;
+  vendor: Vendor;
 }
 
-const VendorInvoicesTab: React.FC<VendorInvoicesTabProps> = ({ vendorId }) => {
-  const [invoices] = useState<VendorInvoice[]>(getVendorInvoices(vendorId));
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'pending':
-        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-      case 'overdue':
-        return 'bg-red-500/10 text-red-500 border-red-500/20';
-      default:
-        return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'MMM d, yyyy');
-  };
-
+const VendorInvoicesTab = ({ vendor }: VendorInvoicesTabProps) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Invoices</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Invoice #</TableHead>
-              <TableHead>Date Received</TableHead>
-              <TableHead>Date Paid</TableHead>
-              <TableHead>Association</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Description</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                <TableCell>{formatDate(invoice.date)}</TableCell>
-                <TableCell>{formatDate(invoice.paymentDate)}</TableCell>
-                <TableCell>{invoice.associationName || 'Evergreen HOA'}</TableCell>
-                <TableCell>{formatCurrency(invoice.amount)}</TableCell>
-                <TableCell>
-                  <Badge 
-                    variant="outline" 
-                    className={getStatusColor(invoice.status)}
-                  >
-                    {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                  </Badge>
-                </TableCell>
-                <TableCell>{invoice.description}</TableCell>
-              </TableRow>
-            ))}
-            {invoices.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
-                  No invoices found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <CardContent className="p-6 min-h-[300px] flex flex-col items-center justify-center">
+      <CreditCard className="h-12 w-12 text-muted-foreground/40" />
+      <h3 className="mt-4 text-xl font-medium">Invoice History</h3>
+      <p className="mt-2 text-center text-muted-foreground max-w-md">
+        View and manage invoices for this vendor. This feature will be implemented in the next phase.
+      </p>
+    </CardContent>
   );
 };
 

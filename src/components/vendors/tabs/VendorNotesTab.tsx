@@ -1,53 +1,22 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import React from 'react';
+import { CardContent } from '@/components/ui/card';
+import { Vendor } from '@/types/vendor';
+import { FileText } from 'lucide-react';
 
 interface VendorNotesTabProps {
-  vendorId: string;
+  vendor: Vendor;
 }
 
-const VendorNotesTab: React.FC<VendorNotesTabProps> = ({ vendorId }) => {
-  const [note, setNote] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, this would save the note to the database
-    setNote('');
-  };
-
+const VendorNotesTab = ({ vendor }: VendorNotesTabProps) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notes</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="bg-muted/30 p-4 rounded-md">
-          <p className="text-sm text-center text-muted-foreground py-8">
-            No notes have been added yet
-          </p>
-        </div>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Add a note about this vendor..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="min-h-28"
-            />
-            <div className="flex justify-end">
-              <Button type="submit" className="gap-1" disabled={!note.trim()}>
-                <Send className="h-4 w-4" />
-                Add Note
-              </Button>
-            </div>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <CardContent className="p-6 min-h-[300px] flex flex-col items-center justify-center">
+      <FileText className="h-12 w-12 text-muted-foreground/40" />
+      <h3 className="mt-4 text-xl font-medium">Notes</h3>
+      <p className="mt-2 text-center text-muted-foreground max-w-md">
+        View and manage notes for this vendor. This feature will be implemented in the next phase.
+      </p>
+    </CardContent>
   );
 };
 

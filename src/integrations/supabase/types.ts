@@ -603,6 +603,228 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_documents: {
+        Row: {
+          document_type: string | null
+          expiration_date: string | null
+          file_path: string
+          file_type: string | null
+          id: string
+          name: string
+          size: number | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          document_type?: string | null
+          expiration_date?: string | null
+          file_path: string
+          file_type?: string | null
+          id?: string
+          name: string
+          size?: number | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          document_type?: string | null
+          expiration_date?: string | null
+          file_path?: string
+          file_type?: string | null
+          id?: string
+          name?: string
+          size?: number | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_documents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_notes_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_services: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          rate: number | null
+          rate_type: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          rate?: number | null
+          rate_type?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          rate?: number | null
+          rate_type?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_services_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendors: {
+        Row: {
+          address1: string | null
+          address2: string | null
+          check_name: string | null
+          city: string | null
+          compliance_group: string | null
+          compliance_status: string | null
+          contact_name: string | null
+          created_at: string | null
+          dba: string | null
+          default_payment_method: string | null
+          email: string | null
+          hold_payment: boolean | null
+          hold_reason: string | null
+          id: string
+          insurance: Json | null
+          is_1099: boolean | null
+          is_compliant: boolean | null
+          is_default: boolean | null
+          is_preferred: boolean | null
+          name: string
+          notes: string | null
+          old_provider_id: string | null
+          phone: string | null
+          provider_type: string | null
+          report_1099_box: string | null
+          state: string | null
+          status: string | null
+          street_no: string | null
+          tags: Json | null
+          tax_id: string | null
+          updated_at: string | null
+          zip: string | null
+        }
+        Insert: {
+          address1?: string | null
+          address2?: string | null
+          check_name?: string | null
+          city?: string | null
+          compliance_group?: string | null
+          compliance_status?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          dba?: string | null
+          default_payment_method?: string | null
+          email?: string | null
+          hold_payment?: boolean | null
+          hold_reason?: string | null
+          id?: string
+          insurance?: Json | null
+          is_1099?: boolean | null
+          is_compliant?: boolean | null
+          is_default?: boolean | null
+          is_preferred?: boolean | null
+          name: string
+          notes?: string | null
+          old_provider_id?: string | null
+          phone?: string | null
+          provider_type?: string | null
+          report_1099_box?: string | null
+          state?: string | null
+          status?: string | null
+          street_no?: string | null
+          tags?: Json | null
+          tax_id?: string | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address1?: string | null
+          address2?: string | null
+          check_name?: string | null
+          city?: string | null
+          compliance_group?: string | null
+          compliance_status?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          dba?: string | null
+          default_payment_method?: string | null
+          email?: string | null
+          hold_payment?: boolean | null
+          hold_reason?: string | null
+          id?: string
+          insurance?: Json | null
+          is_1099?: boolean | null
+          is_compliant?: boolean | null
+          is_default?: boolean | null
+          is_preferred?: boolean | null
+          name?: string
+          notes?: string | null
+          old_provider_id?: string | null
+          phone?: string | null
+          provider_type?: string | null
+          report_1099_box?: string | null
+          state?: string | null
+          status?: string | null
+          street_no?: string | null
+          tags?: Json | null
+          tax_id?: string | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
       violation_attachments: {
         Row: {
           file_name: string

@@ -1,238 +1,170 @@
 
-import { Vendor, VendorInvoice, VendorService } from '@/types/vendor';
-import { v4 as uuidv4 } from 'uuid';
+import { Vendor } from '@/types/vendor';
 
-const generateMockInvoices = (vendorId: string, count: number): VendorInvoice[] => {
-  const statuses: ('paid' | 'pending' | 'overdue')[] = ['paid', 'pending', 'overdue'];
-  const associations = ['Evergreen HOA', 'Sunset Estates', 'Mountain View', 'Lakeside Community', 'Oak Meadows'];
-  const invoices: VendorInvoice[] = [];
-  
-  for (let i = 0; i < count; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - i * 15);
-    
-    const dueDate = new Date(date);
-    dueDate.setDate(date.getDate() + 30);
-    
-    const paymentDate = statuses[i % 3] === 'paid' 
-      ? new Date(date.getTime() + (1000 * 60 * 60 * 24 * 25)).toISOString() 
-      : undefined;
-    
-    invoices.push({
-      id: uuidv4(),
-      invoiceNumber: `INV-${10000 + i}`,
-      date: date.toISOString(),
-      amount: Math.floor(Math.random() * 5000) + 500,
-      status: statuses[i % 3],
-      description: `Monthly service - ${date.toLocaleString('default', { month: 'long' })}`,
-      dueDate: dueDate.toISOString(),
-      paymentDate,
-      associationName: associations[i % associations.length]
-    });
-  }
-  
-  return invoices;
-};
-
-const generateVendorServices = (count: number): VendorService[] => {
-  const services: VendorService[] = [];
-  const serviceTypes = ['Landscaping', 'Plumbing', 'Electrical', 'Cleaning', 'Security', 'Maintenance', 'Pool', 'HVAC'];
-  const rateTypes: ('hourly' | 'fixed' | 'monthly')[] = ['hourly', 'fixed', 'monthly'];
-  
-  for (let i = 0; i < count; i++) {
-    services.push({
-      id: uuidv4(),
-      name: `${serviceTypes[i % serviceTypes.length]} Service`,
-      description: `Professional ${serviceTypes[i % serviceTypes.length].toLowerCase()} services`,
-      rate: Math.floor(Math.random() * 150) + 50,
-      rateType: rateTypes[i % rateTypes.length]
-    });
-  }
-  
-  return services;
-};
-
-export const mockVendors: Vendor[] = [
+const mockVendors: Vendor[] = [
   {
-    id: '1',
-    name: 'Evergreen Landscaping',
-    contactName: 'Michael Johnson',
-    email: 'mjohnson@evergreen.com',
+    id: 'v1',
+    name: 'ABC Plumbing Services',
+    contactName: 'John Smith',
+    email: 'john@abcplumbing.com',
     phone: '(555) 123-4567',
-    address: '123 Pine St, Forestville, CA 94123',
-    category: 'Landscaping',
+    address: '123 Main St, Anytown, USA',
+    category: 'Plumbing',
     status: 'active',
     paymentTerms: 'Net 30',
     paymentMethod: 'Check',
     taxId: '12-3456789',
-    createdAt: '2022-03-15T08:00:00Z',
-    rating: 4.8,
-    services: ['Lawn Maintenance', 'Tree Trimming', 'Irrigation'],
+    createdAt: '2023-01-15',
+    rating: 4.5,
+    services: ['Emergency Repairs', 'Installation', 'Maintenance'],
     tags: [
-      { id: '1', label: 'Landscaping', color: '#65a30d', type: 'service', createdAt: '2022-03-15T08:00:00Z' },
-      { id: '2', label: 'Reliable', color: '#0ea5e9', type: 'reliability', createdAt: '2022-03-15T08:00:00Z' }
+      { id: 't1', label: 'Reliable', type: 'positive' },
+      { id: 't2', label: 'Emergency Service', type: 'info' }
     ],
-    lastInvoiceDate: '2023-06-01T10:00:00Z',
+    lastInvoiceDate: '2023-06-10',
     insurance: {
-      policyNumber: 'POL-123456789',
+      policyNumber: 'INS-12345',
       provider: 'SafeGuard Insurance',
-      expirationDate: '2024-08-15T00:00:00Z',
+      expirationDate: '2023-12-31',
       coverageAmount: 1000000,
-      coverageType: 'General Liability',
-      agent: {
-        name: 'Sarah Thompson',
-        email: 'sthompson@safeguard.com',
-        phone: '(555) 987-6543'
-      },
-      documents: [
-        {
-          id: '1',
-          name: 'Certificate of Insurance.pdf',
-          uploadDate: '2023-08-15T00:00:00Z'
-        },
-        {
-          id: '2',
-          name: 'Policy Document.pdf',
-          uploadDate: '2023-08-15T00:00:00Z'
-        }
-      ]
+      coverageType: 'General Liability'
     }
   },
   {
-    id: '2',
-    name: 'Quick Fix Plumbing',
-    contactName: 'Sarah Williams',
-    email: 'swilliams@quickfix.com',
+    id: 'v2',
+    name: 'Sunshine Landscaping',
+    contactName: 'Mary Johnson',
+    email: 'mary@sunshinelandscaping.com',
     phone: '(555) 987-6543',
-    address: '456 Water Way, Pipestown, CA 94567',
-    category: 'Plumbing',
+    address: '456 Oak Ave, Somewhere, USA',
+    category: 'Landscaping',
     status: 'active',
     paymentTerms: 'Net 15',
-    paymentMethod: 'ACH Transfer',
+    paymentMethod: 'ACH',
     taxId: '98-7654321',
-    createdAt: '2021-11-20T09:30:00Z',
-    rating: 4.5,
-    services: ['Emergency Repairs', 'Pipe Installation', 'Drain Cleaning'],
+    createdAt: '2022-11-05',
+    rating: 5.0,
+    services: ['Lawn Maintenance', 'Tree Trimming', 'Garden Design'],
     tags: [
-      { id: '3', label: 'Plumbing', color: '#0d9488', type: 'service', createdAt: '2021-11-20T09:30:00Z' },
-      { id: '4', label: 'Emergency', color: '#dc2626', type: 'service', createdAt: '2021-11-20T09:30:00Z' }
+      { id: 't3', label: 'Punctual', type: 'positive' },
+      { id: 't4', label: 'Quality Work', type: 'positive' }
     ],
-    lastInvoiceDate: '2023-05-15T14:00:00Z',
-    insurance: {
-      policyNumber: 'PLB-987654321',
-      provider: 'Waterways Insurance Co.',
-      expirationDate: '2023-12-30T00:00:00Z',
-      coverageAmount: 750000,
-      coverageType: 'Professional & General Liability',
-      agent: {
-        name: 'Robert Martinez',
-        email: 'rmartinez@waterwaysins.com',
-        phone: '(555) 345-6789'
-      },
-      documents: [
-        {
-          id: '3',
-          name: 'Plumbing License & Insurance.pdf',
-          uploadDate: '2023-01-05T00:00:00Z'
-        }
-      ]
-    }
+    lastInvoiceDate: '2023-05-22'
   },
   {
-    id: '3',
-    name: 'Bright Spark Electric',
-    contactName: 'David Chen',
-    email: 'dchen@brightspark.com',
-    phone: '(555) 456-7890',
-    address: '789 Circuit Ave, Voltburg, CA 95678',
+    id: 'v3',
+    name: 'ElectraTech Solutions',
+    contactName: 'David Wilson',
+    email: 'david@electratech.com',
+    phone: '(555) 234-5678',
+    address: '789 Elm Blvd, Nowhere, USA',
     category: 'Electrical',
     status: 'active',
     paymentTerms: 'Net 30',
     paymentMethod: 'Credit Card',
     taxId: '45-6789012',
-    createdAt: '2022-01-10T10:15:00Z',
-    rating: 4.7,
-    services: ['Wiring', 'Lighting Installation', 'Electrical Inspections'],
+    createdAt: '2022-09-20',
+    rating: 4.2,
+    services: ['Wiring Installation', 'Panel Upgrades', 'Safety Inspections'],
     tags: [
-      { id: '5', label: 'Electrical', color: '#f97316', type: 'service', createdAt: '2022-01-10T10:15:00Z' },
-      { id: '6', label: 'Premium', color: '#9333ea', type: 'pricing', createdAt: '2022-01-10T10:15:00Z' }
+      { id: 't5', label: 'Certified', type: 'info' }
     ],
-    lastInvoiceDate: '2023-06-05T11:30:00Z',
-    insurance: {
-      policyNumber: 'ELE-456789012',
-      provider: 'Volt Insurance Group',
-      expirationDate: '2023-07-01T00:00:00Z',
-      coverageAmount: 2000000,
-      coverageType: 'Electrical Contractor Insurance',
-      agent: {
-        name: 'Jennifer Wong',
-        email: 'jwong@voltinsurance.com',
-        phone: '(555) 234-5678'
-      },
-      documents: [
-        {
-          id: '4',
-          name: 'Electrical License.pdf',
-          uploadDate: '2022-07-01T00:00:00Z'
-        },
-        {
-          id: '5',
-          name: 'Certificate of Insurance.pdf',
-          uploadDate: '2022-07-01T00:00:00Z'
-        }
-      ]
-    }
+    lastInvoiceDate: '2023-06-15'
   },
   {
-    id: '4',
-    name: 'Crystal Clear Windows',
-    contactName: 'Lisa Martinez',
-    email: 'lmartinez@crystalclear.com',
-    phone: '(555) 234-5678',
-    address: '321 Glass Blvd, Windowville, CA 93456',
-    category: 'Cleaning',
+    id: 'v4',
+    name: 'Clean & Clear Windows',
+    contactName: 'Sarah Thompson',
+    email: 'sarah@cleanandclear.com',
+    phone: '(555) 345-6789',
+    address: '101 Pine St, Anywhere, USA',
+    category: 'Window Cleaning',
     status: 'inactive',
     paymentTerms: 'Net 15',
     paymentMethod: 'Check',
-    taxId: '34-5678901',
-    createdAt: '2022-05-05T11:00:00Z',
-    rating: 4.2,
-    services: ['Window Cleaning', 'Pressure Washing', 'Gutter Cleaning'],
-    tags: [
-      { id: '7', label: 'Cleaning', color: '#0ea5e9', type: 'service', createdAt: '2022-05-05T11:00:00Z' },
-      { id: '8', label: 'Budget', color: '#16a34a', type: 'pricing', createdAt: '2022-05-05T11:00:00Z' }
-    ],
-    lastInvoiceDate: '2023-04-22T09:45:00Z'
+    taxId: '56-7890123',
+    createdAt: '2023-02-10',
+    rating: 3.8,
+    lastInvoiceDate: '2023-04-05'
   },
   {
-    id: '5',
-    name: 'Guardian Security',
-    contactName: 'James Wilson',
-    email: 'jwilson@guardian.com',
-    phone: '(555) 876-5432',
-    address: '567 Safe St, Securetown, CA 96789',
+    id: 'v5',
+    name: 'Superior HVAC',
+    contactName: 'Michael Brown',
+    email: 'michael@superiorhvac.com',
+    phone: '(555) 456-7890',
+    address: '202 Maple Dr, Elsewhere, USA',
+    category: 'HVAC',
+    status: 'active',
+    paymentTerms: 'Net 30',
+    paymentMethod: 'ACH',
+    taxId: '67-8901234',
+    createdAt: '2022-07-15',
+    rating: 4.7,
+    services: ['Installation', 'Repairs', 'Maintenance'],
+    tags: [
+      { id: 't6', label: '24/7 Service', type: 'info' },
+      { id: 't7', label: 'Warranty', type: 'positive' }
+    ],
+    lastInvoiceDate: '2023-06-01'
+  },
+  {
+    id: 'v6',
+    name: 'Fresh Paint Pro',
+    contactName: 'Jennifer Lee',
+    email: 'jennifer@freshpaintpro.com',
+    phone: '(555) 567-8901',
+    address: '303 Cedar Ln, Someplace, USA',
+    category: 'Painting',
+    status: 'active',
+    paymentTerms: 'Net 15',
+    paymentMethod: 'Check',
+    taxId: '78-9012345',
+    createdAt: '2023-03-20',
+    rating: 4.9,
+    services: ['Interior Painting', 'Exterior Painting', 'Color Consultation'],
+    tags: [
+      { id: 't8', label: 'Eco-Friendly', type: 'positive' }
+    ],
+    lastInvoiceDate: '2023-05-15'
+  },
+  {
+    id: 'v7',
+    name: 'SafeGuard Security',
+    contactName: 'Robert Garcia',
+    email: 'robert@safeguardsecurity.com',
+    phone: '(555) 678-9012',
+    address: '404 Birch Rd, Othertown, USA',
     category: 'Security',
     status: 'active',
     paymentTerms: 'Net 30',
-    paymentMethod: 'ACH Transfer',
-    taxId: '56-7890123',
-    createdAt: '2021-09-15T13:30:00Z',
-    rating: 4.9,
-    services: ['Alarm Systems', 'Surveillance Cameras', 'Security Patrols'],
+    paymentMethod: 'ACH',
+    taxId: '89-0123456',
+    createdAt: '2022-10-10',
+    rating: 4.6,
+    services: ['System Installation', 'Monitoring', 'Maintenance'],
     tags: [
-      { id: '9', label: 'Security', color: '#dc2626', type: 'service', createdAt: '2021-09-15T13:30:00Z' },
-      { id: '10', label: 'Reliable', color: '#0ea5e9', type: 'reliability', createdAt: '2021-09-15T13:30:00Z' }
+      { id: 't9', label: 'Licensed', type: 'info' },
+      { id: 't10', label: 'Insured', type: 'info' }
     ],
-    lastInvoiceDate: '2023-06-10T08:15:00Z'
+    lastInvoiceDate: '2023-06-05'
+  },
+  {
+    id: 'v8',
+    name: 'Green Thumb Gardening',
+    contactName: 'Lisa Mitchell',
+    email: 'lisa@greenthumb.com',
+    phone: '(555) 789-0123',
+    address: '505 Willow Way, Somewhere, USA',
+    category: 'Gardening',
+    status: 'inactive',
+    paymentTerms: 'Net 15',
+    paymentMethod: 'Check',
+    taxId: '90-1234567',
+    createdAt: '2022-04-15',
+    rating: 3.5,
+    lastInvoiceDate: '2022-10-20'
   }
 ];
-
-export const getVendorInvoices = (vendorId: string): VendorInvoice[] => {
-  return generateMockInvoices(vendorId, 6);
-};
-
-export const getVendorServices = (vendorId: string): VendorService[] => {
-  return generateVendorServices(3);
-};
 
 export default mockVendors;
