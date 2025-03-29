@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+
+import React, { useEffect, useRef } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import MergeTagsDialog from '../MergeTagsDialog';
 import { TemplateFormState, TemplateFormSetters } from './types';
@@ -8,6 +8,9 @@ import { MergeTag } from '@/types/mergeTags';
 import TemplateFormFields from './components/TemplateFormFields';
 import CommunitiesSelector from './components/CommunitiesSelector';
 import TemplateContentEditor, { TemplateContentEditorRef } from './components/TemplateContentEditor';
+import TemplateDialogFooter from './components/TemplateDialogFooter';
+import { useTemplateDialogState } from './hooks/useTemplateDialogState';
+import { useMergeTagInsertion } from './components/MergeTagHandler';
 
 interface TemplateEditorDialogProps {
   type: 'create' | 'edit';
@@ -26,140 +29,45 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
   template,
   setTemplate
 }) => {
-  const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [initialTemplate, setInitialTemplate] = useState<TemplateFormState | null>(null);
   const contentEditorRef = useRef<TemplateContentEditorRef>(null);
-  const activeElementRef = useRef<Element | null>(null);
+  
+  const {
+    state: {
+      isMergeTagsDialogOpen,
+      hasUnsavedChanges,
+      activeElementRef
+    },
+    actions: {
+      setIsMergeTagsDialogOpen,
+      handleOpenMergeTagsDialog,
+      handleClose,
+      handleCommunityToggle,
+      handleSaveTemplate,
+      trackChanges,
+      handleValueChange
+    }
+  } = useTemplateDialogState(template, setTemplate, onClose, onSave, type);
 
-  // Track changes when the dialog opens or template changes
+  // Track changes when dialog opens
   useEffect(() => {
-    if (isOpen && !initialTemplate) {
-      setInitialTemplate({ ...template });
-      setHasUnsavedChanges(false);
+    if (isOpen) {
+      trackChanges();
     }
-  }, [isOpen, template, initialTemplate]);
+  }, [isOpen]);
 
-  // Save the active element when the merge tags dialog opens
-  const handleOpenMergeTagsDialog = () => {
-    activeElementRef.current = document.activeElement;
-    setIsMergeTagsDialogOpen(true);
-  };
+  const handleInsertMergeTag = useMergeTagInsertion(
+    activeElementRef,
+    contentEditorRef,
+    setTemplate,
+    template
+  );
 
-  // Check for unsaved changes before closing
-  const handleClose = () => {
-    if (hasUnsavedChanges) {
-      if (confirm('You have unsaved changes. Are you sure you want to close?')) {
-        onClose();
-        setInitialTemplate(null);
-        setHasUnsavedChanges(false);
-      }
-    } else {
-      onClose();
-      setInitialTemplate(null);
-    }
-  };
-
-  const handleCommunityToggle = (communityId: string) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setCommunities(prev => {
-      if (communityId === 'all') {
-        return ['all'];
-      }
-      
-      if (prev.includes('all') && communityId !== 'all') {
-        return [communityId];
-      }
-      
-      const newSelection = prev.includes(communityId)
-        ? prev.filter(id => id !== communityId)
-        : [...prev, communityId];
-        
-      return newSelection.length === 0 ? ['all'] : newSelection;
-    });
-  };
-
-  const handleNameChange = (name: string) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setName(name);
-  };
-
-  const handleDescriptionChange = (description: string) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setDescription(description);
-  };
-
-  const handleSubjectChange = (subject: string) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setSubject(subject);
-  };
-
-  const handleCategoryChange = (category: string) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setCategory(category);
-  };
-
-  const handleContentChange = (content: string) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setContent(content);
-  };
-
-  const handleFormatChange = (isHtml: boolean) => {
-    setHasUnsavedChanges(true);
-    setTemplate.setIsHtmlFormat(isHtml);
-  };
-
-  const handleSaveTemplate = () => {
-    if (!template.name.trim()) {
-      toast.error('Please enter a template name');
+  const handleSave = () => {
+    const result = handleSaveTemplate();
+    if (!result.success) {
+      toast.error(result.message);
       return;
     }
-
-    if (!template.subject.trim()) {
-      toast.error('Please enter a subject line');
-      return;
-    }
-
-    if (!template.content.trim()) {
-      toast.error('Please enter template content');
-      return;
-    }
-
-    onSave();
-    setHasUnsavedChanges(false);
-    setInitialTemplate({ ...template });
-  };
-
-  const handleInsertMergeTag = (tag: MergeTag) => {
-    const activeElement = activeElementRef.current;
-    const subjectInput = document.getElementById('template-subject');
-    
-    // Check if the subject field was active when dialog opened
-    if (activeElement === subjectInput) {
-      const subjectInputElement = activeElement as HTMLInputElement;
-      if (subjectInputElement && subjectInputElement.focus) {
-        const cursorPosition = subjectInputElement.selectionStart || 0;
-        const newSubject = template.subject.substring(0, cursorPosition) + 
-                          tag.tag + 
-                          template.subject.substring(cursorPosition);
-        setTemplate.setSubject(newSubject);
-        
-        // Restore focus and set cursor position after inserted tag
-        setTimeout(() => {
-          subjectInputElement.focus();
-          subjectInputElement.selectionStart = 
-          subjectInputElement.selectionEnd = cursorPosition + tag.tag.length;
-        }, 0);
-      }
-    } else {
-      // Otherwise insert the tag into the content editor
-      if (contentEditorRef.current) {
-        contentEditorRef.current.insertAtCursor(tag.tag);
-        setHasUnsavedChanges(true);
-      }
-    }
-    
-    setIsMergeTagsDialogOpen(false);
   };
 
   return (
@@ -179,10 +87,10 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
               description={template.description}
               subject={template.subject}
               category={template.category}
-              onNameChange={handleNameChange}
-              onDescriptionChange={handleDescriptionChange}
-              onSubjectChange={handleSubjectChange}
-              onCategoryChange={handleCategoryChange}
+              onNameChange={(value) => handleValueChange(setTemplate.setName, value)}
+              onDescriptionChange={(value) => handleValueChange(setTemplate.setDescription, value)}
+              onSubjectChange={(value) => handleValueChange(setTemplate.setSubject, value)}
+              onCategoryChange={(value) => handleValueChange(setTemplate.setCategory, value)}
               onMergeTagsClick={handleOpenMergeTagsDialog}
             />
             
@@ -194,24 +102,21 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
             <TemplateContentEditor 
               content={template.content}
               isHtmlFormat={template.isHtmlFormat}
-              onContentChange={handleContentChange}
-              onFormatChange={handleFormatChange}
+              onContentChange={(value) => handleValueChange(setTemplate.setContent, value)}
+              onFormatChange={(value) => handleValueChange(setTemplate.setIsHtmlFormat, value)}
               onMergeTagsClick={handleOpenMergeTagsDialog}
-              onSaveTemplate={handleSaveTemplate}
+              onSaveTemplate={handleSave}
               onInsertMergeTag={handleInsertMergeTag}
               ref={contentEditorRef}
             />
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>Cancel</Button>
-            <Button 
-              onClick={handleSaveTemplate}
-              disabled={!hasUnsavedChanges}
-            >
-              {type === 'create' ? 'Create Template' : 'Save Changes'}
-            </Button>
-          </DialogFooter>
+          <TemplateDialogFooter
+            onClose={handleClose}
+            onSave={handleSave}
+            hasUnsavedChanges={hasUnsavedChanges}
+            type={type}
+          />
         </DialogContent>
       </Dialog>
       
