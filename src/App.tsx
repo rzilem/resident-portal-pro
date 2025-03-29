@@ -47,6 +47,7 @@ import ResaleWizard from '@/pages/resale/wizard/ResaleWizard';
 import BidRequestWizard from '@/pages/resale/wizard/BidRequestWizard';
 import BidRequests from '@/pages/resale/BidRequests';
 import BidRequestDetail from '@/pages/resale/BidRequestDetail';
+import CommunityHub from '@/pages/CommunityHub';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -86,7 +87,7 @@ const App = () => {
           <Route path="/properties/:id" element={<Properties />} />
           <Route path="/associations/:id" element={<AssociationProfile />} />
           <Route path="/residents" element={<Residents />} />
-          <Route path="/residents/:id" element={<ResidentProfile />} />
+          <Route path="/resident/:id" element={<ResidentProfile />} />
           <Route path="/compliance" element={<Compliance />} />
           
           <Route path="/documents/association" element={<AssociationDocuments />} />
@@ -104,6 +105,7 @@ const App = () => {
           <Route path="/communications/announcements" element={<div>Announcements Page</div>} />
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
+          <Route path="/community-hub" element={<CommunityHub />} />
           
           {/* Database Records Page */}
           <Route path="/database/records" element={<Records />} />
@@ -124,6 +126,7 @@ const App = () => {
           <Route path="/resale/bid-request" element={<BidRequestWizard />} />
           <Route path="/resale/bid-requests" element={<BidRequests />} />
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
+          <Route path="/resale/admin/project-images" element={<div>Project Images Page</div>} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
