@@ -1,260 +1,153 @@
-import { useState, useEffect } from 'react';
-import { Invoice } from '@/components/settings/associations/types';
-import { toast } from "@/components/ui/use-toast";
-import { InvoiceFilterState } from '@/components/settings/financial/payment-methods/types';
-import { format } from 'date-fns';
 
+import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import { useDebounce } from './use-debounce';
+import { Invoice } from '@/components/settings/associations/types';
+import { InvoiceFilterState } from '@/components/settings/financial/payment-methods/types';
+
+// Custom hook for managing invoice queue state and data fetching
 export const useInvoiceQueue = (associationId?: string) => {
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [filters, setFilters] = useState<InvoiceFilterState>({
-    isFiltered: false
-  });
-  
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filters, setFilters] = useState<InvoiceFilterState>({ isFiltered: false });
 
-  // Generate mock invoice data
+  // Mock functions for invoice actions
+  const approveInvoice = (invoiceId: string) => {
+    console.log(`Invoice ${invoiceId} approved`);
+  };
+
+  const rejectInvoice = (invoiceId: string) => {
+    console.log(`Invoice ${invoiceId} rejected`);
+  };
+
+  const deleteInvoice = (invoiceId: string) => {
+    console.log(`Invoice ${invoiceId} deleted`);
+  };
+
+  // Fetch invoices (mock data for now)
   useEffect(() => {
-    // Keep initial invoices
-    const mockInvoices: Invoice[] = [
-      {
-        id: "INV-001",
-        invoiceNumber: "INV2023-001",
-        date: "2023-06-01",
-        dueDate: "2023-06-30",
-        amount: 350.00,
-        status: "sent",
-        recipientId: "RES-456",
-        recipientType: "resident",
-        vendorName: "N/A",
-        associationName: "Evergreen HOA",
-        items: [
-          {
-            id: "ITEM-001",
-            description: "Monthly HOA dues",
-            quantity: 1,
-            unitPrice: 250.00,
-            total: 250.00,
-            category: "dues"
-          },
-          {
-            id: "ITEM-002",
-            description: "Pool maintenance fee",
-            quantity: 1,
-            unitPrice: 100.00,
-            total: 100.00,
-            category: "maintenance"
-          }
-        ],
-        createdAt: "2023-06-01T10:00:00Z",
-        updatedAt: "2023-06-01T10:00:00Z"
-      },
-      {
-        id: "INV-002",
-        invoiceNumber: "INV2023-002",
-        date: "2023-06-05",
-        dueDate: "2023-07-05",
-        amount: 450.00,
-        status: "draft",
-        recipientId: "RES-789",
-        recipientType: "resident",
-        vendorName: "N/A",
-        associationName: "Sunset Estates",
-        items: [
-          {
-            id: "ITEM-003",
-            description: "Monthly HOA dues",
-            quantity: 1,
-            unitPrice: 250.00,
-            total: 250.00,
-            category: "dues"
-          },
-          {
-            id: "ITEM-004",
-            description: "Special assessment",
-            quantity: 1,
-            unitPrice: 200.00,
-            total: 200.00,
-            category: "assessment"
-          }
-        ],
-        createdAt: "2023-06-05T14:30:00Z",
-        updatedAt: "2023-06-05T14:30:00Z"
-      },
-      {
-        id: "INV-003",
-        invoiceNumber: "INV2023-003",
-        date: "2023-05-15",
-        dueDate: "2023-06-15",
-        amount: 250.00,
-        status: "overdue",
-        recipientId: "RES-101",
-        recipientType: "resident",
-        vendorName: "N/A",
-        associationName: "Mountain View",
-        items: [
-          {
-            id: "ITEM-005",
-            description: "Monthly HOA dues",
-            quantity: 1,
-            unitPrice: 250.00,
-            total: 250.00,
-            category: "dues"
-          }
-        ],
-        createdAt: "2023-05-15T09:00:00Z",
-        updatedAt: "2023-05-15T09:00:00Z"
-      },
-      {
-        id: "INV-004",
-        invoiceNumber: "INV2023-004",
-        date: "2023-06-10",
-        dueDate: "2023-07-10",
-        amount: 750.00,
-        status: "paid",
-        recipientId: "VEN-001",
-        recipientType: "vendor",
-        vendorName: "Evergreen Landscaping",
-        associationName: "Lakeside Community",
-        items: [
-          {
-            id: "ITEM-006",
-            description: "Landscaping services",
-            quantity: 1,
-            unitPrice: 750.00,
-            total: 750.00,
-            category: "service"
-          }
-        ],
-        createdAt: "2023-06-10T11:30:00Z",
-        updatedAt: "2023-06-12T15:45:00Z"
-      }
-    ];
-
-    // Generate additional random invoices
-    const generateRandomInvoices = () => {
-      const statuses = ['draft', 'sent', 'paid', 'overdue'];
-      const vendors = ['ABC Maintenance', 'City Water Services', 'Elite Security', 'Green Landscaping', 'Tech Solutions'];
-      const associations = ['Evergreen HOA', 'Sunset Estates', 'Mountain View', 'Lakeside Community', 'Oak Meadows'];
-      const categories = ['maintenance', 'utilities', 'security', 'landscaping', 'technology', 'administrative'];
-      
-      const newInvoices: Invoice[] = [];
-      
-      for (let i = 0; i < 10; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 60));
+    const fetchInvoices = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 500));
         
-        const dueDate = new Date(date);
-        dueDate.setDate(date.getDate() + 30);
-        
-        const amount = Math.floor(Math.random() * 1000) + 100;
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const vendor = vendors[Math.floor(Math.random() * vendors.length)];
-        const association = associations[Math.floor(Math.random() * associations.length)];
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        
-        newInvoices.push({
-          id: `INV-00${i + 5}`,
-          invoiceNumber: `INV2023-00${i + 5}`,
-          date: format(date, 'yyyy-MM-dd'),
-          dueDate: format(dueDate, 'yyyy-MM-dd'),
-          amount: amount,
-          status: status,
-          recipientId: `VEN-00${i + 2}`,
-          recipientType: Math.random() > 0.5 ? 'vendor' : 'resident',
-          vendorName: vendor,
-          associationName: association,
-          items: [
-            {
-              id: `ITEM-00${i + 7}`,
-              description: `${category.charAt(0).toUpperCase() + category.slice(1)} service`,
-              quantity: 1,
-              unitPrice: amount,
-              total: amount,
-              category: category
-            }
-          ],
-          createdAt: date.toISOString(),
-          updatedAt: date.toISOString()
+        // Generate mock invoices
+        const mockInvoices = Array.from({ length: 25 }, (_, i) => {
+          const invoice: Invoice = {
+            id: `INV-${i + 1}`,
+            invoiceNumber: `INV-${1000 + i}`,
+            date: `2024-01-${String(i + 1).padStart(2, '0')}`,
+            dueDate: `2024-02-${String(i + 1).padStart(2, '0')}`,
+            amount: 100 + i * 10,
+            status: ['draft', 'sent', 'overdue', 'paid'][i % 4],
+            recipientId: `RECPT-${i % 5 + 1}`,
+            recipientType: i % 2 === 0 ? 'vendor' : 'resident',
+            vendorName: `Vendor ${i % 5 + 1}`,
+            associationName: `Association ${i % 3 + 1}`,
+            items: [
+              {
+                id: `ITEM-${i}-1`,
+                description: `Service ${i + 1}`,
+                quantity: 1,
+                unitPrice: 100 + i * 10,
+                total: 100 + i * 10,
+                category: `Category ${i % 4 + 1}`
+              }
+            ],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          return invoice;
         });
+        
+        setInvoices(mockInvoices);
+      } catch (err) {
+        setError('Failed to fetch invoices');
+        console.error("Error fetching invoices:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, [associationId]);
+
+  // Debounce filter changes
+  const debouncedFilters = useDebounce(filters, 300);
+
+  // Filter invoices based on active tab and filters
+  const filteredInvoices = useMemo(() => {
+    let filtered = invoices;
+
+    // Apply tab filter
+    if (activeTab !== 'all') {
+      filtered = invoices.filter(invoice => invoice.status === activeTab);
+    }
+
+    // Apply other filters
+    if (debouncedFilters.isFiltered) {
+      if (debouncedFilters.status && debouncedFilters.status.length > 0) {
+        filtered = filtered.filter(invoice => debouncedFilters.status?.includes(invoice.status));
       }
       
-      return newInvoices;
-    };
-    
-    setInvoices([...mockInvoices, ...generateRandomInvoices()]);
-  }, []);
-  
-  // Filter invoices based on current filters
-  const filteredInvoices = invoices.filter(invoice => {
-    if (!filters.isFiltered) return true;
-    
-    // Search query filtering
-    if (filters.query && !invoice.invoiceNumber.toLowerCase().includes(filters.query.toLowerCase()) &&
-        !invoice.vendorName?.toLowerCase().includes(filters.query.toLowerCase()) &&
-        !invoice.associationName?.toLowerCase().includes(filters.query.toLowerCase())) {
-      return false;
+      if (debouncedFilters.query) {
+        const query = debouncedFilters.query.toLowerCase();
+        filtered = filtered.filter(invoice => 
+          invoice.invoiceNumber.toLowerCase().includes(query) ||
+          invoice.vendorName?.toLowerCase().includes(query) ||
+          invoice.associationName?.toLowerCase().includes(query)
+        );
+      }
+      
+      if (debouncedFilters.dateRange?.from) {
+        filtered = filtered.filter(invoice => new Date(invoice.date) >= debouncedFilters.dateRange!.from!);
+      }
+      
+      if (debouncedFilters.dateRange?.to) {
+        filtered = filtered.filter(invoice => new Date(invoice.date) <= debouncedFilters.dateRange!.to!);
+      }
+      
+      if (debouncedFilters.minAmount !== undefined) {
+        filtered = filtered.filter(invoice => invoice.amount >= debouncedFilters.minAmount!);
+      }
+      
+      if (debouncedFilters.maxAmount !== undefined) {
+        filtered = filtered.filter(invoice => invoice.amount <= debouncedFilters.maxAmount!);
+      }
     }
-    
-    // Date range filtering
-    if (filters.dateRange?.from && new Date(invoice.date) < filters.dateRange.from) {
-      return false;
-    }
-    
-    if (filters.dateRange?.to && new Date(invoice.date) > filters.dateRange.to) {
-      return false;
-    }
-    
-    // Status filtering
-    if (filters.status && filters.status.length > 0 && !filters.status.includes(invoice.status)) {
-      return false;
-    }
-    
-    // Amount filtering
-    if (filters.minAmount !== undefined && invoice.amount < filters.minAmount) {
-      return false;
-    }
-    
-    if (filters.maxAmount !== undefined && invoice.amount > filters.maxAmount) {
-      return false;
-    }
-    
-    return true;
-  });
 
-  // Handle invoice actions like pay, view, etc.
+    return filtered;
+  }, [invoices, activeTab, debouncedFilters]);
+
   const handleInvoiceAction = (action: string, invoiceId: string) => {
-    const invoice = invoices.find(inv => inv.id === invoiceId);
-    if (!invoice) return;
-    
     switch (action) {
-      case 'view':
-        toast({
-          title: "Viewing Invoice",
-          description: `Viewing details for invoice ${invoice.invoiceNumber}`
+      case 'approve':
+        approveInvoice(invoiceId);
+        toast("Invoice approved", {
+          description: `Invoice #${invoiceId} has been approved.`
         });
         break;
-      case 'pay':
-        toast({
-          title: "Processing Payment",
-          description: `Initiating payment process for invoice ${invoice.invoiceNumber}`
+      case 'reject':
+        rejectInvoice(invoiceId);
+        toast("Invoice rejected", {
+          description: `Invoice #${invoiceId} has been rejected.`
         });
-        // Update status if paying
-        const updatedInvoices = invoices.map(inv => 
-          inv.id === invoiceId ? { ...inv, status: 'paid' } : inv
-        );
-        setInvoices(updatedInvoices);
         break;
       case 'delete':
-        toast({
-          title: "Invoice Deleted",
-          description: `Invoice ${invoice.invoiceNumber} has been removed`
+        deleteInvoice(invoiceId);
+        toast("Invoice deleted", {
+          description: `Invoice #${invoiceId} has been deleted.`
         });
-        setInvoices(invoices.filter(inv => inv.id !== invoiceId));
         break;
       default:
+        // Handle other actions like view, pay, etc.
+        toast(`Action: ${action}`, {
+          description: `Performed ${action} on invoice #${invoiceId}`
+        });
         break;
     }
   };
@@ -266,7 +159,6 @@ export const useInvoiceQueue = (associationId?: string) => {
     error,
     filters,
     setFilters,
-    invoices,
     filteredInvoices,
     handleInvoiceAction
   };
