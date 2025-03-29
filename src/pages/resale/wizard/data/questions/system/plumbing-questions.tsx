@@ -7,7 +7,33 @@ export const PLUMBING_QUESTIONS: ProjectTypeQuestions = {
       id: 'requestType',
       text: 'What type of plumbing service is needed?',
       type: 'radio',
-      options: ['Installation', 'Repair', 'Replacement', 'Maintenance', 'Leak Detection'],
+      options: [
+        {
+          label: 'Installation',
+          value: 'Installation',
+          image: '/lovable-uploads/62185c37-403f-45d8-8281-9b68b2c3bcf2.png'
+        },
+        {
+          label: 'Repair',
+          value: 'Repair',
+          image: '/lovable-uploads/b3f8fde4-3ae2-423e-b6c5-8568c0e8d926.png'
+        },
+        {
+          label: 'Replacement',
+          value: 'Replacement',
+          image: '/lovable-uploads/03157bbd-01a1-4722-a0b6-04dc8b7d0270.png'
+        },
+        {
+          label: 'Maintenance',
+          value: 'Maintenance',
+          image: '/lovable-uploads/2e58061b-6520-4f42-9408-0a9eb76604cc.png'
+        },
+        {
+          label: 'Leak Detection',
+          value: 'Leak Detection',
+          image: '/lovable-uploads/6ad7f4c2-c53b-49d4-adea-eff2b4164744.png'
+        }
+      ],
       required: true,
     },
     {
@@ -28,13 +54,6 @@ export const PLUMBING_QUESTIONS: ProjectTypeQuestions = {
         answers.hasLeakBeenIdentified === 'Yes',
     },
     {
-      id: 'hasTowingProvider',
-      text: 'Does the Association currently have a towing provider?',
-      type: 'radio',
-      options: ['Yes', 'No'],
-      required: true,
-    },
-    {
       id: 'isBudgeted',
       text: 'Budgeted item?',
       type: 'radio',
@@ -50,7 +69,7 @@ export const PLUMBING_QUESTIONS: ProjectTypeQuestions = {
     {
       id: 'additionalDetails',
       text: 'Please provide details about the plumbing issue or project:',
-      type: 'text',
+      type: 'textarea',
       required: true,
     }
   ]

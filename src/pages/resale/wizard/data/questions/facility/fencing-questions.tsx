@@ -7,7 +7,23 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
       id: 'requestType',
       text: 'What is the type of bid request?',
       type: 'radio',
-      options: ['Maintenance/Repair', 'Service Contract', 'Construction/New Build'],
+      options: [
+        {
+          label: 'Maintenance/Repair',
+          value: 'Maintenance/Repair',
+          image: '/lovable-uploads/b3f8fde4-3ae2-423e-b6c5-8568c0e8d926.png'
+        },
+        {
+          label: 'Service Contract',
+          value: 'Service Contract',
+          image: '/lovable-uploads/2e58061b-6520-4f42-9408-0a9eb76604cc.png'
+        },
+        {
+          label: 'Construction/New Build',
+          value: 'Construction/New Build',
+          image: '/lovable-uploads/6ad7f4c2-c53b-49d4-adea-eff2b4164744.png'
+        }
+      ],
       required: true,
     },
     {
@@ -76,7 +92,7 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
     {
       id: 'additionalDetails',
       text: 'Any additional details or requirements?',
-      type: 'text',
+      type: 'textarea',
       required: false,
     }
   ]

@@ -72,7 +72,7 @@ const QuestionSlide: React.FC<QuestionSlideProps> = ({
               <RadioGroup 
                 value={answer || ''} 
                 onValueChange={handleRadioChange}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
               >
                 {(question.options as unknown as ImageOption[]).map((option) => (
                   <div key={option.value} className="relative">

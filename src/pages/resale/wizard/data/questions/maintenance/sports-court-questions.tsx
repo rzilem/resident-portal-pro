@@ -11,22 +11,22 @@ export const SPORTS_COURT_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Build new Sports Court',
           value: 'Build new Sports Court',
-          image: '/lovable-uploads/9b43960a-a200-4b8e-ab8d-d8d426eda4e0.png'
+          image: '/lovable-uploads/6ad7f4c2-c53b-49d4-adea-eff2b4164744.png'
         },
         {
           label: 'Re-paint Existing',
           value: 'Re-paint Existing',
-          image: '/lovable-uploads/1e3b1251-6ed5-49ec-8066-72ade13d816f.png'
+          image: '/lovable-uploads/2e58061b-6520-4f42-9408-0a9eb76604cc.png'
         },
         {
           label: 'Repair Surface',
           value: 'Repair Surface',
-          image: '/lovable-uploads/2468b32f-5627-45fd-abf3-9b7b00444003.png'
+          image: '/lovable-uploads/b3f8fde4-3ae2-423e-b6c5-8568c0e8d926.png'
         },
         {
           label: 'Add Equipment',
           value: 'Add Equipment',
-          image: '/lovable-uploads/4210bfbe-69f1-4ffc-8a52-4bff55f3dd71.png'
+          image: '/lovable-uploads/03157bbd-01a1-4722-a0b6-04dc8b7d0270.png'
         }
       ],
       required: true,
