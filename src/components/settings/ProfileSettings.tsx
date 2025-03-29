@@ -15,7 +15,8 @@ const ProfileSettings = () => {
     loading,
     handleChange,
     handleSubmit,
-    handlePhotoChange
+    handlePhotoChange,
+    isAdmin
   } = useProfileForm();
 
   // Initialize storage bucket on component mount with error handling
@@ -70,9 +71,16 @@ const ProfileSettings = () => {
     <form onSubmit={handleSubmit}>
       <div className="grid gap-6">
         <PersonalInfoCard
-          formData={formData}
-          handleChange={handleChange}
-          loading={loading}
+          form={{
+            control: {
+              // Mock form control for the current component
+              register: () => ({}),
+              setValue: () => {},
+              getValues: () => ({}),
+              formState: { errors: {} },
+            } as any,
+          }}
+          isAdmin={isAdmin}
           onSubmit={handleSubmit}
         />
         

@@ -44,13 +44,19 @@ export function useAuthRole() {
     return roleService.getUserPermissions(currentUser);
   };
   
+  // Admin check now also looks for 'manage' permission in settings module
+  const checkIsAdmin = (): boolean => {
+    if (role === 'admin') return true;
+    return hasPermission('settings', 'admin') || hasPermission('settings', 'manage');
+  };
+  
   return {
     currentUser,
     loading,
     role,
     hasPermission,
     getUserPermissions,
-    isAdmin: role === 'admin',
+    isAdmin: checkIsAdmin(),
     isManager: role === 'manager',
     isStaff: role === 'staff',
     isResident: role === 'resident',

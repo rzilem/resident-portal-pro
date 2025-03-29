@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthRole } from '@/hooks/use-auth-role';
 
 interface FormData {
   name: string;
@@ -15,6 +16,7 @@ interface FormData {
 
 export const useProfileForm = () => {
   const { user, profile, refreshProfile } = useAuth();
+  const { isAdmin } = useAuthRole();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -74,8 +76,26 @@ export const useProfileForm = () => {
         .eq('id', user.id);
       
       if (error) {
-        console.error("Supabase update error:", error);
-        throw error;
+        // Check if this might be a permission issue and the user is admin
+        if (isAdmin) {
+          console.log("Admin override for profile update");
+          // For admins, try using a service role or another method to update the profile
+          // This would typically be done through a backend endpoint
+          const { error: adminUpdateError } = await supabase.rpc('admin_update_user_profile', {
+            user_id: user.id,
+            first_name: firstName,
+            last_name: lastName,
+            phone_number: formData.phone
+          });
+          
+          if (adminUpdateError) {
+            console.error("Admin update error:", adminUpdateError);
+            throw adminUpdateError;
+          }
+        } else {
+          console.error("Supabase update error:", error);
+          throw error;
+        }
       }
       
       // Refresh profile data
@@ -103,6 +123,7 @@ export const useProfileForm = () => {
     loading,
     handleChange,
     handleSubmit,
-    handlePhotoChange
+    handlePhotoChange,
+    isAdmin
   };
 };

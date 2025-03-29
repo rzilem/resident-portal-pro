@@ -1,124 +1,146 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  FormField,
+  FormItem,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { UserRound, Mail, Phone, Building, MapPin } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { UserRound, Mail, Phone, MapPin, ShieldCheck } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
+import { ProfileFormValues } from '../types';
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface PersonalInfoCardProps {
-  formData: {
-    name: string;
-    email: string;
-    phone: string;
-    jobTitle: string;
-    address: string;
-    bio: string;
-  };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  loading: boolean;
-  onSubmit: () => void;
+  form: UseFormReturn<ProfileFormValues>;
+  isAdmin?: boolean;
+  onSubmit?: () => void;
 }
 
-const PersonalInfoCard = ({ formData, handleChange, loading, onSubmit }: PersonalInfoCardProps) => {
+const PersonalInfoCard = ({ form, isAdmin, onSubmit }: PersonalInfoCardProps) => {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Personal Information</CardTitle>
-        <CardDescription>Update your personal profile information</CardDescription>
+        {isAdmin && (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 flex items-center gap-1">
+            <ShieldCheck className="h-3 w-3" />
+            Admin Mode
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <div className="relative">
-              <UserRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="name" 
-                name="name" 
-                value={formData.name} 
-                onChange={handleChange} 
-                className="pl-10" 
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="email" 
-                name="email" 
-                type="email" 
-                value={formData.email} 
-                onChange={handleChange} 
-                className="pl-10"
-                disabled
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="phone" 
-                name="phone" 
-                value={formData.phone} 
-                onChange={handleChange} 
-                className="pl-10" 
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="jobTitle">Job Title</Label>
-            <div className="relative">
-              <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="jobTitle" 
-                name="jobTitle" 
-                value={formData.jobTitle} 
-                onChange={handleChange} 
-                className="pl-10" 
-              />
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              id="address" 
-              name="address" 
-              value={formData.address} 
-              onChange={handleChange} 
-              className="pl-10" 
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="bio">Bio</Label>
-          <textarea 
-            id="bio" 
-            name="bio" 
-            value={formData.bio} 
-            onChange={handleChange} 
-            rows={4}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="relative">
+                    <UserRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input className="pl-10" placeholder="First Name" {...field} />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input placeholder="Last Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input className="pl-10" placeholder="Email" {...field} />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input className="pl-10" placeholder="Phone Number" {...field} />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input className="pl-10" placeholder="Address" {...field} />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bio"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea 
+                  placeholder="Tell us a little about yourself..." 
+                  className="min-h-[100px]" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button type="button" onClick={onSubmit} disabled={loading}>
-          {loading ? "Saving..." : "Save Changes"}
-        </Button>
-      </CardFooter>
+      {onSubmit && (
+        <CardFooter className="flex justify-end">
+          <Button 
+            type="button" 
+            onClick={onSubmit}
+            className={isAdmin ? "bg-yellow-600 hover:bg-yellow-700" : ""}
+          >
+            {isAdmin ? "Save with Admin Rights" : "Save Changes"}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 };
