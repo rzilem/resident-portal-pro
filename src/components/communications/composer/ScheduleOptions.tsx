@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useComposer } from './ComposerContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -107,7 +108,13 @@ const ScheduleOptions: React.FC = () => {
                     {scheduledTime ? scheduledTime : 'Pick a time'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
+                <PopoverContent 
+                  className="w-auto p-0" 
+                  align="start" 
+                  side="top"
+                  alignOffset={-50}
+                  sideOffset={5}
+                >
                   <Input
                     type="time"
                     value={scheduledTime}
