@@ -41,7 +41,7 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Wood',
           value: 'Wood',
-          image: '/lovable-uploads/d7f25017-e181-432e-8889-9354a6679147.png'
+          image: '/lovable-uploads/ed34858c-12d0-4a55-a122-bd986098b60d.png'
         },
         {
           label: 'Metal',
@@ -51,7 +51,7 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Vinyl',
           value: 'Vinyl',
-          image: '/lovable-uploads/9b43960a-a200-4b8e-ab8d-d8d426eda4e0.png'
+          image: '/lovable-uploads/644c7054-d591-4b89-9f47-b6a11784f71d.png'
         },
         {
           label: 'Chain Link',
@@ -61,17 +61,17 @@ export const FENCING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Stone',
           value: 'Stone',
-          image: '/lovable-uploads/4210bfbe-69f1-4ffc-8a52-4bff55f3dd71.png'
+          image: '/lovable-uploads/e6339e22-4270-4890-933c-d4d97f67fd9d.png'
         },
         {
           label: 'Composite',
           value: 'Composite',
-          image: '/lovable-uploads/75230129-3746-4768-9d0c-a4c8ebdb352e.png'
+          image: '/lovable-uploads/5700d9c3-1ac6-490a-a484-9da8bf1da2da.png'
         },
         {
-          label: 'Other',
-          value: 'Other',
-          image: '/lovable-uploads/2468b32f-5627-45fd-abf3-9b7b00444003.png'
+          label: 'Horizontal Wood',
+          value: 'Horizontal Wood',
+          image: '/lovable-uploads/926af23e-e03f-4fed-b45b-23aea72c17e0.png'
         }
       ],
       required: true,
