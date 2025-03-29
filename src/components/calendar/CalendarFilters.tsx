@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, AlertCircle, Users, Tool, Gift, Clock, Sparkles, Tag } from 'lucide-react';
+import { Calendar, AlertCircle, Users, Wrench, Gift, Clock, Sparkles, Tag } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ const CalendarFilters: React.FC<CalendarFiltersProps> = ({
   const filters = [
     { id: 'all', name: 'All Events', icon: Calendar, color: 'bg-gray-100 hover:bg-gray-200' },
     { id: 'meeting', name: 'Meetings', icon: Users, color: 'bg-blue-100 hover:bg-blue-200' },
-    { id: 'maintenance', name: 'Maintenance', icon: Tool, color: 'bg-amber-100 hover:bg-amber-200' },
+    { id: 'maintenance', name: 'Maintenance', icon: Wrench, color: 'bg-amber-100 hover:bg-amber-200' },
     { id: 'holiday', name: 'Holidays', icon: Gift, color: 'bg-red-100 hover:bg-red-200' },
     { id: 'deadline', name: 'Deadlines', icon: Clock, color: 'bg-purple-100 hover:bg-purple-200' },
     { id: 'workflow', name: 'Workflows', icon: AlertCircle, color: 'bg-indigo-100 hover:bg-indigo-200' },
