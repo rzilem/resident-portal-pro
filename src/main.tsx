@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import Routes from './routes'
+import App from './App'
 import './index.css'
 import './styles/theme.css'
 import { ThemeProvider } from "@/components/theme-provider"
@@ -20,7 +20,7 @@ if (!rootElement) {
   root.render(
     <React.StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Routes />
+        <App />
       </ThemeProvider>
     </React.StrictMode>
   );

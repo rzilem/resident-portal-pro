@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import DocumentStorageInitializer from '@/components/documents/DocumentStorageInitializer';
@@ -62,16 +62,14 @@ const LogoutRedirect = () => {
 };
 
 const App = () => {
-  const location = useLocation();
-  
-  React.useEffect(() => {
-    console.log('Current location:', location.pathname);
-  }, [location]);
+  const AppRoutes = () => {
+    const location = useLocation();
+    
+    React.useEffect(() => {
+      console.log('Current location:', location.pathname);
+    }, [location]);
 
-  return (
-    <AuthProvider>
-      <DocumentStorageInitializer />
-      <Toaster />
+    return (
       <Routes>
         {/* Landing page as the root route */}
         <Route path="/" element={<Index />} />
@@ -144,7 +142,17 @@ const App = () => {
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </AuthProvider>
+    );
+  };
+
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <DocumentStorageInitializer />
+        <Toaster />
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 
