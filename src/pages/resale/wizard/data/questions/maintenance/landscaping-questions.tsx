@@ -1,7 +1,7 @@
 
-import { ProjectTypeQuestions } from '../../types';
+import { ProjectTypeQuestions } from '../../../types';
 
-export const MAINTENANCE_QUESTIONS: ProjectTypeQuestions = {
+export const LANDSCAPING_QUESTIONS: ProjectTypeQuestions = {
   landscaping: [
     {
       id: 'serviceType',
@@ -16,5 +16,5 @@ export const MAINTENANCE_QUESTIONS: ProjectTypeQuestions = {
       type: 'text',
       required: true,
     }
-  ],
+  ]
 };

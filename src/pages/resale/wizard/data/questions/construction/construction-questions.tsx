@@ -1,5 +1,5 @@
 
-import { ProjectTypeQuestions } from '../../types';
+import { ProjectTypeQuestions } from '../../../types';
 
 export const CONSTRUCTION_QUESTIONS: ProjectTypeQuestions = {
   construction: [
@@ -43,20 +43,5 @@ export const CONSTRUCTION_QUESTIONS: ProjectTypeQuestions = {
       type: 'text',
       required: false,
     }
-  ],
-  renovation: [
-    {
-      id: 'renovationType',
-      text: 'What type of renovation is needed?',
-      type: 'radio',
-      options: ['Interior', 'Exterior', 'Both'],
-      required: true,
-    },
-    {
-      id: 'additionalDetails',
-      text: 'Please provide details about the renovation project:',
-      type: 'text',
-      required: true,
-    }
-  ],
+  ]
 };

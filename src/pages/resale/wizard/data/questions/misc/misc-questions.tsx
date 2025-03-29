@@ -1,5 +1,5 @@
 
-import { ProjectTypeQuestions } from '../../types';
+import { ProjectTypeQuestions } from '../../../types';
 
 export const MISC_QUESTIONS: ProjectTypeQuestions = {
   other: [

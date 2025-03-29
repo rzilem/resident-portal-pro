@@ -1,7 +1,7 @@
 
-import { ProjectTypeQuestions } from '../../types';
+import { ProjectTypeQuestions } from '../../../types';
 
-export const SYSTEM_QUESTIONS: ProjectTypeQuestions = {
+export const HVAC_QUESTIONS: ProjectTypeQuestions = {
   hvac: [
     {
       id: 'requestType',
@@ -37,20 +37,5 @@ export const SYSTEM_QUESTIONS: ProjectTypeQuestions = {
       type: 'text',
       required: false,
     }
-  ],
-  plumbing: [
-    {
-      id: 'requestType',
-      text: 'What type of plumbing service is needed?',
-      type: 'radio',
-      options: ['Installation', 'Repair', 'Replacement', 'Maintenance'],
-      required: true,
-    },
-    {
-      id: 'additionalDetails',
-      text: 'Please provide details about the plumbing issue or project:',
-      type: 'text',
-      required: true,
-    }
-  ],
+  ]
 };
