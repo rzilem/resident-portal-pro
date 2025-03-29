@@ -21,12 +21,12 @@ export const ASPHALT_PAVING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Resurfacing',
           value: 'Resurfacing',
-          image: '/lovable-uploads/2e58061b-6520-4f42-9408-0a9eb76604cc.png'
+          image: '/lovable-uploads/6923aed4-ac2d-49cd-8067-f4313d4551d9.png'
         },
         {
           label: 'Sealcoating',
           value: 'Sealcoating',
-          image: '/lovable-uploads/03157bbd-01a1-4722-a0b6-04dc8b7d0270.png'
+          image: '/lovable-uploads/be2afa33-7132-4216-8b94-7bc5f549d0e6.png'
         }
       ],
       required: true,

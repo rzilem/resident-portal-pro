@@ -21,12 +21,12 @@ export const CONCRETE_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Replacement',
           value: 'Replacement',
-          image: '/lovable-uploads/2e58061b-6520-4f42-9408-0a9eb76604cc.png'
+          image: '/lovable-uploads/549fefb9-39cb-4663-9fb3-dcb67f37ff3d.png'
         },
         {
           label: 'Staining/Finishing',
           value: 'Staining/Finishing',
-          image: '/lovable-uploads/03157bbd-01a1-4722-a0b6-04dc8b7d0270.png'
+          image: '/lovable-uploads/ba1c87e8-9168-4ecc-a6b3-cb554f6fdfba.png'
         }
       ],
       required: true,

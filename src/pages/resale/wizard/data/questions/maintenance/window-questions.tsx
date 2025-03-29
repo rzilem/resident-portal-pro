@@ -21,7 +21,7 @@ export const WINDOW_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Screens',
           value: 'Screens',
-          image: '/lovable-uploads/03157bbd-01a1-4722-a0b6-04dc8b7d0270.png'
+          image: '/lovable-uploads/dfa8f7e3-fc84-4a34-9807-25d6f0bd10ca.png'
         },
         {
           label: 'Repair',
