@@ -85,7 +85,7 @@ const ScheduleOptions: React.FC = () => {
                     mode="single"
                     selected={scheduledDate || undefined}
                     onSelect={(date) => date && setScheduledDate(date)}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
                     initialFocus
                   />
                 </PopoverContent>

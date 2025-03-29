@@ -11,28 +11,38 @@ interface MessagePreviewProps {
   onOpenChange: (open: boolean) => void;
   content: string;
   format: 'plain' | 'html';
+  subject?: string;
 }
 
 const MessagePreview: React.FC<MessagePreviewProps> = ({
   open,
   onOpenChange,
   content,
-  format
+  format,
+  subject
 }) => {
   const [processedContent, setProcessedContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { subject } = useComposer();
+  const composerContext = useComposer();
+
+  // Use subject from props if provided, otherwise from context
+  const messageSubject = subject || composerContext?.subject;
 
   useEffect(() => {
     if (open && content) {
       setIsLoading(true);
       
-      // The content should already be processed when passed to this component,
-      // but we'll set it with a small delay to show the loading indicator
-      setTimeout(() => {
-        setProcessedContent(content);
-        setIsLoading(false);
-      }, 500);
+      // Process any merge tags that might be in the content
+      mergeTagService.processMergeTags(content)
+        .then(processedResult => {
+          setProcessedContent(processedResult);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('Error processing merge tags:', error);
+          setProcessedContent(content);
+          setIsLoading(false);
+        });
     }
   }, [open, content]);
 
@@ -66,13 +76,13 @@ const MessagePreview: React.FC<MessagePreviewProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Preview with Merge Tags</DialogTitle>
+          <DialogTitle>Message Preview</DialogTitle>
         </DialogHeader>
         
-        {subject && (
+        {messageSubject && (
           <div className="border-b pb-2 mb-2">
             <div className="text-sm text-muted-foreground">Subject:</div>
-            <div className="font-medium">{subject}</div>
+            <div className="font-medium">{messageSubject}</div>
           </div>
         )}
         

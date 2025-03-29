@@ -8,11 +8,22 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { communicationService, Communication } from '@/services/communicationService';
 import ScheduledMessagesDialog from './composer/ScheduledMessagesDialog';
+import MessagePreview from './composer/MessagePreview';
 
 const MessageHistory: React.FC = () => {
   const [messages, setMessages] = useState<Communication[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isScheduledDialogOpen, setIsScheduledDialogOpen] = useState(false);
+  const [messagePreview, setMessagePreview] = useState<{
+    open: boolean;
+    content: string;
+    format: 'plain' | 'html';
+    subject?: string;
+  }>({
+    open: false,
+    content: '',
+    format: 'plain'
+  });
   
   const loadMessages = async () => {
     setLoading(true);
@@ -58,6 +69,15 @@ const MessageHistory: React.FC = () => {
   
   const handleViewScheduled = () => {
     setIsScheduledDialogOpen(true);
+  };
+  
+  const handlePreviewMessage = (message: Communication) => {
+    setMessagePreview({
+      open: true,
+      content: message.content,
+      format: message.format as 'plain' | 'html',
+      subject: message.subject
+    });
   };
   
   return (
@@ -134,7 +154,12 @@ const MessageHistory: React.FC = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" title="View message">
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        title="Preview message" 
+                        onClick={() => handlePreviewMessage(message)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -148,6 +173,14 @@ const MessageHistory: React.FC = () => {
         <ScheduledMessagesDialog 
           open={isScheduledDialogOpen}
           onOpenChange={setIsScheduledDialogOpen}
+        />
+        
+        <MessagePreview
+          open={messagePreview.open}
+          onOpenChange={(open) => setMessagePreview(prev => ({ ...prev, open }))}
+          content={messagePreview.content}
+          format={messagePreview.format}
+          subject={messagePreview.subject}
         />
       </CardContent>
     </Card>
