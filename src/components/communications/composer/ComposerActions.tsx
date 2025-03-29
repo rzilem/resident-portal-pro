@@ -91,7 +91,7 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       localStorage.setItem('scheduledMessages', JSON.stringify(existingMessages));
       
       // Create a calendar event for this scheduled message
-      const calendarEvent: CalendarEvent = {
+      const calendarEvent: Partial<CalendarEvent> = {
         id: uuidv4(),
         title: `Scheduled: ${subject}`,
         description: `Scheduled message to ${selectedRecipients.length} recipients`,
@@ -100,8 +100,8 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         allDay: false,
         type: 'workflow',
         workflowId: messageId,
-        userId: 'admin', // In a real app, this would be the current user's ID
-        associationId: 'admin', // In a real app, this would be the selected association ID
+        accessLevel: 'admin', // Fix: Using accessLevel property instead of userId
+        associationId: 'default', // Use a default association ID
         metadata: {
           scheduled: true,
           recipientCount: selectedRecipients.length,
@@ -109,8 +109,13 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         }
       };
       
-      // Add the event to the calendar
-      workflowEventService.scheduleWorkflowEvent(calendarEvent);
+      // Add the event to the calendar - using createWorkflowEvent instead of scheduleWorkflowEvent
+      await workflowEventService.createWorkflowEvent(
+        messageId, 
+        `Scheduled: ${subject}`, 
+        scheduledDateTime,
+        'default' // Use a default association ID
+      );
       
       setIsScheduled(true);
       toast.success(
