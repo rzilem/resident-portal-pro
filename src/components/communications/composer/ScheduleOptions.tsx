@@ -111,7 +111,7 @@ const ScheduleOptions: React.FC = () => {
                   className="w-auto p-0" 
                   align="start" 
                   side="top"
-                  alignOffset={-10}
+                  alignOffset={0}
                   sideOffset={5}
                 >
                   <Input
