@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useComposer } from './ComposerContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,10 +21,8 @@ const ScheduleOptions: React.FC = () => {
     setIsScheduled
   } = useComposer();
 
-  // Set a default time when the user toggles scheduled send on
   useEffect(() => {
     if (scheduledSend && !scheduledTime) {
-      // Default to current time rounded to next 30 minutes
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes() >= 30 ? 0 : 30;
@@ -38,7 +35,6 @@ const ScheduleOptions: React.FC = () => {
     }
   }, [scheduledSend, scheduledTime, setScheduledTime]);
 
-  // Clear scheduled flag when toggling off
   useEffect(() => {
     if (!scheduledSend) {
       setIsScheduled(false);
@@ -80,17 +76,14 @@ const ScheduleOptions: React.FC = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={scheduledDate || undefined}
                     onSelect={(date) => date && setScheduledDate(date)}
                     disabled={(date) => {
-                      // Create a new Date object for today with time set to 00:00:00
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      
-                      // Compare date objects correctly
                       return date < today;
                     }}
                     initialFocus
@@ -114,12 +107,12 @@ const ScheduleOptions: React.FC = () => {
                     {scheduledTime ? scheduledTime : 'Pick a time'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto">
+                <PopoverContent className="w-auto p-0" align="end">
                   <Input
                     type="time"
                     value={scheduledTime}
                     onChange={(e) => setScheduledTime(e.target.value)}
-                    className="w-full"
+                    className="w-full p-2"
                   />
                 </PopoverContent>
               </Popover>
@@ -132,4 +125,3 @@ const ScheduleOptions: React.FC = () => {
 };
 
 export default ScheduleOptions;
-
