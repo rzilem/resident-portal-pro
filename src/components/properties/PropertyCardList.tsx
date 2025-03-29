@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,16 +16,8 @@ const PropertyCardList = ({ properties, columns }: PropertyCardListProps) => {
   const { id } = useParams();
 
   const navigateToAssociation = (associationId: string) => {
-    console.log('Navigating to association (card):', associationId);
-    
-    // Force navigation even if it's the same route by replacing the current entry
-    if (id === associationId) {
-      // If we're already on this page, reload the component by replacing the route
-      navigate(`/properties/${associationId}`, { replace: true });
-    } else {
-      // Normal navigation to a different property
-      navigate(`/properties/${associationId}`);
-    }
+    console.log('Navigating to association profile (card):', associationId);
+    navigate(`/associations/${associationId}`);
   };
 
   return (
