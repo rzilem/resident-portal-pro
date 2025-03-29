@@ -25,7 +25,7 @@ const HomeownerTableRow: React.FC<HomeownerTableRowProps> = ({
             <span className="font-mono">{homeowner.id}</span>
           ) : col.id === 'fullName' ? (
             <Link 
-              to={`/residents/${homeowner.id}`} 
+              to={`/resident/${homeowner.id}`} 
               className="text-primary hover:underline hover:text-primary/80 transition-colors"
             >
               {homeowner.fullName}

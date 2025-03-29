@@ -113,6 +113,15 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Also add a route for /residents/:id to handle legacy links
+      {
+        path: '/residents/:id',
+        element: (
+          <ProtectedRoute>
+            <ResidentProfile />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: '/settings',
         element: (
