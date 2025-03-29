@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import InvoiceQueue from '@/components/accounting/InvoiceQueue';
@@ -9,6 +10,7 @@ import DashboardTabs from '@/components/accounting/dashboard/DashboardTabs';
 import OverviewTab from '@/components/accounting/dashboard/OverviewTab';
 import TransactionsTab from '@/components/accounting/dashboard/TransactionsTab';
 import { useAssociations } from '@/hooks/use-associations';
+import AssociationSelector from '@/components/documents/AssociationSelector';
 import { 
   Select, 
   SelectContent, 
@@ -27,7 +29,6 @@ const AccountingDashboard = () => {
   // Initialize selectedAssociationId when activeAssociation becomes available
   useEffect(() => {
     if (activeAssociation && !selectedAssociationId) {
-      console.log("Setting initial association ID:", activeAssociation.id);
       setSelectedAssociationId(activeAssociation.id);
     }
   }, [activeAssociation, selectedAssociationId]);
@@ -35,9 +36,12 @@ const AccountingDashboard = () => {
   const handleAssociationChange = (associationId: string) => {
     console.log("Association changed to:", associationId);
     setSelectedAssociationId(associationId);
+    
+    // Find the selected association object
     const association = associations.find(a => a.id === associationId);
     
     if (association) {
+      // Update the active association in the context
       selectAssociation(association);
       toast.success(`Switched to ${association.name}`);
     }

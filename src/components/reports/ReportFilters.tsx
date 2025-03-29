@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,7 +26,7 @@ const ReportFilters = ({
   selectedReport,
   setSelectedReport
 }: ReportFiltersProps) => {
-  
+  // Log when association changes to debug
   useEffect(() => {
     console.log("ReportFilters: association changed to", association);
   }, [association]);
@@ -130,15 +131,18 @@ const ReportFilters = ({
         
         <div className="flex flex-col space-y-1">
           <span className="text-sm font-medium">Association</span>
-          <Select value={association} onValueChange={(value) => {
-            console.log("Setting association to:", value);
-            setAssociation(value);
-          }}>
+          <Select 
+            value={association} 
+            onValueChange={(value) => {
+              console.log("Setting association to:", value);
+              setAssociation(value);
+            }}
+          >
             <SelectTrigger className="w-[200px]">
               <Building className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-50">
               <SelectItem value="all">All Associations</SelectItem>
               {associations.map((assoc) => (
                 <SelectItem key={assoc.id} value={assoc.id}>

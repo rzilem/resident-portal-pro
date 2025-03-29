@@ -21,14 +21,18 @@ export const useAssociations = () => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("Loading associations...");
       const data = await fetchAssociations();
+      console.log("Loaded associations:", data);
       setAssociations(data);
       
       if (!activeAssociation && data.length > 0) {
         const defaultAssociation = data.find(a => a.settings?.isDefault) || data[0];
+        console.log("Setting default association:", defaultAssociation);
         setActiveAssociation(defaultAssociation);
       }
     } catch (err) {
+      console.error("Error loading associations:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch associations'));
       toast.error('Failed to load associations');
     } finally {
@@ -41,6 +45,7 @@ export const useAssociations = () => {
   }, [loadAssociations]);
 
   const selectAssociation = useCallback((association: Association) => {
+    console.log("Selecting association:", association);
     setActiveAssociation(association);
   }, []);
 
