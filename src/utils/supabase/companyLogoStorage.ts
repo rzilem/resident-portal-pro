@@ -4,6 +4,7 @@ import { debugLog, errorLog } from "@/utils/debug";
 import { uploadFile } from "./storage/uploadFile";
 import { getFileUrl } from "./storage/getUrl";
 import { validateFileSize, validateFileType } from "./storage/validators";
+import { supabase } from "@/integrations/supabase/client";
 
 const COMPANY_ASSETS_BUCKET = 'company_assets';
 const LOGOS_PATH = 'logos';
