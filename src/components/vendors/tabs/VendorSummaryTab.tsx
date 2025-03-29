@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CardContent } from '@/components/ui/card';
-import { Vendor } from '@/types/vendor';
+import { Vendor, VendorTagType } from '@/types/vendor';
 import { Phone, Mail, MapPin, CreditCard, Tag, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';

@@ -20,14 +20,20 @@ export interface Vendor {
   insurance?: VendorInsurance;
 }
 
-// Use type from resident.ts
-import { Tag, TagType } from '@/types/resident';
+// Use type from resident.ts with extension
+import { Tag } from '@/types/resident';
 
-export type VendorTag = Tag;
+// Extend the vendor tag type with vendor-specific types
+export type VendorTagType = 'positive' | 'negative' | 'info' | 'reliability' | 'pricing' | 'service' | 'amenity' | 'property' | 'custom' | 'board' | 'committee' | 'delinquent';
 
-// Keep for backward compatibility but mark as deprecated
-/** @deprecated Use TagType from resident.ts instead */
-export type VendorTagType = TagType;
+// Create a vendor-specific tag interface
+export interface VendorTag {
+  id: string;
+  type: VendorTagType;
+  label: string;
+  color?: string;
+  createdAt?: string;
+}
 
 export interface VendorInsurance {
   policyNumber?: string;
