@@ -15,8 +15,7 @@ import {
   isFilePreviewable, 
   getMimeTypeFromFileName, 
   canUseOfficeViewer, 
-  getOfficeViewerUrl,
-  sanitizeDocumentUrl 
+  getOfficeViewerUrl
 } from '@/utils/documents/documentUtils';
 import { toast } from 'sonner';
 
@@ -62,6 +61,31 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     });
   };
   
+  // Sanitize URL to ensure it's safe and properly formatted
+  const sanitizeUrl = (url: string): string => {
+    if (!url) return '';
+    
+    // For debugging - remove in production
+    console.log("Original URL:", url);
+    
+    // Handle relative URLs from storage
+    if (url.startsWith('/storage/')) {
+      return url;
+    }
+    
+    // Handle Supabase storage URLs - ensure they are not double encoded
+    if (url.includes('supabase.co/storage/v1/object/public/')) {
+      return url;
+    }
+    
+    // Ensure URL has a protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    
+    return url;
+  };
+  
   const handleDownload = () => {
     if (!document.url) {
       toast.error("Document URL is not available");
@@ -70,7 +94,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     
     // Create a temporary anchor element to trigger download
     const link = window.document.createElement('a');
-    link.href = sanitizeDocumentUrl(document.url);
+    link.href = sanitizeUrl(document.url);
     link.download = document.name;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -113,16 +137,30 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
   
   const canPreview = () => {
-    return isFilePreviewable(document.fileType) || canUseOfficeViewer(document.fileType);
+    if (!document.fileType && !document.name) return false;
+    
+    // Try to determine file type from extension if fileType is not available
+    const fileType = document.fileType || 
+                    document.name.split('.').pop()?.toLowerCase() || '';
+                    
+    return isFilePreviewable(fileType) || canUseOfficeViewer(fileType);
   };
   
   const getPreviewUrl = () => {
     if (!document.url) return '';
     
+    // For debugging - remove in production
+    console.log("Processing URL for preview:", document.url);
+    
+    // Sanitize URL first
+    const sanitizedUrl = sanitizeUrl(document.url);
+    
+    // If this is an Office document, use the Office Online viewer
     if (useOfficeViewer) {
-      return getOfficeViewerUrl(document.url);
+      return getOfficeViewerUrl(sanitizedUrl);
     }
-    return sanitizeDocumentUrl(document.url);
+    
+    return sanitizedUrl;
   };
   
   const renderPreview = () => {
@@ -147,7 +185,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 Download Instead
               </Button>
               {document.url && (
-                <Button variant="outline" onClick={() => window.open(sanitizeDocumentUrl(document.url), '_blank')}>
+                <Button variant="outline" onClick={() => window.open(sanitizeUrl(document.url), '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in New Tab
                 </Button>
@@ -171,14 +209,16 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
     
     // Determine file type from mime type or file extension
-    const fileType = document.fileType.toLowerCase();
+    const fileType = (document.fileType || '').toLowerCase();
+    const fileExtension = document.name.split('.').pop()?.toLowerCase() || '';
     const previewUrl = getPreviewUrl();
     
     console.log("Preview URL:", previewUrl);
     console.log("File type:", fileType);
+    console.log("File extension:", fileExtension);
     
     // PDF preview
-    if (fileType.includes('pdf')) {
+    if (fileType.includes('pdf') || fileExtension === 'pdf') {
       return (
         <iframe 
           src={previewUrl} 
@@ -193,12 +233,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     // Image preview
     else if (
       fileType.includes('image') || 
-      fileType.includes('jpg') || 
-      fileType.includes('jpeg') || 
-      fileType.includes('png') || 
-      fileType.includes('gif') ||
-      fileType.includes('svg') ||
-      fileType.includes('webp') ||
+      fileExtension.match(/jpg|jpeg|png|gif|svg|webp/i) ||
       document.name.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)
     ) {
       return (
@@ -231,10 +266,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return (
         <div className="w-full h-full flex items-center justify-center p-8 text-center">
           <div>
-            {getFileIcon(document.fileType)}
+            {getFileIcon(document.fileType || fileExtension)}
             <h3 className="text-lg font-medium mb-2">Preview not available</h3>
             <p className="text-muted-foreground mb-4">
-              This file type ({document.fileType}) cannot be previewed in the browser.
+              This file type ({document.fileType || fileExtension}) cannot be previewed in the browser.
             </p>
             <div className="flex gap-2 justify-center">
               <Button onClick={handleDownload}>
@@ -242,7 +277,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 Download
               </Button>
               {document.url && (
-                <Button variant="outline" onClick={() => window.open(sanitizeDocumentUrl(document.url), '_blank')}>
+                <Button variant="outline" onClick={() => window.open(sanitizeUrl(document.url), '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in New Tab
                 </Button>
@@ -259,7 +294,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       <DialogContent className="max-w-4xl max-h-[80vh] h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {getFileIcon(document.fileType)}
+            {getFileIcon(document.fileType || '')}
             <span className="truncate">{document.name}</span>
           </DialogTitle>
           <DialogDescription>
@@ -325,7 +360,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                       <Info className="h-4 w-4 mr-2" />
                       File Type
                     </h3>
-                    <p>{document.fileType}</p>
+                    <p>{document.fileType || document.name.split('.').pop()?.toUpperCase() || 'Unknown'}</p>
                   </div>
                   
                   <div>

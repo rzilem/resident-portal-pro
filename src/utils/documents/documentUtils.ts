@@ -76,57 +76,6 @@ export const getMimeTypeFromFileName = (fileName: string): string => {
 };
 
 /**
- * Sanitize the URL to ensure it's valid and safe
- * @param url The URL to sanitize
- * @returns Sanitized URL
- */
-export const sanitizeDocumentUrl = (url: string): string => {
-  if (!url) return '';
-  
-  // Special case for lovable uploads
-  if (url.startsWith('/lovable-uploads/')) {
-    return url;
-  }
-  
-  // Ensure protocol is specified
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
-};
-
-/**
- * Get available document categories
- * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
- */
-export const getDocumentCategories = async (): Promise<{id: string, name: string, parent?: string, description?: string, isRestricted?: boolean, requiredPermission?: string, sortOrder?: number, accessLevel?: import('@/types/documents').DocumentAccessLevel}[]> => {
-  try {
-    // First try to get categories from database
-    // For now, we'll use the imported function from uploadUtils
-    // In a real app, we would implement the DB query here
-    const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
-    const categories = await fetchCategories();
-    
-    // Ensure accessLevel is properly typed as DocumentAccessLevel
-    return categories.map(category => ({
-      ...category,
-      accessLevel: category.accessLevel as import('@/types/documents').DocumentAccessLevel || 'all'
-    }));
-  } catch (error) {
-    console.error('Error fetching document categories:', error);
-    
-    // Return default categories on error
-    return [
-      { id: 'GENERAL', name: 'GENERAL', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'FINANCIAL', name: 'FINANCIAL', accessLevel: 'board' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'LEGAL', name: 'LEGAL', accessLevel: 'management' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'MAINTENANCE', name: 'MAINTENANCE', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' as import('@/types/documents').DocumentAccessLevel }
-    ];
-  }
-};
-
-/**
  * Detect if we can generate an Office Online preview URL
  * @param fileType The file's MIME type or extension
  * @returns Boolean indicating if file can use Office Online viewer
@@ -135,13 +84,16 @@ export const canUseOfficeViewer = (fileType: string): boolean => {
   if (!fileType) return false;
   
   const lowerType = fileType.toLowerCase();
-  
-  return lowerType.includes('word') || 
-         lowerType.includes('doc') || 
-         lowerType.includes('xls') || 
-         lowerType.includes('xlsx') || 
-         lowerType.includes('ppt') || 
-         lowerType.includes('pptx');
+  const isOfficeDocument = 
+    lowerType.includes('word') || 
+    lowerType.includes('doc') || 
+    lowerType.includes('xls') || 
+    lowerType.includes('xlsx') || 
+    lowerType.includes('ppt') || 
+    lowerType.includes('pptx');
+    
+  console.log(`Checking if ${lowerType} can use Office viewer: ${isOfficeDocument}`);
+  return isOfficeDocument;
 };
 
 /**
@@ -152,5 +104,7 @@ export const canUseOfficeViewer = (fileType: string): boolean => {
 export const getOfficeViewerUrl = (fileUrl: string): string => {
   // Ensure the fileUrl is properly encoded
   const encodedFileUrl = encodeURIComponent(fileUrl);
+  console.log(`Creating Office viewer URL for: ${fileUrl}`);
+  console.log(`Encoded URL: ${encodedFileUrl}`);
   return `https://view.officeapps.live.com/op/view.aspx?src=${encodedFileUrl}`;
 };

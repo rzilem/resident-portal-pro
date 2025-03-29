@@ -7,7 +7,9 @@ import {
 
 // Helper function to determine icon based on file name or type
 export const getDocumentIcon = (fileName: string) => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
+  if (!fileName) return <File className="h-5 w-5 text-gray-500" />;
+  
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
   
   switch(extension) {
     case 'pdf':
@@ -23,6 +25,8 @@ export const getDocumentIcon = (fileName: string) => {
     case 'jpeg':
     case 'png':
     case 'gif':
+    case 'webp':
+    case 'svg':
       return <Image className="h-5 w-5 text-purple-500" />;
     case 'html':
     case 'css':
@@ -37,6 +41,7 @@ export const getDocumentIcon = (fileName: string) => {
 
 // Format date for display
 export const formatDate = (dateString: string) => {
+  if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
