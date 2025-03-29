@@ -1,29 +1,61 @@
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface FileUploaderProps {
-  file: File | null;
-  setFile: (file: File | null) => void;
-  disabled: boolean;
+  onFileUpload: (file: File) => void;
+  buttonText?: string;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ file, setFile, disabled }) => {
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setFile(e.target.files[0]);
+const FileUploader: React.FC<FileUploaderProps> = ({ 
+  onFileUpload, 
+  buttonText = 'Upload File' 
+}) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      onFileUpload(file);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-colors">
-      <input
-        type="file"
-        onChange={handleFileChange}
-        disabled={disabled}
-        className="w-full cursor-pointer"
-        id="file-upload"
-      />
-      <label htmlFor="file-upload" className="text-sm text-muted-foreground block mt-2">
-        {file ? file.name : 'Select a file to upload'}
-      </label>
-    </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">{buttonText}</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Upload File</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <Input 
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Button onClick={handleUploadClick}>
+            Select File
+          </Button>
+          {selectedFile && (
+            <div>
+              <p>Selected File: {selectedFile.name}</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
+
+export default FileUploader;
