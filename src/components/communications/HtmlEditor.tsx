@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import EditorToolbar from './editor/EditorToolbar';
@@ -9,6 +9,10 @@ import EditorTabs from './editor/EditorTabs';
 import { TabsContent } from '@/components/ui/tabs';
 import { MergeTag } from '@/types/mergeTags';
 
+export interface HtmlEditorRef {
+  insertAtCursor: (text: string) => void;
+}
+
 interface HtmlEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -16,12 +20,12 @@ interface HtmlEditorProps {
   isTemplate?: boolean;
 }
 
-const HtmlEditor: React.FC<HtmlEditorProps> = ({ 
+const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(({ 
   value, 
   onChange, 
   onSave,
   isTemplate = false 
-}) => {
+}, ref) => {
   const [activeTab, setActiveTab] = useState<'visual' | 'html'>('visual');
   const [currentContent, setCurrentContent] = useState<string>(value);
   const lastSavedContent = useRef<string>(value);
@@ -108,6 +112,20 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({
     handleContentChange(currentContent + ' ' + tag.tag + ' ');
   };
 
+  // Expose the insertAtCursor method to parent components
+  useImperativeHandle(ref, () => ({
+    insertAtCursor: (text: string) => {
+      if (activeTab === 'visual' && visualEditorRef.current) {
+        visualEditorRef.current.insertAtCursor(text);
+      } else if (activeTab === 'html' && htmlEditorRef.current) {
+        htmlEditorRef.current.insertAtCursor(text);
+      } else {
+        // Fallback: append to the end
+        handleContentChange(currentContent + text);
+      }
+    }
+  }));
+
   return (
     <Card className="border overflow-hidden">
       <EditorTabs 
@@ -141,6 +159,8 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({
       </EditorTabs>
     </Card>
   );
-};
+});
+
+HtmlEditor.displayName = 'HtmlEditor';
 
 export default HtmlEditor;

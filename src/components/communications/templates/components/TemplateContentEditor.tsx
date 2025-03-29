@@ -1,10 +1,14 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
-import HtmlEditor from '../../HtmlEditor';
+import HtmlEditor, { HtmlEditorRef } from '../../HtmlEditor';
 import FormatSelector from '../../composer/FormatSelector';
 import { Tags } from 'lucide-react';
 import { MergeTag } from '@/types/mergeTags';
+
+export interface TemplateContentEditorRef {
+  insertAtCursor: (text: string) => void;
+}
 
 interface TemplateContentEditorProps {
   content: string;
@@ -16,7 +20,7 @@ interface TemplateContentEditorProps {
   onInsertMergeTag?: (tag: MergeTag) => void;
 }
 
-const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
+const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateContentEditorProps>(({
   content,
   isHtmlFormat,
   onContentChange,
@@ -24,8 +28,9 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
   onMergeTagsClick,
   onSaveTemplate,
   onInsertMergeTag
-}) => {
-  const htmlEditorRef = useRef<any>(null);
+}, ref) => {
+  const htmlEditorRef = useRef<HtmlEditorRef>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Handle merge tag insertion
   const handleInsertMergeTag = (tag: MergeTag) => {
@@ -33,6 +38,28 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
       onInsertMergeTag(tag);
     }
   };
+
+  // Expose method to parent component to insert at cursor
+  useImperativeHandle(ref, () => ({
+    insertAtCursor: (text: string) => {
+      if (isHtmlFormat && htmlEditorRef.current) {
+        htmlEditorRef.current.insertAtCursor(text);
+      } else if (!isHtmlFormat && textareaRef.current) {
+        const textarea = textareaRef.current;
+        const startPos = textarea.selectionStart;
+        const endPos = textarea.selectionEnd;
+        
+        // Insert the text at the cursor position
+        const newValue = content.substring(0, startPos) + text + content.substring(endPos);
+        onContentChange(newValue);
+        
+        // Set the cursor position after the inserted text
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = startPos + text.length;
+        }, 0);
+      }
+    }
+  }));
 
   return (
     <div className="space-y-4">
@@ -66,6 +93,7 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
         />
       ) : (
         <textarea
+          ref={textareaRef}
           value={content}
           onChange={(e) => onContentChange(e.target.value)}
           className="w-full min-h-[250px] p-4 border rounded-md"
@@ -74,6 +102,8 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
       )}
     </div>
   );
-};
+});
+
+TemplateContentEditor.displayName = 'TemplateContentEditor';
 
 export default TemplateContentEditor;
