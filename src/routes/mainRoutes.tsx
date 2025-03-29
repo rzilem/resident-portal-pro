@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
@@ -77,7 +76,6 @@ export const mainRoutes = [
       </ProtectedRoute>
     ),
   },
-  // Also add a route for /residents/:id to handle legacy links
   {
     path: '/residents/:id',
     element: (

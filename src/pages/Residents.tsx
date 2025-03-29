@@ -325,7 +325,7 @@ const Residents = () => {
                   <Card key={i} className="p-4 border">
                     <div className="flex justify-between items-center mb-2">
                       <Link
-                        to={`/residents/${resident.id}`}
+                        to={`/resident/${resident.id}`}
                         className="font-medium text-primary hover:underline"
                       >
                         {resident.name}
@@ -362,7 +362,7 @@ const Residents = () => {
                         </div>
                       ))}
                     </div>
-                    <Link to={`/residents/${resident.id}`}>
+                    <Link to={`/resident/${resident.id}`}>
                       <Button variant="ghost" size="sm" className="w-full mt-3 justify-between">
                         View Profile <ChevronRight className="h-4 w-4" />
                       </Button>
@@ -398,7 +398,7 @@ const Residents = () => {
                         <TableCell key={column.id}>
                           {column.id === 'name' ? (
                             <Link 
-                              to={`/residents/${resident.id}`} 
+                              to={`/resident/${resident.id}`} 
                               className="text-primary hover:underline hover:text-primary/80 transition-colors"
                             >
                               {resident.name}
@@ -431,7 +431,7 @@ const Residents = () => {
                         </TableCell>
                       ))}
                       <TableCell>
-                        <Link to={`/residents/${resident.id}`}>
+                        <Link to={`/resident/${resident.id}`}>
                           <Button variant="ghost" size="sm">View</Button>
                         </Link>
                       </TableCell>
