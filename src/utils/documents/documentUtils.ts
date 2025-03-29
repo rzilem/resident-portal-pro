@@ -1,4 +1,3 @@
-
 /**
  * Format file size from bytes to human-readable format
  * @param bytes File size in bytes
@@ -22,13 +21,53 @@ export const formatFileSize = (bytes: number): string => {
 export const isFilePreviewable = (fileType: string): boolean => {
   const lowerType = fileType.toLowerCase();
   
-  // Check for previewable file types
+  // Expanded list of previewable file types
   return lowerType.includes('pdf') || 
          lowerType.includes('image') || 
          lowerType.includes('jpg') || 
          lowerType.includes('jpeg') || 
          lowerType.includes('png') || 
-         lowerType.includes('gif');
+         lowerType.includes('gif') ||
+         lowerType.includes('svg') ||
+         lowerType.includes('webp');
+};
+
+/**
+ * Get the MIME type from a file name or extension
+ * @param fileName The file name or extension
+ * @returns The corresponding MIME type
+ */
+export const getMimeTypeFromFileName = (fileName: string): string => {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+  
+  const mimeTypes: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'svg': 'image/svg+xml',
+    'webp': 'image/webp',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'txt': 'text/plain',
+    'csv': 'text/csv',
+    'html': 'text/html',
+    'htm': 'text/html',
+    'json': 'application/json',
+    'xml': 'application/xml',
+    'zip': 'application/zip',
+    'rar': 'application/x-rar-compressed',
+    'mp4': 'video/mp4',
+    'mp3': 'audio/mpeg',
+    'wav': 'audio/wav'
+  };
+  
+  return mimeTypes[extension] || 'application/octet-stream';
 };
 
 /**
@@ -73,4 +112,31 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
       { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' as import('@/types/documents').DocumentAccessLevel }
     ];
   }
+};
+
+/**
+ * Detect if we can generate an Office Online preview URL
+ * @param fileType The file's MIME type or extension
+ * @returns Boolean indicating if file can use Office Online viewer
+ */
+export const canUseOfficeViewer = (fileType: string): boolean => {
+  const lowerType = fileType.toLowerCase();
+  
+  return lowerType.includes('word') || 
+         lowerType.includes('doc') || 
+         lowerType.includes('xls') || 
+         lowerType.includes('xlsx') || 
+         lowerType.includes('ppt') || 
+         lowerType.includes('pptx');
+};
+
+/**
+ * Generate an Office Online viewer URL
+ * @param fileUrl The URL of the file
+ * @returns Office Online viewer URL
+ */
+export const getOfficeViewerUrl = (fileUrl: string): string => {
+  // Ensure the fileUrl is properly encoded
+  const encodedFileUrl = encodeURIComponent(fileUrl);
+  return `https://view.officeapps.live.com/op/view.aspx?src=${encodedFileUrl}`;
 };

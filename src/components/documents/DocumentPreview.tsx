@@ -5,9 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Download, FileText, Calendar, User, Clock, Tag, Info, ExternalLink, AlertTriangle } from 'lucide-react';
+import { 
+  Eye, Download, FileText, Calendar, User, Clock, Tag, Info, 
+  ExternalLink, AlertTriangle, FileSpreadsheet, FileImage, FileCode, FilePpt 
+} from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
-import { formatFileSize, isFilePreviewable } from '@/utils/documents/documentUtils';
+import { 
+  formatFileSize, 
+  isFilePreviewable, 
+  getMimeTypeFromFileName, 
+  canUseOfficeViewer, 
+  getOfficeViewerUrl,
+  sanitizeDocumentUrl 
+} from '@/utils/documents/documentUtils';
 import { toast } from 'sonner';
 
 interface DocumentPreviewProps {
@@ -24,12 +34,17 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [activeTab, setActiveTab] = useState('preview');
   const [isLoading, setIsLoading] = useState(true);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [useOfficeViewer, setUseOfficeViewer] = useState(false);
   
   // Reset loading state when document changes
   useEffect(() => {
     if (document) {
       setIsLoading(true);
       setPreviewError(null);
+      
+      // Check if we should use Office viewer
+      const shouldUseOfficeViewer = document.fileType && canUseOfficeViewer(document.fileType);
+      setUseOfficeViewer(shouldUseOfficeViewer);
     }
   }, [document]);
   
@@ -76,13 +91,38 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     setPreviewError(null);
   };
   
+  const getFileIcon = (fileType: string) => {
+    const lowerType = fileType.toLowerCase();
+    
+    if (lowerType.includes('pdf')) {
+      return <FileText className="h-16 w-16 text-red-500" />;
+    } else if (lowerType.includes('xls') || lowerType.includes('csv') || lowerType.includes('sheet')) {
+      return <FileSpreadsheet className="h-16 w-16 text-green-500" />;
+    } else if (lowerType.includes('doc') || lowerType.includes('word')) {
+      return <FileText className="h-16 w-16 text-blue-500" />;
+    } else if (lowerType.includes('ppt') || lowerType.includes('presentation')) {
+      return <FilePpt className="h-16 w-16 text-orange-500" />;
+    } else if (lowerType.includes('image') || lowerType.includes('png') || lowerType.includes('jpg') || lowerType.includes('jpeg') || lowerType.includes('gif')) {
+      return <FileImage className="h-16 w-16 text-purple-500" />;
+    } else if (lowerType.includes('html') || lowerType.includes('xml') || lowerType.includes('json')) {
+      return <FileCode className="h-16 w-16 text-gray-500" />;
+    } else {
+      return <FileText className="h-16 w-16 text-gray-500" />;
+    }
+  };
+  
   const canPreview = () => {
-    return isFilePreviewable(document.fileType);
+    return isFilePreviewable(document.fileType) || canUseOfficeViewer(document.fileType);
+  };
+  
+  const getPreviewUrl = () => {
+    if (useOfficeViewer) {
+      return getOfficeViewerUrl(document.url);
+    }
+    return document.url;
   };
   
   const renderPreview = () => {
-    const fileType = document.fileType.toLowerCase();
-    
     if (isLoading) {
       return (
         <div className="w-full h-full flex items-center justify-center">
@@ -98,36 +138,52 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             <AlertTriangle className="h-16 w-16 mx-auto text-destructive mb-4" />
             <h3 className="text-lg font-medium mb-2">Preview Error</h3>
             <p className="text-muted-foreground mb-4">{previewError}</p>
-            <Button onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              Download Instead
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={handleDownload}>
+                <Download className="h-4 w-4 mr-2" />
+                Download Instead
+              </Button>
+              {document.url && (
+                <Button variant="outline" onClick={() => window.open(document.url, '_blank')}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open in New Tab
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       );
     }
     
+    const fileType = document.fileType.toLowerCase();
+    
+    // PDF preview
     if (fileType.includes('pdf')) {
       return (
         <iframe 
-          src={document.url} 
+          src={getPreviewUrl()} 
           className="w-full h-full" 
           title={document.name}
           onLoad={handleLoadSuccess}
           onError={handleLoadError}
+          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
-    } else if (
+    } 
+    // Image preview
+    else if (
       fileType.includes('image') || 
       fileType.includes('jpg') || 
       fileType.includes('jpeg') || 
       fileType.includes('png') || 
-      fileType.includes('gif')
+      fileType.includes('gif') ||
+      fileType.includes('svg') ||
+      fileType.includes('webp')
     ) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-background/50">
           <img 
-            src={document.url} 
+            src={getPreviewUrl()} 
             alt={document.name} 
             className="max-w-full max-h-full object-contain"
             onLoad={handleLoadSuccess}
@@ -135,14 +191,29 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           />
         </div>
       );
-    } else {
+    }
+    // Office documents (Word, Excel, PowerPoint)
+    else if (useOfficeViewer) {
+      return (
+        <iframe 
+          src={getPreviewUrl()} 
+          className="w-full h-full" 
+          title={document.name}
+          onLoad={handleLoadSuccess}
+          onError={handleLoadError}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+      );
+    }
+    // No preview available
+    else {
       return (
         <div className="w-full h-full flex items-center justify-center p-8 text-center">
           <div>
-            <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            {getFileIcon(document.fileType)}
             <h3 className="text-lg font-medium mb-2">Preview not available</h3>
             <p className="text-muted-foreground mb-4">
-              This file type cannot be previewed in the browser.
+              This file type ({document.fileType}) cannot be previewed in the browser.
             </p>
             <div className="flex gap-2 justify-center">
               <Button onClick={handleDownload}>
@@ -164,10 +235,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[80vh] h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+            {getFileIcon(document.fileType)}
             {document.name}
           </DialogTitle>
           <DialogDescription>

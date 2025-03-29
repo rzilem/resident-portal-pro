@@ -25,11 +25,29 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
     onClose();
   };
 
+  // Apply appropriate styling for iframe content
+  const getIframeStyle = () => {
+    return `
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.5;
+        color: #333;
+        margin: 0;
+        padding: 16px;
+        background-color: white;
+      }
+      img { max-width: 100%; height: auto; }
+      table { border-collapse: collapse; width: 100%; }
+      td, th { border: 1px solid #ddd; padding: 8px; }
+      a { color: #0284c7; text-decoration: underline; }
+    `;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) onClose();
     }}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{template.name} - Preview</DialogTitle>
           <DialogDescription>
@@ -37,8 +55,19 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="border rounded-md p-4 my-4 bg-white">
-          <div dangerouslySetInnerHTML={{ __html: template.content || '' }} />
+        <div className="border rounded-md flex-1 overflow-hidden my-4">
+          <iframe
+            srcDoc={`<!DOCTYPE html>
+              <html>
+                <head>
+                  <style>${getIframeStyle()}</style>
+                </head>
+                <body>${template.content || '<p>No content available</p>'}</body>
+              </html>`}
+            className="w-full h-[500px]"
+            title="Template Preview"
+            sandbox="allow-same-origin"
+          />
         </div>
         
         <DialogFooter>

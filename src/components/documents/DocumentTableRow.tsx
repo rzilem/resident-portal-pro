@@ -47,6 +47,14 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
     onDownload(doc);
   };
 
+  const handleView = () => {
+    onView({
+      ...doc,
+      // Ensure we have a fileType property
+      fileType: doc.fileType || doc.name.split('.').pop() || ''
+    });
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -83,7 +91,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
             variant="ghost" 
             size="icon" 
             title="View"
-            onClick={() => onView(doc)}
+            onClick={handleView}
           >
             <Eye className="h-4 w-4" />
           </Button>
