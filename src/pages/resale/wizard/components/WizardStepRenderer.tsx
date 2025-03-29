@@ -26,6 +26,12 @@ const WizardStepRenderer: React.FC<WizardStepRendererProps> = ({
   handleSelectVendors,
   updateFormData,
 }) => {
+  // Filter questions based on conditional logic
+  const visibleQuestions = questions.filter(question => {
+    if (!question.conditionalShow) return true;
+    return question.conditionalShow(formData.answers);
+  });
+  
   // Type selection step
   if (currentStep === 0) {
     return (
@@ -37,8 +43,8 @@ const WizardStepRenderer: React.FC<WizardStepRendererProps> = ({
   }
   
   // Question steps
-  if (currentStep > 0 && currentStep <= questions.length) {
-    const currentQuestion = questions[currentStep - 1];
+  if (currentStep > 0 && currentStep <= visibleQuestions.length) {
+    const currentQuestion = visibleQuestions[currentStep - 1];
     return (
       <QuestionSlide 
         question={currentQuestion} 
@@ -49,17 +55,17 @@ const WizardStepRenderer: React.FC<WizardStepRendererProps> = ({
   }
   
   // Summary step
-  if (currentStep === questions.length + 1) {
+  if (currentStep === visibleQuestions.length + 1) {
     return (
       <SummarySlide 
         formData={formData} 
-        questions={questions} 
+        questions={visibleQuestions} 
       />
     );
   }
   
   // Vendor selection step
-  if (currentStep === questions.length + 2) {
+  if (currentStep === visibleQuestions.length + 2) {
     return (
       <VendorSelectionSlide 
         selectedVendors={formData.vendors} 
@@ -69,7 +75,7 @@ const WizardStepRenderer: React.FC<WizardStepRendererProps> = ({
   }
   
   // Details step
-  if (currentStep === questions.length + 3) {
+  if (currentStep === visibleQuestions.length + 3) {
     return (
       <BidRequestDetails
         dueDate={formData.dueDate}

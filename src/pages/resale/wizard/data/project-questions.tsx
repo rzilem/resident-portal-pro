@@ -9,6 +9,9 @@ import { ROOFING_QUESTIONS } from './questions/facility/roofing-questions';
 import { HVAC_QUESTIONS } from './questions/system/hvac-questions';
 import { PLUMBING_QUESTIONS } from './questions/system/plumbing-questions';
 import { LANDSCAPING_QUESTIONS } from './questions/maintenance/landscaping-questions';
+import { WINDOW_QUESTIONS } from './questions/maintenance/window-questions';
+import { TRASH_QUESTIONS } from './questions/maintenance/trash-questions';
+import { SPORTS_COURT_QUESTIONS } from './questions/maintenance/sports-court-questions';
 import { MISC_QUESTIONS } from './questions/misc/misc-questions';
 
 // Combine all questions from different categories
@@ -20,5 +23,8 @@ export const PROJECT_QUESTIONS: ProjectTypeQuestions = {
   ...HVAC_QUESTIONS,
   ...PLUMBING_QUESTIONS,
   ...LANDSCAPING_QUESTIONS,
+  ...WINDOW_QUESTIONS,
+  ...TRASH_QUESTIONS,
+  ...SPORTS_COURT_QUESTIONS,
   ...MISC_QUESTIONS
 };

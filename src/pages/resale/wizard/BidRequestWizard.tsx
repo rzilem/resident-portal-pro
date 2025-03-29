@@ -23,12 +23,18 @@ const BidRequestWizard: React.FC = () => {
 
   // Get questions for the selected project type
   const selectedType = PROJECT_TYPES.find(type => type.id === formData.projectType);
-  const questions = selectedType ? PROJECT_QUESTIONS[selectedType.id] || [] : [];
+  const allQuestions = selectedType ? PROJECT_QUESTIONS[selectedType.id] || [] : [];
+  
+  // Filter questions based on conditional logic
+  const visibleQuestions = allQuestions.filter(question => {
+    if (!question.conditionalShow) return true;
+    return question.conditionalShow(formData.answers);
+  });
 
   // Calculate total steps and step states
-  const totalSteps = questions.length + 4; // type selection + questions + summary + vendors + details
+  const totalSteps = visibleQuestions.length + 4; // type selection + questions + summary + vendors + details
   const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === questions.length + 3;
+  const isLastStep = currentStep === visibleQuestions.length + 3;
   const disableNext = isFirstStep && !formData.projectType;
 
   return (
@@ -48,7 +54,7 @@ const BidRequestWizard: React.FC = () => {
         <CardContent className="pt-6">
           <WizardStepRenderer 
             currentStep={currentStep}
-            questions={questions}
+            questions={allQuestions}
             formData={formData}
             handleSelectType={handleSelectType}
             handleAnswerQuestion={handleAnswerQuestion}

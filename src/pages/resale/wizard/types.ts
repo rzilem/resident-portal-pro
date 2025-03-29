@@ -8,12 +8,19 @@ export interface ProjectType {
   icon: LucideIcon;
 }
 
+export interface ImageOption {
+  label: string;
+  value: string;
+  image: string;
+}
+
 export interface Question {
   id: string;
   text: string;
-  type: 'radio' | 'text' | 'textarea' | 'number' | 'checkbox';
-  options?: string[];
+  type: 'radio' | 'text' | 'textarea' | 'number' | 'checkbox' | 'date';
+  options?: string[] | ImageOption[];
   required?: boolean;
+  conditionalShow?: (answers: Record<string, any>) => boolean;
 }
 
 export interface ProjectTypeQuestions {

@@ -14,7 +14,41 @@ export const ROOFING_QUESTIONS: ProjectTypeQuestions = {
       id: 'roofType',
       text: 'What type of roofing material is preferred?',
       type: 'radio',
-      options: ['Shingle', 'Metal', 'Tile', 'Flat/Membrane', 'Other'],
+      options: [
+        {
+          label: 'Asphalt Shingles',
+          value: 'Asphalt Shingles',
+          image: '/public/lovable-uploads/shingle-roof.jpg'
+        },
+        {
+          label: 'TPO',
+          value: 'TPO',
+          image: '/public/lovable-uploads/tpo-roof.jpg'
+        },
+        {
+          label: 'Metal',
+          value: 'Metal',
+          image: '/public/lovable-uploads/metal-roof.jpg'
+        },
+        {
+          label: 'Tile Roof',
+          value: 'Tile Roof',
+          image: '/public/lovable-uploads/tile-roof.jpg'
+        }
+      ],
+      required: true,
+    },
+    {
+      id: 'isBudgeted',
+      text: 'Budgeted item?',
+      type: 'radio',
+      options: ['Yes', 'No'],
+      required: false,
+    },
+    {
+      id: 'bidDueDate',
+      text: 'Bid needed by',
+      type: 'date',
       required: true,
     },
     {
