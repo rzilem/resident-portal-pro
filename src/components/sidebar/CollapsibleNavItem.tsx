@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { NavItem } from "@/data/navigation";
-import { isPathActive } from "@/data/navigation/utils";
 import React from 'react';
 
 interface CollapsibleNavItemProps {
@@ -17,14 +16,7 @@ interface CollapsibleNavItemProps {
 
 export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavItemProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const Icon = item.icon;
-
-  // Check if any child items are active or the parent itself is active
-  const isParentActive = item.href ? isPathActive(item.href, location.pathname) : false;
-  const isAnyChildActive = item.items?.some(subItem => 
-    subItem.href ? isPathActive(subItem.href, location.pathname) : false
-  ) || false;
 
   // Handle navigation to the default page of the section
   const handleNavigate = (href: string) => {
@@ -54,8 +46,8 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           <Button
             variant="default"
             className={cn(
-              "flex-1 justify-start",
-              (isParentActive || isAnyChildActive) ? "bg-accent text-accent-foreground font-medium" : "font-normal"
+              "flex-1 justify-start font-normal",
+              item.active ? "font-medium" : "font-normal"
             )}
             onClick={() => item.href && handleNavigate(item.href)}
           >
@@ -88,17 +80,15 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           <SidebarMenu>
             {item.items?.map((subItem) => {
               const SubIcon = subItem.icon;
-              const isActive = subItem.href ? isPathActive(subItem.href, location.pathname) : false;
-              
               return (
                 <SidebarMenuItem key={subItem.label}>
                   <SidebarMenuButton
                     variant="default"
                     className={cn(
                       "w-full justify-start text-sm px-2 py-1.5 h-8",
-                      isActive ? "bg-accent" : "hover:bg-accent/50"
+                      subItem.active ? "bg-accent" : "hover:bg-accent/50"
                     )}
-                    onClick={() => handleChildClick(subItem.href || '')}
+                    onClick={() => handleChildClick(subItem.href)}
                   >
                     {subItem.icon && <span className="mr-2"><SubIcon className="h-4 w-4" /></span>}
                     {subItem.label}

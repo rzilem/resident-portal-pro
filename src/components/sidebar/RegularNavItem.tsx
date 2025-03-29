@@ -6,9 +6,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from "@/components/ui/sidebar";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { NavItem } from "@/data/navigation";
-import { isPathActive } from "@/data/navigation/utils";
 
 interface RegularNavItemProps {
   item: NavItem;
@@ -16,11 +15,7 @@ interface RegularNavItemProps {
 
 export function RegularNavItem({ item }: RegularNavItemProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const Icon = item.icon;
-  
-  // Check if current path is active
-  const active = item.href ? isPathActive(item.href, location.pathname) : false;
 
   return (
     <SidebarMenu>
@@ -29,11 +24,11 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
           variant="default"
           className={cn(
             "w-full justify-start",
-            active ? "bg-accent text-accent-foreground font-medium" : "font-normal"
+            item.active ? "font-medium" : "font-normal"
           )}
           onClick={() => item.href && navigate(item.href)}
         >
-          {item.icon && <Icon className={cn("h-4 w-4 mr-2", active && "text-accent-foreground")} />}
+          {item.icon && <Icon className="h-4 w-4 mr-2" />}
           {item.label}
         </SidebarMenuButton>
       </SidebarMenuItem>

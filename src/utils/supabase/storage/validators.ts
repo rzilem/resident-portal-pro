@@ -2,34 +2,29 @@
 import { toast } from "sonner";
 
 /**
- * Validates file type against allowed types
- * @param file The file to validate
- * @param allowedTypes Array of mime type prefixes (e.g. ['image/', 'application/pdf'])
- * @returns Boolean indicating if the file type is valid
+ * Validate file size
+ * @param file File to validate
+ * @param maxSizeMB Maximum file size in MB
+ * @returns True if valid, false otherwise
  */
-export const validateFileType = (file: File, allowedTypes: string[]): boolean => {
-  const isValid = allowedTypes.some(type => file.type.startsWith(type));
-  
-  if (!isValid) {
-    toast.error(`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
+export const validateFileSize = (file: File, maxSizeMB: number): boolean => {
+  if (file.size > maxSizeMB * 1024 * 1024) {
+    toast.error(`File is too large. Maximum size is ${maxSizeMB}MB.`);
+    return false;
   }
-  
-  return isValid;
+  return true;
 };
 
 /**
- * Validates file size against maximum size in MB
- * @param file The file to validate
- * @param maxSizeMB Maximum file size in megabytes
- * @returns Boolean indicating if the file size is valid
+ * Validate file type
+ * @param file File to validate
+ * @param allowedTypes Array of allowed MIME type prefixes (e.g. ['image/', 'application/pdf'])
+ * @returns True if valid, false otherwise
  */
-export const validateFileSize = (file: File, maxSizeMB: number): boolean => {
-  const maxSizeBytes = maxSizeMB * 1024 * 1024;
-  const isValid = file.size <= maxSizeBytes;
-  
-  if (!isValid) {
-    toast.error(`File size exceeds the maximum limit of ${maxSizeMB}MB`);
+export const validateFileType = (file: File, allowedTypes: string[] = ['image/']): boolean => {
+  if (!allowedTypes.some(type => file.type.startsWith(type))) {
+    toast.error(`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
+    return false;
   }
-  
-  return isValid;
+  return true;
 };

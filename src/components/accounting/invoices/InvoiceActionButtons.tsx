@@ -10,12 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 const InvoiceActionButtons = () => {
   const handleExport = (format: string) => {
-    toast(`Invoices are being exported to ${format.toUpperCase()} format.`, {
-      description: "Your export will be available shortly."
+    toast({
+      title: "Export initiated",
+      description: `Invoices are being exported to ${format.toUpperCase()} format.`
     });
   };
   
@@ -59,12 +60,12 @@ const InvoiceActionButtons = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => toast("Importing from file", { description: "Please wait while your file is being processed." })}>
+          <DropdownMenuItem onClick={() => toast({ title: "Import from file" })}>
             <Upload className="h-4 w-4 mr-2" />
             Import from file
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => toast("Template download initiated", { description: "Your template is being downloaded." })}>
+          <DropdownMenuItem onClick={() => toast({ title: "Template download initiated" })}>
             <Download className="h-4 w-4 mr-2" />
             Download Template
           </DropdownMenuItem>
@@ -75,7 +76,7 @@ const InvoiceActionButtons = () => {
         variant="outline" 
         size="sm" 
         className="gap-1"
-        onClick={() => toast("Print queue initiated", { description: "Preparing invoices for printing..." })}
+        onClick={() => toast({ title: "Print queue initiated", description: "Preparing invoices for printing..." })}
       >
         <Printer className="h-4 w-4" />
         Print

@@ -5,28 +5,16 @@ import { Download, Upload } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import { useAuth } from '@/contexts/auth/AuthProvider';
-import { toast } from 'sonner';
 
 const DocumentActionButtons: React.FC = () => {
   const isMobile = useIsMobile();
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { isAuthenticated } = useAuth();
   
-  const handleDownload = () => {
-    toast("Downloading document", {
-      description: "Your document is being prepared for download."
-    });
-  };
-  
   return (
     <>
       <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1"
-          onClick={handleDownload}
-        >
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
           <Download size={16} />
           {!isMobile && <span>Download</span>}
         </Button>
