@@ -24,15 +24,15 @@ export async function getBidRequests(): Promise<BidRequest[]> {
       id: item.id,
       project_type: item.project_type,
       status: item.status,
-      property_id: item.property_id,
-      title: item.title,
-      description: item.description,
-      notes: item.notes,
-      budget: item.budget,
-      due_date: item.due_date,
+      property_id: item.property_id || undefined,
+      title: item.title || undefined,
+      description: item.description || undefined,
+      notes: item.notes || undefined,
+      budget: item.budget || undefined,
+      due_date: item.due_date || undefined,
       created_at: item.created_at,
       updated_at: item.updated_at,
-      user_id: item.user_id,
+      user_id: item.user_id || undefined,
       answers: typeof item.answers === 'string' 
         ? JSON.parse(item.answers) 
         : item.answers
@@ -66,15 +66,15 @@ export async function getBidRequestById(id: string): Promise<BidRequest | null> 
       id: data.id,
       project_type: data.project_type,
       status: data.status,
-      property_id: data.property_id,
-      title: data.title,
-      description: data.description,
-      notes: data.notes,
-      budget: data.budget,
-      due_date: data.due_date,
+      property_id: data.property_id || undefined,
+      title: data.title || undefined,
+      description: data.description || undefined,
+      notes: data.notes || undefined,
+      budget: data.budget || undefined,
+      due_date: data.due_date || undefined,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      user_id: data.user_id,
+      user_id: data.user_id || undefined,
       answers: typeof data.answers === 'string'
         ? JSON.parse(data.answers)
         : data.answers
@@ -107,16 +107,16 @@ export async function getBidRequestVendors(bidRequestId: string): Promise<BidReq
       bid_request_id: item.bid_request_id,
       vendor_id: item.vendor_id,
       vendor_name: item.vendor_name || '',
-      price: item.price,
-      bid_amount: item.bid_amount,
-      vendor_notes: item.vendor_notes,
-      response_notes: item.response_notes,
-      documents: item.documents,
+      price: item.price || undefined,
+      bid_amount: item.bid_amount || undefined,
+      vendor_notes: item.vendor_notes || undefined,
+      response_notes: item.response_notes || undefined,
+      documents: item.documents || [],
       status: item.status,
       created_at: item.created_at,
-      updated_at: item.updated_at,
-      response_date: item.response_date,
-      estimated_completion_date: item.estimated_completion_date
+      updated_at: item.updated_at || undefined,
+      response_date: item.response_date || undefined,
+      estimated_completion_date: item.estimated_completion_date || undefined
     }));
   } catch (error) {
     console.error('Unexpected error fetching bid request vendors:', error);
