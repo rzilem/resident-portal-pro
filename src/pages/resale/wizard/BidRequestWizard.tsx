@@ -2,14 +2,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PROJECT_TYPES, PROJECT_QUESTIONS } from './bid-request-data';
-import ProjectTypeSlide from './slides/ProjectTypeSlide';
-import QuestionSlide from './slides/QuestionSlide';
-import SummarySlide from './slides/SummarySlide';
-import VendorSelectionSlide from './slides/VendorSelectionSlide';
 import { WizardProgress } from './components/WizardProgress';
 import { useBidRequestWizard } from './hooks/useBidRequestWizard';
 import WizardNavigation from './components/WizardNavigation';
-import BidRequestDetails from './components/BidRequestDetails';
+import WizardStepRenderer from './components/WizardStepRenderer';
 
 const BidRequestWizard: React.FC = () => {
   const {
@@ -25,20 +21,15 @@ const BidRequestWizard: React.FC = () => {
     handleSubmit
   } = useBidRequestWizard();
 
+  // Get questions for the selected project type
   const selectedType = PROJECT_TYPES.find(type => type.id === formData.projectType);
   const questions = selectedType ? PROJECT_QUESTIONS[selectedType.id] || [] : [];
 
-  // Current question based on the step
-  const currentQuestion = questions[currentStep - 1];
-
-  const isFirstStep = currentStep === 0;
-  const isQuestionStep = currentStep > 0 && currentStep <= questions.length;
-  const isSummaryStep = currentStep === questions.length + 1;
-  const isVendorStep = currentStep === questions.length + 2;
-  const isDetailsStep = currentStep === questions.length + 3;
-  const isLastStep = currentStep === questions.length + 3;
-
+  // Calculate total steps and step states
   const totalSteps = questions.length + 4; // type selection + questions + summary + vendors + details
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === questions.length + 3;
+  const disableNext = isFirstStep && !formData.projectType;
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
@@ -55,43 +46,15 @@ const BidRequestWizard: React.FC = () => {
 
       <Card className="mb-6">
         <CardContent className="pt-6">
-          {isFirstStep && (
-            <ProjectTypeSlide 
-              selectedType={formData.projectType} 
-              onSelect={handleSelectType} 
-            />
-          )}
-
-          {isQuestionStep && currentQuestion && (
-            <QuestionSlide 
-              question={currentQuestion} 
-              answer={formData.answers[currentQuestion.id]} 
-              onAnswer={(answer) => handleAnswerQuestion(answer, currentQuestion.id)} 
-            />
-          )}
-
-          {isSummaryStep && (
-            <SummarySlide 
-              formData={formData} 
-              questions={questions} 
-            />
-          )}
-
-          {isVendorStep && (
-            <VendorSelectionSlide 
-              selectedVendors={formData.vendors} 
-              onSelectVendors={handleSelectVendors} 
-            />
-          )}
-
-          {isDetailsStep && (
-            <BidRequestDetails
-              dueDate={formData.dueDate}
-              notes={formData.notes}
-              onUpdateDueDate={(date) => updateFormData('dueDate', date)}
-              onUpdateNotes={(notes) => updateFormData('notes', notes)}
-            />
-          )}
+          <WizardStepRenderer 
+            currentStep={currentStep}
+            questions={questions}
+            formData={formData}
+            handleSelectType={handleSelectType}
+            handleAnswerQuestion={handleAnswerQuestion}
+            handleSelectVendors={handleSelectVendors}
+            updateFormData={updateFormData}
+          />
         </CardContent>
       </Card>
 
@@ -103,7 +66,7 @@ const BidRequestWizard: React.FC = () => {
         onNext={handleNext}
         onSubmit={handleSubmit}
         submitting={submitting}
-        disableNext={isFirstStep && !formData.projectType}
+        disableNext={disableNext}
       />
     </div>
   );
