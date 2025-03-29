@@ -87,7 +87,7 @@ const QuestionSlide: React.FC<QuestionSlideProps> = ({
                     >
                       <div className="w-full h-48 overflow-hidden rounded-md mb-3">
                         <img 
-                          src={option.image} 
+                          src="/lovable-uploads/4210bfbe-69f1-4ffc-8a52-4bff55f3dd71.png" 
                           alt={option.label}
                           className="w-full h-full object-cover transition-all duration-300 hover:scale-105" 
                         />
