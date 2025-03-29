@@ -7,6 +7,7 @@ import VisualEditor from './editor/VisualEditor';
 import HtmlSourceEditor from './editor/HtmlSourceEditor';
 import EditorTabs from './editor/EditorTabs';
 import { TabsContent } from '@/components/ui/tabs';
+import { MergeTag } from '@/types/mergeTags';
 
 interface HtmlEditorProps {
   value: string;
@@ -25,6 +26,8 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({
   const [currentContent, setCurrentContent] = useState<string>(value);
   const lastSavedContent = useRef<string>(value);
   const hasUnsavedChanges = currentContent !== lastSavedContent.current;
+  const visualEditorRef = useRef<any>(null);
+  const htmlEditorRef = useRef<any>(null);
 
   // Update content when value prop changes (from parent)
   useEffect(() => {
@@ -85,6 +88,26 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({
     }
   };
 
+  // Function to insert merge tag
+  const insertMergeTag = (tag: MergeTag) => {
+    if (activeTab === 'visual') {
+      // If we have a reference to the visual editor, use it to insert at cursor
+      if (visualEditorRef.current) {
+        visualEditorRef.current.insertAtCursor(tag.tag);
+        return;
+      }
+    } else {
+      // If we have a reference to the HTML editor, use it to insert at cursor
+      if (htmlEditorRef.current) {
+        htmlEditorRef.current.insertAtCursor(tag.tag);
+        return;
+      }
+    }
+    
+    // Fallback: just append to the end if we can't determine cursor position
+    handleContentChange(currentContent + ' ' + tag.tag + ' ');
+  };
+
   return (
     <Card className="border overflow-hidden">
       <EditorTabs 
@@ -103,14 +126,16 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({
         <TabsContent value="visual" className="p-0">
           <VisualEditor 
             value={currentContent} 
-            onUpdate={handleContentChange} 
+            onUpdate={handleContentChange}
+            ref={visualEditorRef}
           />
         </TabsContent>
         
         <TabsContent value="html" className="p-0">
           <HtmlSourceEditor 
             value={currentContent} 
-            onChange={handleContentChange} 
+            onChange={handleContentChange}
+            ref={htmlEditorRef}
           />
         </TabsContent>
       </EditorTabs>

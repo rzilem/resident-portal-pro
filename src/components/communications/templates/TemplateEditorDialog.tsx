@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -30,6 +30,8 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
   const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [initialTemplate, setInitialTemplate] = useState<TemplateFormState | null>(null);
+  const htmlEditorRef = useRef<any>(null);
+  const activeElementRef = useRef<Element | null>(null);
 
   // Track changes when the dialog opens or template changes
   useEffect(() => {
@@ -38,6 +40,12 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
       setHasUnsavedChanges(false);
     }
   }, [isOpen, template, initialTemplate]);
+
+  // Save the active element when the merge tags dialog opens
+  const handleOpenMergeTagsDialog = () => {
+    activeElementRef.current = document.activeElement;
+    setIsMergeTagsDialogOpen(true);
+  };
 
   // Check for unsaved changes before closing
   const handleClose = () => {
@@ -124,18 +132,64 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
   };
 
   const handleInsertMergeTag = (tag: MergeTag) => {
-    const activeElement = document.activeElement;
+    const activeElement = activeElementRef.current;
     const subjectInput = document.getElementById('template-subject');
     
+    // Check if the subject field was active when dialog opened
     if (activeElement === subjectInput) {
       const cursorPosition = (activeElement as HTMLInputElement).selectionStart || 0;
       const newSubject = template.subject.substring(0, cursorPosition) + 
                           tag.tag + 
                           template.subject.substring(cursorPosition);
       setTemplate.setSubject(newSubject);
+      
+      // Restore focus and set cursor position after inserted tag
+      setTimeout(() => {
+        if (subjectInput) {
+          (subjectInput as HTMLInputElement).focus();
+          (subjectInput as HTMLInputElement).selectionStart = 
+          (subjectInput as HTMLInputElement).selectionEnd = cursorPosition + tag.tag.length;
+        }
+      }, 0);
+    } else if (template.isHtmlFormat) {
+      // We're in the HTML editor, find the right reference and insert at cursor
+      const htmlEditor = document.querySelector('[contenteditable=true]');
+      if (htmlEditor) {
+        // Focus the editor first to ensure selection is available
+        htmlEditor.focus();
+        
+        // Use the command API to insert at current selection
+        document.execCommand('insertText', false, tag.tag);
+        
+        // Make sure content is updated
+        const updatedContent = htmlEditor.innerHTML;
+        handleContentChange(updatedContent);
+      } else {
+        // Fallback: just append to the content
+        handleContentChange(template.content + ' ' + tag.tag + ' ');
+      }
     } else {
-      setTemplate.setContent(template.content + ' ' + tag.tag + ' ');
+      // Plain text editor - find textarea and insert at cursor
+      const textarea = document.querySelector('textarea');
+      if (textarea && textarea !== subjectInput) {
+        const cursorPosition = textarea.selectionStart || 0;
+        const newContent = template.content.substring(0, cursorPosition) + 
+                            tag.tag + 
+                            template.content.substring(cursorPosition);
+        
+        handleContentChange(newContent);
+        
+        // Set cursor position after inserted tag
+        setTimeout(() => {
+          textarea.focus();
+          textarea.selectionStart = textarea.selectionEnd = cursorPosition + tag.tag.length;
+        }, 0);
+      } else {
+        // Fallback: just append to the content
+        handleContentChange(template.content + ' ' + tag.tag + ' ');
+      }
     }
+    
     setIsMergeTagsDialogOpen(false);
     setHasUnsavedChanges(true);
   };
@@ -161,7 +215,7 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
               onDescriptionChange={handleDescriptionChange}
               onSubjectChange={handleSubjectChange}
               onCategoryChange={handleCategoryChange}
-              onMergeTagsClick={() => setIsMergeTagsDialogOpen(true)}
+              onMergeTagsClick={handleOpenMergeTagsDialog}
             />
             
             <CommunitiesSelector 
@@ -174,8 +228,9 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
               isHtmlFormat={template.isHtmlFormat}
               onContentChange={handleContentChange}
               onFormatChange={handleFormatChange}
-              onMergeTagsClick={() => setIsMergeTagsDialogOpen(true)}
+              onMergeTagsClick={handleOpenMergeTagsDialog}
               onSaveTemplate={handleSaveTemplate}
+              onInsertMergeTag={handleInsertMergeTag}
             />
           </div>
           

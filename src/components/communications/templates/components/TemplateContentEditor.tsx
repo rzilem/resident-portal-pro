@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import HtmlEditor from '../../HtmlEditor';
 import FormatSelector from '../../composer/FormatSelector';
 import { Tags } from 'lucide-react';
+import { MergeTag } from '@/types/mergeTags';
 
 interface TemplateContentEditorProps {
   content: string;
@@ -12,6 +13,7 @@ interface TemplateContentEditorProps {
   onFormatChange: (isHtml: boolean) => void;
   onMergeTagsClick: () => void;
   onSaveTemplate?: () => void;
+  onInsertMergeTag?: (tag: MergeTag) => void;
 }
 
 const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
@@ -20,8 +22,18 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
   onContentChange,
   onFormatChange,
   onMergeTagsClick,
-  onSaveTemplate
+  onSaveTemplate,
+  onInsertMergeTag
 }) => {
+  const htmlEditorRef = useRef<any>(null);
+
+  // Handle merge tag insertion
+  const handleInsertMergeTag = (tag: MergeTag) => {
+    if (onInsertMergeTag) {
+      onInsertMergeTag(tag);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -50,6 +62,7 @@ const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
           onChange={onContentChange}
           onSave={onSaveTemplate}
           isTemplate={true}
+          ref={htmlEditorRef}
         />
       ) : (
         <textarea
