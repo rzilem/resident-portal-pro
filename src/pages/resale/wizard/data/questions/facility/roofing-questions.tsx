@@ -1,4 +1,3 @@
-
 import { ProjectTypeQuestions } from '../../../types';
 
 export const ROOFING_QUESTIONS: ProjectTypeQuestions = {
@@ -18,22 +17,17 @@ export const ROOFING_QUESTIONS: ProjectTypeQuestions = {
         {
           label: 'Asphalt Shingles',
           value: 'Asphalt Shingles',
-          image: '/public/lovable-uploads/shingle-roof.jpg'
+          image: '/lovable-uploads/1e1bc4f0-e720-43f0-8031-e93fc7826688.png'
         },
         {
-          label: 'TPO',
-          value: 'TPO',
-          image: '/public/lovable-uploads/tpo-roof.jpg'
-        },
-        {
-          label: 'Metal',
-          value: 'Metal',
-          image: '/public/lovable-uploads/metal-roof.jpg'
+          label: 'Metal Roofing',
+          value: 'Metal Roofing',
+          image: '/lovable-uploads/7e36618e-603b-49e8-833d-cb2cda0dfdbc.png'
         },
         {
           label: 'Tile Roof',
           value: 'Tile Roof',
-          image: '/public/lovable-uploads/tile-roof.jpg'
+          image: '/lovable-uploads/b0080889-9fea-433e-b738-65d24b8c257d.png'
         }
       ],
       required: true,
