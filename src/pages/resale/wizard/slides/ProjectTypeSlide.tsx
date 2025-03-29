@@ -42,6 +42,18 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       return <Skeleton className="w-full h-full rounded-md" />;
     }
     
+    // Specifically handle arborist image
+    if (type.id === 'arborist') {
+      return (
+        <img 
+          src={getProjectImageUrl('maintenance-types/arborist.jpg')} 
+          alt={type.name}
+          className="w-full h-full object-cover"
+          onError={() => handleImageError(type.id)}
+        />
+      );
+    }
+    
     // Show icon as fallback
     if (!type.imagePath || imageErrors[type.id]) {
       return (
@@ -56,7 +68,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
     // Use the uploaded image from /lovable-uploads if it exists
     return (
       <img 
-        src={`/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`} 
+        src={getProjectImageUrl(type.imagePath)} 
         alt={type.name}
         className="w-full h-full object-cover"
         onError={() => handleImageError(type.id)}
