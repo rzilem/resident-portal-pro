@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import CategorySecurityGuide from './CategorySecurityGuide';
 import CategoryItem from './CategoryItem';
 import CategoryEditForm from './CategoryEditForm';
+import { syncCategoriesToSupabase } from '@/utils/documents/categoryUtils';
 
 interface DocumentCategoryListProps {
   categories: DocumentCategory[];
@@ -29,6 +30,7 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
   const [editedCategories, setEditedCategories] = useState<DocumentCategory[]>(categories);
   const [tempName, setTempName] = useState('');
   const [tempAccessLevel, setTempAccessLevel] = useState<DocumentAccessLevel>('all');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Update edited categories when props change
   useEffect(() => {
@@ -68,12 +70,27 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
   };
 
   // Toggle edit mode
-  const toggleEditMode = () => {
+  const toggleEditMode = async () => {
     if (editMode) {
-      // If exiting edit mode, reset to original categories
-      // In a real app, you would save changes to a database here
-      setEditMode(false);
-      toast.success("Changes saved");
+      // If exiting edit mode, save changes to Supabase
+      setIsSyncing(true);
+      
+      try {
+        // Synchronize the changes to Supabase
+        const success = await syncCategoriesToSupabase(editedCategories);
+        
+        if (success) {
+          setEditMode(false);
+          toast.success("Categories saved and synchronized with database");
+        } else {
+          toast.error("Failed to synchronize categories with database");
+        }
+      } catch (error) {
+        console.error("Error during category synchronization:", error);
+        toast.error("An unexpected error occurred while saving categories");
+      } finally {
+        setIsSyncing(false);
+      }
     } else {
       setEditMode(true);
       // Make a deep copy of categories for editing
@@ -93,8 +110,14 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
           size="sm" 
           className="flex items-center gap-1.5" 
           onClick={toggleEditMode}
+          disabled={isSyncing}
         >
-          {editMode ? (
+          {isSyncing ? (
+            <>
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+              <span>Saving...</span>
+            </>
+          ) : editMode ? (
             <>
               <CheckIcon className="h-3.5 w-3.5" />
               <span>Save Changes</span>

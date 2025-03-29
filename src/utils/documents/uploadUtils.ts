@@ -1,7 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { DocumentAccessLevel } from '@/types/documents';
-
 /**
  * Get available document categories
  * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
@@ -11,8 +8,8 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
     // First try to get categories from database
     const { data, error } = await supabase
       .from('document_categories')
-      .select('id, name')
-      .order('name');
+      .select('id, name, description, sort_order')
+      .order('sort_order', { ascending: true });
       
     if (error) {
       console.error('Error fetching document categories:', error);
@@ -23,6 +20,8 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
       return data.map(category => ({
         id: category.id,
         name: category.name,
+        description: category.description || undefined,
+        sortOrder: category.sort_order || undefined,
         // Since access_level doesn't exist in the table, default to 'all'
         accessLevel: 'all' as DocumentAccessLevel
       }));
