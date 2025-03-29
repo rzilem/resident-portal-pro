@@ -1,14 +1,14 @@
 
-import { BidRequest, BidRequestVendor } from './types';
 import { createBidRequest } from './create';
 import { getBidRequests, getBidRequestById, getBidRequestVendors } from './read';
 import { updateBidRequestStatus } from './update';
 import { deleteBidRequest } from './delete';
 
-// Re-export all functionality for backward compatibility
-export { 
-  BidRequest, 
-  BidRequestVendor,
+// Re-export types using the 'export type' syntax for isolatedModules
+export type { BidRequest, BidRequestVendor } from './types';
+
+// Re-export all functionality
+export {
   createBidRequest,
   getBidRequests,
   getBidRequestById,
