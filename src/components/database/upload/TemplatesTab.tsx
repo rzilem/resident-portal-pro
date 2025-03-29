@@ -14,7 +14,10 @@ import {
   generateBoardMembersTemplate,
   generateAmenitiesTemplate,
   generateAccountingCodesTemplate,
-  generateUnitTemplate
+  generateUnitTemplate,
+  generatePetTemplate,
+  generateVehicleTemplate,
+  generateCommitteesTemplate
 } from '@/utils/templateExport';
 import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 
@@ -170,6 +173,30 @@ const templates: Template[] = [
     format: 'Excel',
     size: '13KB',
     generateFunction: generateUnitTemplate
+  },
+  {
+    id: 13,
+    name: 'Pet Registration',
+    description: 'Template for importing resident pet information',
+    format: 'Excel',
+    size: '9KB',
+    generateFunction: generatePetTemplate
+  },
+  {
+    id: 14,
+    name: 'Vehicle Registration',
+    description: 'Template for importing resident vehicle information',
+    format: 'Excel',
+    size: '9KB',
+    generateFunction: generateVehicleTemplate
+  },
+  {
+    id: 15,
+    name: 'Committee Members',
+    description: 'Template for importing community committee members',
+    format: 'Excel',
+    size: '8KB',
+    generateFunction: generateCommitteesTemplate
   }
 ];
 

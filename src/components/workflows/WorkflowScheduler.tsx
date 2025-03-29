@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { CalendarIcon, ClockIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useCalendar } from '@/hooks/use-calendar';
+import { useCalendar } from '@/hooks/calendar';
 import { Workflow } from '@/types/workflow';
 import { toast } from 'sonner';
 import { CalendarEvent } from '@/types/calendar';
