@@ -1,0 +1,63 @@
+
+import { 
+  Brush, TreePine, Wrench, Droplets, 
+  Lock, HelpingHand
+} from 'lucide-react';
+import { ProjectType } from '../../types';
+
+export const MAINTENANCE_TYPES: ProjectType[] = [
+  { 
+    id: 'maintenance', 
+    name: 'Regular Maintenance', 
+    icon: Brush, 
+    description: 'Scheduled upkeep of property features and systems'
+  },
+  { 
+    id: 'landscaping', 
+    name: 'Landscaping', 
+    icon: TreePine, 
+    description: 'Outdoor improvements, gardening, and hardscaping'
+  },
+  { 
+    id: 'arborist', 
+    name: 'Arborist', 
+    icon: TreePine, 
+    description: 'Tree care and maintenance services'
+  },
+  { 
+    id: 'handyman', 
+    name: 'Handyman', 
+    icon: Wrench, 
+    description: 'General repairs and maintenance services'
+  },
+  { 
+    id: 'pond_servicing', 
+    name: 'Pond Servicing', 
+    icon: Droplets, 
+    description: 'Pond maintenance and cleaning services'
+  },
+  { 
+    id: 'window_washing', 
+    name: 'Window Washing', 
+    icon: Droplets, 
+    description: 'Professional window cleaning services'
+  },
+  { 
+    id: 'gutter_cleaning', 
+    name: 'Gutter Cleaning', 
+    icon: Droplets, 
+    description: 'Gutter cleaning and maintenance services'
+  },
+  { 
+    id: 'power_washing', 
+    name: 'Power Washing', 
+    icon: Droplets, 
+    description: 'Pressure washing services for various surfaces'
+  },
+  { 
+    id: 'other', 
+    name: 'Other', 
+    icon: HelpingHand, 
+    description: 'Other specialized services not listed above'
+  }
+];

@@ -1,12 +1,9 @@
 
 import React from 'react';
 import { Question } from '../types';
-import { 
-  Input, 
-  Textarea,
-  RadioGroup,
-  RadioGroupItem
-} from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -34,8 +31,8 @@ const QuestionSlide: React.FC<QuestionSlideProps> = ({
     onAnswer(value);
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onAnswer(e.target.checked);
+  const handleCheckboxChange = (checked: boolean) => {
+    onAnswer(checked);
   };
 
   return (

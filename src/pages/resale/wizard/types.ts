@@ -36,8 +36,54 @@ export interface BidRequestFormData {
 
 // Adding this to prevent errors in useResaleWizard and other files
 export interface FormData {
-  // Add properties that are used in the wizard steps
+  // Common properties
   property?: string;
   owner?: string;
-  // Add other properties as needed
+  
+  // Properties used in resaleWizard
+  propertyAddress?: string;
+  associationName?: string;
+  ownerName?: string;
+  closingDate?: Date | string;
+  
+  // Account statement properties
+  accountNumber?: string;
+  statementDate?: Date | string;
+  previousBalance?: number;
+  payments?: number;
+  newCharges?: number;
+  currentBalance?: number;
+  transactions?: any[];
+  
+  // Condo questionnaire properties
+  condoName?: string;
+  unitNumber?: string;
+  managementCompany?: string;
+  totalUnits?: number;
+  yearBuilt?: string;
+  monthlyFee?: number;
+  reserveBalance?: number;
+  ownerOccupiedPercentage?: number;
+  arrearsPercentage?: number;
+  insuranceCarrier?: string;
+  policyNumber?: string;
+  expirationDate?: Date | string;
+  
+  // Property inspection properties
+  inspectionDate?: Date | string;
+  inspectionTime?: string;
+  inspectionType?: string;
+  inspectionNotes?: string;
+  
+  // Resale certificate properties
+  regularAssessment?: number;
+  assessmentFrequency?: string;
+  specialAssessment?: string;
+  transferFee?: number;
+  outstandingBalance?: number;
+  violations?: string;
+  litigation?: string;
+  
+  // TREC forms properties
+  selectedForms?: string[];
 }
