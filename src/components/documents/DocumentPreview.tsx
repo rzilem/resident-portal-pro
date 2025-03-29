@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Eye, Download, FileText, Calendar, User, Clock, Tag, Info, 
-  ExternalLink, AlertTriangle, FileSpreadsheet, FileImage, FileCode, FilePpt 
+  ExternalLink, AlertTriangle, FileSpreadsheet, FileImage, FileCode, FileArchive 
 } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
 import { 
@@ -101,7 +100,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     } else if (lowerType.includes('doc') || lowerType.includes('word')) {
       return <FileText className="h-16 w-16 text-blue-500" />;
     } else if (lowerType.includes('ppt') || lowerType.includes('presentation')) {
-      return <FilePpt className="h-16 w-16 text-orange-500" />;
+      return <FileCode className="h-16 w-16 text-orange-500" />;
     } else if (lowerType.includes('image') || lowerType.includes('png') || lowerType.includes('jpg') || lowerType.includes('jpeg') || lowerType.includes('gif')) {
       return <FileImage className="h-16 w-16 text-purple-500" />;
     } else if (lowerType.includes('html') || lowerType.includes('xml') || lowerType.includes('json')) {
