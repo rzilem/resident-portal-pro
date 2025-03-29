@@ -2,26 +2,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { BidRequestFormData } from '../types';
 import { bidRequestService } from '@/services/bid-request';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBidRequestForm } from './useBidRequestForm';
 
 export const useBidRequestWizard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<BidRequestFormData>({
-    projectType: '',
-    answers: {},
-    vendors: [],
-    notes: '',
-    dueDate: null
-  });
   const [submitting, setSubmitting] = useState(false);
-
-  const updateFormData = (key: keyof BidRequestFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
-  };
+  
+  // Use the extracted form state hook
+  const { 
+    formData, 
+    updateFormData, 
+    handleSelectType, 
+    handleAnswerQuestion, 
+    handleSelectVendors 
+  } = useBidRequestForm();
 
   const handleNext = () => {
     setCurrentStep(prev => prev + 1);
@@ -29,27 +27,6 @@ export const useBidRequestWizard = () => {
 
   const handleBack = () => {
     setCurrentStep(prev => prev - 1);
-  };
-
-  const handleSelectType = (typeId: string) => {
-    updateFormData('projectType', typeId);
-    handleNext();
-  };
-
-  const handleAnswerQuestion = (answer: any, questionId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      answers: {
-        ...prev.answers,
-        [questionId]: answer
-      }
-    }));
-    handleNext();
-  };
-
-  const handleSelectVendors = (vendorIds: string[]) => {
-    updateFormData('vendors', vendorIds);
-    handleNext();
   };
 
   const handleSubmit = async () => {
