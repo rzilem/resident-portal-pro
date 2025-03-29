@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Calendar as UICalendar } from '@/components/ui/calendar';
 import { CalendarEvent } from '@/types/calendar';
 import { Card } from '@/components/ui/card';
@@ -21,15 +21,38 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
   getEventTypeForDay,
   onDayDoubleClick
 }) => {
-  // Create a function to render day contents with event indicators
-  const renderDayContents = (day: Date) => {
-    const eventType = getEventTypeForDay(day);
+  // Store last click time and clicked date using refs
+  const lastClickTimeRef = useRef<number>(0);
+  const lastClickedDateRef = useRef<Date | null>(null);
+  
+  // Handle day click
+  const handleDayClick = (day: Date) => {
+    onSelectDate(day);
+    
+    // Detect double clicks
+    const now = new Date().getTime();
+    const isSameDay = lastClickedDateRef.current && 
+      lastClickedDateRef.current.getDate() === day.getDate() &&
+      lastClickedDateRef.current.getMonth() === day.getMonth() &&
+      lastClickedDateRef.current.getFullYear() === day.getFullYear();
+      
+    if (isSameDay && now - lastClickTimeRef.current < 300 && onDayDoubleClick) {
+      onDayDoubleClick(day);
+    }
+    
+    lastClickTimeRef.current = now;
+    lastClickedDateRef.current = day;
+  };
+  
+  // Create a component to render day contents with event indicators
+  const DayContent = (props: { date: Date }) => {
+    const eventType = getEventTypeForDay(props.date);
     const hasEvents = !!eventType;
     
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <div className="relative">
-          {day.getDate()}
+          {props.date.getDate()}
           {hasEvents && (
             <div className={`absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary`} />
           )}
@@ -37,23 +60,6 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
       </div>
     );
   };
-  
-  // Handle day double click
-  const handleDayClick = (day: Date) => {
-    onSelectDate(day);
-    
-    // Store the last click time to detect double clicks
-    const now = new Date().getTime();
-    if (handleDayClick.lastClickTime && 
-        now - handleDayClick.lastClickTime < 300 && 
-        onDayDoubleClick) {
-      onDayDoubleClick(day);
-    }
-    handleDayClick.lastClickTime = now;
-  };
-  
-  // Add lastClickTime property to the function
-  (handleDayClick as any).lastClickTime = 0;
   
   return (
     <Card className="p-4">
@@ -64,7 +70,13 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
         month={currentDate}
         className="w-full"
         onDayClick={handleDayClick}
-        renderDay={renderDayContents}
+        components={{
+          Day: ({ date, ...props }) => (
+            <div {...props}>
+              <DayContent date={date} />
+            </div>
+          )
+        }}
       />
     </Card>
   );
