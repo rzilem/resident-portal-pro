@@ -12,6 +12,7 @@ import HoaSidebar from "./HoaSidebar";
 import { useCompanySettings } from "@/hooks/use-company-settings";
 import { Settings } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 export function Sidebar({
   className
 }: React.HTMLAttributes<HTMLDivElement>) {
@@ -22,42 +23,41 @@ export function Sidebar({
     settings
   } = useCompanySettings();
 
-  // Check if we're on one of the HOA management pages
   const isHoaPage = location.pathname === '/hoa/dashboard' || location.pathname === '/hoa/finances' || location.pathname === '/hoa/maintenance' || location.pathname === '/hoa/members' || location.pathname === '/hoa/events';
 
-  // Use HOA sidebar for HOA routes
   if (isHoaPage) {
     return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
   }
 
-  // Initialize sidebar with empty state and let the hook handle opening the correct sections
   const {
     openGroups,
     toggleGroup
   } = useSidebarState();
   const NAV_ITEMS = getNavItems(location.pathname);
 
-  // Debug logging to help identify issues
   useEffect(() => {
     console.log("Current path:", location.pathname);
     console.log("Open groups:", openGroups);
     console.log("Navigation items:", NAV_ITEMS);
   }, [location.pathname, openGroups, NAV_ITEMS]);
 
-  // Handler to navigate to logo settings
   const handleLogoClick = () => {
     navigate('/settings');
-    // We'll add a session storage flag to open the display tab and branding section automatically
     sessionStorage.setItem('open-display-settings', 'true');
     sessionStorage.setItem('open-branding-tab', 'true');
   };
+
   return <SidebarProvider defaultOpen={true}>
       <div className={cn("pb-12 border-r min-h-screen bg-background", className)}>
         <SidebarContent className="space-y-4 py-4">
           <SidebarHeader className="py-2 px-[71px] my-0">
             <div className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group" onClick={handleLogoClick}>
               {settings.logoUrl ? <>
-                  <img src={settings.logoUrl} alt={settings.companyName || "Company Logo"} className="h-10 max-w-full object-contain" />
+                  <img 
+                    src={settings.logoUrl} 
+                    alt={settings.companyName || "Company Logo"} 
+                    className="h-16 max-w-[250px] object-contain" 
+                  />
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -88,23 +88,19 @@ export function Sidebar({
           <ScrollArea className="h-[calc(100vh-8rem)] px-3">
             <div className="space-y-1">
               {NAV_ITEMS.map((item, i) => {
-              // Render a separator
-              if (item === 'separator') {
-                return <NavSeparator key={`sep-${i}`} />;
-              }
+                if (item === 'separator') {
+                  return <NavSeparator key={`sep-${i}`} />;
+                }
 
-              // Now we know item is a NavItem, not a string
-              const navItem = item as NavItem;
-              console.log(`Rendering nav item: ${navItem.label}, isOpen: ${!!openGroups[navItem.label]}`);
+                const navItem = item as NavItem;
+                console.log(`Rendering nav item: ${navItem.label}, isOpen: ${!!openGroups[navItem.label]}`);
 
-              // Render a nav group with dropdown
-              if (navItem.items && navItem.items.length > 0) {
-                return <CollapsibleNavItem key={navItem.label} item={navItem} isOpen={!!openGroups[navItem.label]} onToggle={() => toggleGroup(navItem.label)} />;
-              }
+                if (navItem.items && navItem.items.length > 0) {
+                  return <CollapsibleNavItem key={navItem.label} item={navItem} isOpen={!!openGroups[navItem.label]} onToggle={() => toggleGroup(navItem.label)} />;
+                }
 
-              // Render a regular nav item
-              return <RegularNavItem key={navItem.label} item={navItem} />;
-            })}
+                return <RegularNavItem key={navItem.label} item={navItem} />;
+              })}
             </div>
           </ScrollArea>
         </SidebarContent>
