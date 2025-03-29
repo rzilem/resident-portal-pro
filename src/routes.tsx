@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
@@ -41,6 +40,8 @@ import Permissions from './pages/settings/Permissions';
 import Records from './pages/database/Records';
 import Reports from './pages/Reports';
 import AssociationProfile from './pages/AssociationProfile';
+import Vendors from './pages/vendors/Vendors';
+import VendorProfile from './pages/vendors/VendorProfile';
 
 const router = createBrowserRouter([
   {
@@ -397,6 +398,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ProjectImagesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/vendors',
+        element: (
+          <ProtectedRoute>
+            <Vendors />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/vendors/:id',
+        element: (
+          <ProtectedRoute>
+            <VendorProfile />
           </ProtectedRoute>
         ),
       },
