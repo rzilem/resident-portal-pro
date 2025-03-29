@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tag, TagType } from '@/types/resident';
 import { Input } from '@/components/ui/input';
@@ -102,7 +103,7 @@ const TagDialog: React.FC<TagDialogProps> = ({
             <div className="space-y-2">
               <Label htmlFor="tag-type">Tag Type</Label>
               <Select 
-                value={newTag.type as string}
+                value={newTag.type as string || "board"}
                 onValueChange={(value) => setNewTag({ ...newTag, type: value as TagType })}
               >
                 <SelectTrigger>

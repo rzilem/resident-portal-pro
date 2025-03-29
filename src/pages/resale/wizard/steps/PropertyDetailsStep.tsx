@@ -41,7 +41,7 @@ const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({ formData, onU
     defaultValues: {
       propertyId: formData.id || '',
       unitNumber: formData.unit || '',
-      associationId: '',
+      associationId: 'none',
     },
   });
   
@@ -71,13 +71,14 @@ const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({ formData, onU
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Property</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value || "select_property"}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a property" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="select_property">Select a property</SelectItem>
                     {properties.map(property => (
                       <SelectItem key={property.id} value={property.id}>
                         {property.name}

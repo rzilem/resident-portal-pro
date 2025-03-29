@@ -97,7 +97,7 @@ const ReportFilters = ({
       <CardContent className="p-4 flex flex-wrap gap-4">
         <div className="flex flex-col space-y-1">
           <span className="text-sm font-medium">Report Type</span>
-          <Select value={selectedReport} onValueChange={setSelectedReport}>
+          <Select value={selectedReport || "select_report"} onValueChange={setSelectedReport}>
             <SelectTrigger className="w-[220px]">
               <FileText className="h-4 w-4 mr-2" />
               <SelectValue />
@@ -114,7 +114,7 @@ const ReportFilters = ({
         
         <div className="flex flex-col space-y-1">
           <span className="text-sm font-medium">Time Period</span>
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={timeRange || "month"} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[180px]">
               <Calendar className="h-4 w-4 mr-2" />
               <SelectValue />
@@ -132,7 +132,7 @@ const ReportFilters = ({
         <div className="flex flex-col space-y-1">
           <span className="text-sm font-medium">Association</span>
           <Select 
-            value={association} 
+            value={association || "all"} 
             onValueChange={(value) => {
               console.log("Setting association to:", value);
               setAssociation(value);

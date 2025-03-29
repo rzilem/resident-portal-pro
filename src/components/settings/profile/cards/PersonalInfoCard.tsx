@@ -1,238 +1,222 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  FormField,
-  FormItem,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { UserRound, Mail, Phone, MapPin, ShieldCheck } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { useProfileForm } from '../hooks/useProfileForm';
 import { ProfileFormValues } from '../types';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { UseFormReturn } from 'react-hook-form';
 
-interface PersonalInfoCardProps {
-  form: Partial<UseFormReturn<ProfileFormValues>>;
-  isAdmin?: boolean;
-  onSubmit?: () => void;
+interface FormAdapter {
+  getValues: (field: string) => string;
+  setValue: (field: string, value: string) => void;
+  formState?: {
+    errors?: Record<string, any>;
+  };
+  control?: any;
 }
 
-const PersonalInfoCard = ({ form, isAdmin, onSubmit }: PersonalInfoCardProps) => {
-  // Form handling logic
-  const handleFirstNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    form.setValue?.('firstName', e.target.value);
-  };
+interface PersonalInfoCardProps {
+  form: Partial<UseFormReturn<ProfileFormValues>> | FormAdapter;
+  isAdmin?: boolean;
+}
 
-  const handleLastNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    form.setValue?.('lastName', e.target.value);
-  };
-
-  const handleEmailInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    form.setValue?.('email', e.target.value);
-  };
-
-  const handlePhoneInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    form.setValue?.('phoneNumber', e.target.value);
-  };
-
-  const handleAddressInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    form.setValue?.('address', e.target.value);
-  };
-
-  const handleBioInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    form.setValue?.('bio', e.target.value);
-  };
-
+const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({ form, isAdmin = false }) => {
+  // Check if we're using a React Hook Form instance or a custom adapter
+  const isRHF = 'control' in form && form.control;
+  
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Personal Information</CardTitle>
-        {isAdmin && (
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3" />
-            Admin Mode
-          </Badge>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {form.control ? (
-            // React Hook Form version
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="relative">
-                      <UserRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input className="pl-10" placeholder="First Name" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ) : (
-            // Simplified input for ProfileSettings
-            <div className="relative">
-              <UserRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                className="pl-10" 
-                placeholder="First Name" 
-                value={form.getValues?.('firstName') || ''}
-                onChange={handleFirstNameInput}
-              />
-            </div>
-          )}
-
-          {form.control ? (
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Last Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ) : (
-            <Input 
-              placeholder="Last Name" 
-              value={form.getValues?.('lastName') || ''}
-              onChange={handleLastNameInput}
-            />
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {form.control ? (
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input className="pl-10" placeholder="Email" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ) : (
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                className="pl-10" 
-                placeholder="Email" 
-                value={form.getValues?.('email') || ''}
-                onChange={handleEmailInput}
-              />
-            </div>
-          )}
-
-          {form.control ? (
-            <FormField
-              control={form.control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input className="pl-10" placeholder="Phone Number" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ) : (
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                className="pl-10" 
-                placeholder="Phone Number" 
-                value={form.getValues?.('phoneNumber') || ''}
-                onChange={handlePhoneInput}
-              />
-            </div>
-          )}
-        </div>
-
-        {form.control ? (
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input className="pl-10" placeholder="Address" {...field} />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        ) : (
-          <div className="relative">
-            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              className="pl-10" 
-              placeholder="Address" 
-              value={form.getValues?.('address') || ''}
-              onChange={handleAddressInput}
-            />
+      <CardHeader className="relative">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src="/avatars/01.png" alt="Profile picture" />
+            <AvatarFallback>AJ</AvatarFallback>
+          </Avatar>
+          <div>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>Update your personal details here.</CardDescription>
           </div>
-        )}
-
-        {form.control ? (
-          <FormField
-            control={form.control}
-            name="bio"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Tell us a little about yourself..." 
-                    className="min-h-[100px]" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        ) : (
-          <Textarea 
-            placeholder="Tell us a little about yourself..." 
-            className="min-h-[100px]" 
-            value={form.getValues?.('bio') || ''}
-            onChange={handleBioInput}
-          />
-        )}
+          {isAdmin && (
+            <Badge variant="outline" className="absolute top-4 right-4 bg-amber-100 text-amber-800 border-amber-300">
+              Admin
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isRHF ? (
+            <>
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your first name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your last name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
+                <Input 
+                  id="firstName" 
+                  value={form.getValues?.('firstName') || ''}
+                  onChange={(e) => form.setValue?.('firstName', e.target.value)}
+                  placeholder="Enter your first name" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="lastName" className="text-sm font-medium">Last Name</label>
+                <Input 
+                  id="lastName" 
+                  value={form.getValues?.('lastName') || ''}
+                  onChange={(e) => form.setValue?.('lastName', e.target.value)}
+                  placeholder="Enter your last name" 
+                />
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isRHF ? (
+            <>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">Email</label>
+                <Input 
+                  id="email" 
+                  value={form.getValues?.('email') || ''}
+                  onChange={(e) => form.setValue?.('email', e.target.value)}
+                  placeholder="Enter your email" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="phoneNumber" className="text-sm font-medium">Phone Number</label>
+                <Input 
+                  id="phoneNumber" 
+                  value={form.getValues?.('phoneNumber') || ''}
+                  onChange={(e) => form.setValue?.('phoneNumber', e.target.value)}
+                  placeholder="Enter your phone number" 
+                />
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          {isRHF ? (
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your address" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <>
+              <label htmlFor="address" className="text-sm font-medium">Address</label>
+              <Input 
+                id="address" 
+                value={form.getValues?.('address') || ''}
+                onChange={(e) => form.setValue?.('address', e.target.value)}
+                placeholder="Enter your address" 
+              />
+            </>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          {isRHF ? (
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Write a short bio about yourself" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <>
+              <label htmlFor="bio" className="text-sm font-medium">Bio</label>
+              <Textarea 
+                id="bio" 
+                value={form.getValues?.('bio') || ''}
+                onChange={(e) => form.setValue?.('bio', e.target.value)}
+                placeholder="Write a short bio about yourself" 
+              />
+            </>
+          )}
+        </div>
       </CardContent>
-      {onSubmit && (
-        <CardFooter className="flex justify-end">
-          <Button 
-            type="button" 
-            onClick={onSubmit}
-            className={isAdmin ? "bg-yellow-600 hover:bg-yellow-700" : ""}
-          >
-            {isAdmin ? "Save with Admin Rights" : "Save Changes"}
-          </Button>
+      {!isRHF && (
+        <CardFooter className="flex justify-end space-x-2">
+          <Button variant="outline">Cancel</Button>
+          <Button>Save Changes</Button>
         </CardFooter>
       )}
     </Card>

@@ -30,7 +30,7 @@ const CommunitySelector: React.FC<CommunitySelectorProps> = ({ onCommunityChange
     <div className="space-y-2">
       <Label htmlFor="community">Community</Label>
       <Select 
-        value={selectedCommunity} 
+        value={selectedCommunity || "select_community"} 
         onValueChange={handleCommunityChange}
       >
         <SelectTrigger id="community">
