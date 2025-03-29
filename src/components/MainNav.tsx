@@ -20,20 +20,6 @@ const MainNav = () => {
   
   return (
     <div className="flex items-center justify-between w-full">
-      <div className="flex-shrink-0 mr-4">
-        {settings.logoUrl ? (
-          <img 
-            src={settings.logoUrl} 
-            alt={settings.companyName || "Company Logo"} 
-            className="h-12 max-w-[180px] object-contain" 
-          />
-        ) : (
-          <div className="font-semibold text-lg">
-            {settings.companyName || "ResidentPro"}
-          </div>
-        )}
-      </div>
-      
       <NavigationMenu className="hidden md:flex">
         <NavigationMenuList>
           <NavigationMenuItem>
