@@ -77,6 +77,13 @@ const ScheduleOptions: React.FC = () => {
     }
   }, [scheduledSend, scheduledTime, scheduledDate, setScheduledTime, setScheduledDate]);
 
+  // Helper function to get current date with time set to beginning of day
+  const getStartOfToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  };
+
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-card">
       <div className="flex items-center space-x-2">
@@ -109,7 +116,11 @@ const ScheduleOptions: React.FC = () => {
                   selected={scheduledDate}
                   onSelect={handleDateChange}
                   initialFocus
-                  disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
+                  disabled={(date) => {
+                    // Properly compare dates by converting both to timestamps
+                    return date < getStartOfToday();
+                  }}
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
