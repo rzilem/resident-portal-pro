@@ -46,7 +46,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
     if (type.id === 'arborist') {
       return (
         <img 
-          src={getProjectImageUrl('maintenance-types/arborist.jpg')} 
+          src="/lovable-uploads/arborist.jpg" 
           alt={type.name}
           className="w-full h-full object-cover"
           onError={() => handleImageError(type.id)}
@@ -65,7 +65,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       );
     }
     
-    // Use the uploaded image from /lovable-uploads if it exists
+    // Use the uploaded image from Supabase or fallback
     return (
       <img 
         src={getProjectImageUrl(type.imagePath)} 

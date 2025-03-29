@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debug";
@@ -80,6 +81,12 @@ export const getProjectImageUrl = (path: string): string => {
   debugLog(`Getting image URL for path: ${path}`);
   
   try {
+    // For arborist or any image in the maintenance-types folder, 
+    // use a direct path to the lovable-uploads folder
+    if (path.includes('maintenance-types/') || path === 'arborist.jpg') {
+      return `/lovable-uploads/${path.split('/').pop() || path}`;
+    }
+    
     // For development or when Supabase storage is not properly set up
     // Use the fallback image
     return `/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`;
