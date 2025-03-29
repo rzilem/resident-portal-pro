@@ -13,6 +13,7 @@ import { resaleRoutes } from './resaleRoutes';
 import { settingsRoutes } from './settingsRoutes';
 import { databaseRoutes } from './databaseRoutes';
 import { vendorRoutes } from './vendorRoutes';
+import { residentRoutes } from './residentRoutes';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
       ...settingsRoutes,
       ...databaseRoutes,
       ...vendorRoutes,
+      ...residentRoutes,
     ],
   },
 ]);
