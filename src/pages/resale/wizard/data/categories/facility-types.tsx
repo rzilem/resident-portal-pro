@@ -6,16 +6,10 @@ import { ProjectType } from '../../types';
 
 export const FACILITY_TYPES: ProjectType[] = [
   { 
-    id: 'signs', 
-    name: 'Signs', 
-    icon: Building, 
-    description: 'Sign creation, installation, and maintenance'
-  },
-  { 
-    id: 'sports_courts', 
-    name: 'Sports Courts', 
-    icon: Building, 
-    description: 'Installation and maintenance of sports courts'
+    id: 'fencing', 
+    name: 'Fencing', 
+    icon: Fence, 
+    description: 'Fence installation, repair, or replacement services'
   },
   { 
     id: 'gym_equipment', 
@@ -30,10 +24,10 @@ export const FACILITY_TYPES: ProjectType[] = [
     description: 'Gate installation, repair, and access control'
   },
   { 
-    id: 'fencing', 
-    name: 'Fencing', 
-    icon: Fence, 
-    description: 'Fence installation, repair, or replacement services'
+    id: 'roof_repair', 
+    name: 'Roof Repair / Replacement', 
+    icon: Building, 
+    description: 'Roof repair, replacement, and maintenance'
   },
   { 
     id: 'roofing', 
@@ -42,10 +36,16 @@ export const FACILITY_TYPES: ProjectType[] = [
     description: 'Roof repair, replacement, or installation'
   },
   { 
-    id: 'roof_repair', 
-    name: 'Roof Repair / Replacement', 
+    id: 'signs', 
+    name: 'Signs', 
     icon: Building, 
-    description: 'Roof repair, replacement, and maintenance'
+    description: 'Sign creation, installation, and maintenance'
+  },
+  { 
+    id: 'sports_courts', 
+    name: 'Sports Courts', 
+    icon: Building, 
+    description: 'Installation and maintenance of sports courts'
   },
   { 
     id: 'street_repairs', 

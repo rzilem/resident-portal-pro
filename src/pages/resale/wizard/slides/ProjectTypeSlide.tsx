@@ -11,6 +11,11 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   selectedType, 
   onSelect 
 }) => {
+  // Sort project types alphabetically by name
+  const sortedProjectTypes = [...PROJECT_TYPES].sort((a, b) => 
+    a.name.localeCompare(b.name)
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -21,7 +26,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {PROJECT_TYPES.map(type => (
+        {sortedProjectTypes.map(type => (
           <div
             key={type.id}
             className={`p-4 border rounded-md cursor-pointer transition-colors ${
