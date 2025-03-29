@@ -34,6 +34,10 @@ export const scheduledMessageService = {
         .eq('communication_id', messageId);
       
       if (recipientsError) throw recipientsError;
+      if (!recipients || recipients.length === 0) {
+        console.warn('No recipients found for message:', messageId);
+        return false;
+      }
       
       // Send the message to each recipient
       for (const recipient of recipients) {
@@ -103,7 +107,7 @@ export const scheduledMessageService = {
       // Execute each due message
       let executedCount = 0;
       for (const message of dueMessages) {
-        await this.executeScheduledMessage(message.id);
+        await scheduledMessageService.executeScheduledMessage(message.id);
         executedCount++;
       }
       

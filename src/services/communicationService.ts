@@ -42,7 +42,7 @@ export const communicationService = {
           id: uuidv4(),
           subject,
           content,
-          message_type: messageType,
+          message_type: messageType as 'email' | 'sms',
           format: content.includes('<') ? 'html' : 'plain',
           status: isScheduled ? 'scheduled' : 'draft',
           scheduled_for: scheduledDate ? scheduledDate.toISOString() : null,
@@ -108,8 +108,10 @@ export const communicationService = {
           
           return {
             ...comm,
+            // Cast message_type to ensure it's 'email' or 'sms'
+            message_type: comm.message_type as 'email' | 'sms',
             recipients: recipients || []
-          };
+          } as Communication;
         })
       );
       
@@ -144,8 +146,10 @@ export const communicationService = {
           
           return {
             ...comm,
+            // Cast message_type to ensure it's 'email' or 'sms'
+            message_type: comm.message_type as 'email' | 'sms',
             recipients: recipients || []
-          };
+          } as Communication;
         })
       );
       
