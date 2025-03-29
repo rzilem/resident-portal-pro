@@ -101,6 +101,86 @@ export type Database = {
         }
         Relationships: []
       }
+      bid_request_vendors: {
+        Row: {
+          bid_amount: number | null
+          bid_request_id: string
+          created_at: string
+          estimated_completion_date: string | null
+          id: string
+          response_date: string | null
+          response_notes: string | null
+          status: string
+          vendor_id: string
+        }
+        Insert: {
+          bid_amount?: number | null
+          bid_request_id: string
+          created_at?: string
+          estimated_completion_date?: string | null
+          id?: string
+          response_date?: string | null
+          response_notes?: string | null
+          status?: string
+          vendor_id: string
+        }
+        Update: {
+          bid_amount?: number | null
+          bid_request_id?: string
+          created_at?: string
+          estimated_completion_date?: string | null
+          id?: string
+          response_date?: string | null
+          response_notes?: string | null
+          status?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_request_vendors_bid_request_id_fkey"
+            columns: ["bid_request_id"]
+            isOneToOne: false
+            referencedRelation: "bid_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bid_requests: {
+        Row: {
+          answers: Json
+          created_at: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          project_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          project_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          project_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       document_categories: {
         Row: {
           created_at: string | null
