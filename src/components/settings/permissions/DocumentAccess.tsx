@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { FileText, Save, FolderClosed } from "lucide-react";
-import { getDocumentCategories } from '@/utils/documents/uploadUtils';
+import { getUploadDocumentCategories } from '@/utils/documents/uploadUtils';
 import { DocumentCategory } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
 
@@ -46,14 +45,11 @@ const DocumentAccess = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Load document categories
-        const fetchedCategories = await getDocumentCategories();
+        const fetchedCategories = await getUploadDocumentCategories();
         setCategories(fetchedCategories);
         
-        // Initialize document permissions
         const initialPermissions: DocumentPermissionMap = {};
         
-        // Add default document types permissions
         defaultDocumentTypes.forEach(docType => {
           initialPermissions[docType.id] = {
             owner: true,
@@ -65,10 +61,8 @@ const DocumentAccess = () => {
           };
         });
         
-        // Add category-based document types
         fetchedCategories.forEach(category => {
           if (!initialPermissions[`category_${category.id}`]) {
-            // Default permissions based on access level
             const hasAccess = {
               owner: true,
               admin: true,
@@ -112,11 +106,7 @@ const DocumentAccess = () => {
     setIsSaving(true);
     
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, we would save the permissions to the backend
-      // For now, we'll just simulate success
       
       toast.success("Document permissions updated successfully");
     } catch (error) {
@@ -184,7 +174,6 @@ const DocumentAccess = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Default document types */}
               {defaultDocumentTypes.map((docType) => (
                 <TableRow key={docType.id}>
                   <TableCell className="font-medium">
@@ -204,7 +193,6 @@ const DocumentAccess = () => {
                 </TableRow>
               ))}
               
-              {/* Document categories */}
               {categories.map((category) => (
                 <TableRow key={`category_${category.id}`}>
                   <TableCell className="font-medium">
