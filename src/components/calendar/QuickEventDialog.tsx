@@ -14,13 +14,21 @@ interface QuickEventDialogProps {
   onOpenChange: (open: boolean) => void;
   date: Date;
   onSaveEvent: (data: any) => void;
+  onScheduleWorkflow?: (workflowId: string, title: string, start: Date) => Promise<void>;
+  associationId?: string;
+  userAccessLevel?: CalendarAccessLevel;
+  workflows?: any[];
 }
 
 const QuickEventDialog: React.FC<QuickEventDialogProps> = ({ 
   open, 
   onOpenChange, 
   date,
-  onSaveEvent
+  onSaveEvent,
+  onScheduleWorkflow,
+  associationId,
+  userAccessLevel,
+  workflows = []
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

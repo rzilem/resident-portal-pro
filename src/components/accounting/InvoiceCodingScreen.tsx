@@ -122,13 +122,14 @@ const InvoiceCodingScreen: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Association</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "default_association"}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Association" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="default_association" disabled>Select an association</SelectItem>
                           <SelectItem value="all">All Associations</SelectItem>
                           <SelectItem value="oakwood">Oakwood Heights</SelectItem>
                           <SelectItem value="willow">Willow Creek Estates</SelectItem>
@@ -147,13 +148,14 @@ const InvoiceCodingScreen: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Provider</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "default_provider"}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose a Service Provider" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="default_provider" disabled>Choose a provider</SelectItem>
                           <SelectItem value="abc">ABC Maintenance</SelectItem>
                           <SelectItem value="xyz">XYZ Landscaping</SelectItem>
                           <SelectItem value="city">City Utilities</SelectItem>
@@ -186,13 +188,14 @@ const InvoiceCodingScreen: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Account Number</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "default_account"}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Account" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="default_account" disabled>Select an account</SelectItem>
                           <SelectItem value="acc1">Account 100-1234</SelectItem>
                           <SelectItem value="acc2">Account 200-5678</SelectItem>
                           <SelectItem value="acc3">Account 300-9012</SelectItem>
@@ -318,13 +321,14 @@ const InvoiceCodingScreen: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Payment Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "default_payment"}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose a Method" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="default_payment" disabled>Choose a payment method</SelectItem>
                           <SelectItem value="check">Check</SelectItem>
                           <SelectItem value="ach">ACH Transfer</SelectItem>
                           <SelectItem value="card">Credit Card</SelectItem>
@@ -375,7 +379,7 @@ const InvoiceCodingScreen: React.FC = () => {
                             <TableRow key={item.id}>
                               <TableCell>
                                 <Select
-                                  value={item.glAccount}
+                                  value={item.glAccount || "default_gl"}
                                   onValueChange={(value) => {
                                     const updatedItems = [...invoiceItems];
                                     updatedItems[index].glAccount = value;
@@ -386,6 +390,7 @@ const InvoiceCodingScreen: React.FC = () => {
                                     <SelectValue placeholder="Select GL Account" />
                                   </SelectTrigger>
                                   <SelectContent>
+                                    <SelectItem value="default_gl" disabled>Select an account</SelectItem>
                                     {mockGlAccounts.map((account) => (
                                       <SelectItem key={account.id} value={account.id}>
                                         {account.code} - {account.name}
@@ -396,7 +401,7 @@ const InvoiceCodingScreen: React.FC = () => {
                               </TableCell>
                               <TableCell>
                                 <Select
-                                  value={item.fund}
+                                  value={item.fund || "default_fund"}
                                   onValueChange={(value) => {
                                     const updatedItems = [...invoiceItems];
                                     updatedItems[index].fund = value;
@@ -407,15 +412,16 @@ const InvoiceCodingScreen: React.FC = () => {
                                     <SelectValue placeholder="Select Fund" />
                                   </SelectTrigger>
                                   <SelectContent>
+                                    <SelectItem value="default_fund" disabled>Select a fund</SelectItem>
                                     <SelectItem value="operating">Operating</SelectItem>
                                     <SelectItem value="reserve">Reserve</SelectItem>
-                                    <SelectItem value="capital">Capital Improvement</SelectItem>
+                                    <SelectItem value="capital">Capital</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </TableCell>
                               <TableCell>
                                 <Select
-                                  value={item.bankAccount}
+                                  value={item.bankAccount || "default_bank"}
                                   onValueChange={(value) => {
                                     const updatedItems = [...invoiceItems];
                                     updatedItems[index].bankAccount = value;
@@ -426,15 +432,16 @@ const InvoiceCodingScreen: React.FC = () => {
                                     <SelectValue placeholder="Select Bank" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="checking">Operating Checking</SelectItem>
-                                    <SelectItem value="savings">Money Market</SelectItem>
-                                    <SelectItem value="reserve">Reserve Account</SelectItem>
+                                    <SelectItem value="default_bank" disabled>Select a bank account</SelectItem>
+                                    <SelectItem value="checking">Checking</SelectItem>
+                                    <SelectItem value="savings">Savings</SelectItem>
+                                    <SelectItem value="money_market">Money Market</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </TableCell>
                               <TableCell>
                                 <Input
-                                  placeholder="Enter description"
+                                  placeholder="Description"
                                   value={item.description}
                                   onChange={(e) => {
                                     const updatedItems = [...invoiceItems];
@@ -444,29 +451,34 @@ const InvoiceCodingScreen: React.FC = () => {
                                 />
                               </TableCell>
                               <TableCell className="text-right">
-                                <div className="relative">
-                                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                                    $
-                                  </span>
-                                  <Input
-                                    type="number"
-                                    placeholder="0.00"
-                                    className="pl-7 text-right"
-                                    value={item.amount || ""}
-                                    onChange={(e) => {
-                                      const updatedItems = [...invoiceItems];
-                                      updatedItems[index].amount = parseFloat(e.target.value) || 0;
-                                      setInvoiceItems(updatedItems);
-                                    }}
-                                  />
-                                </div>
+                                <Input
+                                  type="number"
+                                  className="text-right"
+                                  value={item.amount.toString()}
+                                  onChange={(e) => {
+                                    const updatedItems = [...invoiceItems];
+                                    updatedItems[index].amount = parseFloat(e.target.value) || 0;
+                                    setInvoiceItems(updatedItems);
+                                  }}
+                                />
                               </TableCell>
                             </TableRow>
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                              No items added yet. Click "New Item" to add invoice line items.
+                            <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                              No invoice items yet. Click "New Item" to add one.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        
+                        {invoiceItems.length > 0 && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-right font-medium">
+                              Total:
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              ${totalAmount.toFixed(2)}
                             </TableCell>
                           </TableRow>
                         )}
@@ -474,53 +486,27 @@ const InvoiceCodingScreen: React.FC = () => {
                     </Table>
                   </div>
                 </TabsContent>
-
+                
                 <TabsContent value="messages" className="pt-4">
-                  <div className="border rounded-md p-6 min-h-[200px] flex justify-center items-center">
-                    <p className="text-muted-foreground">No messages for this invoice yet.</p>
+                  <div className="border rounded-md p-6 text-center text-muted-foreground">
+                    No messages related to this invoice.
                   </div>
                 </TabsContent>
-
+                
                 <TabsContent value="recentInvoices" className="pt-4">
-                  <div className="border rounded-md p-6 min-h-[200px]">
-                    <p className="text-muted-foreground mb-4">Recent invoices from this provider:</p>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Invoice #</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>INV-2023-045</TableCell>
-                          <TableCell>Mar 10, 2023</TableCell>
-                          <TableCell>$1,250.00</TableCell>
-                          <TableCell>Paid</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>INV-2023-032</TableCell>
-                          <TableCell>Feb 15, 2023</TableCell>
-                          <TableCell>$1,250.00</TableCell>
-                          <TableCell>Paid</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                  <div className="border rounded-md p-6 text-center text-muted-foreground">
+                    No recent invoices from this vendor.
                   </div>
                 </TabsContent>
               </Tabs>
-
-              {/* Total and Action Buttons */}
-              <div className="flex justify-between items-center pt-4 border-t">
-                <div className="text-lg font-semibold">
-                  Payment Amount: <span className="text-primary">${totalAmount.toFixed(2)}</span>
-                </div>
-                <div className="space-x-2">
-                  <Button type="submit" variant="outline">Save & Message</Button>
-                  <Button type="submit">Update</Button>
-                </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline">
+                  Save as Draft
+                </Button>
+                <Button type="submit">
+                  Post Invoice
+                </Button>
               </div>
             </form>
           </Form>

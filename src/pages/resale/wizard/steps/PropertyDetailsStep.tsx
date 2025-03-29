@@ -78,7 +78,7 @@ const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({ formData, onU
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="select_property">Select a property</SelectItem>
+                    <SelectItem value="select_property" disabled>Select a property</SelectItem>
                     {properties.map(property => (
                       <SelectItem key={property.id} value={property.id}>
                         {property.name}

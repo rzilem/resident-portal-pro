@@ -42,8 +42,8 @@ const RoleEditDialog = ({
   roleData, 
   onSave 
 }: RoleEditDialogProps) => {
-  const [securityLevel, setSecurityLevel] = useState<string>('');
-  const [globalPermission, setGlobalPermission] = useState<string>('');
+  const [securityLevel, setSecurityLevel] = useState<string>('standard');
+  const [globalPermission, setGlobalPermission] = useState<string>('view');
   
   // Initialize form values when dialog opens with a role
   useEffect(() => {

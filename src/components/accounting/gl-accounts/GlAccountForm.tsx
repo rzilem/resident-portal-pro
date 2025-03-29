@@ -90,7 +90,7 @@ const GlAccountForm: React.FC<GlAccountFormProps> = ({ account, onSave, onCancel
         <div className="space-y-2">
           <Label htmlFor="type">Account Type</Label>
           <Select 
-            value={formData.type}
+            value={formData.type || 'Asset'}
             onValueChange={handleTypeChange}
             required
           >
@@ -122,7 +122,7 @@ const GlAccountForm: React.FC<GlAccountFormProps> = ({ account, onSave, onCancel
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
         <Select 
-          value={formData.category}
+          value={formData.category || 'Assets'}
           onValueChange={handleCategoryChange}
           required
         >
