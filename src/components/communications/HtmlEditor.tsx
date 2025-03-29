@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import EditorToolbar from './editor/EditorToolbar';
 import VisualEditor from './editor/VisualEditor';
@@ -13,24 +13,45 @@ interface HtmlEditorProps {
 }
 
 const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
-  const [activeTab, setActiveTab] = useState<'visual' | 'source'>('visual');
+  const [activeTab, setActiveTab] = useState<'visual' | 'html'>('visual');
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
-  // Convert useState setter to expected function signature
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab as 'visual' | 'source');
+    setActiveTab(tab as 'visual' | 'html');
   };
 
-  // Execute command for the visual editor
+  // Execute document command function
   const executeCommand = (command: string, value: string | null = null) => {
-    console.log('Execute command:', command, value);
+    if (activeTab === 'visual') {
+      document.execCommand(command, false, value);
+      
+      // Get the updated content after command execution
+      if (document.activeElement instanceof HTMLElement) {
+        // Let the input event handler handle the update
+        setTimeout(() => {
+          const editorElement = document.querySelector('[contenteditable=true]');
+          if (editorElement) {
+            onChange(editorElement.innerHTML);
+          }
+        }, 0);
+      }
+    }
   };
 
+  // Function to create a link
   const createLink = () => {
-    console.log('Create link');
+    const url = prompt('Enter link URL:');
+    if (url) {
+      executeCommand('createLink', url);
+    }
   };
 
+  // Function to insert image
   const insertImage = () => {
-    console.log('Insert image');
+    const url = prompt('Enter image URL:');
+    if (url) {
+      executeCommand('insertImage', url);
+    }
   };
 
   return (

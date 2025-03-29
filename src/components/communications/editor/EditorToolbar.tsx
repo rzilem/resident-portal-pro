@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  Bold, Italic, Link, List, ListOrdered, 
+  Bold, Italic, Link, ListOrdered, List,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Image, Heading1, Heading2, Code, Underline, 
   Quote, Table, Undo, Redo, Strikethrough, Type
@@ -20,6 +20,11 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
   createLink, 
   insertImage 
 }) => {
+  const handleButtonClick = (command: string, value: string | null = null) => {
+    console.log(`Execute command: ${command}`, value);
+    executeCommand(command, value);
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-1 p-3 border-b bg-muted/30">
       <div className="flex items-center gap-1 mr-2">
@@ -27,7 +32,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('bold', null)}
+          onClick={() => handleButtonClick('bold')}
           className="h-9 w-9 p-0"
           title="Bold"
         >
@@ -37,7 +42,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('italic', null)}
+          onClick={() => handleButtonClick('italic')}
           className="h-9 w-9 p-0"
           title="Italic"
         >
@@ -47,7 +52,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('underline', null)}
+          onClick={() => handleButtonClick('underline')}
           className="h-9 w-9 p-0"
           title="Underline"
         >
@@ -57,7 +62,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('strikeThrough', null)}
+          onClick={() => handleButtonClick('strikeThrough')}
           className="h-9 w-9 p-0"
           title="Strikethrough"
         >
@@ -72,7 +77,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('formatBlock', '<h1>')}
+          onClick={() => handleButtonClick('formatBlock', '<h1>')}
           className="h-9 w-9 p-0"
           title="Heading 1"
         >
@@ -82,7 +87,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('formatBlock', '<h2>')}
+          onClick={() => handleButtonClick('formatBlock', '<h2>')}
           className="h-9 w-9 p-0"
           title="Heading 2"
         >
@@ -92,7 +97,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('formatBlock', '<p>')}
+          onClick={() => handleButtonClick('formatBlock', '<p>')}
           className="h-9 w-9 p-0"
           title="Paragraph"
         >
@@ -102,7 +107,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('formatBlock', '<blockquote>')}
+          onClick={() => handleButtonClick('formatBlock', '<blockquote>')}
           className="h-9 w-9 p-0"
           title="Quote"
         >
@@ -112,7 +117,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('formatBlock', '<pre>')}
+          onClick={() => handleButtonClick('formatBlock', '<pre>')}
           className="h-9 w-9 p-0"
           title="Code Block"
         >
@@ -127,7 +132,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('insertUnorderedList', null)}
+          onClick={() => handleButtonClick('insertUnorderedList')}
           className="h-9 w-9 p-0"
           title="Bullet List"
         >
@@ -137,7 +142,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('insertOrderedList', null)}
+          onClick={() => handleButtonClick('insertOrderedList')}
           className="h-9 w-9 p-0"
           title="Numbered List"
         >
@@ -152,7 +157,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('justifyLeft', null)}
+          onClick={() => handleButtonClick('justifyLeft')}
           className="h-9 w-9 p-0"
           title="Align Left"
         >
@@ -162,7 +167,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('justifyCenter', null)}
+          onClick={() => handleButtonClick('justifyCenter')}
           className="h-9 w-9 p-0"
           title="Align Center"
         >
@@ -172,7 +177,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('justifyRight', null)}
+          onClick={() => handleButtonClick('justifyRight')}
           className="h-9 w-9 p-0"
           title="Align Right"
         >
@@ -182,7 +187,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('justifyFull', null)}
+          onClick={() => handleButtonClick('justifyFull')}
           className="h-9 w-9 p-0"
           title="Justify"
         >
@@ -217,7 +222,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('insertHTML', '<table><tr><td>Cell 1</td><td>Cell 2</td></tr><tr><td>Cell 3</td><td>Cell 4</td></tr></table>')}
+          onClick={() => handleButtonClick('insertHTML', '<table><tr><td>Cell 1</td><td>Cell 2</td></tr><tr><td>Cell 3</td><td>Cell 4</td></tr></table>')}
           className="h-9 w-9 p-0"
           title="Insert Table"
         >
@@ -232,7 +237,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('undo', null)}
+          onClick={() => handleButtonClick('undo')}
           className="h-9 w-9 p-0"
           title="Undo"
         >
@@ -242,7 +247,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('redo', null)}
+          onClick={() => handleButtonClick('redo')}
           className="h-9 w-9 p-0"
           title="Redo"
         >
