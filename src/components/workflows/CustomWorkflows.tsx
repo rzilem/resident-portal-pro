@@ -19,6 +19,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 
 const CustomWorkflows = () => {
@@ -132,100 +133,112 @@ const CustomWorkflows = () => {
               <Card key={workflow.id} className="flex flex-col h-full">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
-                    <Badge className={workflow.status === 'active' 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-gray-100 text-gray-800"
-                    }>
-                      {workflow.status === 'active' ? 'Active' : 'Inactive'}
+                    <CardTitle className="text-lg">{workflow.name}</CardTitle>
+                    <Badge variant={workflow.status === 'active' ? 'default' : 'secondary'}>
+                      {workflow.status}
                     </Badge>
-                    <Badge variant="outline">{workflow.category}</Badge>
                   </div>
-                  <CardTitle className="text-xl">{workflow.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow">
-                  <p className="text-muted-foreground mb-4">{workflow.description}</p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Steps:</span>
-                      <span className="font-medium">{workflow.steps.length}</span>
-                    </div>
-                    {workflow.lastEditedAt && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Last edited:</span>
-                        <span className="font-medium">{new Date(workflow.lastEditedAt).toLocaleDateString()}</span>
-                      </div>
-                    )}
-                    {workflow.createdBy && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Created by:</span>
-                        <span className="font-medium">{workflow.createdBy}</span>
-                      </div>
-                    )}
-                  </div>
+                
+                <CardContent className="py-2 flex-grow">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {workflow.description || 'No description provided'}
+                  </p>
+                  
+                  {workflow.category && (
+                    <Badge variant="outline" className="mt-2">
+                      {workflow.category}
+                    </Badge>
+                  )}
                 </CardContent>
-                <CardFooter className="border-t pt-4 flex justify-between">
-                  <Button variant="outline" size="sm" onClick={() => handleDuplicateWorkflow(workflow.id)}>
-                    <Copy className="mr-1 h-4 w-4" />
-                    Duplicate
-                  </Button>
-                  <div className="space-x-2">
+                
+                <CardFooter className="flex justify-between pt-2">
+                  <div className="flex items-center space-x-2">
                     <Button 
                       variant="ghost" 
-                      size="sm"
-                      onClick={() => setWorkflowToDelete(workflow.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleEditWorkflow(workflow.id)}>
-                      <Edit className="mr-1 h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button 
-                      size="sm"
-                      variant={workflow.status === 'active' ? 'destructive' : 'default'}
+                      size="icon" 
                       onClick={() => handleToggleStatus(workflow.id)}
+                      title={workflow.status === 'active' ? 'Deactivate' : 'Activate'}
                     >
                       {workflow.status === 'active' ? (
-                        <><X className="mr-1 h-4 w-4" /> Deactivate</>
+                        <X className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <><Check className="mr-1 h-4 w-4" /> Activate</>
+                        <Check className="h-4 w-4 text-muted-foreground" />
                       )}
                     </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDuplicateWorkflow(workflow.id)}
+                      title="Duplicate"
+                    >
+                      <Copy className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => setWorkflowToDelete(workflow.id)}
+                          title="Delete"
+                        >
+                          <Trash className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      
+                      {workflowToDelete === workflow.id && (
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the workflow "{workflow.name}".
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setWorkflowToDelete(null)}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteWorkflow(workflow.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      )}
+                    </AlertDialog>
                   </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleEditWorkflow(workflow.id)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
                 </CardFooter>
               </Card>
             ))
           ) : (
-            <div className="col-span-full text-center py-10">
-              <p className="text-muted-foreground">No workflows found. Create your first workflow.</p>
-              <Button className="mt-4" onClick={() => navigate('/workflows?tab=builder')}>
+            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-muted p-6 mb-4">
+                <Search className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">No workflows found</h3>
+              <p className="text-muted-foreground mb-6">
+                {searchTerm 
+                  ? `No results for "${searchTerm}"`
+                  : 'Create custom workflows to automate your processes'}
+              </p>
+              <Button onClick={() => navigate('/workflows?tab=builder')}>
                 Create New Workflow
               </Button>
             </div>
           )}
         </div>
       </ScrollArea>
-
-      <AlertDialog open={!!workflowToDelete} onOpenChange={(open) => !open && setWorkflowToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the workflow
-              and all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => workflowToDelete && handleDeleteWorkflow(workflowToDelete)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

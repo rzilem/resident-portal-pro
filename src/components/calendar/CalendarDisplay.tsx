@@ -38,6 +38,23 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     );
   };
   
+  // Handle day double click
+  const handleDayClick = (day: Date) => {
+    onSelectDate(day);
+    
+    // Store the last click time to detect double clicks
+    const now = new Date().getTime();
+    if (handleDayClick.lastClickTime && 
+        now - handleDayClick.lastClickTime < 300 && 
+        onDayDoubleClick) {
+      onDayDoubleClick(day);
+    }
+    handleDayClick.lastClickTime = now;
+  };
+  
+  // Add lastClickTime property to the function
+  (handleDayClick as any).lastClickTime = 0;
+  
   return (
     <Card className="p-4">
       <UICalendar
@@ -46,8 +63,7 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
         onSelect={(date) => date && onSelectDate(date)}
         month={currentDate}
         className="w-full"
-        onDayClick={(day) => onSelectDate(day)}
-        onDayDoubleClick={onDayDoubleClick}
+        onDayClick={handleDayClick}
         renderDay={renderDayContents}
       />
     </Card>
