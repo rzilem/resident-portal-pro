@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { PROJECT_TYPES } from '../data/project-types';
 import { getProjectImageUrl } from '@/utils/supabase/uploadProjectImage';
 import { Skeleton } from '@/components/ui/skeleton';
+import { debugLog } from '@/utils/debug';
 
 interface ProjectTypeSlideProps {
   selectedType: string;
@@ -26,10 +27,24 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
+    
+    // Preload images to check if they exist
+    sortedProjectTypes.forEach(type => {
+      if (type.imagePath) {
+        const img = new Image();
+        img.src = getProjectImageUrl(`${type.id}/${type.imagePath}`);
+        img.onerror = () => {
+          debugLog(`Failed to load image for ${type.name}`, type.imagePath);
+          setImageErrors(prev => ({ ...prev, [type.id]: true }));
+        };
+      }
+    });
+    
     return () => clearTimeout(timer);
   }, []);
 
   const handleImageError = (typeId: string) => {
+    debugLog(`Image error for type: ${typeId}`);
     setImageErrors(prev => ({ ...prev, [typeId]: true }));
   };
 

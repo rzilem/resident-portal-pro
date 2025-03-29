@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { debugLog, errorLog } from "@/utils/debug";
 
 /**
  * Upload an image to the project_images bucket
@@ -33,7 +34,7 @@ export const uploadProjectImage = async (
       });
     
     if (error) {
-      console.error('Error uploading image:', error);
+      errorLog('Error uploading image:', error);
       toast.error('Failed to upload image');
       return null;
     }
@@ -46,7 +47,7 @@ export const uploadProjectImage = async (
     toast.success('Image uploaded successfully');
     return publicUrlData.publicUrl;
   } catch (error) {
-    console.error('Exception in uploadProjectImage:', error);
+    errorLog('Exception in uploadProjectImage:', error);
     toast.error('An unexpected error occurred while uploading the image');
     return null;
   }
@@ -77,13 +78,41 @@ export const getProjectImageUrl = (path: string): string => {
     return path;
   }
   
-  console.log(`Getting image URL for path: ${path}`);
+  debugLog(`Getting image URL for path: ${path}`);
   
-  // Create and return the public URL
-  const { data } = supabase.storage
-    .from('project_images')
-    .getPublicUrl(path);
-  
-  console.log(`Generated image URL: ${data.publicUrl}`);
-  return data.publicUrl;
+  try {
+    // Use placeholder images for testing/development
+    if (process.env.NODE_ENV === 'development' && !path.includes('/')) {
+      return `/images/placeholders/${path}`;
+    }
+    
+    // Create and return the public URL
+    const { data } = supabase.storage
+      .from('project_images')
+      .getPublicUrl(path);
+    
+    debugLog(`Generated image URL: ${data.publicUrl}`);
+    return data.publicUrl;
+  } catch (error) {
+    errorLog(`Error generating URL for path: ${path}`, error);
+    return '/images/placeholder.svg'; // Fallback to generic placeholder
+  }
+};
+
+/**
+ * Check if an image exists in the project_images bucket
+ * @param path Path to the image within the bucket
+ * @returns True if the image exists, false otherwise
+ */
+export const checkImageExists = async (path: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from('project_images')
+      .download(path);
+    
+    return !!data && !error;
+  } catch (error) {
+    errorLog(`Error checking if image exists: ${path}`, error);
+    return false;
+  }
 };
