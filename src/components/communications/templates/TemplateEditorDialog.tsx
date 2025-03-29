@@ -65,7 +65,7 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto bg-background">
           <DialogHeader>
             <DialogTitle>{type === 'create' ? 'Create New Template' : 'Edit Template'}</DialogTitle>
             <DialogDescription>

@@ -71,7 +71,7 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] bg-background">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Tag className="mr-2 h-5 w-5" />
@@ -105,7 +105,7 @@ const MergeTagsDialog: React.FC<MergeTagsDialogProps> = ({
               </TabsList>
             </ScrollArea>
             
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[400px] overflow-y-auto">
               <div className="space-y-6 pr-4">
                 {filteredGroups.length > 0 ? (
                   filteredGroups.map(group => (

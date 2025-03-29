@@ -13,6 +13,7 @@ import AiAssistant from './composer/AiAssistant';
 import { appendToContent } from './composer/ComposerUtils';
 import { useComposer } from './composer/ComposerContext';
 import { INITIAL_TEMPLATES } from '@/pages/communications/useCommunityMessaging';
+import { MergeTag } from '@/types/mergeTags';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -53,7 +54,7 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
 
-  const handleInsertMergeTag = (tag: any) => {
+  const handleInsertMergeTag = (tag: MergeTag) => {
     // Use the appendToContent utility function instead of a function passed to setContent
     setContent(appendToContent(content, ' ' + tag.tag + ' '));
     setIsMergeTagsDialogOpen(false);
