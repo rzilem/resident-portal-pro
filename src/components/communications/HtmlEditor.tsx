@@ -36,14 +36,14 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
   return (
     <Card className="border overflow-hidden">
       <EditorTabs activeTab={activeTab} onTabChange={handleTabChange}>
+        {activeTab === 'visual' && (
+          <EditorToolbar 
+            executeCommand={executeCommand}
+            createLink={createLink}
+            insertImage={insertImage}
+          />
+        )}
         <TabsContent value="visual" className="p-0">
-          {activeTab === 'visual' && (
-            <EditorToolbar 
-              executeCommand={executeCommand}
-              createLink={createLink}
-              insertImage={insertImage}
-            />
-          )}
           <VisualEditor 
             value={value} 
             onUpdate={onChange} 
