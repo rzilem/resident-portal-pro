@@ -41,14 +41,14 @@ const TemplateFilters: React.FC<TemplateFiltersProps> = ({
       </div>
       
       <Select 
-        value={filters.group || ''} 
+        value={filters.group || 'all_groups'} 
         onValueChange={(value) => handleFilterChange('group', value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Filter by group" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Groups</SelectItem>
+          <SelectItem value="all_groups">All Groups</SelectItem>
           {groups.map(group => (
             <SelectItem key={group.id} value={group.name}>
               {group.name}
@@ -58,14 +58,14 @@ const TemplateFilters: React.FC<TemplateFiltersProps> = ({
       </Select>
       
       <Select 
-        value={filters.description || ''} 
+        value={filters.description || 'all_descriptions'} 
         onValueChange={(value) => handleFilterChange('description', value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Filter by description" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Descriptions</SelectItem>
+          <SelectItem value="all_descriptions">All Descriptions</SelectItem>
           <SelectItem value="article">Contains Article Reference</SelectItem>
           <SelectItem value="approval">About Approval Process</SelectItem>
           <SelectItem value="prior">Requires Prior Notice</SelectItem>

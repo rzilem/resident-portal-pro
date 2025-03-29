@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tag, TagType } from '@/types/resident';
 import { Input } from '@/components/ui/input';
@@ -76,7 +75,7 @@ const TagDialog: React.FC<TagDialogProps> = ({
                 <SelectValue placeholder="Select a predefined tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Select a tag</SelectItem>
+                <SelectItem value="select_tag">Select a tag</SelectItem>
                 {PREDEFINED_TAGS.map((tag, index) => (
                   <SelectItem 
                     key={index} 
