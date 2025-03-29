@@ -28,7 +28,7 @@ const OwnersTable: React.FC<OwnersTableProps> = ({
               <tr key={owner.id} className="border-t">
                 <td className="p-2 text-sm">
                   <Link 
-                    to={`/residents/${owner.id}`}
+                    to={`/resident/${owner.id}`}
                     className="text-primary hover:underline hover:text-primary/80 transition-colors"
                   >
                     {owner.name}
