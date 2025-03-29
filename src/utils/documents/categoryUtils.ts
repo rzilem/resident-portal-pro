@@ -1,5 +1,5 @@
 
-import { DocumentCategory } from '@/types/documents';
+import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -8,9 +8,30 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
   try {
-    // In a real app, this would fetch from an API or database
-    // For now, returning mock data
-    const categories: DocumentCategory[] = [
+    // First try to get categories from database
+    const { data, error } = await supabase
+      .from('document_categories')
+      .select('id, name, description, sort_order')
+      .order('sort_order', { ascending: true });
+      
+    if (error) {
+      console.error('Error fetching document categories:', error);
+      throw new Error('Failed to fetch document categories');
+    }
+    
+    if (data && data.length > 0) {
+      return data.map(category => ({
+        id: category.id,
+        name: category.name,
+        description: category.description || undefined,
+        sortOrder: category.sort_order || undefined,
+        // Add default access level
+        accessLevel: 'all' as DocumentAccessLevel
+      }));
+    }
+    
+    // If no categories in database, return default categories
+    return [
       {
         id: 'governing',
         name: 'Governing Documents',
@@ -60,8 +81,6 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
         accessLevel: 'management'
       }
     ];
-    
-    return categories;
   } catch (error) {
     console.error('Error getting document categories:', error);
     throw new Error('Failed to fetch document categories');
@@ -76,16 +95,42 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
  */
 export const updateCategoryAccessLevel = async (
   categoryId: string, 
-  accessLevel: string
+  accessLevel: DocumentAccessLevel
 ): Promise<DocumentCategory> => {
   try {
-    // In a real app, this would update the database
-    // For now, just returning a mock response
-    return {
-      id: categoryId,
-      name: 'Updated Category',
-      accessLevel: accessLevel as any
-    };
+    // First, determine if this is a default category or database category
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
+    
+    if (isUUID) {
+      // Database category - update in database
+      const { data, error } = await supabase
+        .from('document_categories')
+        .update({ access_level: accessLevel })
+        .eq('id', categoryId)
+        .select('id, name, description, sort_order')
+        .single();
+        
+      if (error) {
+        console.error('Error updating category access level:', error);
+        throw new Error('Failed to update category access level');
+      }
+      
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description || undefined,
+        sortOrder: data.sort_order || undefined,
+        accessLevel
+      };
+    } else {
+      // Default category - would need to save to user preferences or a special table
+      // For now, just return the updated category object
+      return {
+        id: categoryId,
+        name: 'Updated Category',
+        accessLevel
+      };
+    }
   } catch (error) {
     console.error('Error updating category access level:', error);
     throw new Error('Failed to update category access level');
@@ -101,29 +146,35 @@ export const syncCategoriesToSupabase = async (categories: DocumentCategory[]): 
   try {
     console.log('Syncing categories to Supabase:', categories);
     
-    // In a real implementation, we would:
-    // 1. Update existing categories
-    // 2. Insert new categories
-    // 3. Delete removed categories
-    
-    // For demo purposes, let's just pretend we updated the database
-    // In a real app, we would use something like:
-    
-    // for (const category of categories) {
-    //   const { error } = await supabase
-    //     .from('document_categories')
-    //     .upsert({
-    //       id: category.id,
-    //       name: category.name,
-    //       description: category.description,
-    //       access_level: category.accessLevel
-    //     });
-    //   
-    //   if (error) throw error;
-    // }
-    
-    // Simulate a delay to make it seem like we're doing work
-    await new Promise(resolve => setTimeout(resolve, 500));
+    for (const category of categories) {
+      // Try to update existing category first
+      const { error: updateError } = await supabase
+        .from('document_categories')
+        .update({
+          name: category.name,
+          description: category.description,
+          access_level: category.accessLevel,
+          sort_order: category.sortOrder || 0
+        })
+        .eq('id', category.id);
+      
+      // If update fails, insert new category
+      if (updateError) {
+        const { error: insertError } = await supabase
+          .from('document_categories')
+          .insert({
+            id: category.id,
+            name: category.name,
+            description: category.description,
+            access_level: category.accessLevel,
+            sort_order: category.sortOrder || 0
+          });
+          
+        if (insertError) {
+          console.error('Error inserting category:', insertError);
+        }
+      }
+    }
     
     return true;
   } catch (error) {

@@ -19,3 +19,6 @@ export * from './uploadUtils';
 
 // Export category utility functions
 export * from './categoryUtils';
+
+// Export search utility functions
+export * from './searchUtils';

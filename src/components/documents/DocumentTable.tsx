@@ -1,206 +1,190 @@
-
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
-  TableHeader, TableRow, TableCaption 
+  TableHeader, TableRow 
 } from "@/components/ui/table";
-import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { DocumentFile } from '@/types/documents';
 import { getDocuments } from '@/utils/documents/documentDbUtils';
-import DocumentPreview from './DocumentPreview';
-import { toast } from 'sonner';
-import DocumentTableFilters from './DocumentTableFilters';
-import DocumentTableEmptyState from './DocumentTableEmptyState';
+import { searchDocuments } from '@/utils/documents/searchUtils';
 import DocumentTableRow from './DocumentTableRow';
 import DocumentTableLoading from './DocumentTableLoading';
-import { useAuthRole } from '@/hooks/use-auth-role';
+import DocumentTableEmptyState from './DocumentTableEmptyState';
+import DocumentPreviewComponent from './DocumentPreviewComponent';
+import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 interface DocumentTableProps {
   category?: string;
   searchQuery?: string;
-  filter?: 'recent' | 'shared' | 'important';
+  filter?: string;
   associationId?: string;
-  caption?: string;
   refreshTrigger?: number;
 }
 
 const DocumentTable: React.FC<DocumentTableProps> = ({ 
   category, 
-  searchQuery = '',
+  searchQuery: externalSearchQuery,
   filter,
   associationId,
-  caption,
   refreshTrigger = 0
 }) => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'name' | 'date' | 'size'>('date');
-  const [tagFilter, setTagFilter] = useState('');
-  const [localSearchQuery, setLocalSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState('all');
-  const [loadKey, setLoadKey] = useState(0);
-  const { role } = useAuthRole();
+  
+  // Use external search query if provided
+  useEffect(() => {
+    if (externalSearchQuery !== undefined) {
+      setInternalSearchQuery(externalSearchQuery);
+      setActiveSearchQuery(externalSearchQuery);
+    }
+  }, [externalSearchQuery]);
   
   useEffect(() => {
-    console.log("DocumentTable mounted/updated with props:", { 
-      category, 
-      searchQuery, 
-      filter, 
-      associationId,
-      refreshTrigger
-    });
-    loadDocuments();
-  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, refreshTrigger, loadKey, role]);
-  
-  const loadDocuments = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      console.log("Loading documents with filters:", {
-        query: searchQuery || localSearchQuery,
-        categories: category ? [category] : [],
-        tags: tagFilter ? [tagFilter] : [],
-        dateFilter,
-        associationId,
-        role
-      });
+    const fetchDocuments = async () => {
+      setIsLoading(true);
       
-      const filters: DocumentSearchFilters = {
-        query: searchQuery || localSearchQuery,
-        categories: category ? [category] : [],
-        tags: tagFilter ? [tagFilter] : []
-      };
-      
-      if (dateFilter === 'today') {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        filters.dateRange = {
-          start: today.toISOString(),
-          end: new Date().toISOString()
-        };
-      } else if (dateFilter === 'week') {
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        filters.dateRange = {
-          start: weekAgo.toISOString(),
-          end: new Date().toISOString()
-        };
-      } else if (dateFilter === 'month') {
-        const monthAgo = new Date();
-        monthAgo.setMonth(monthAgo.getMonth() - 1);
-        filters.dateRange = {
-          start: monthAgo.toISOString(),
-          end: new Date().toISOString()
-        };
+      try {
+        let docs: DocumentFile[] = [];
+        
+        // If there's a search query, use search function
+        if (activeSearchQuery) {
+          docs = await searchDocuments(activeSearchQuery, { 
+            categories: category ? [category] : undefined
+          });
+        } else {
+          // Otherwise use regular document fetching
+          docs = await getDocuments(
+            { 
+              categories: category ? [category] : undefined,
+              query: activeSearchQuery
+            }, 
+            associationId
+          );
+        }
+        
+        // Apply any additional filtering
+        if (filter) {
+          switch (filter) {
+            case 'recent':
+              docs = docs.sort((a, b) => 
+                new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime()
+              ).slice(0, 10);
+              break;
+            case 'shared':
+              docs = docs.filter(doc => doc.isPublic);
+              break;
+            case 'important':
+              docs = docs.filter(doc => doc.tags?.includes('important'));
+              break;
+          }
+        }
+        
+        setDocuments(docs);
+      } catch (error) {
+        console.error("Error fetching documents:", error);
+        toast.error("Failed to load documents");
+      } finally {
+        setIsLoading(false);
       }
-      
-      if (filter === 'shared') {
-        filters.isPublic = true;
-      } else if (filter === 'important') {
-        filters.tags = ['important'];
-      } else if (filter === 'recent') {
-        // For recent, we'll just sort by date which happens by default
-      }
-      
-      const docs = await getDocuments(filters, associationId, role);
-      console.log('Loaded documents:', docs);
-      setDocuments(docs);
-    } catch (error) {
-      console.error('Error loading documents:', error);
-      toast.error('Failed to load documents. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, role]);
+    };
+    
+    fetchDocuments();
+  }, [category, associationId, filter, activeSearchQuery, refreshTrigger]);
   
-  const refreshDocuments = () => {
-    console.log("Refreshing documents list");
-    setLoadKey(prevKey => prevKey + 1);
+  const handleSearch = () => {
+    setActiveSearchQuery(internalSearchQuery);
   };
   
-  const handleViewDocument = (doc: DocumentFile) => {
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  
+  const handleDocumentView = (doc: DocumentFile) => {
     setSelectedDocument(doc);
     setShowPreview(true);
   };
   
-  const handleDownloadDocument = (doc: DocumentFile) => {
-    toast.success(`Downloading ${doc.name}`);
+  const handleDocumentDownload = (doc: DocumentFile) => {
+    // Track download analytics if needed
+    console.log('Document downloaded:', doc.name);
   };
   
-  const handleDeleteDocument = (doc: DocumentFile) => {
-    toast.success(`Document "${doc.name}" deleted`);
-    setDocuments(documents.filter(d => d.id !== doc.id));
-  };
-  
-  const sortedDocuments = [...documents].sort((a, b) => {
-    if (sortOrder === 'name') {
-      return a.name.localeCompare(b.name);
-    } else if (sortOrder === 'date') {
-      return new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime();
-    } else if (sortOrder === 'size') {
-      return b.fileSize - a.fileSize;
+  const handleDocumentDelete = async (doc: DocumentFile) => {
+    try {
+      // Remove the document from the local state
+      setDocuments(prev => prev.filter(d => d.id !== doc.id));
+      toast.success(`Document "${doc.name}" deleted successfully`);
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast.error("Failed to delete document");
     }
-    return 0;
-  });
+  };
   
-  if (isLoading) {
-    return <DocumentTableLoading />;
-  }
-
-  if (sortedDocuments.length === 0) {
-    return (
-      <DocumentTableEmptyState
-        searchQuery={searchQuery}
-        localSearchQuery={localSearchQuery}
-        associationId={associationId}
-        refreshDocuments={refreshDocuments}
-      />
-    );
-  }
-
   return (
     <div className="space-y-4">
-      <DocumentTableFilters
-        localSearchQuery={localSearchQuery}
-        setLocalSearchQuery={setLocalSearchQuery}
-        tagFilter={tagFilter}
-        setTagFilter={setTagFilter}
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
-        refreshDocuments={refreshDocuments}
-      />
-
-      <div className="rounded-md border">
-        <Table>
-          {caption && <TableCaption>{caption}</TableCaption>}
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Uploaded By</TableHead>
-              <TableHead>Tags</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedDocuments.map(doc => (
-              <DocumentTableRow
-                key={doc.id}
-                doc={doc}
-                onView={handleViewDocument}
-                onDownload={handleDownloadDocument}
-                onDelete={handleDeleteDocument}
-                refreshDocuments={refreshDocuments}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Only show internal search if no external query is provided */}
+      {externalSearchQuery === undefined && (
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search documents..."
+              value={internalSearchQuery}
+              onChange={(e) => setInternalSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              className="pl-9"
+            />
+          </div>
+          <Button variant="secondary" onClick={handleSearch}>
+            Search
+          </Button>
+        </div>
+      )}
       
-      <DocumentPreview
+      {isLoading ? (
+        <DocumentTableLoading />
+      ) : documents.length === 0 ? (
+        <DocumentTableEmptyState 
+          searchQuery={activeSearchQuery} 
+          category={category} 
+        />
+      ) : (
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Uploaded By</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documents.map(doc => (
+                <DocumentTableRow 
+                  key={doc.id} 
+                  doc={doc} 
+                  onView={handleDocumentView}
+                  onDownload={handleDocumentDownload}
+                  onDelete={handleDocumentDelete}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+      
+      <DocumentPreviewComponent
         document={selectedDocument}
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
