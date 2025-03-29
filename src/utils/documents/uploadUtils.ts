@@ -52,5 +52,4 @@ export const getUploadDocumentCategories = async (): Promise<{id: string, name: 
   }
 };
 
-// Rename the export to avoid conflicts
-export { getUploadDocumentCategories as getDocumentCategories };
+// We'll remove this re-export to avoid conflicts - the index.ts file will handle naming

@@ -2,9 +2,19 @@
 // Export all document utilities
 export * from './documentDbUtils';
 export * from './documentUtils';
-// Avoid re-exporting the same named function
-export { default as ensureDocumentStorage } from './ensureDocumentStorage';
-// Export all functions from uploadUtils except getDocumentCategories (since it's already exported from categoryUtils)
+
+// Export from ensureDocumentStorage.ts
+export { ensureDocumentsBucketExists } from './ensureDocumentStorage';
+
+// Export from bucketUtils
+export { initializeDocumentsBucket, testBucketAccess } from './bucketUtils';
+
+// Export from uploadUtils but rename the conflicting function
+export { 
+  getUploadDocumentCategories as getUploadCategories 
+} from './uploadUtils';
+
+// Export other functions from uploadUtils
 export * from './uploadUtils';
 
 // Export category utility functions
