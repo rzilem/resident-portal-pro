@@ -14,6 +14,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   onSelect 
 }) => {
   const [loading, setLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   // Sort project types alphabetically by name
   const sortedProjectTypes = [...PROJECT_TYPES].sort((a, b) => 
@@ -27,6 +28,10 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleImageError = (typeId: string) => {
+    setImageErrors(prev => ({ ...prev, [typeId]: true }));
+  };
 
   return (
     <div className="space-y-6">
@@ -52,32 +57,13 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
               {loading ? (
                 <Skeleton className="w-full h-32 rounded-md mb-3" />
               ) : (
-                <div className="mb-3 h-32 overflow-hidden rounded-md bg-muted">
-                  {type.imagePath ? (
+                <div className="mb-3 h-32 overflow-hidden rounded-md bg-muted relative">
+                  {type.imagePath && !imageErrors[type.id] ? (
                     <img 
                       src={getProjectImageUrl(`${type.id}/${type.imagePath}`)} 
                       alt={type.name}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to icon if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        const iconContainer = e.currentTarget.parentElement;
-                        if (iconContainer) {
-                          const iconEl = document.createElement('div');
-                          iconEl.className = "flex items-center justify-center h-full";
-                          iconEl.innerHTML = `<div class="text-4xl text-muted-foreground">${
-                            type.icon ? `<svg class="h-12 w-12" />` : ''
-                          }</div>`;
-                          iconContainer.appendChild(iconEl);
-                          if (type.icon) {
-                            const IconComponent = type.icon;
-                            const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                            iconSvg.setAttribute("class", "h-12 w-12");
-                            iconContainer.querySelector('svg')?.replaceWith(iconSvg);
-                            // Not rendering the actual icon as we can't do that in vanilla JS
-                          }
-                        }
-                      }}
+                      onError={() => handleImageError(type.id)}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">

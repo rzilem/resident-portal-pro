@@ -77,9 +77,13 @@ export const getProjectImageUrl = (path: string): string => {
     return path;
   }
   
+  console.log(`Getting image URL for path: ${path}`);
+  
+  // Create and return the public URL
   const { data } = supabase.storage
     .from('project_images')
     .getPublicUrl(path);
   
+  console.log(`Generated image URL: ${data.publicUrl}`);
   return data.publicUrl;
 };
