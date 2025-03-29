@@ -11,6 +11,7 @@ import CalendarHeader from './CalendarHeader';
 import EventsList from './EventsList';
 import CalendarDisplay from './CalendarDisplay';
 import { useCalendarView } from '@/hooks/use-calendar-view';
+import { useToast } from '@/components/ui/use-toast';
 
 interface CalendarViewProps {
   userId: string;
@@ -37,6 +38,7 @@ const CalendarView = ({
 }: CalendarViewProps) => {
   // Get workflows for the association (would be implemented in a real app)
   const workflows = [];
+  const { toast } = useToast();
   
   const [quickEventDate, setQuickEventDate] = useState<Date | null>(null);
   
@@ -58,11 +60,14 @@ const CalendarView = ({
     deleteEvent,
     createWorkflowEvent,
     getEventTypeForDay,
+    getEventsCountForDay,
     handlePrevious,
     handleNext,
     handleToday,
     handleViewChange,
-    toggleFilters
+    toggleFilters,
+    activeEventType,
+    setEventTypeFilter
   } = useCalendarView({
     userId,
     userAccessLevel,
@@ -80,6 +85,54 @@ const CalendarView = ({
   
   const handleDayDoubleClick = (date: Date) => {
     setQuickEventDate(date);
+  };
+
+  const handleCreateEvent = (eventData: any) => {
+    try {
+      createEvent(eventData);
+      toast({
+        title: "Event created",
+        description: "Your event has been created successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error creating event",
+        description: "There was a problem creating your event.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateEvent = (id: string, updates: any) => {
+    try {
+      updateEvent(id, updates);
+      toast({
+        title: "Event updated",
+        description: "Your event has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating event",
+        description: "There was a problem updating your event.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    try {
+      deleteEvent(id);
+      toast({
+        title: "Event deleted",
+        description: "Your event has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error deleting event",
+        description: "There was a problem deleting your event.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
@@ -102,7 +155,12 @@ const CalendarView = ({
         onCreateEvent={() => setShowEventDialog(true)}
       />
       
-      {showFilters && <CalendarFilters />}
+      {showFilters && (
+        <CalendarFilters 
+          activeFilter={activeEventType} 
+          onFilterChange={setEventTypeFilter} 
+        />
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         <div className="md:col-span-5">
@@ -112,6 +170,7 @@ const CalendarView = ({
             onSelectDate={setSelectedDate}
             events={events}
             getEventTypeForDay={getEventTypeForDay}
+            getEventsCountForDay={getEventsCountForDay}
             onDayDoubleClick={handleDayDoubleClick}
           />
         </div>
@@ -131,8 +190,8 @@ const CalendarView = ({
         <EventDetails 
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)}
-          onEdit={(updatedEvent) => updateEvent(selectedEvent.id, updatedEvent)}
-          onDelete={() => deleteEvent(selectedEvent.id)}
+          onEdit={(updatedEvent) => handleUpdateEvent(selectedEvent.id, updatedEvent)}
+          onDelete={() => handleDeleteEvent(selectedEvent.id)}
           userAccessLevel={userAccessLevel}
         />
       )}
@@ -141,7 +200,7 @@ const CalendarView = ({
         <CalendarEventDialog 
           open={showEventDialog}
           onOpenChange={setShowEventDialog}
-          onSave={createEvent}
+          onSave={handleCreateEvent}
           associationId={associationId}
           userAccessLevel={userAccessLevel}
         />
@@ -152,7 +211,7 @@ const CalendarView = ({
           open={!!quickEventDate}
           onOpenChange={(open) => !open && setQuickEventDate(null)}
           date={quickEventDate}
-          onSaveEvent={createEvent}
+          onSaveEvent={handleCreateEvent}
           onScheduleWorkflow={createWorkflowEvent}
           associationId={associationId}
           userAccessLevel={userAccessLevel}

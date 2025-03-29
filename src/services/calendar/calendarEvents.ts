@@ -1,134 +1,134 @@
 
-import { v4 as uuid } from 'uuid';
 import { CalendarEvent } from '@/types/calendar';
+import { addDays, subDays, addMonths, setHours, setMinutes } from 'date-fns';
 
-// Sample calendar events data
-export let calendarEvents: CalendarEvent[] = [
-  {
-    id: uuid(),
-    title: 'Board Meeting',
-    description: 'Monthly board meeting to discuss community issues',
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 15, 18, 0),
-    end: new Date(new Date().getFullYear(), new Date().getMonth(), 15, 20, 0),
-    type: 'meeting',
-    associationId: 'assoc-1',
-    accessLevel: 'board',
-    color: '#4f46e5'
-  },
-  {
-    id: uuid(),
-    title: 'Pool Maintenance',
-    description: 'Regular pool cleaning and maintenance',
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 12, 9, 0),
-    end: new Date(new Date().getFullYear(), new Date().getMonth(), 12, 12, 0),
-    type: 'maintenance',
-    associationId: 'assoc-1',
-    accessLevel: 'residents',
-    color: '#f59e0b'
-  },
-  {
-    id: uuid(),
-    title: 'Independence Day',
-    description: 'Fourth of July Celebration',
-    start: new Date(new Date().getFullYear(), 6, 4),
-    allDay: true,
-    type: 'holiday',
-    accessLevel: 'public',
-    color: '#ef4444'
-  },
-  {
-    id: uuid(),
-    title: 'Community Picnic',
-    description: 'Annual summer picnic for all residents',
-    start: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5, 11, 0),
-    end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5, 15, 0),
-    location: 'Community Park',
-    type: 'community',
-    associationId: 'assoc-1',
-    accessLevel: 'residents',
-    color: '#10b981'
-  },
-  {
-    id: uuid(),
-    title: 'Assessment Payment Due',
-    description: 'Monthly HOA dues deadline',
-    start: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-    allDay: true,
-    type: 'deadline',
-    associationId: 'assoc-1',
-    accessLevel: 'residents',
-    recurring: {
-      frequency: 'monthly',
-      interval: 1
-    },
-    color: '#6366f1'
-  }
-];
+// Current date for reference
+const today = new Date();
+const currentMonth = today.getMonth();
+const currentYear = today.getFullYear();
 
-// Generate US holidays for the current year
-const generateUSHolidays = (): CalendarEvent[] => {
-  const currentYear = new Date().getFullYear();
-  
-  return [
-    {
-      id: uuid(),
-      title: 'New Year\'s Day',
-      start: new Date(currentYear, 0, 1),
-      allDay: true,
-      type: 'holiday',
-      accessLevel: 'public',
-      color: '#ef4444'
-    },
-    {
-      id: uuid(),
-      title: 'Memorial Day',
-      // Last Monday in May
-      start: new Date(currentYear, 4, 31 - (new Date(currentYear, 4, 31).getDay() - 1) % 7),
-      allDay: true,
-      type: 'holiday',
-      accessLevel: 'public',
-      color: '#ef4444'
-    },
-    {
-      id: uuid(),
-      title: 'Independence Day',
-      start: new Date(currentYear, 6, 4),
-      allDay: true,
-      type: 'holiday',
-      accessLevel: 'public',
-      color: '#ef4444'
-    },
-    {
-      id: uuid(),
-      title: 'Labor Day',
-      // First Monday in September
-      start: new Date(currentYear, 8, 1 + (8 - new Date(currentYear, 8, 1).getDay()) % 7),
-      allDay: true,
-      type: 'holiday',
-      accessLevel: 'public',
-      color: '#ef4444'
-    },
-    {
-      id: uuid(),
-      title: 'Thanksgiving Day',
-      // Fourth Thursday in November
-      start: new Date(currentYear, 10, 22 + (4 - new Date(currentYear, 10, 1).getDay()) % 7),
-      allDay: true,
-      type: 'holiday',
-      accessLevel: 'public',
-      color: '#ef4444'
-    },
-    {
-      id: uuid(),
-      title: 'Christmas Day',
-      start: new Date(currentYear, 11, 25),
-      allDay: true,
-      type: 'holiday',
-      accessLevel: 'public',
-      color: '#ef4444'
-    }
-  ];
+// Helper function to get a date in the current month
+const getDate = (day: number, hour = 0, minute = 0) => {
+  const date = new Date(currentYear, currentMonth, day);
+  return setHours(setMinutes(date, minute), hour);
 };
 
-// Add holidays to the calendar events
-calendarEvents = [...calendarEvents, ...generateUSHolidays()];
+// Sample calendar events
+export const calendarEvents: CalendarEvent[] = [
+  {
+    id: '1',
+    title: 'Board Meeting',
+    description: 'Monthly board meeting to discuss association business.',
+    start: getDate(15, 18, 0), // 15th of current month at 6 PM
+    end: getDate(15, 20, 0),   // 15th of current month at 8 PM
+    allDay: false,
+    location: 'Community Room',
+    type: 'meeting',
+    associationId: '1',
+    accessLevel: 'board',
+    createdBy: 'admin'
+  },
+  {
+    id: '2',
+    title: 'Community Pool Opening',
+    description: 'Seasonal opening of the community pool.',
+    start: getDate(1),
+    allDay: true,
+    location: 'Community Pool',
+    type: 'community',
+    associationId: '1',
+    accessLevel: 'residents'
+  },
+  {
+    id: '3',
+    title: 'Landscaping Maintenance',
+    description: 'Regular landscaping and grounds maintenance.',
+    start: getDate(5, 9, 0),
+    end: getDate(5, 17, 0),
+    allDay: false,
+    location: 'Common Areas',
+    type: 'maintenance',
+    associationId: '1',
+    accessLevel: 'residents'
+  },
+  {
+    id: '4',
+    title: 'Annual Dues Deadline',
+    description: 'Final day to pay annual HOA dues without late fees.',
+    start: getDate(30),
+    allDay: true,
+    type: 'deadline',
+    associationId: '1',
+    accessLevel: 'residents'
+  },
+  {
+    id: '5',
+    title: 'Holiday - Office Closed',
+    description: 'Management office closed for holiday.',
+    start: getDate(25),
+    allDay: true,
+    type: 'holiday',
+    associationId: '1',
+    accessLevel: 'public'
+  },
+  {
+    id: '6',
+    title: 'Violation Review',
+    description: 'Review of compliance violations and actions.',
+    start: getDate(10, 14, 0),
+    end: getDate(10, 16, 0),
+    allDay: false,
+    location: 'Management Office',
+    type: 'workflow',
+    associationId: '1',
+    accessLevel: 'admin',
+    workflowId: 'viol-001'
+  },
+  {
+    id: '7',
+    title: 'Community Garage Sale',
+    description: 'Annual community-wide garage sale event.',
+    start: addDays(getDate(3), 14), // 14 days from the 3rd
+    end: addDays(getDate(3), 15),  // 15 days from the 3rd
+    allDay: true,
+    location: 'All Community',
+    type: 'community',
+    associationId: '1',
+    accessLevel: 'public'
+  },
+  {
+    id: '8',
+    title: 'Budget Committee Meeting',
+    description: 'Meeting to discuss budget planning for next year.',
+    start: getDate(20, 17, 30),
+    end: getDate(20, 19, 0),
+    allDay: false,
+    location: 'Conference Room',
+    type: 'meeting',
+    associationId: '1',
+    accessLevel: 'committee'
+  },
+  {
+    id: '9',
+    title: 'Roof Inspection',
+    description: 'Annual roof inspection for all buildings.',
+    start: subDays(getDate(15), 7),
+    end: subDays(getDate(15), 5),
+    allDay: true,
+    location: 'All Buildings',
+    type: 'maintenance',
+    associationId: '2',
+    accessLevel: 'residents'
+  },
+  {
+    id: '10',
+    title: 'New Resident Welcome',
+    description: 'Welcome event for new residents.',
+    start: addMonths(getDate(5), 1),
+    allDay: true,
+    location: 'Community Center',
+    type: 'community',
+    associationId: '1',
+    accessLevel: 'residents'
+  }
+];

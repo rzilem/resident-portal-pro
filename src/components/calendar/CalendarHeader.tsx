@@ -1,21 +1,36 @@
 
 import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Users, Plus, Filter } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  CalendarDays, 
+  Calendar as CalendarIcon, 
+  Plus, 
+  Filter, 
+  Settings
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { Association } from '@/types/association';
 
 interface CalendarHeaderProps {
   view: 'month' | 'week' | 'day';
   currentDate: Date;
-  isGlobalAdmin: boolean;
+  isGlobalAdmin?: boolean;
   showManagerToggle?: boolean;
   isManagerView?: boolean;
-  onManagerViewToggle?: () => void;
   associations?: Association[];
   activeAssociation: Association | null;
-  onAssociationChange: (associationId: string) => void;
+  onAssociationChange?: (associationId: string) => void;
+  onManagerViewToggle?: () => void;
   onViewChange: (view: 'month' | 'week' | 'day') => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -27,13 +42,13 @@ interface CalendarHeaderProps {
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   view,
   currentDate,
-  isGlobalAdmin,
+  isGlobalAdmin = false,
   showManagerToggle = false,
   isManagerView = false,
-  onManagerViewToggle,
   associations = [],
   activeAssociation,
   onAssociationChange,
+  onManagerViewToggle,
   onViewChange,
   onPrevious,
   onNext,
@@ -41,85 +56,93 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onToggleFilters,
   onCreateEvent
 }) => {
-  // Format the date according to the current view
-  let dateFormat = 'MMMM yyyy';
-  if (view === 'week') {
-    dateFormat = "'Week of' MMMM d, yyyy";
-  } else if (view === 'day') {
-    dateFormat = 'EEEE, MMMM d, yyyy';
-  }
-  
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={onPrevious}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        
-        <h2 className="text-xl font-medium w-40 text-center">
-          {format(currentDate, dateFormat)}
-        </h2>
-        
-        <Button variant="outline" size="icon" onClick={onNext}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        
-        <Button variant="outline" onClick={onToday} className="ml-2">
-          Today
-        </Button>
-      </div>
-      
-      <div className="flex items-center gap-3">
-        {associations.length > 0 && activeAssociation && (
-          <Select
-            value={activeAssociation.id}
-            onValueChange={onAssociationChange}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select association" />
-            </SelectTrigger>
-            <SelectContent>
-              {associations.map((association) => (
-                <SelectItem key={association.id} value={association.id}>
-                  {association.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        
-        {showManagerToggle && (
-          <Button variant="outline" onClick={onManagerViewToggle}>
-            <Users className="h-4 w-4 mr-2" />
-            {isManagerView ? 'My Calendar' : 'Manager View'}
+    <Card className="p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={onPrevious}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-        )}
+          
+          <Button variant="outline" onClick={onToday}>
+            Today
+          </Button>
+          
+          <Button variant="outline" size="icon" onClick={onNext}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          
+          <div className="text-lg font-medium ml-2">
+            {format(currentDate, 'MMMM yyyy')}
+          </div>
+        </div>
         
-        <Button variant="outline" onClick={onToggleFilters}>
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-        </Button>
+        <div className="flex items-center justify-center gap-2">
+          <div className="flex gap-1 border rounded-md p-1">
+            <Button
+              variant={view === 'month' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onViewChange('month')}
+            >
+              <CalendarDays className="h-4 w-4 mr-1" />
+              Month
+            </Button>
+            <Button
+              variant={view === 'week' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onViewChange('week')}
+            >
+              <CalendarIcon className="h-4 w-4 mr-1" />
+              Week
+            </Button>
+            <Button
+              variant={view === 'day' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onViewChange('day')}
+            >
+              <CalendarIcon className="h-4 w-4 mr-1" />
+              Day
+            </Button>
+          </div>
+          
+          <Button variant="outline" size="sm" onClick={onToggleFilters}>
+            <Filter className="h-4 w-4 mr-1" />
+            Filters
+          </Button>
+        </div>
         
-        <Select
-          value={view}
-          onValueChange={(value) => onViewChange(value as 'month' | 'week' | 'day')}
-        >
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Select view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="month">Month</SelectItem>
-            <SelectItem value="week">Week</SelectItem>
-            <SelectItem value="day">Day</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Button onClick={onCreateEvent}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Event
-        </Button>
+        <div className="flex items-center justify-end gap-2">
+          {associations.length > 0 && activeAssociation && onAssociationChange && (
+            <Select
+              value={activeAssociation.id}
+              onValueChange={onAssociationChange}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Association" />
+              </SelectTrigger>
+              <SelectContent>
+                {associations.map((association) => (
+                  <SelectItem key={association.id} value={association.id}>
+                    {association.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          
+          {showManagerToggle && onManagerViewToggle && (
+            <Button variant="outline" size="sm" onClick={onManagerViewToggle}>
+              {isManagerView ? 'Association View' : 'Manager View'}
+            </Button>
+          )}
+          
+          <Button onClick={onCreateEvent}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Event
+          </Button>
+        </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
