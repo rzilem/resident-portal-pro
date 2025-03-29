@@ -43,6 +43,7 @@ import Records from '@/pages/database/Records';
 import Reports from '@/pages/Reports';
 import ResaleDashboard from '@/pages/resale/ResaleDashboard';
 import ResaleWizard from '@/pages/resale/wizard/ResaleWizard';
+import BidRequestWizard from '@/pages/resale/wizard/BidRequestWizard';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -113,6 +114,9 @@ const App = () => {
           <Route path="/resale/statements" element={<ResaleDashboard />} />
           <Route path="/resale/trec-forms" element={<ResaleDashboard />} />
           <Route path="/resale/wizard" element={<ResaleWizard />} />
+          
+          {/* Bid Request Wizard Route */}
+          <Route path="/resale/bid-request" element={<BidRequestWizard />} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />

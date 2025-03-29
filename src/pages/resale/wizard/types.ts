@@ -1,3 +1,5 @@
+import { Step } from './types';
+import { VendorTag } from '@/types/vendor';
 
 export interface FormData {
   // Property Details
@@ -53,4 +55,31 @@ export interface Step {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+}
+
+export interface BidRequestFormData {
+  projectType: string;
+  answers: Record<string, any>;
+  vendors: string[];
+  notes?: string;
+  dueDate?: Date | null;
+}
+
+export interface ProjectType {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  description: string;
+}
+
+export interface Question {
+  id: string;
+  question: string;
+  type: 'radio' | 'checkbox' | 'text' | 'select' | 'number';
+  options?: string[];
+  required?: boolean;
+}
+
+export interface ProjectTypeQuestions {
+  [key: string]: Question[];
 }
