@@ -8,6 +8,7 @@ import { FENCING_QUESTIONS } from './questions/facility/fencing-questions';
 import { ROOFING_QUESTIONS } from './questions/facility/roofing-questions';
 import { HVAC_QUESTIONS } from './questions/system/hvac-questions';
 import { PLUMBING_QUESTIONS } from './questions/system/plumbing-questions';
+import { ELECTRICAL_QUESTIONS } from './questions/system/electrical-questions';
 import { LANDSCAPING_QUESTIONS } from './questions/maintenance/landscaping-questions';
 import { WINDOW_QUESTIONS } from './questions/maintenance/window-questions';
 import { TRASH_QUESTIONS } from './questions/maintenance/trash-questions';
@@ -26,6 +27,7 @@ export const PROJECT_QUESTIONS: ProjectTypeQuestions = {
   ...ROOFING_QUESTIONS,
   ...HVAC_QUESTIONS,
   ...PLUMBING_QUESTIONS,
+  ...ELECTRICAL_QUESTIONS,
   ...LANDSCAPING_QUESTIONS,
   ...WINDOW_QUESTIONS,
   ...TRASH_QUESTIONS,

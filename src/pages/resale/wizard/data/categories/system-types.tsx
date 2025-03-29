@@ -1,7 +1,7 @@
 
 import { 
   Wind, Zap, Droplets, Lock, Bug, 
-  Wrench, Building
+  Wrench, Building, Lightbulb
 } from 'lucide-react';
 import { ProjectType } from '../../types';
 
@@ -23,12 +23,6 @@ export const SYSTEM_TYPES: ProjectType[] = [
     name: 'Electrical', 
     icon: Zap, 
     description: 'Wiring, fixtures, and electrical system work'
-  },
-  { 
-    id: 'electric_work', 
-    name: 'Electric Work', 
-    icon: Zap, 
-    description: 'Electrical installation and repair services'
   },
   { 
     id: 'leak_detection', 
