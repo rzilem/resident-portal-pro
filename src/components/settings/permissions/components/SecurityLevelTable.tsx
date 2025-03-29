@@ -45,7 +45,7 @@ const SecurityLevelTable: React.FC<SecurityLevelTableProps> = ({
                   onValueChange={(value) => onAccessLevelChange(category.id, value as DocumentAccessLevel)}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue />
+                    <SelectValue placeholder="Access Level" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Users</SelectItem>

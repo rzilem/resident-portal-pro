@@ -76,7 +76,7 @@ const TagDialog: React.FC<TagDialogProps> = ({
                 <SelectValue placeholder="Select a predefined tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="select_tag">Select a tag</SelectItem>
+                <SelectItem value="select_tag" disabled>Select a tag</SelectItem>
                 {PREDEFINED_TAGS.map((tag, index) => (
                   <SelectItem 
                     key={index} 

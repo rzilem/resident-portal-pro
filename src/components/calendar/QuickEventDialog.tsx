@@ -13,149 +13,118 @@ interface QuickEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
-  onSaveEvent: (event: any) => void;
-  onScheduleWorkflow: (workflowId: string, title: string, date: Date) => void;
-  associationId?: string;
-  userAccessLevel: CalendarAccessLevel;
-  workflows: any[]; // This would be properly typed in a real app
+  onSaveEvent: (data: any) => void;
 }
 
-const QuickEventDialog: React.FC<QuickEventDialogProps> = ({
-  open,
-  onOpenChange,
+const QuickEventDialog: React.FC<QuickEventDialogProps> = ({ 
+  open, 
+  onOpenChange, 
   date,
-  onSaveEvent,
-  onScheduleWorkflow,
-  associationId,
-  userAccessLevel,
-  workflows
+  onSaveEvent
 }) => {
-  const [activeTab, setActiveTab] = useState<'event' | 'workflow'>('event');
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [eventType, setEventType] = useState<CalendarEventType>('meeting');
-  const [workflowId, setWorkflowId] = useState('');
+  const [accessLevel, setAccessLevel] = useState<CalendarAccessLevel>('public');
   
-  const handleCreateEvent = () => {
-    if (!title.trim()) return;
-    
-    const newEvent = {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSaveEvent({
       title,
-      description: '',
-      start: date,
-      allDay: true,
+      description,
+      date: format(date, 'yyyy-MM-dd'),
       type: eventType,
-      associationId,
-      accessLevel: userAccessLevel === 'admin' ? 'residents' as CalendarAccessLevel : 'public' as CalendarAccessLevel,
-    };
-    
-    onSaveEvent(newEvent);
-    onOpenChange(false);
+      accessLevel
+    });
     
     // Reset form
     setTitle('');
+    setDescription('');
     setEventType('meeting');
-  };
-  
-  const handleScheduleWorkflow = () => {
-    if (!workflowId || !title.trim() || !associationId) return;
-    
-    onScheduleWorkflow(workflowId, title, date);
+    setAccessLevel('public');
     onOpenChange(false);
-    
-    // Reset form
-    setTitle('');
-    setWorkflowId('');
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Quick Add for {format(date, 'MMMM d, yyyy')}</DialogTitle>
+          <DialogTitle>Add Event for {format(date, 'MMMM d, yyyy')}</DialogTitle>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'event' | 'workflow')}>
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="event">Event</TabsTrigger>
-            <TabsTrigger value="workflow">Workflow</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="event" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Event Title</Label>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title
+              </Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter event title"
+                className="col-span-3"
+                required
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="eventType">Event Type</Label>
-              <Select value={eventType} onValueChange={(value) => setEventType(value as CalendarEventType)}>
-                <SelectTrigger id="eventType">
-                  <SelectValue placeholder="Select event type" />
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Input
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">
+                Type
+              </Label>
+              <Select
+                value={eventType}
+                onValueChange={(value) => setEventType(value as CalendarEventType)}
+              >
+                <SelectTrigger className="col-span-3" id="type">
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="social">Social Event</SelectItem>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
                   <SelectItem value="holiday">Holiday</SelectItem>
-                  <SelectItem value="deadline">Deadline</SelectItem>
-                  <SelectItem value="community">Community</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="workflow" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="workflowTitle">Workflow Title</Label>
-              <Input
-                id="workflowTitle"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter workflow title"
-              />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="workflow">Select Workflow</Label>
-              <Select value={workflowId} onValueChange={setWorkflowId}>
-                <SelectTrigger id="workflow">
-                  <SelectValue placeholder="Select a workflow" />
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="access" className="text-right">
+                Visibility
+              </Label>
+              <Select 
+                value={accessLevel}
+                onValueChange={(value) => setAccessLevel(value as CalendarAccessLevel)}
+              >
+                <SelectTrigger className="col-span-3" id="access">
+                  <SelectValue placeholder="Select visibility" />
                 </SelectTrigger>
                 <SelectContent>
-                  {workflows.length > 0 ? (
-                    workflows.map((workflow) => (
-                      <SelectItem key={workflow.id} value={workflow.id}>
-                        {workflow.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>No workflows available</SelectItem>
-                  )}
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="homeowners">Homeowners Only</SelectItem>
+                  <SelectItem value="board">Board Only</SelectItem>
+                  <SelectItem value="management">Management Only</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </TabsContent>
-        </Tabs>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={activeTab === 'event' ? handleCreateEvent : handleScheduleWorkflow}
-            disabled={
-              !title.trim() || 
-              (activeTab === 'workflow' && !workflowId)
-            }
-          >
-            {activeTab === 'event' ? 'Add Event' : 'Schedule Workflow'}
-          </Button>
-        </DialogFooter>
+          </div>
+          
+          <DialogFooter>
+            <Button type="submit">Add Event</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
