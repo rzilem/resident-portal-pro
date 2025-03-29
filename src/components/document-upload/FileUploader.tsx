@@ -5,22 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface FileUploaderProps {
-  onFileUpload: (file: File) => void;
-  buttonText?: string;
+  file: File | null;
+  setFile: (file: File | null) => void;
+  disabled?: boolean;
 }
 
 const FileUploader: React.FC<FileUploaderProps> = ({ 
-  onFileUpload, 
-  buttonText = 'Upload File' 
+  file,
+  setFile,
+  disabled = false
 }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      onFileUpload(file);
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setIsOpen(false); // Close dialog after file selection
     }
   };
 
@@ -29,9 +31,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">{buttonText}</Button>
+        <Button variant="outline" disabled={disabled}>
+          {file ? 'Change File' : 'Select File'}
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -47,9 +51,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({
           <Button onClick={handleUploadClick}>
             Select File
           </Button>
-          {selectedFile && (
+          {file && (
             <div>
-              <p>Selected File: {selectedFile.name}</p>
+              <p>Selected File: {file.name}</p>
             </div>
           )}
         </div>
