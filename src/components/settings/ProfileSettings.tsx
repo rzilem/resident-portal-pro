@@ -67,19 +67,45 @@ const ProfileSettings = () => {
     </div>;
   }
 
+  // Create a compatible form object that provides the necessary methods
+  // to work with our PersonalInfoCard component
+  const formAdapter = {
+    getValues: (field: string) => {
+      if (field === 'firstName') return formData.name.split(' ')[0] || '';
+      if (field === 'lastName') {
+        const nameParts = formData.name.split(' ');
+        return nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      }
+      if (field === 'email') return formData.email;
+      if (field === 'phoneNumber') return formData.phone;
+      if (field === 'address') return formData.address;
+      if (field === 'bio') return formData.bio;
+      return '';
+    },
+    setValue: (field: string, value: string) => {
+      if (field === 'firstName') {
+        const lastName = formData.name.split(' ').slice(1).join(' ');
+        handleChange({
+          target: { name: 'name', value: `${value} ${lastName}`.trim() }
+        } as React.ChangeEvent<HTMLInputElement>);
+      } else if (field === 'lastName') {
+        const firstName = formData.name.split(' ')[0] || '';
+        handleChange({
+          target: { name: 'name', value: `${firstName} ${value}`.trim() }
+        } as React.ChangeEvent<HTMLInputElement>);
+      } else {
+        handleChange({
+          target: { name: field, value }
+        } as React.ChangeEvent<HTMLInputElement>);
+      }
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="grid gap-6">
         <PersonalInfoCard
-          form={{
-            control: {
-              // Mock form control for the current component
-              register: () => ({}),
-              setValue: () => {},
-              getValues: () => ({}),
-              formState: { errors: {} },
-            } as any,
-          }}
+          form={formAdapter}
           isAdmin={isAdmin}
           onSubmit={handleSubmit}
         />

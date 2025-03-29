@@ -64,15 +64,25 @@ export const useProfileForm = () => {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       
+      // Create the update object with type safety
+      const updateData: {
+        first_name: string;
+        last_name: string;
+        phone_number?: string;
+      } = {
+        first_name: firstName,
+        last_name: lastName,
+      };
+      
+      // Only add phone_number if it exists
+      if (formData.phone) {
+        updateData.phone_number = formData.phone;
+      }
+      
       // Update profile in Supabase
       const { error } = await supabase
         .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: formData.phone
-          // Add other fields when available
-        })
+        .update(updateData)
         .eq('id', user.id);
       
       if (error) {
@@ -85,7 +95,7 @@ export const useProfileForm = () => {
             user_id: user.id,
             first_name: firstName,
             last_name: lastName,
-            phone_number: formData.phone
+            phone_number: formData.phone || null
           });
           
           if (adminUpdateError) {
