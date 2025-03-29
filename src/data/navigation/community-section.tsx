@@ -9,7 +9,8 @@ export const getCommunitySection = (currentPath: string): NavItem => ({
           currentPath.startsWith("/residents") || 
           currentPath.startsWith("/compliance") ||
           currentPath.startsWith("/community-hub") ||
-          currentPath.startsWith("/resale/bid-requests"),
+          currentPath.startsWith("/resale/bid-requests") ||
+          currentPath.startsWith("/resale/bid-request"),
   href: "/properties", // Default href
   items: [
     {
@@ -40,7 +41,7 @@ export const getCommunitySection = (currentPath: string): NavItem => ({
       label: "Bid Requests",
       icon: HandCoins,
       href: "/resale/bid-requests",
-      active: currentPath.startsWith("/resale/bid-requests")
+      active: currentPath.startsWith("/resale/bid-requests") || currentPath.startsWith("/resale/bid-request")
     }
   ]
 });

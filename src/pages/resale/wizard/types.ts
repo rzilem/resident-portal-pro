@@ -21,3 +21,8 @@ export interface Question {
   options?: string[];
   required?: boolean;
 }
+
+// Add this interface for type safety when accessing PROJECT_QUESTIONS
+export interface ProjectTypeQuestions {
+  [projectTypeId: string]: Question[];
+}

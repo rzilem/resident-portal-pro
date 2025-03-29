@@ -1,5 +1,5 @@
 
-import { ProjectType, Question } from './types';
+import { ProjectType, Question, ProjectTypeQuestions } from './types';
 
 export const PROJECT_TYPES: ProjectType[] = [
   {
@@ -65,7 +65,7 @@ export const PROJECT_TYPES: ProjectType[] = [
 ];
 
 // Define questions for each project type
-export const PROJECT_QUESTIONS: Record<string, Question[]> = {
+export const PROJECT_QUESTIONS: ProjectTypeQuestions = {
   'renovation': [
     {
       id: 'renovationScope',
