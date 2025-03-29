@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUp } from 'lucide-react';
-import { FileUploader } from './document-upload/FileUploader';
+import FileUploader from './document-upload/FileUploader';
 import { UploadButton } from './document-upload/UploadButton';
 import { AuthRequiredMessage } from './document-upload/AuthRequiredMessage';
 import { UploadStatus } from './document-upload/UploadStatus';
