@@ -5,6 +5,7 @@ import { Building } from 'lucide-react';
 import { useAssociations } from '@/hooks/use-associations';
 import { Association } from '@/types/association';
 import { getPropertiesFromAssociations } from '@/components/properties/PropertyHelpers';
+import { toast } from 'sonner';
 
 // Imported Components
 import AssociationHeader from '@/components/associations/AssociationHeader';
@@ -15,6 +16,7 @@ import AssociationTabs from '@/components/associations/AssociationTabs';
 import { CriticalDatesCard } from '@/components/associations/tabs/details';
 import { QuickContactCard } from '@/components/associations/tabs/details';
 import CalendarView from '@/components/calendar/CalendarView';
+import { getAssociationById } from '@/services/associationService';
 
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,16 +27,47 @@ const AssociationProfile = () => {
 
   useEffect(() => {
     console.log('Association ID from URL:', id);
-    console.log('Available associations:', associations);
     
-    // When associations are loaded, find the matching one
-    if (!associationsLoading && associations.length > 0 && id) {
-      const foundAssociation = associations.find(a => a.id === id);
-      console.log('Found association:', foundAssociation);
-      setAssociation(foundAssociation || null);
-      setLoading(false);
-    }
-  }, [associations, associationsLoading, id]);
+    const loadAssociation = async () => {
+      if (!id) return;
+      
+      try {
+        // Try to find in the cache first
+        const cachedAssociation = associations.find(a => a.id === id);
+        if (cachedAssociation) {
+          console.log('Found association in cache:', cachedAssociation);
+          setAssociation(cachedAssociation);
+          setLoading(false);
+          return;
+        }
+        
+        // If not in cache and associations are still loading, wait for them
+        if (associationsLoading) {
+          console.log('Associations still loading, waiting...');
+          return;
+        }
+        
+        // If associations are loaded but the association wasn't found, try to fetch it directly
+        console.log('Association not found in cache, fetching directly...');
+        const fetchedAssociation = await getAssociationById(id);
+        
+        if (fetchedAssociation) {
+          console.log('Fetched association directly:', fetchedAssociation);
+          setAssociation(fetchedAssociation);
+        } else {
+          console.log('Association not found, even after direct fetch.');
+          toast.error('Association not found');
+        }
+      } catch (error) {
+        console.error('Error loading association:', error);
+        toast.error('Failed to load association');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAssociation();
+  }, [id, associations, associationsLoading]);
 
   if (loading || associationsLoading) {
     return (
