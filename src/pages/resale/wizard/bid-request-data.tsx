@@ -2,11 +2,71 @@ import {
   Building, Wrench, Wind, Warehouse, Hammer, Fence, 
   Droplets, Lock, Paintbrush, Bug, FileSpreadsheet, 
   TreePine, Tool, HardHat, Construction, Calculator, 
-  Dog, Zap, HelpingHand, Trash2, Dumbbell
+  Dog, Zap, HelpingHand, Trash2, Dumbbell, Home, Brush, Pipe
 } from 'lucide-react';
 import { ProjectType, ProjectTypeQuestions } from './types';
 
 export const PROJECT_TYPES: ProjectType[] = [
+  { 
+    id: 'renovation', 
+    name: 'Renovation Project', 
+    icon: Home, 
+    description: 'Major renovations, remodeling, or structural changes'
+  },
+  { 
+    id: 'repair', 
+    name: 'Repair Work', 
+    icon: Wrench, 
+    description: 'Fixing damaged or non-functioning parts of the property'
+  },
+  { 
+    id: 'maintenance', 
+    name: 'Regular Maintenance', 
+    icon: Brush, 
+    description: 'Scheduled upkeep of property features and systems'
+  },
+  { 
+    id: 'landscaping', 
+    name: 'Landscaping', 
+    icon: TreePine, 
+    description: 'Outdoor improvements, gardening, and hardscaping'
+  },
+  { 
+    id: 'painting', 
+    name: 'Painting', 
+    icon: Paintbrush, 
+    description: 'Interior or exterior painting projects'
+  },
+  { 
+    id: 'plumbing', 
+    name: 'Plumbing', 
+    icon: Pipe, 
+    description: 'Installation or repair of water and drainage systems'
+  },
+  { 
+    id: 'electrical', 
+    name: 'Electrical', 
+    icon: Zap, 
+    description: 'Wiring, fixtures, and electrical system work'
+  },
+  { 
+    id: 'hvac', 
+    name: 'HVAC', 
+    icon: Wind, 
+    description: 'Heating, ventilation, and air conditioning'
+  },
+  { 
+    id: 'roofing', 
+    name: 'Roofing', 
+    icon: Home, 
+    description: 'Roof repair, replacement, or installation'
+  },
+  { 
+    id: 'other', 
+    name: 'Other Project', 
+    icon: FileSpreadsheet, 
+    description: 'Any other type of project not listed above'
+  },
   { 
     id: 'street_repairs', 
     name: 'Street Repairs / Paving / Striping', 
@@ -49,12 +109,6 @@ export const PROJECT_TYPES: ProjectType[] = [
     name: 'Handyman', 
     icon: Tool, 
     description: 'General repairs and maintenance services'
-  },
-  { 
-    id: 'hvac', 
-    name: 'HVAC', 
-    icon: Wind, 
-    description: 'Heating, ventilation, and air conditioning services'
   },
   { 
     id: 'junk_removal', 

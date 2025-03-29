@@ -32,7 +32,9 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
             onClick={() => onSelect(type.id)}
           >
             <div className="flex items-center space-x-3">
-              <div className="text-2xl">{type.icon}</div>
+              <div className="text-2xl">
+                {type.icon && <type.icon className="h-6 w-6" />}
+              </div>
               <div>
                 <h3 className="font-medium">{type.name}</h3>
                 <p className="text-sm text-muted-foreground">{type.description}</p>
