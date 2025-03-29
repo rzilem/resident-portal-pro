@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useCalendar } from '@/hooks/use-calendar';
 import { Workflow } from '@/types/workflow';
 import { toast } from 'sonner';
+import { CalendarEvent } from '@/types/calendar';
 
 interface WorkflowSchedulerProps {
   open: boolean;
@@ -44,7 +44,7 @@ const WorkflowScheduler = ({
     associationId
   });
   
-  const handleSchedule = () => {
+  const handleSchedule = async () => {
     if (!date) {
       toast.error("Please select a date");
       return;
@@ -61,7 +61,7 @@ const WorkflowScheduler = ({
     scheduledDateTime.setHours(hours, minutes, 0, 0);
     
     try {
-      createWorkflowEvent(workflow.id, workflow.name, scheduledDateTime);
+      const result = await createWorkflowEvent(workflow.id, workflow.name, scheduledDateTime);
       toast.success("Workflow scheduled successfully");
       onScheduled?.();
       onOpenChange(false);

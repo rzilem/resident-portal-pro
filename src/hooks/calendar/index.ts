@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { CalendarAccessLevel } from '@/types/calendar';
+import { CalendarAccessLevel, CalendarEvent } from '@/types/calendar';
 import { useEvents } from './use-events';
 import { useCalendarSettings } from './use-calendar-settings';
 

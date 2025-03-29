@@ -7,14 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
+import { CalendarAccessLevel, CalendarEventType, CalendarEvent } from '@/types/calendar';
 
 interface QuickEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
   onSaveEvent: (data: any) => void;
-  onScheduleWorkflow?: (workflowId: string, title: string, start: Date) => Promise<void>;
+  onScheduleWorkflow?: (workflowId: string, title: string, start: Date) => Promise<CalendarEvent | null>;
   associationId?: string;
   userAccessLevel?: CalendarAccessLevel;
   workflows?: any[];
