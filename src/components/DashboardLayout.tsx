@@ -25,44 +25,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
   // Check if we're coming from an HOA page to show back button
   const showHoaBackButton = location.state?.from?.startsWith('/hoa');
   const hoaPage = location.state?.from || '/hoa/dashboard';
-  
-  // Dynamically set title based on the current route
-  const getPageTitle = () => {
-    if (propTitle) return propTitle;
-    
-    const path = location.pathname;
-    
-    // HOA routes
-    if (path === '/hoa/dashboard') return 'HOA Dashboard';
-    if (path === '/hoa/finances') return 'HOA Finances';
-    if (path === '/hoa/maintenance') return 'HOA Maintenance';
-    if (path === '/hoa/members') return 'HOA Members';
-    if (path === '/hoa/events') return 'HOA Events';
-    
-    // Accounting routes take precedence
-    if (path === '/accounting/dashboard') return 'Accounting Dashboard';
-    if (path === '/accounting/transactions') return 'Transactions';
-    if (path === '/accounting/payments') return 'Payments';
-    if (path === '/accounting/reports') return 'Financial Reports';
-    
-    // Main sections
-    if (path === '/dashboard') return 'Dashboard';
-    if (path === '/properties') return 'Properties';
-    if (path === '/residents') return 'Residents';
-    if (path === '/calendar') return 'Calendar';
-    if (path === '/reports') return 'Reports';
-    if (path === '/integrations') return 'Integrations';
-    if (path === '/workflows') return 'Workflows';
-    if (path === '/community-hub') return 'Community Hub';
-    
-    // Settings section
-    if (path === '/settings') return 'Settings';
-    if (path === '/settings/calendar') return 'Calendar Settings';
-    if (path === '/settings/permissions') return 'User Permissions';
-    
-    return 'HOA Management';
-  };
-  
+
   // Auto close sidebar on mobile when navigating
   useEffect(() => {
     if (isMobile) {
@@ -120,10 +83,10 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen w-full">
-        {/* Header - using the consistent DashboardHeaderWithNav component */}
+        {/* Header - pass propTitle directly to DashboardHeaderWithNav */}
         <DashboardHeaderWithNav 
           toggleSidebar={toggleSidebar} 
-          title={getPageTitle()} 
+          title={propTitle} 
         />
         
         {/* Back to HOA button if applicable */}
