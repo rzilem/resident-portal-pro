@@ -28,24 +28,40 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       setLoading(false);
     }, 1000);
     
-    // Preload images to check if they exist
-    sortedProjectTypes.forEach(type => {
-      if (type.imagePath) {
-        const img = new Image();
-        img.src = getProjectImageUrl(`${type.id}/${type.imagePath}`);
-        img.onerror = () => {
-          debugLog(`Failed to load image for ${type.name}`, type.imagePath);
-          setImageErrors(prev => ({ ...prev, [type.id]: true }));
-        };
-      }
-    });
-    
     return () => clearTimeout(timer);
   }, []);
 
   const handleImageError = (typeId: string) => {
     debugLog(`Image error for type: ${typeId}`);
     setImageErrors(prev => ({ ...prev, [typeId]: true }));
+  };
+
+  // Function to get appropriate image or icon
+  const renderProjectTypeImage = (type: any) => {
+    if (loading) {
+      return <Skeleton className="w-full h-full rounded-md" />;
+    }
+    
+    // Show icon as fallback
+    if (!type.imagePath || imageErrors[type.id]) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-4xl text-muted-foreground">
+            {type.icon && <type.icon className="h-12 w-12" />}
+          </div>
+        </div>
+      );
+    }
+    
+    // Use the uploaded image from /lovable-uploads if it exists
+    return (
+      <img 
+        src={`/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`} 
+        alt={type.name}
+        className="w-full h-full object-cover"
+        onError={() => handleImageError(type.id)}
+      />
+    );
   };
 
   return (
@@ -69,26 +85,9 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
             onClick={() => onSelect(type.id)}
           >
             <div className="flex flex-col h-full">
-              {loading ? (
-                <Skeleton className="w-full h-32 rounded-md mb-3" />
-              ) : (
-                <div className="mb-3 h-32 overflow-hidden rounded-md bg-muted relative">
-                  {type.imagePath && !imageErrors[type.id] ? (
-                    <img 
-                      src={getProjectImageUrl(`${type.id}/${type.imagePath}`)} 
-                      alt={type.name}
-                      className="w-full h-full object-cover"
-                      onError={() => handleImageError(type.id)}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-4xl text-muted-foreground">
-                        {type.icon && <type.icon className="h-12 w-12" />}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="mb-3 h-32 overflow-hidden rounded-md bg-muted relative">
+                {renderProjectTypeImage(type)}
+              </div>
               <div>
                 <h3 className="font-medium">{type.name}</h3>
                 <p className="text-sm text-muted-foreground">{type.description}</p>

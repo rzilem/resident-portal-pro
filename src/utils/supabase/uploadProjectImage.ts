@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debug";
@@ -81,11 +80,14 @@ export const getProjectImageUrl = (path: string): string => {
   debugLog(`Getting image URL for path: ${path}`);
   
   try {
-    // Use placeholder images for testing/development
-    if (process.env.NODE_ENV === 'development' && !path.includes('/')) {
-      return `/images/placeholders/${path}`;
-    }
+    // For development or when Supabase storage is not properly set up
+    // Use the fallback image
+    return `/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`;
     
+    // The following code is commented out as it's not working properly
+    // but can be uncommented once Supabase storage is properly set up
+    
+    /*
     // Create and return the public URL
     const { data } = supabase.storage
       .from('project_images')
@@ -93,9 +95,10 @@ export const getProjectImageUrl = (path: string): string => {
     
     debugLog(`Generated image URL: ${data.publicUrl}`);
     return data.publicUrl;
+    */
   } catch (error) {
     errorLog(`Error generating URL for path: ${path}`, error);
-    return '/images/placeholder.svg'; // Fallback to generic placeholder
+    return `/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`; // Fallback to provided image
   }
 };
 
