@@ -9,9 +9,9 @@ export { ensureDocumentsBucketExists } from './ensureDocumentStorage';
 // Export from bucketUtils
 export { initializeDocumentsBucket, testBucketAccess } from './bucketUtils';
 
-// Export from uploadUtils but rename the conflicting function
+// Export from uploadUtils
 export { 
-  getUploadDocumentCategories as getUploadCategories 
+  getUploadDocumentCategories 
 } from './uploadUtils';
 
 // Export other functions from uploadUtils
