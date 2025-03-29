@@ -10,7 +10,7 @@ import { toast } from "sonner";
  */
 export const uploadProjectImage = async (
   file: File, 
-  path: string = 'fencing'
+  path: string = 'project_images'
 ): Promise<string | null> => {
   try {
     // Validate file
@@ -50,6 +50,20 @@ export const uploadProjectImage = async (
     toast.error('An unexpected error occurred while uploading the image');
     return null;
   }
+};
+
+/**
+ * Bulk upload images to the project_images bucket
+ * @param files Array of files to upload
+ * @param path Optional path within the bucket
+ * @returns Array of uploaded image URLs
+ */
+export const bulkUploadProjectImages = async (
+  files: File[], 
+  path: string = 'project_images'
+): Promise<string[]> => {
+  const uploadPromises = files.map(file => uploadProjectImage(file, path));
+  return (await Promise.all(uploadPromises)).filter(url => url !== null) as string[];
 };
 
 /**
