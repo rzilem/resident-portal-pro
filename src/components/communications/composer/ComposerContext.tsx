@@ -9,6 +9,8 @@ interface ComposerContextProps {
   setContent: (content: string) => void;
   format: 'plain' | 'html';
   setFormat: (format: 'plain' | 'html') => void;
+  messageType: 'email' | 'sms';
+  setMessageType: (type: 'email' | 'sms') => void;
   community: string;
   setCommunity: (community: string) => void;
   recipients: string[];
@@ -52,6 +54,7 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [subject, setSubject] = useState(initialSubject);
   const [content, setContent] = useState(initialContent);
   const [format, setFormat] = useState<'plain' | 'html'>('html');
+  const [messageType, setMessageType] = useState<'email' | 'sms'>('email');
   const [community, setCommunity] = useState(initialCommunity);
   const [recipients, setRecipients] = useState<string[]>([]);
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
@@ -85,6 +88,8 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
         setContent,
         format,
         setFormat,
+        messageType,
+        setMessageType,
         community,
         setCommunity,
         recipients,

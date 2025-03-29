@@ -14,6 +14,7 @@ import { appendToContent } from './composer/ComposerUtils';
 import { useComposer } from './composer/ComposerContext';
 import { INITIAL_TEMPLATES } from '@/pages/communications/useCommunityMessaging';
 import { MergeTag } from '@/types/mergeTags';
+import MessageTypeSelector from './composer/MessageTypeSelector';
 
 interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -48,7 +49,8 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
     format, 
     setContent,
     showMergeTagPreview,
-    setShowMergeTagPreview
+    setShowMergeTagPreview,
+    messageType
   } = useComposer();
   
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
@@ -84,9 +86,14 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
         <div className="grid grid-cols-1 gap-6">
           <CommunitySelector />
           
+          <MessageTypeSelector />
+          
           <RecipientSelector />
           
-          <SubjectField templates={INITIAL_TEMPLATES} />
+          {/* Only show subject field for emails */}
+          {messageType === 'email' && (
+            <SubjectField templates={INITIAL_TEMPLATES} />
+          )}
           
           <ContentEditor 
             onOpenAiAssistant={() => setIsAiAssistantOpen(true)}

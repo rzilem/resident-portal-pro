@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { workflowEventService } from '@/services/calendar/workflowEventService';
 import { CalendarEvent } from '@/types/calendar';
 import { format } from 'date-fns';
-import { Loader2, Send, Calendar } from 'lucide-react';
+import { Loader2, Send, Calendar, MessageSquare } from 'lucide-react';
 import { emailService } from '@/services/emailService';
 
 interface ComposerActionsProps {
@@ -23,19 +23,21 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
     scheduledDate,
     scheduledTime,
     format: contentFormat,
+    messageType,
     setIsScheduled
   } = useComposer();
   
   const [isSending, setIsSending] = useState(false);
 
   const validateMessage = () => {
-    if (!subject.trim()) {
+    // For SMS, subject is optional
+    if (messageType === 'email' && !subject.trim()) {
       toast.error('Please add a subject');
       return false;
     }
     
     if (!content.trim()) {
-      toast.error('Please add content to your message');
+      toast.error(`Please add content to your ${messageType === 'email' ? 'email' : 'SMS message'}`);
       return false;
     }
     
@@ -51,6 +53,12 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
     
     if (scheduledSend && !scheduledTime) {
       toast.error('Please select a time for your scheduled message');
+      return false;
+    }
+
+    // Check SMS character limits
+    if (messageType === 'sms' && content.length > 480) {
+      toast.error('SMS content exceeds maximum length (480 characters)');
       return false;
     }
     
@@ -84,6 +92,7 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         subject,
         content,
         recipients: selectedRecipients,
+        messageType,
         scheduledAt: scheduledDateTime.toISOString(),
       };
       
@@ -95,33 +104,34 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       // Create a calendar event for this scheduled message
       const calendarEvent: Partial<CalendarEvent> = {
         id: uuidv4(),
-        title: `Scheduled: ${subject}`,
-        description: `Scheduled message to ${selectedRecipients.length} recipients`,
+        title: `Scheduled: ${messageType === 'email' ? subject : 'SMS Message'}`,
+        description: `Scheduled ${messageType} to ${selectedRecipients.length} recipients`,
         start: scheduledDateTime,
         end: new Date(scheduledDateTime.getTime() + 30 * 60000), // End 30 minutes later
         allDay: false,
         type: 'workflow',
         workflowId: messageId,
-        accessLevel: 'admin', // Fix: Using accessLevel property instead of userId
+        accessLevel: 'admin', // Using accessLevel property instead of userId
         associationId: 'default', // Use a default association ID
         metadata: {
           scheduled: true,
           recipientCount: selectedRecipients.length,
-          messageFormat: contentFormat
+          messageFormat: contentFormat,
+          messageType: messageType
         }
       };
       
-      // Add the event to the calendar - using createWorkflowEvent instead of scheduleWorkflowEvent
+      // Add the event to the calendar
       await workflowEventService.createWorkflowEvent(
         messageId, 
-        `Scheduled: ${subject}`, 
+        `Scheduled: ${messageType === 'email' ? subject : 'SMS Message'}`, 
         scheduledDateTime,
         'default' // Use a default association ID
       );
       
       setIsScheduled(true);
       toast.success(
-        `Message scheduled for ${format(scheduledDateTime, 'PPP p')}`,
+        `${messageType.toUpperCase()} scheduled for ${format(scheduledDateTime, 'PPP p')}`,
         {
           description: `To ${selectedRecipients.length} recipient${selectedRecipients.length > 1 ? 's' : ''}`
         }
@@ -130,7 +140,7 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       return true;
     } catch (error) {
       console.error('Error scheduling message:', error);
-      toast.error('Failed to schedule message');
+      toast.error(`Failed to schedule ${messageType}`);
       return false;
     }
   };
@@ -145,30 +155,40 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       
       for (const recipient of selectedRecipients) {
         try {
-          // In a real implementation, this would use an actual email service
-          const sent = await emailService.sendEmail({
-            to: recipient,
-            subject: subject,
-            body: content,
-            isHtml: contentFormat === 'html'
-          });
-          
-          if (sent) successCount++;
+          if (messageType === 'email') {
+            // Send email
+            const sent = await emailService.sendEmail({
+              to: recipient,
+              subject: subject,
+              body: content,
+              isHtml: contentFormat === 'html'
+            });
+            
+            if (sent) successCount++;
+          } else {
+            // Send SMS - mock implementation using console.log
+            console.log(`Sending SMS to ${recipient}:`, content);
+            
+            // In a real implementation, this would use an SMS service API
+            // For demo purposes, we'll simulate success
+            successCount++;
+          }
         } catch (recipientError) {
-          console.error(`Failed to send to ${recipient}:`, recipientError);
+          console.error(`Failed to send ${messageType} to ${recipient}:`, recipientError);
         }
       }
       
       // Store the sent message in history
       const sentMessageData = {
         id: uuidv4(),
-        subject,
+        subject: messageType === 'email' ? subject : 'SMS Message',
         content,
         recipients: selectedRecipients,
         sentAt: sentTimestamp,
         status: successCount === selectedRecipients.length ? 'sent' : 'partial',
         successCount,
-        totalCount: selectedRecipients.length
+        totalCount: selectedRecipients.length,
+        messageType
       };
       
       // Get existing sent messages or initialize empty array
@@ -179,26 +199,26 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       // Show appropriate toast based on success rate
       if (successCount === selectedRecipients.length) {
         toast.success(
-          `Message sent successfully`, 
+          `${messageType.toUpperCase()} sent successfully`, 
           { description: `Sent to ${successCount} recipient${successCount > 1 ? 's' : ''}` }
         );
         return true;
       } else if (successCount > 0) {
         toast.warning(
-          `Message partially sent`,
+          `${messageType.toUpperCase()} partially sent`,
           { description: `Sent to ${successCount} of ${selectedRecipients.length} recipients` }
         );
         return false;
       } else {
         toast.error(
-          `Failed to send message`,
+          `Failed to send ${messageType.toUpperCase()}`,
           { description: 'No recipients received the message' }
         );
         return false;
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      console.error(`Error sending ${messageType}:`, error);
+      toast.error(`Failed to send ${messageType}`);
       return false;
     }
   };
@@ -225,7 +245,7 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      toast.error(`Failed to send ${messageType}`);
     } finally {
       setIsSending(false);
     }
@@ -259,8 +279,15 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
           </>
         ) : (
           <>
-            {scheduledSend ? <Calendar className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-            <span>{scheduledSend ? 'Schedule' : 'Send'}</span>
+            {scheduledSend ? 
+              <Calendar className="h-4 w-4" /> : 
+              messageType === 'email' ? 
+                <Send className="h-4 w-4" /> : 
+                <MessageSquare className="h-4 w-4" />
+            }
+            <span>
+              {scheduledSend ? 'Schedule' : `Send ${messageType.toUpperCase()}`}
+            </span>
           </>
         )}
       </Button>

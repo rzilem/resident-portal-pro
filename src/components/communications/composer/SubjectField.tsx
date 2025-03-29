@@ -23,14 +23,25 @@ const SubjectField: React.FC<SubjectFieldProps> = ({ templates }) => {
     setContent, 
     selectedCommunity, 
     format, 
-    setFormat 
+    setFormat,
+    messageType
   } = useComposer();
   
   const [showTemplateConfirm, setShowTemplateConfirm] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
   
-  // Filter templates based on the selected community
-  const filteredTemplates = filterTemplatesByCommunity(templates, selectedCommunity);
+  // Filter templates based on the selected community and message type
+  const filteredTemplates = filterTemplatesByCommunity(templates, selectedCommunity)
+    // Only show email templates for email, SMS templates for SMS
+    .filter(template => {
+      // If the template name or description mentions SMS, it's an SMS template
+      const isSmsTemplate = 
+        template.name.toLowerCase().includes('sms') || 
+        template.description.toLowerCase().includes('sms') ||
+        template.category.toLowerCase().includes('sms');
+      
+      return messageType === 'sms' ? isSmsTemplate : !isSmsTemplate;
+    });
 
   const handleTemplateSelect = (template: MessageTemplate) => {
     // If there's already content, show confirmation dialog
