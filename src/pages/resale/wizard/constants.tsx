@@ -1,12 +1,35 @@
 
-import { Home, FileText, ClipboardList, Calendar, DollarSign, FileCheck } from 'lucide-react';
-import { Step } from './types';
+import { Step } from "./types";
 
 export const STEPS: Step[] = [
-  { id: 'property', label: 'Property Details', icon: Home },
-  { id: 'certificate', label: 'Resale Certificate', icon: FileText },
-  { id: 'questionnaire', label: 'Condo Questionnaire', icon: ClipboardList },
-  { id: 'inspection', label: 'Property Inspection', icon: Calendar },
-  { id: 'statement', label: 'Account Statement', icon: DollarSign },
-  { id: 'trec-forms', label: 'TREC Forms', icon: FileCheck }
+  {
+    id: "property",
+    name: "Property Details",
+    description: "Basic property information"
+  },
+  {
+    id: "certificate",
+    name: "Resale Certificate",
+    description: "Required documentation"
+  },
+  {
+    id: "questionnaire",
+    name: "Condo Questionnaire",
+    description: "For mortgage lenders"
+  },
+  {
+    id: "inspection",
+    name: "Property Inspection",
+    description: "Schedule inspection"
+  },
+  {
+    id: "statements",
+    name: "Account Statement",
+    description: "Financial details"
+  },
+  {
+    id: "trec",
+    name: "TREC Forms",
+    description: "Required legal forms"
+  }
 ];

@@ -26,3 +26,61 @@ export interface Question {
 export interface ProjectTypeQuestions {
   [projectTypeId: string]: Question[];
 }
+
+// Add FormData interface for the resale wizard steps
+export interface FormData {
+  // Property Details
+  propertyAddress: string;
+  propertyType: string;
+  ownerName: string;
+  associationName: string;
+  closingDate: string;
+  
+  // Certificate Details
+  regularAssessment: string;
+  assessmentFrequency: string;
+  specialAssessment: string;
+  transferFee: string;
+  outstandingBalance: string;
+  violations: string;
+  litigation: string;
+  
+  // Questionnaire Details
+  condoName: string;
+  unitNumber: string;
+  managementCompany: string;
+  totalUnits: string;
+  yearBuilt: string;
+  monthlyFee: string;
+  reserveBalance: string;
+  ownerOccupiedPercentage: string;
+  arrearsPercentage: string;
+  insuranceCarrier: string;
+  policyNumber: string;
+  expirationDate: string;
+  
+  // Inspection Details
+  inspectionDate: string;
+  inspectionTime: string;
+  inspectionType: string;
+  inspectionNotes: string;
+  
+  // Account Statement
+  accountNumber: string;
+  statementDate: string;
+  previousBalance: string;
+  payments: string;
+  newCharges: string;
+  currentBalance: string;
+  transactions: string[][];
+  
+  // TREC Forms
+  selectedForms: string[];
+}
+
+// Add Step interface for wizard steps
+export interface Step {
+  id: string;
+  name: string;
+  description: string;
+}

@@ -1,49 +1,66 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, LoaderCircle } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface WizardNavigationProps {
   currentStep: number;
-  totalSteps: number;
-  isLoading: boolean;
-  onPrevious: () => void;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+  onBack: () => void;
   onNext: () => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  disableNext?: boolean;
 }
 
-export const WizardNavigation: React.FC<WizardNavigationProps> = ({
+const WizardNavigation: React.FC<WizardNavigationProps> = ({
   currentStep,
-  totalSteps,
-  isLoading,
-  onPrevious,
+  isFirstStep,
+  isLastStep,
+  onBack,
   onNext,
+  onSubmit,
+  submitting,
+  disableNext
 }) => {
   return (
     <div className="flex justify-between">
-      <Button 
-        variant="outline" 
-        onClick={onPrevious}
-        disabled={currentStep === 0 || isLoading}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Previous
-      </Button>
+      {!isFirstStep && (
+        <Button 
+          onClick={onBack} 
+          variant="outline"
+        >
+          Back
+        </Button>
+      )}
       
-      <Button onClick={onNext} disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-            Processing...
-          </>
-        ) : currentStep === totalSteps - 1 ? (
-          <>Finish</>
-        ) : (
-          <>
-            Next
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </>
-        )}
-      </Button>
+      {!isLastStep ? (
+        <Button 
+          onClick={onNext}
+          className="ml-auto"
+          disabled={disableNext}
+        >
+          Continue
+        </Button>
+      ) : (
+        <Button 
+          onClick={onSubmit}
+          className="ml-auto"
+          disabled={submitting}
+        >
+          {submitting ? (
+            <>
+              <Clock className="mr-2 h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            'Submit Request'
+          )}
+        </Button>
+      )}
     </div>
   );
 };
+
+export default WizardNavigation;
