@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { workflowEventService } from '@/services/calendar/workflowEventService';
 import { CalendarEvent } from '@/types/calendar';
 import { format } from 'date-fns';
+import { Loader2, Send, Calendar } from 'lucide-react';
+import { emailService } from '@/services/emailService';
 
 interface ComposerActionsProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
@@ -133,6 +135,74 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
     }
   };
 
+  const sendImmediateMessage = async () => {
+    try {
+      // Create a timestamp for the sent message
+      const sentTimestamp = new Date().toISOString();
+      
+      // Attempt to send the message to each recipient
+      let successCount = 0;
+      
+      for (const recipient of selectedRecipients) {
+        try {
+          // In a real implementation, this would use an actual email service
+          const sent = await emailService.sendEmail({
+            to: recipient,
+            subject: subject,
+            body: content,
+            isHtml: contentFormat === 'html'
+          });
+          
+          if (sent) successCount++;
+        } catch (recipientError) {
+          console.error(`Failed to send to ${recipient}:`, recipientError);
+        }
+      }
+      
+      // Store the sent message in history
+      const sentMessageData = {
+        id: uuidv4(),
+        subject,
+        content,
+        recipients: selectedRecipients,
+        sentAt: sentTimestamp,
+        status: successCount === selectedRecipients.length ? 'sent' : 'partial',
+        successCount,
+        totalCount: selectedRecipients.length
+      };
+      
+      // Get existing sent messages or initialize empty array
+      const sentMessages = JSON.parse(localStorage.getItem('sentMessages') || '[]');
+      sentMessages.push(sentMessageData);
+      localStorage.setItem('sentMessages', JSON.stringify(sentMessages));
+      
+      // Show appropriate toast based on success rate
+      if (successCount === selectedRecipients.length) {
+        toast.success(
+          `Message sent successfully`, 
+          { description: `Sent to ${successCount} recipient${successCount > 1 ? 's' : ''}` }
+        );
+        return true;
+      } else if (successCount > 0) {
+        toast.warning(
+          `Message partially sent`,
+          { description: `Sent to ${successCount} of ${selectedRecipients.length} recipients` }
+        );
+        return false;
+      } else {
+        toast.error(
+          `Failed to send message`,
+          { description: 'No recipients received the message' }
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
+      return false;
+    }
+  };
+
   const handleSend = async () => {
     if (!validateMessage()) return;
     
@@ -148,8 +218,10 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         }
       } else {
         // Send the message immediately
-        onSendMessage({ subject, content, recipients: selectedRecipients });
-        toast.success('Message sent successfully');
+        const sent = await sendImmediateMessage();
+        if (sent) {
+          onSendMessage({ subject, content, recipients: selectedRecipients });
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -176,15 +248,20 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         type="submit"
         onClick={handleSend}
         disabled={isSending}
+        className="gap-2"
       >
         {isSending ? (
           <>
-            <span className="mr-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>
               {scheduledSend ? 'Scheduling...' : 'Sending...'}
             </span>
           </>
         ) : (
-          scheduledSend ? 'Schedule' : 'Send'
+          <>
+            {scheduledSend ? <Calendar className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+            <span>{scheduledSend ? 'Schedule' : 'Send'}</span>
+          </>
         )}
       </Button>
     </div>
