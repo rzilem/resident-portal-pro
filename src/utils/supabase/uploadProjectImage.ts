@@ -1,7 +1,11 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { debugLog, errorLog } from "@/utils/debug";
+import { uploadFile } from "./storage/uploadFile";
+import { getFileUrl, checkFileExists } from "./storage/getUrl";
+import { validateFileSize, validateFileType } from "./storage/validators";
+
+const PROJECT_IMAGES_BUCKET = 'project_images';
 
 /**
  * Upload an image to the project_images bucket
@@ -15,37 +19,22 @@ export const uploadProjectImage = async (
 ): Promise<string | null> => {
   try {
     // Validate file
-    if (!file || !file.type.startsWith('image/')) {
-      toast.error('Invalid file type. Please upload an image.');
+    if (!validateFileType(file, ['image/'])) {
       return null;
     }
     
-    // Create a unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${file.name.split('.')[0]}.${fileExt}`;
-    const filePath = path ? `${path}/${fileName}` : fileName;
-    
-    // Upload to Supabase
-    const { data, error } = await supabase.storage
-      .from('project_images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
-    
-    if (error) {
-      errorLog('Error uploading image:', error);
-      toast.error('Failed to upload image');
+    if (!validateFileSize(file, 2)) { // 2MB limit
       return null;
     }
     
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
-      .from('project_images')
-      .getPublicUrl(data.path);
+    // Upload file
+    const imageUrl = await uploadFile(file, PROJECT_IMAGES_BUCKET, path);
     
-    toast.success('Image uploaded successfully');
-    return publicUrlData.publicUrl;
+    if (imageUrl) {
+      toast.success('Image uploaded successfully');
+    }
+    
+    return imageUrl;
   } catch (error) {
     errorLog('Exception in uploadProjectImage:', error);
     toast.error('An unexpected error occurred while uploading the image');
@@ -105,12 +94,7 @@ export const getProjectImageUrl = (path: string): string => {
     
     /*
     // Create and return the public URL
-    const { data } = supabase.storage
-      .from('project_images')
-      .getPublicUrl(path);
-    
-    debugLog(`Generated image URL: ${data.publicUrl}`);
-    return data.publicUrl;
+    return getFileUrl(PROJECT_IMAGES_BUCKET, path);
     */
   } catch (error) {
     errorLog(`Error generating URL for path: ${path}`, error);
@@ -124,14 +108,5 @@ export const getProjectImageUrl = (path: string): string => {
  * @returns True if the image exists, false otherwise
  */
 export const checkImageExists = async (path: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.storage
-      .from('project_images')
-      .download(path);
-    
-    return !!data && !error;
-  } catch (error) {
-    errorLog(`Error checking if image exists: ${path}`, error);
-    return false;
-  }
+  return await checkFileExists(PROJECT_IMAGES_BUCKET, path);
 };
