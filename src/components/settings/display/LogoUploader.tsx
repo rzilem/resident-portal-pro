@@ -1,18 +1,18 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useSettings } from '@/hooks/use-settings';
+import { useCompanySettings } from '@/hooks/use-company-settings';
 import { Upload, Trash2, Image as ImageIcon } from "lucide-react";
 import { toast } from 'sonner';
+import { companySettingsService } from '@/services/companySettingsService';
 
 const LogoUploader = () => {
-  const { companySettings, isLoading, uploadCompanyLogo, updateCompanySetting } = useSettings();
+  const { settings, isLoading, updateSetting, getSetting } = useCompanySettings();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const currentLogo = companySettings?.logoUrl;
+  const currentLogo = getSetting('logoUrl');
   
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,7 +35,9 @@ const LogoUploader = () => {
     
     try {
       toast.loading('Uploading logo...');
-      const logoUrl = await uploadCompanyLogo(file);
+      
+      // Use the company settings service to upload the logo
+      const logoUrl = await companySettingsService.uploadCompanyLogo(file);
       
       if (logoUrl) {
         toast.success('Logo uploaded successfully');
@@ -53,19 +55,19 @@ const LogoUploader = () => {
         fileInputRef.current.value = '';
       }
     }
-  }, [uploadCompanyLogo]);
+  }, []);
   
   const handleRemoveLogo = useCallback(async () => {
     if (!currentLogo) return;
     
     try {
-      await updateCompanySetting('logoUrl', null);
+      await updateSetting('logoUrl', null);
       toast.success('Logo removed successfully');
     } catch (error) {
       console.error('Error removing logo:', error);
       toast.error('Failed to remove logo');
     }
-  }, [currentLogo, updateCompanySetting]);
+  }, [currentLogo, updateSetting]);
   
   return (
     <div className="space-y-4">

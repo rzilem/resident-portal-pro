@@ -13,7 +13,7 @@ export function useCompanySettings() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = companySettingsService.getCompanySettings();
+      const data = await companySettingsService.getCompanySettings();
       setSettings(data);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch company settings'));
@@ -26,7 +26,7 @@ export function useCompanySettings() {
   // Update company settings
   const updateSettings = useCallback(async (updates: Record<string, any>) => {
     try {
-      const updatedSettings = companySettingsService.updateCompanySettings(updates);
+      const updatedSettings = await companySettingsService.updateCompanySettings(updates);
       setSettings(updatedSettings);
       toast.success('Company settings updated successfully');
       return updatedSettings;
@@ -39,7 +39,7 @@ export function useCompanySettings() {
   // Update a specific setting
   const updateSetting = useCallback(async (key: string, value: any) => {
     try {
-      const updatedSettings = companySettingsService.updateCompanySetting(key, value);
+      const updatedSettings = await companySettingsService.updateCompanySetting(key, value);
       setSettings(updatedSettings);
       return updatedSettings;
     } catch (err) {

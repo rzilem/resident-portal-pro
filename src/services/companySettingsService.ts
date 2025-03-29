@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
+import { uploadCompanyLogo } from '@/utils/supabase/companyLogoStorage';
 
 // Default company settings as fallback
 const defaultCompanySettings = {
@@ -128,34 +129,15 @@ export const companySettingsService = {
    */
   uploadCompanyLogo: async (file: File): Promise<string | null> => {
     try {
-      // Create a unique file path
-      const fileExt = file.name.split('.').pop();
-      const fileName = `company-logo-${Date.now()}.${fileExt}`;
-      const filePath = `logos/${fileName}`;
+      // Upload logo to storage
+      const logoUrl = await uploadCompanyLogo(file);
       
-      // Upload file to storage
-      const { error: uploadError } = await supabase
-        .storage
-        .from('association_files')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+      if (logoUrl) {
+        // Update logo URL in settings
+        await companySettingsService.updateCompanySetting('logoUrl', logoUrl);
+      }
       
-      if (uploadError) throw uploadError;
-      
-      // Get public URL
-      const { data } = await supabase
-        .storage
-        .from('association_files')
-        .getPublicUrl(filePath);
-      
-      const publicUrl = data.publicUrl;
-      
-      // Update logo URL in settings
-      await companySettingsService.updateCompanySetting('logoUrl', publicUrl);
-      
-      return publicUrl;
+      return logoUrl;
     } catch (error) {
       console.error('Error uploading company logo:', error);
       toast.error('Failed to upload logo');
