@@ -1,8 +1,9 @@
-
 /**
  * ElevenLabs Text-to-Speech API integration
  */
 import { integrationService } from '@/services/integrationService';
+import { debugLog, errorLog } from '@/utils/debug';
+import { fallbackToWebSpeech } from '@/utils/speech';
 
 // Voice IDs for high-quality ElevenLabs voices
 export const VOICE_OPTIONS = {
@@ -15,6 +16,7 @@ export const VOICE_OPTIONS = {
 interface SpeakOptions {
   voice?: string;
   model?: string;
+  fallbackToDefault?: boolean; // Whether to fall back to Web Speech API if ElevenLabs fails
 }
 
 /**
@@ -22,7 +24,7 @@ interface SpeakOptions {
  */
 export const speakWithElevenLabs = async (
   text: string, 
-  { voice, model }: SpeakOptions = {}
+  { voice, model, fallbackToDefault = false }: SpeakOptions = {}
 ): Promise<void> => {
   try {
     // Get the API key from integration settings
@@ -31,15 +33,23 @@ export const speakWithElevenLabs = async (
     // Log integration info for debugging (without exposing full API key)
     if (elevenLabsIntegration?.apiKey) {
       const keyLength = elevenLabsIntegration.apiKey.length;
-      console.log(`Found ElevenLabs API key (${keyLength} chars)`);
+      debugLog(`Found ElevenLabs API key (${keyLength} chars)`);
     } else {
-      console.log('No ElevenLabs API key found in integration settings');
+      debugLog('No ElevenLabs API key found in integration settings');
     }
     
+    // Check for API key in integration settings or env
     const apiKey = elevenLabsIntegration?.apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
     
     if (!apiKey) {
-      console.warn('ElevenLabs API key not found. Cannot proceed with speech synthesis.');
+      errorLog('ElevenLabs API key not found. Cannot proceed with speech synthesis.');
+      
+      // If fallback is requested, use the Web Speech API
+      if (fallbackToDefault) {
+        debugLog('Falling back to Web Speech API...');
+        return fallbackToWebSpeech(text);
+      }
+      
       throw new Error('ElevenLabs API key not found');
     }
     
@@ -47,7 +57,7 @@ export const speakWithElevenLabs = async (
     const selectedVoice = voice || elevenLabsIntegration?.defaultVoiceId || VOICE_OPTIONS.SARAH;
     const selectedModel = model || elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2';
     
-    console.log(`Using ElevenLabs with voice: ${selectedVoice}, model: ${selectedModel}`);
+    debugLog(`Using ElevenLabs with voice: ${selectedVoice}, model: ${selectedModel}`);
     
     // Create request to ElevenLabs API
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}/stream`, {
@@ -81,52 +91,27 @@ export const speakWithElevenLabs = async (
       URL.revokeObjectURL(audioUrl);
     };
     
-    console.log('Playing ElevenLabs audio...');
+    debugLog('Playing ElevenLabs audio...');
     await audio.play();
     
     // Return a promise that resolves when audio finishes playing
     return new Promise((resolve) => {
       audio.onended = () => {
         URL.revokeObjectURL(audioUrl);
-        console.log('ElevenLabs audio playback completed');
+        debugLog('ElevenLabs audio playback completed');
         resolve();
       };
     });
   } catch (error) {
-    console.error('Error with ElevenLabs TTS:', error);
-    // Don't automatically fall back - throw the error so the caller can decide
+    errorLog('Error with ElevenLabs TTS:', error);
+    
+    // If fallback is requested, use the Web Speech API
+    if (fallbackToDefault) {
+      debugLog('Falling back to Web Speech API due to error');
+      return fallbackToWebSpeech(text);
+    }
+    
+    // Otherwise, throw the error
     throw error;
   }
-};
-
-/**
- * Fallback to Web Speech API if ElevenLabs is unavailable
- */
-export const fallbackToWebSpeech = (text: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95; // Slightly slower for better clarity
-      
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.name.includes('Google') || voice.name.includes('Natural'));
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      
-      utterance.onend = () => {
-        resolve();
-      };
-      
-      utterance.onerror = (event) => {
-        reject(new Error(`Speech synthesis error: ${event.error}`));
-      };
-      
-      window.speechSynthesis.speak(utterance);
-    } else {
-      reject(new Error('Speech synthesis not supported in this browser'));
-    }
-  });
 };
