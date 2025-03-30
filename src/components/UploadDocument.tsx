@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUp } from 'lucide-react';
 import FileUploader from './document-upload/FileUploader';

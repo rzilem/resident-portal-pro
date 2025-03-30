@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { profileFormSchema } from "./profile/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +11,6 @@ import NotificationsCard from './profile/cards/NotificationsCard';
 import IntegrationsCard from './profile/cards/IntegrationsCard';
 import ExportDataCard from './profile/cards/ExportDataCard';
 import { useAuth } from '@/hooks/use-auth';
-import { User } from '@/types/user';
 
 // Define the UserProfile interface to match the structure we're using
 interface UserProfile {
