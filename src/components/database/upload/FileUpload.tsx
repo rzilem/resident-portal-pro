@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -86,9 +85,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }
           <div className="flex items-start">
             <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
             <div>
-              <h3 className="text-sm font-medium text-amber-800">Storage Not Ready</h3>
+              <h3 className="text-sm font-medium text-amber-800">Demo Mode Active</h3>
               <p className="text-sm text-amber-700 mt-1">
-                Document storage is not available. Using demo mode instead.
+                Document storage is unavailable. Using demo mode instead. Data will be processed locally.
               </p>
               <Button 
                 variant="outline" 

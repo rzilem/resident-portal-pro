@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
+import { testBucketAccess } from '@/utils/documents/bucketUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -32,42 +32,23 @@ export const useDocumentsBucket = () => {
       }
 
       console.log('Checking document bucket exists...');
-      const exists = await ensureDocumentsBucketExists();
       
-      if (exists) {
-        // Additionally check if we can actually use the bucket
-        try {
-          const canAccess = await testBucketAccess();
-          
-          if (canAccess) {
-            console.log('Document storage is ready and accessible');
-            setBucketReady(true);
-            setErrorMessage(null);
-          } else {
-            console.log('Document storage exists but is not accessible');
-            setErrorMessage('Document storage exists but is not accessible');
-            setBucketReady(false);
-            
-            if (retryCount < MAX_RETRIES) {
-              toast.info("Attempting to initialize document storage...");
-            } else {
-              toast.error("Document storage is not accessible. Please check your permissions.");
-            }
-          }
-        } catch (accessError) {
-          console.error('Error testing bucket access:', accessError);
-          setErrorMessage('Error testing bucket access: ' + (accessError instanceof Error ? accessError.message : 'Unknown error'));
-          setBucketReady(false);
-        }
+      // Check if we can access the bucket
+      const canAccess = await testBucketAccess();
+      
+      if (canAccess) {
+        console.log('Document storage is ready and accessible');
+        setBucketReady(true);
+        setErrorMessage(null);
       } else {
-        console.log('Documents bucket does not exist or is not accessible');
-        setErrorMessage('Documents bucket does not exist or is not accessible');
+        console.log('Document storage is not accessible');
+        setErrorMessage('Document storage is not accessible');
         setBucketReady(false);
         
-        if (!isCreating && retryCount < MAX_RETRIES) {
-          toast.info("Attempting to initialize document storage...");
-        } else if (retryCount >= MAX_RETRIES) {
-          toast.error("Document storage is not available. Please check your Supabase settings.");
+        // Since we can't create the bucket due to RLS errors,
+        // we'll treat it as a demo mode situation
+        if (retryCount === 0) {
+          toast.info("Using demo mode for document storage");
         }
       }
       
@@ -79,13 +60,12 @@ export const useDocumentsBucket = () => {
       setIsLoading(false);
       setBucketReady(false);
     }
-  }, [retryCount, isCreating, MAX_RETRIES, user]);
+  }, [retryCount, user]);
   
   useEffect(() => {
     let isMounted = true;
-    let timeoutId: NodeJS.Timeout | null = null;
     
-    // Use async/await here to properly check the session
+    // Check if user is authenticated before checking bucket
     const checkSessionAndBucket = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -111,46 +91,15 @@ export const useDocumentsBucket = () => {
     // Cleanup function
     return () => {
       isMounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [checkBucket, user]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
     
-    console.log('Manually retrying bucket creation...');
-    setIsCreating(true);
-    
-    try {
-      // Force bucket creation
-      const success = await ensureDocumentsBucketExists(true);
-      
-      if (success) {
-        // Check if we can use it
-        const canAccess = await testBucketAccess();
-        if (canAccess) {
-          setBucketReady(true);
-          setErrorMessage(null);
-          toast.success("Document storage initialized successfully");
-        } else {
-          setBucketReady(false);
-          setErrorMessage('Storage initialized but cannot be accessed');
-          toast.error("Document storage exists but cannot be accessed. Please check your permissions.");
-        }
-      } else {
-        setBucketReady(false);
-        setErrorMessage('Failed to initialize document storage');
-        toast.error("Failed to initialize document storage. Please check your Supabase settings.");
-      }
-    } catch (error) {
-      console.error('Error during manual bucket creation retry:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Unknown error during retry');
-      toast.error("Failed to initialize document storage");
-      setBucketReady(false);
-    } finally {
-      setIsCreating(false);
-      setRetryCount(prev => prev + 1);
-    }
+    console.log('Manually retrying bucket check...');
+    setRetryCount(prev => prev + 1);
+    checkBucket();
   };
   
   const checkStorageStatus = () => {
