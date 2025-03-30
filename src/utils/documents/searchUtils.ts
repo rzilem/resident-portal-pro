@@ -52,7 +52,10 @@ export const searchDocuments = async (
     
     // Apply tags filter
     if (filters.tags && filters.tags.length > 0) {
-      supabaseQuery = supabaseQuery.overlaps('tags', filters.tags);
+      // Handle array overlap for tags
+      for (const tag of filters.tags) {
+        supabaseQuery = supabaseQuery.contains('tags', [tag]);
+      }
     }
     
     // Apply associations filter
@@ -93,7 +96,7 @@ export const searchDocuments = async (
       version: doc.version || 1,
       isPublic: Boolean(doc.is_public) || false,
       isArchived: Boolean(doc.is_archived) || false,
-      associations: [doc.association_id].filter(Boolean) || [],
+      associations: doc.association_id ? [doc.association_id] : [],
       properties: [],
       metadata: {}
     }));
@@ -110,17 +113,22 @@ export const searchDocuments = async (
  */
 export const getDocumentTags = async (): Promise<string[]> => {
   try {
-    // This query uses Postgres array_agg and unnest to get unique tags
+    // Query to get unique tags from all documents
     const { data, error } = await supabase
-      .rpc('get_unique_document_tags');
+      .from('documents')
+      .select('tags');
     
     if (error) {
       console.error('Error fetching document tags:', error);
-      // Fallback to default tags if RPC not available
+      // Fallback to default tags
       return ['financial', 'legal', 'meeting', 'maintenance', 'important'];
     }
     
-    return data || [];
+    // Extract all tags and make them unique
+    const allTags = data.flatMap(doc => doc.tags || []);
+    const uniqueTags = [...new Set(allTags)];
+    
+    return uniqueTags.length > 0 ? uniqueTags : ['financial', 'legal', 'meeting', 'maintenance', 'important'];
     
   } catch (error) {
     console.error('Unexpected error fetching document tags:', error);

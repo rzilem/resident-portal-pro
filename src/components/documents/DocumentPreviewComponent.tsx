@@ -1,173 +1,247 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Eye, Download, FileText, FilePdf, FileImage, FileCode } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileText, FileImage, Film, FileAudio, File, Download, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-interface DocumentPreviewProps {
-  document: DocumentFile;
+export interface DocumentPreviewProps {
+  document: DocumentFile | null;
   onClose?: () => void;
 }
 
 const DocumentPreviewComponent: React.FC<DocumentPreviewProps> = ({ 
-  document, 
+  document,
   onClose 
 }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (document && document.url) {
-      setPreviewUrl(document.url);
-    }
-    
-    return () => {
-      // Clean up any resources if needed
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [document]);
-  
-  const handleDownload = () => {
-    if (document.url) {
-      // Create a temporary anchor element
-      const link = document.createElement('a');
-      link.href = document.url;
-      link.setAttribute('download', document.name);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+  const [activeTab, setActiveTab] = useState<string>('preview');
   
   const getFileIcon = () => {
-    const fileType = document.fileType?.toLowerCase() || '';
+    if (!document) return <File className="h-16 w-16 text-muted-foreground" />;
+    
+    const fileType = document.fileType.toLowerCase();
     
     if (fileType.includes('pdf')) {
-      return <FilePdf className="h-6 w-6" />;
+      return <FileText className="h-16 w-16 text-red-500" />;
     } else if (fileType.includes('image') || fileType.includes('jpg') || fileType.includes('png') || fileType.includes('jpeg')) {
-      return <FileImage className="h-6 w-6" />;
-    } else if (fileType.includes('html') || fileType.includes('json') || fileType.includes('xml') || fileType.includes('txt')) {
-      return <FileCode className="h-6 w-6" />;
+      return <FileImage className="h-16 w-16 text-blue-500" />;
+    } else if (fileType.includes('video') || fileType.includes('mp4')) {
+      return <Film className="h-16 w-16 text-purple-500" />;
+    } else if (fileType.includes('audio') || fileType.includes('mp3')) {
+      return <FileAudio className="h-16 w-16 text-green-500" />;
     } else {
-      return <FileText className="h-6 w-6" />;
+      return <File className="h-16 w-16 text-gray-500" />;
     }
   };
   
-  const renderFilePreview = () => {
-    if (!previewUrl) {
+  const renderPreview = () => {
+    if (!document) return <div className="p-12 text-center text-muted-foreground">No document selected</div>;
+    
+    const fileType = document.fileType.toLowerCase();
+    
+    // PDF preview
+    if (fileType.includes('pdf')) {
       return (
-        <div className="flex items-center justify-center h-96 bg-muted/20">
-          <div className="text-center">
-            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p>Preview not available</p>
+        <object 
+          data={document.url} 
+          type="application/pdf" 
+          width="100%" 
+          height="500px" 
+          className="border rounded-md"
+        >
+          <div className="p-12 text-center">
+            <p className="mb-4">Unable to display PDF. Please download to view.</p>
+            <Button asChild>
+              <a href={document.url} target="_blank" rel="noopener noreferrer">
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </a>
+            </Button>
           </div>
-        </div>
+        </object>
       );
     }
     
-    const fileType = document.fileType?.toLowerCase() || '';
-    
-    if (fileType.includes('pdf')) {
+    // Image preview  
+    if (fileType.includes('image') || fileType.includes('jpg') || fileType.includes('png') || fileType.includes('jpeg')) {
       return (
-        <iframe
-          src={`${previewUrl}#toolbar=0&navpanes=0`}
-          className="w-full h-[500px] border-0"
-          title={document.name}
-        />
-      );
-    } else if (fileType.includes('image') || fileType.includes('jpg') || fileType.includes('png') || fileType.includes('jpeg')) {
-      return (
-        <div className="flex justify-center bg-muted/20 p-4 h-[500px]">
+        <div className="flex justify-center">
           <img 
-            src={previewUrl} 
-            alt={document.name} 
-            className="max-h-full object-contain"
+            src={document.url} 
+            alt={document.name}
+            className="max-w-full max-h-[500px] object-contain" 
           />
         </div>
       );
-    } else if (fileType.includes('html')) {
+    }
+    
+    // Video preview
+    if (fileType.includes('video') || fileType.includes('mp4')) {
       return (
-        <iframe
-          src={previewUrl}
-          className="w-full h-[500px] border-0"
-          title={document.name}
-        />
+        <video controls className="w-full max-h-[500px]">
+          <source src={document.url} type={document.fileType} />
+          Your browser does not support the video tag.
+        </video>
       );
-    } else if (fileType.includes('txt') || fileType.includes('json') || fileType.includes('xml')) {
+    }
+    
+    // Audio preview
+    if (fileType.includes('audio') || fileType.includes('mp3')) {
       return (
-        <div className="bg-muted/20 p-4 h-[500px] overflow-auto">
-          <pre className="text-sm whitespace-pre-wrap">
-            {/* Text content would be loaded here in a real implementation */}
-            Document preview not supported directly. Please download the file to view its contents.
-          </pre>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center justify-center h-96 bg-muted/20">
-          <div className="text-center">
-            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p>Preview not available for this file type</p>
-            <p className="text-sm text-muted-foreground mt-2">Please download the file to view it</p>
-          </div>
+        <div className="p-12 text-center">
+          <audio controls className="w-full">
+            <source src={document.url} type={document.fileType} />
+            Your browser does not support the audio element.
+          </audio>
         </div>
       );
     }
+    
+    // Default: No preview available
+    return (
+      <div className="p-12 text-center">
+        <div className="mb-8 flex justify-center">{getFileIcon()}</div>
+        <h3 className="text-lg font-medium mb-2">Preview not available</h3>
+        <p className="text-muted-foreground mb-6">
+          This file type cannot be previewed directly in the browser.
+        </p>
+        <Button asChild>
+          <a href={document.url} target="_blank" rel="noopener noreferrer">
+            <Download className="h-4 w-4 mr-2" />
+            Download File
+          </a>
+        </Button>
+      </div>
+    );
+  };
+  
+  const renderDetails = () => {
+    if (!document) return <div className="p-12 text-center text-muted-foreground">No document selected</div>;
+    
+    const formatDate = (dateString: string) => {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+    
+    const formatFileSize = (bytes: number) => {
+      if (bytes === 0) return '0 Bytes';
+      
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+    
+    return (
+      <div className="p-6">
+        <div className="grid gap-3">
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">Name</div>
+            <div className="col-span-2">{document.name}</div>
+          </div>
+          
+          {document.description && (
+            <div className="grid grid-cols-3 border-b pb-2">
+              <div className="font-medium">Description</div>
+              <div className="col-span-2">{document.description}</div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">File Type</div>
+            <div className="col-span-2">{document.fileType}</div>
+          </div>
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">File Size</div>
+            <div className="col-span-2">{formatFileSize(document.fileSize)}</div>
+          </div>
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">Uploaded By</div>
+            <div className="col-span-2">{document.uploadedBy || 'Unknown'}</div>
+          </div>
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">Upload Date</div>
+            <div className="col-span-2">{formatDate(document.uploadedDate)}</div>
+          </div>
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">Last Modified</div>
+            <div className="col-span-2">{formatDate(document.lastModified || document.uploadedDate)}</div>
+          </div>
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">Category</div>
+            <div className="col-span-2">{document.category || 'Uncategorized'}</div>
+          </div>
+          
+          {document.tags && document.tags.length > 0 && (
+            <div className="grid grid-cols-3 border-b pb-2">
+              <div className="font-medium">Tags</div>
+              <div className="col-span-2">
+                {document.tags.join(', ')}
+              </div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-3 border-b pb-2">
+            <div className="font-medium">Version</div>
+            <div className="col-span-2">{document.version || 1}</div>
+          </div>
+        </div>
+      </div>
+    );
   };
   
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-2">
-          {getFileIcon()}
-          <CardTitle className="text-xl font-semibold">{document.name}</CardTitle>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        {renderFilePreview()}
-        
-        <div className="mt-4 text-sm text-muted-foreground">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p><span className="font-medium">Type:</span> {document.fileType || 'Unknown'}</p>
-              <p><span className="font-medium">Size:</span> {document.fileSize ? `${Math.round(document.fileSize / 1024)} KB` : 'Unknown'}</p>
-            </div>
-            <div>
-              <p><span className="font-medium">Uploaded:</span> {new Date(document.uploadedDate).toLocaleDateString()}</p>
-              <p><span className="font-medium">Category:</span> {document.category}</p>
+      <CardContent className="p-0">
+        <Tabs defaultValue="preview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="px-4 pt-4 flex items-center justify-between border-b">
+            <TabsList>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+            </TabsList>
+            
+            <div className="flex items-center gap-2">
+              {document && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={document.url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open
+                  </a>
+                </Button>
+              )}
+              
+              {document && (
+                <Button variant="secondary" size="sm" asChild>
+                  <a href={document.url} download={document.name}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
-          {document.description && (
-            <div className="mt-4">
-              <p className="font-medium">Description:</p>
-              <p>{document.description}</p>
-            </div>
-          )}
-        </div>
+          
+          <TabsContent value="preview" className="pt-2">
+            {renderPreview()}
+          </TabsContent>
+          
+          <TabsContent value="details">
+            {renderDetails()}
+          </TabsContent>
+        </Tabs>
       </CardContent>
-      
-      <CardFooter className="flex justify-between">
-        {onClose && (
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        )}
-        <div className="flex gap-2">
-          <Button className="flex items-center gap-2" onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-            Download
-          </Button>
-          <Button variant="secondary" className="flex items-center gap-2" asChild>
-            <a href={previewUrl || '#'} target="_blank" rel="noopener noreferrer">
-              <Eye className="h-4 w-4" />
-              Open in New Tab
-            </a>
-          </Button>
-        </div>
-      </CardFooter>
     </Card>
   );
 };

@@ -1,193 +1,224 @@
+
 import React, { useState, useEffect } from 'react';
-import { 
-  Table, TableBody, TableCell, TableHead, 
-  TableHeader, TableRow 
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { Eye, Download, MoreHorizontal, Tag, Clock } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DocumentFile } from '@/types/documents';
-import { getDocuments } from '@/utils/documents/documentDbUtils';
-import { searchDocuments } from '@/utils/documents/searchUtils';
-import DocumentTableRow from './DocumentTableRow';
-import DocumentTableLoading from './DocumentTableLoading';
 import DocumentTableEmptyState from './DocumentTableEmptyState';
-import DocumentPreviewComponent from './DocumentPreviewComponent';
-import { toast } from "sonner";
-import { Search } from "lucide-react";
+import DocumentTableLoading from './DocumentTableLoading';
+import DocumentPreview from './DocumentPreview';
+import { Badge } from '@/components/ui/badge';
+import { getDocuments } from '@/utils/documents';
+import { formatFileSize, formatDate, getFileIcon } from './utils/documentIconUtils';
 
 interface DocumentTableProps {
   category?: string;
   searchQuery?: string;
-  filter?: string;
+  filter?: 'recent' | 'shared' | 'important';
   associationId?: string;
   refreshTrigger?: number;
 }
 
-const DocumentTable: React.FC<DocumentTableProps> = ({ 
-  category, 
-  searchQuery: externalSearchQuery,
+const DocumentTable: React.FC<DocumentTableProps> = ({
+  category = '',
+  searchQuery = '',
   filter,
   associationId,
   refreshTrigger = 0
 }) => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [internalSearchQuery, setInternalSearchQuery] = useState('');
-  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   
-  // Use external search query if provided
-  useEffect(() => {
-    if (externalSearchQuery !== undefined) {
-      setInternalSearchQuery(externalSearchQuery);
-      setActiveSearchQuery(externalSearchQuery);
-    }
-  }, [externalSearchQuery]);
-  
+  // Load documents based on category and search query
   useEffect(() => {
     const fetchDocuments = async () => {
       setIsLoading(true);
-      
       try {
-        let docs: DocumentFile[] = [];
+        // Build the search filters
+        const searchFilters: any = {
+          isArchived: false
+        };
         
-        // If there's a search query, use search function
-        if (activeSearchQuery) {
-          docs = await searchDocuments(activeSearchQuery, { 
-            categories: category ? [category] : undefined
-          });
-        } else {
-          // Otherwise use regular document fetching
-          docs = await getDocuments(
-            { 
-              categories: category ? [category] : undefined,
-              query: activeSearchQuery
-            }, 
-            associationId
-          );
+        // Add category filter if provided
+        if (category) {
+          searchFilters.categories = [category];
         }
         
-        // Apply any additional filtering
-        if (filter) {
-          switch (filter) {
-            case 'recent':
-              docs = docs.sort((a, b) => 
-                new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime()
-              ).slice(0, 10);
-              break;
-            case 'shared':
-              docs = docs.filter(doc => doc.isPublic);
-              break;
-            case 'important':
-              docs = docs.filter(doc => doc.tags?.includes('important'));
-              break;
-          }
+        // Handle the filter type
+        if (filter === 'recent') {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          searchFilters.dateRange = {
+            start: thirtyDaysAgo.toISOString()
+          };
+        } else if (filter === 'shared') {
+          searchFilters.isPublic = true;
+        } else if (filter === 'important') {
+          searchFilters.tags = ['important'];
         }
         
+        // If association ID provided, filter by it
+        if (associationId) {
+          searchFilters.associations = [associationId];
+        }
+        
+        const docs = await getDocuments(searchFilters, searchQuery);
         setDocuments(docs);
       } catch (error) {
-        console.error("Error fetching documents:", error);
-        toast.error("Failed to load documents");
+        console.error('Error fetching documents:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchDocuments();
-  }, [category, associationId, filter, activeSearchQuery, refreshTrigger]);
+  }, [category, searchQuery, filter, associationId, refreshTrigger]);
   
-  const handleSearch = () => {
-    setActiveSearchQuery(internalSearchQuery);
-  };
-  
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-  
-  const handleDocumentView = (doc: DocumentFile) => {
-    setSelectedDocument(doc);
+  const handleViewDocument = (document: DocumentFile) => {
+    setSelectedDocument(document);
     setShowPreview(true);
   };
   
-  const handleDocumentDownload = (doc: DocumentFile) => {
-    // Track download analytics if needed
-    console.log('Document downloaded:', doc.name);
+  const handleClosePreview = () => {
+    setShowPreview(false);
+    setSelectedDocument(null);
   };
-  
-  const handleDocumentDelete = async (doc: DocumentFile) => {
-    try {
-      // Remove the document from the local state
-      setDocuments(prev => prev.filter(d => d.id !== doc.id));
-      toast.success(`Document "${doc.name}" deleted successfully`);
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      toast.error("Failed to delete document");
-    }
-  };
-  
+
+  if (isLoading) {
+    return <DocumentTableLoading />;
+  }
+
+  if (documents.length === 0) {
+    return <DocumentTableEmptyState searchQuery={searchQuery} category={category} />;
+  }
+
   return (
-    <div className="space-y-4">
-      {/* Only show internal search if no external query is provided */}
-      {externalSearchQuery === undefined && (
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search documents..."
-              value={internalSearchQuery}
-              onChange={(e) => setInternalSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              className="pl-9"
-            />
-          </div>
-          <Button variant="secondary" onClick={handleSearch}>
-            Search
-          </Button>
-        </div>
-      )}
+    <div className="space-y-3">
+      <div className="rounded-md border">
+        <table className="w-full caption-bottom text-sm">
+          <thead className="border-b bg-muted/50">
+            <tr>
+              <th className="h-10 px-4 text-left align-middle font-medium">Document</th>
+              <th className="h-10 px-2 text-left align-middle font-medium">Type</th>
+              <th className="h-10 px-2 text-left align-middle font-medium hidden md:table-cell">Size</th>
+              <th className="h-10 px-2 text-left align-middle font-medium hidden lg:table-cell">Uploaded</th>
+              <th className="h-10 px-2 text-left align-middle font-medium hidden xl:table-cell">Tags</th>
+              <th className="h-10 px-2 text-right align-middle font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((document) => (
+              <tr key={document.id} className="border-b transition-colors hover:bg-muted/50">
+                <td className="p-4 align-middle">
+                  <div className="flex items-center gap-2">
+                    {getFileIcon(document.fileType)}
+                    <div>
+                      <div className="font-medium">{document.name}</div>
+                      {document.description && (
+                        <div className="text-xs text-muted-foreground line-clamp-1">
+                          {document.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-2 align-middle">
+                  <div className="text-xs uppercase text-muted-foreground">
+                    {document.fileType.split('/')[1] || document.fileType}
+                  </div>
+                </td>
+                <td className="px-2 align-middle hidden md:table-cell">
+                  <div className="text-xs text-muted-foreground">
+                    {formatFileSize(document.fileSize)}
+                  </div>
+                </td>
+                <td className="px-2 align-middle hidden lg:table-cell">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {formatDate(document.uploadedDate)}
+                  </div>
+                </td>
+                <td className="px-2 align-middle hidden xl:table-cell">
+                  <div className="flex flex-wrap gap-1">
+                    {document.tags && document.tags.length > 0 ? document.tags.slice(0, 2).map((tag, idx) => (
+                      <Badge variant="outline" key={idx} className="text-xs">
+                        {tag}
+                      </Badge>
+                    )) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                    {document.tags && document.tags.length > 2 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{document.tags.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                </td>
+                <td className="p-2 align-middle text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleViewDocument(document)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">View</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      asChild
+                    >
+                      <a href={document.url} download={document.name}>
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download</span>
+                      </a>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">More options</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDocument(document)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          <span>View</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <a href={document.url} download={document.name} className="flex cursor-pointer items-center">
+                            <Download className="mr-2 h-4 w-4" />
+                            <span>Download</span>
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <Tag className="mr-2 h-4 w-4" />
+                          <span>Add Tag</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       
-      {isLoading ? (
-        <DocumentTableLoading />
-      ) : documents.length === 0 ? (
-        <DocumentTableEmptyState 
-          searchQuery={activeSearchQuery} 
-          category={category} 
-        />
-      ) : (
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Uploaded By</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.map(doc => (
-                <DocumentTableRow 
-                  key={doc.id} 
-                  doc={doc} 
-                  onView={handleDocumentView}
-                  onDownload={handleDocumentDownload}
-                  onDelete={handleDocumentDelete}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-      
-      <DocumentPreviewComponent
+      <DocumentPreview
         document={selectedDocument}
         isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
+        onClose={handleClosePreview}
       />
     </div>
   );

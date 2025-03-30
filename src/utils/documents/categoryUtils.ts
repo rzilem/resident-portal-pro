@@ -18,11 +18,12 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
       return [];
     }
     
+    // Map database response to DocumentCategory objects
     return data.map(category => ({
       id: category.id,
       name: category.name,
       description: category.description || '',
-      accessLevel: (category.access_level as DocumentAccessLevel) || 'all'
+      accessLevel: category.access_level as DocumentAccessLevel || 'all'
     }));
   } catch (error) {
     console.error('Unexpected error getting document categories:', error);
@@ -155,6 +156,39 @@ export const deleteDocumentCategory = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Unexpected error deleting document category:', error);
+    return false;
+  }
+};
+
+/**
+ * Synchronize categories to Supabase
+ * @param categories Array of DocumentCategory objects to synchronize
+ * @returns Promise<boolean> Whether the synchronization was successful
+ */
+export const syncCategoriesToSupabase = async (
+  categories: DocumentCategory[]
+): Promise<boolean> => {
+  try {
+    // For each category, update it in the database
+    for (const category of categories) {
+      const { error } = await supabase
+        .from('document_categories')
+        .update({
+          name: category.name,
+          description: category.description || '',
+          access_level: category.accessLevel || 'all'
+        })
+        .eq('id', category.id);
+      
+      if (error) {
+        console.error(`Error syncing category ${category.id}:`, error);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Unexpected error syncing categories:', error);
     return false;
   }
 };
