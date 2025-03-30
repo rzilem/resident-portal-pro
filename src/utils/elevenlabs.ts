@@ -25,6 +25,8 @@ export const speakWithElevenLabs = async (
   { voice, model }: SpeakOptions = {}
 ): Promise<void> => {
   try {
+    console.log('ElevenLabs: Starting voice synthesis for:', text);
+    
     // Get the API key from integration settings
     const elevenLabsIntegration = integrationService.getIntegration('current-user', 'ElevenLabs');
     const apiKey = elevenLabsIntegration?.apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
@@ -38,6 +40,8 @@ export const speakWithElevenLabs = async (
     // Use settings from integration or defaults
     const selectedVoice = voice || elevenLabsIntegration?.defaultVoiceId || VOICE_OPTIONS.SARAH;
     const selectedModel = model || elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2';
+    
+    console.log(`ElevenLabs: Using voice ${selectedVoice} with model ${selectedModel}`);
     
     // Create request to ElevenLabs API
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}/stream`, {
@@ -65,12 +69,16 @@ export const speakWithElevenLabs = async (
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
     
+    console.log('ElevenLabs: Audio ready to play');
+    
     // Clean up URL object after playing
     audio.onended = () => {
+      console.log('ElevenLabs: Audio playback completed');
       URL.revokeObjectURL(audioUrl);
     };
     
     await audio.play();
+    console.log('ElevenLabs: Audio playback started');
   } catch (error) {
     console.error('Error with ElevenLabs TTS:', error);
     // Fall back to Web Speech API if ElevenLabs fails
@@ -83,6 +91,7 @@ export const speakWithElevenLabs = async (
  */
 const fallbackToWebSpeech = (text: string): void => {
   if ('speechSynthesis' in window) {
+    console.log('Falling back to Web Speech API');
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95; // Slightly slower for better clarity
     
