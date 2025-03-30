@@ -1,99 +1,107 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
- * Initialize the documents storage bucket
- * @param forceCreate Force creation even if it exists
- * @returns Promise<boolean> Success status
- */
-export const initializeDocumentsBucket = async (forceCreate = false): Promise<boolean> => {
-  try {
-    console.log('Checking if documents bucket exists...');
-    
-    // First check if the bucket already exists
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-    
-    if (listError) {
-      console.error('Error listing buckets:', listError);
-      // Instead of failing, assume bucket might exist but we can't list it
-      return await testBucketAccess();
-    }
-    
-    const bucketExists = buckets?.some(bucket => bucket.name === 'documents');
-    
-    if (bucketExists && !forceCreate) {
-      console.log('Documents bucket already exists');
-      return true;
-    }
-    
-    if (!bucketExists) {
-      console.log('Creating documents bucket...');
-      const { error: createError } = await supabase.storage.createBucket('documents', {
-        public: false,
-        fileSizeLimit: 5242880, // 5MB
-      });
-      
-      if (createError) {
-        console.error('Error creating documents bucket:', createError);
-        
-        // If the error is due to RLS policy, we might still be able to use the bucket
-        // This happens when the bucket exists but the user doesn't have permission to create it
-        if (createError.message?.includes('row-level security policy')) {
-          console.log('RLS policy prevented bucket creation - checking if bucket is usable anyway');
-          return await testBucketAccess();
-        }
-        
-        return false;
-      }
-      
-      console.log('Documents bucket created successfully');
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Unexpected error initializing documents bucket:', error);
-    return false;
-  }
-};
-
-/**
- * Test if we can access the documents bucket
- * @returns Promise<boolean> Access status
+ * Test access to a storage bucket
+ * @returns Promise resolving to a boolean indicating if access is available
  */
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
-    console.log('Testing bucket access...');
-    // Try to list files in the bucket as a simple access test
-    const { data, error } = await supabase.storage
+    // Try to list files (with a limit of 1) to test permissions
+    const { error } = await supabase.storage
       .from('documents')
       .list('', { limit: 1 });
     
     if (error) {
-      console.error('Bucket access test failed:', error);
+      console.error('Error accessing storage bucket:', error);
       return false;
     }
     
-    console.log('Bucket access test successful');
     return true;
   } catch (error) {
-    console.error('Unexpected error testing bucket access:', error);
+    console.error('Exception testing bucket access:', error);
     return false;
   }
 };
 
 /**
- * Ensure that the documents bucket exists, creating it if necessary
- * @param forceCreate Force creation even if it exists
- * @returns Promise<boolean> Success status
+ * Initialize document storage by ensuring the bucket exists
+ * @returns Promise resolving to boolean indicating success
  */
-export const ensureDocumentsBucketExists = async (forceCreate = false): Promise<boolean> => {
-  // First try to test if we can already access the bucket
-  const canAccess = await testBucketAccess();
-  if (canAccess) {
-    console.log('Documents bucket is already accessible');
-    return true;
+export const initializeDocumentsBucket = async (): Promise<boolean> => {
+  try {
+    // First check if bucket already exists by attempting to list files
+    const { error: listError } = await supabase.storage
+      .from('documents')
+      .list('', { limit: 1 });
+    
+    // If no error, bucket exists and we can access it
+    if (!listError) {
+      console.log('Documents bucket exists and is accessible');
+      return true;
+    }
+    
+    // If error is not about bucket not existing, return false
+    if (listError && !listError.message.includes('does not exist')) {
+      console.error('Error accessing documents bucket:', listError);
+      return false;
+    }
+    
+    // Attempt to create the bucket
+    console.log('Documents bucket does not exist, creating it...');
+    
+    // For security reasons, only admin should create buckets
+    // This would typically be handled server-side with admin privileges
+    // Here's a simplified approach for demonstration purposes
+    toast.error('Document storage not properly configured. Please contact an administrator.');
+    return false;
+    
+  } catch (error) {
+    console.error('Exception initializing documents bucket:', error);
+    toast.error('Failed to initialize document storage');
+    return false;
   }
-  
-  // If we can't access it, try to create it
-  return await initializeDocumentsBucket(forceCreate);
+};
+
+/**
+ * Ensure a folder exists in a bucket
+ * @param bucketName The name of the bucket
+ * @param folderPath The path of the folder to ensure
+ * @returns Promise resolving to boolean indicating if folder exists/was created
+ */
+export const ensureFolderExists = async (
+  bucketName: string,
+  folderPath: string
+): Promise<boolean> => {
+  try {
+    // Make sure folder path ends with a slash
+    const normalizedPath = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
+    
+    // First check if folder already exists
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .list(normalizedPath);
+    
+    if (!error) {
+      console.log(`Folder ${normalizedPath} already exists`);
+      return true;
+    }
+    
+    // Create an empty file to represent the folder
+    const { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(`${normalizedPath}.folder`, new Blob([]));
+    
+    if (uploadError) {
+      console.error(`Error creating folder ${normalizedPath}:`, uploadError);
+      return false;
+    }
+    
+    console.log(`Created folder ${normalizedPath} successfully`);
+    return true;
+  } catch (error) {
+    console.error('Exception in ensureFolderExists:', error);
+    return false;
+  }
 };
