@@ -19,6 +19,7 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
   const [apiKey, setApiKey] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   const [showConfigForm, setShowConfigForm] = useState(false);
+  const [showElevenLabsDialog, setShowElevenLabsDialog] = useState(false);
   
   const { 
     connectIntegration, 
@@ -31,6 +32,13 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
 
   const handleConnect = async (name: string) => {
     try {
+      // Special handling for ElevenLabs
+      if (name === 'ElevenLabs') {
+        setSelectedIntegration(name);
+        setShowElevenLabsDialog(true);
+        return;
+      }
+      
       // For integrations with API fields, show config form instead of auto-connecting
       const integration = integrations?.find(i => i.name === name);
       if (integration?.apiFields && integration.apiFields.length > 0) {
@@ -175,6 +183,11 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     setShowConfigForm(false);
     setOpen(true);
   };
+  
+  const handleOpenElevenLabsDialog = () => {
+    setSelectedIntegration('ElevenLabs');
+    setShowElevenLabsDialog(true);
+  };
 
   return {
     open,
@@ -186,6 +199,8 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     setWebhookUrl,
     showConfigForm,
     setShowConfigForm,
+    showElevenLabsDialog,
+    setShowElevenLabsDialog,
     isConnected,
     handleConnect,
     handleDisconnect,
@@ -198,6 +213,7 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     handleOpenConfigForm,
     handleOpenApiKeyDialog,
     handleOpenWebhookDialog,
-    handleOpenWebhookEndpointDialog
+    handleOpenWebhookEndpointDialog,
+    handleOpenElevenLabsDialog
   };
 }

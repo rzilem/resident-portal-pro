@@ -2,6 +2,7 @@
 /**
  * ElevenLabs Text-to-Speech API integration
  */
+import { integrationService } from '@/services/integrationService';
 
 // Voice IDs for high-quality ElevenLabs voices
 export const VOICE_OPTIONS = {
@@ -21,11 +22,12 @@ interface SpeakOptions {
  */
 export const speakWithElevenLabs = async (
   text: string, 
-  { voice = VOICE_OPTIONS.SARAH, model = 'eleven_turbo_v2' }: SpeakOptions = {}
+  { voice, model }: SpeakOptions = {}
 ): Promise<void> => {
   try {
-    // Get the API key from environment
-    const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+    // Get the API key from integration settings
+    const elevenLabsIntegration = integrationService.getIntegration('current-user', 'ElevenLabs');
+    const apiKey = elevenLabsIntegration?.apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
     
     if (!apiKey) {
       console.warn('ElevenLabs API key not found. Falling back to Web Speech API.');
@@ -33,8 +35,12 @@ export const speakWithElevenLabs = async (
       return;
     }
     
+    // Use settings from integration or defaults
+    const selectedVoice = voice || elevenLabsIntegration?.defaultVoiceId || VOICE_OPTIONS.SARAH;
+    const selectedModel = model || elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2';
+    
     // Create request to ElevenLabs API
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}/stream`, {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +48,7 @@ export const speakWithElevenLabs = async (
       },
       body: JSON.stringify({
         text,
-        model_id: model,
+        model_id: selectedModel,
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.8,

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import ApiKeyDialog from './dialogs/ApiKeyDialog';
 import WebhookDialog from './dialogs/WebhookDialog';
 import WebhookEndpointDialog from './dialogs/WebhookEndpointDialog';
 import ConfigFormDialog from './dialogs/ConfigFormDialog';
+import ElevenLabsDialog from './dialogs/ElevenLabsDialog';
 import { useIntegrationCard } from './hooks/useIntegrationCard';
 
 interface Integration {
@@ -26,6 +28,7 @@ interface IntegrationCardProps {
   isApiKey?: boolean;
   isWebhook?: boolean;
   isWebhookEndpoint?: boolean;
+  isElevenLabs?: boolean;
   customActions?: React.ReactNode;
   apiFields?: APIConfigFormProps['fields'];
 }
@@ -38,6 +41,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   isApiKey,
   isWebhook,
   isWebhookEndpoint,
+  isElevenLabs,
   customActions,
   apiFields
 }) => {
@@ -51,6 +55,8 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     setWebhookUrl,
     showConfigForm,
     setShowConfigForm,
+    showElevenLabsDialog,
+    setShowElevenLabsDialog,
     isConnected,
     handleConnect,
     handleDisconnect,
@@ -63,7 +69,8 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     handleOpenConfigForm,
     handleOpenApiKeyDialog,
     handleOpenWebhookDialog,
-    handleOpenWebhookEndpointDialog
+    handleOpenWebhookEndpointDialog,
+    handleOpenElevenLabsDialog
   } = useIntegrationCard({ title, integrations });
 
   const getConfigFields = () => {
@@ -115,6 +122,11 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
         ) : isWebhookEndpoint ? (
           <WebhookEndpointContent 
             onViewEndpointClick={handleOpenWebhookEndpointDialog}
+          />
+        ) : isElevenLabs ? (
+          <ApiKeyContent 
+            title={title}
+            onConfigureClick={handleOpenElevenLabsDialog}
           />
         ) : customActions ? (
           customActions
@@ -168,9 +180,16 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             setOpen={setOpen}
           />
         )}
+        
+        {isElevenLabs && (
+          <ElevenLabsDialog
+            open={showElevenLabsDialog}
+            onOpenChange={setShowElevenLabsDialog}
+          />
+        )}
       </CardContent>
       
-      {!integrations && !isApiKey && !isWebhook && !isWebhookEndpoint && !customActions && (
+      {!integrations && !isApiKey && !isWebhook && !isWebhookEndpoint && !isElevenLabs && !customActions && (
         <CardFooter className="pt-0">
           <Button variant="outline" size="sm" className="w-full">
             Learn More
