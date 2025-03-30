@@ -8,9 +8,15 @@ import { useAuth } from '@/hooks/use-auth';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { ArrowRight, FileSpreadsheet, FileCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useDocumentsBucket } from '@/hooks/use-documents-bucket';
+import * as XLSX from 'xlsx';
 
 interface UploadDataTabProps {
   onComplete: () => void;
+}
+
+interface ColumnMapping {
+  sourceField: string;
+  targetField: string;
 }
 
 const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
@@ -23,6 +29,11 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
     warnings: number;
     errors: number;
   } | null>(null);
+  const [fileData, setFileData] = useState<{
+    headers: string[];
+    rows: Record<string, any>[];
+  } | null>(null);
+  const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   
   const { user } = useAuth();
   const { bucketReady, errorMessage, retryCheck } = useDocumentsBucket();
@@ -54,14 +65,82 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
         return;
       }
       
-      // For demo purposes, let's simulate a successful upload
-      // This prevents the need for the storage bucket to be accessible
-      console.log('Simulating file upload for demo purposes');
+      // Read the file data using xlsx library
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
       
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Get the first worksheet
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
       
-      toast.success("File processed successfully");
+      // Convert worksheet to JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      
+      if (jsonData.length === 0) {
+        throw new Error("The spreadsheet appears to be empty");
+      }
+      
+      // Extract headers (first row)
+      const headers = jsonData[0] as string[];
+      
+      // Extract data rows (excluding header row)
+      const rows = jsonData.slice(1).map(row => {
+        const rowData: Record<string, any> = {};
+        (row as any[]).forEach((cell, index) => {
+          if (index < headers.length) {
+            rowData[headers[index]] = cell;
+          }
+        });
+        return rowData;
+      });
+      
+      // Store the extracted data
+      setFileData({ headers, rows });
+      
+      // Generate default mappings based on headers
+      const systemFields = [
+        'firstName', 'lastName', 'email', 'phone', 
+        'property.address', 'property.unitNumber', 'property.city', 
+        'property.state', 'property.zip'
+      ];
+      
+      // Try to automatically map headers to system fields
+      const autoMappings = headers.map(header => {
+        const lowerHeader = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        // Try to find a matching system field
+        let targetField = '';
+        
+        if (lowerHeader.includes('first') && lowerHeader.includes('name')) {
+          targetField = 'firstName';
+        } else if (lowerHeader.includes('last') && lowerHeader.includes('name')) {
+          targetField = 'lastName';
+        } else if (lowerHeader.includes('email')) {
+          targetField = 'email';
+        } else if (lowerHeader.includes('phone')) {
+          targetField = 'phone';
+        } else if (lowerHeader.includes('address')) {
+          targetField = 'property.address';
+        } else if (lowerHeader.includes('unit')) {
+          targetField = 'property.unitNumber';
+        } else if (lowerHeader.includes('city')) {
+          targetField = 'property.city';
+        } else if (lowerHeader.includes('state')) {
+          targetField = 'property.state';
+        } else if (lowerHeader.includes('zip') || lowerHeader.includes('postal')) {
+          targetField = 'property.zip';
+        }
+        
+        return {
+          sourceField: header,
+          targetField: targetField
+        };
+      });
+      
+      setMappings(autoMappings);
+      
+      console.log('File processed successfully', { headers, rowCount: rows.length });
+      toast.success(`File processed successfully. Found ${headers.length} columns and ${rows.length} records.`);
       
       // Move to mapping step
       setStep('mapping');
@@ -73,14 +152,66 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
     }
   };
 
+  const handleUpdateMapping = (index: number, targetField: string) => {
+    const updatedMappings = [...mappings];
+    updatedMappings[index].targetField = targetField;
+    setMappings(updatedMappings);
+  };
+
   const handleContinueToValidation = () => {
-    // In a real app, you would process the mapping here
-    // Simulate validation results
+    // Validate the mappings
+    const requiredFields = ['firstName', 'lastName', 'email'];
+    const mapped = mappings.map(m => m.targetField);
+    
+    const missingRequired = requiredFields.filter(field => !mapped.includes(field));
+    
+    if (missingRequired.length > 0) {
+      toast.error(`Please map required fields: ${missingRequired.join(', ')}`);
+      return;
+    }
+    
+    // Process the data with mappings
+    const totalRecords = fileData?.rows.length || 0;
+    let valid = 0;
+    let warnings = 0;
+    let errors = 0;
+    
+    // For demo purposes, simulate validation results based on data
+    fileData?.rows.forEach(row => {
+      let hasWarning = false;
+      let hasError = false;
+      
+      // Check for email format
+      const emailMapping = mappings.find(m => m.targetField === 'email');
+      if (emailMapping) {
+        const email = row[emailMapping.sourceField];
+        if (email && !email.toString().includes('@')) {
+          hasWarning = true;
+        }
+      }
+      
+      // Check for empty required fields
+      requiredFields.forEach(reqField => {
+        const mapping = mappings.find(m => m.targetField === reqField);
+        if (mapping) {
+          const value = row[mapping.sourceField];
+          if (!value) {
+            hasError = true;
+          }
+        }
+      });
+      
+      if (hasError) errors++;
+      else if (hasWarning) warnings++;
+      else valid++;
+    });
+    
+    // Set validation results
     setValidationResults({
-      total: 143,
-      valid: 139,
-      warnings: 4,
-      errors: 0
+      total: totalRecords,
+      valid,
+      warnings,
+      errors
     });
     
     setStep('validation');
@@ -184,68 +315,64 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
         </div>
       )}
       
-      {step === 'mapping' && (
+      {step === 'mapping' && fileData && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Field Mapping</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Map your source data fields to system fields
           </p>
+          
+          <div className="bg-muted/30 p-3 rounded-md mb-4">
+            <h4 className="font-medium text-sm mb-2">File Summary:</h4>
+            <div className="text-sm flex flex-wrap gap-4">
+              <div><span className="font-medium">Columns:</span> {fileData.headers.length}</div>
+              <div><span className="font-medium">Rows:</span> {fileData.rows.length}</div>
+              <div><span className="font-medium">File:</span> {file?.name}</div>
+            </div>
+          </div>
+          
           <div className="grid gap-4">
-            <div className="flex items-center justify-between p-3 border rounded-md">
-              <div className="flex items-center">
-                <span className="font-medium">Source: First Name</span>
+            {mappings.map((mapping, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-md">
+                <div className="flex items-center">
+                  <span className="font-medium">{mapping.sourceField}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    ({fileData.rows[0]?.[mapping.sourceField] ? 
+                      String(fileData.rows[0][mapping.sourceField]).slice(0, 20) + 
+                      (String(fileData.rows[0][mapping.sourceField]).length > 20 ? '...' : '') : 
+                      'no sample'})
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <span className="font-medium">→</span>
+                </div>
+                <div className="flex items-center">
+                  <select
+                    className="border rounded p-1"
+                    value={mapping.targetField}
+                    onChange={(e) => handleUpdateMapping(index, e.target.value)}
+                  >
+                    <option value="">-- Select Field --</option>
+                    <optgroup label="Basic Info">
+                      <option value="firstName">First Name</option>
+                      <option value="lastName">Last Name</option>
+                      <option value="email">Email</option>
+                      <option value="phone">Phone</option>
+                    </optgroup>
+                    <optgroup label="Property">
+                      <option value="property.address">Property Address</option>
+                      <option value="property.unitNumber">Unit Number</option>
+                      <option value="property.city">City</option>
+                      <option value="property.state">State</option>
+                      <option value="property.zip">ZIP Code</option>
+                    </optgroup>
+                    <optgroup label="Other">
+                      <option value="ignore">Ignore This Field</option>
+                    </optgroup>
+                  </select>
+                </div>
               </div>
-              <div className="flex items-center">
-                <span className="font-medium">→</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">Target: firstName</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-md">
-              <div className="flex items-center">
-                <span className="font-medium">Source: Last Name</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">→</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">Target: lastName</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-md">
-              <div className="flex items-center">
-                <span className="font-medium">Source: Email</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">→</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">Target: email</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-md">
-              <div className="flex items-center">
-                <span className="font-medium">Source: Property Address</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">→</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">Target: property.address</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-md">
-              <div className="flex items-center">
-                <span className="font-medium">Source: Unit Number</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">→</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium">Target: property.unitNumber</span>
-              </div>
-            </div>
+            ))}
           </div>
           <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setStep('initial')}>Back</Button>
@@ -293,10 +420,24 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
             <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-sm">
               <h4 className="font-medium text-amber-800">Warning Details</h4>
               <ul className="mt-2 space-y-1 text-sm">
-                <li>Row 34: Missing phone number for John Smith</li>
-                <li>Row 67: Invalid email format for manager@example</li>
-                <li>Row 112: Property address may be incomplete</li>
-                <li>Row 129: Missing unit number in multi-unit property</li>
+                {validationResults.warnings > 0 && (
+                  <li>Some email addresses may be invalid (missing @ symbol)</li>
+                )}
+                {fileData && mappings.find(m => m.targetField === 'phone') && (
+                  <li>Some phone numbers may be in an incorrect format</li>
+                )}
+                {fileData && !mappings.find(m => m.targetField === 'property.unitNumber') && (
+                  <li>Unit numbers not mapped for possible multi-unit properties</li>
+                )}
+              </ul>
+            </div>
+          )}
+          
+          {validationResults.errors > 0 && (
+            <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded-sm">
+              <h4 className="font-medium text-red-800">Error Details</h4>
+              <ul className="mt-2 space-y-1 text-sm">
+                <li>Some records are missing required fields (First Name, Last Name, or Email)</li>
               </ul>
             </div>
           )}
