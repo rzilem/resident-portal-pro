@@ -22,3 +22,6 @@ export * from './categoryUtils';
 
 // Export search utility functions
 export * from './searchUtils';
+
+// Re-export document icon utilities for backwards compatibility
+export { getFileIcon, getDocumentIcon, formatDate, formatFileSize } from '@/components/documents/utils/documentIconUtils';
