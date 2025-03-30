@@ -2,7 +2,6 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
-import { VOICE_OPTIONS } from '@/utils/elevenlabs';
 
 interface ElevenLabsSettings {
   apiKey: string;
@@ -82,8 +81,8 @@ export function useElevenLabs() {
   const getSettings = useCallback(() => {
     return {
       apiKey: elevenLabsIntegration?.apiKey || '',
-      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId || VOICE_OPTIONS.ARIA, // Changed to Aria
-      defaultModel: elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2' 
+      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId || 'EXAVITQu4vr4xnSDxMaL', // Sarah by default
+      defaultModel: elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2' // Default to faster model
     };
   }, [elevenLabsIntegration]);
 
