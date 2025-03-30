@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,11 @@ import FinancialsIntegrations from './integrations/FinancialsIntegrations';
 import CommunicationsIntegrations from './integrations/CommunicationsIntegrations';
 import ManagementIntegrations from './integrations/ManagementIntegrations';
 import AutomationIntegrations from './integrations/AutomationIntegrations';
+
+// Define the prop types for the integration components
+interface IntegrationComponentProps {
+  searchQuery?: string;
+}
 
 const IntegrationSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('financials');
@@ -50,19 +55,19 @@ const IntegrationSettings: React.FC = () => {
           </TabsList>
           
           <TabsContent value="financials">
-            <FinancialsIntegrations searchQuery={searchQuery} />
+            <FinancialsIntegrations />
           </TabsContent>
           
           <TabsContent value="communications">
-            <CommunicationsIntegrations searchQuery={searchQuery} />
+            <CommunicationsIntegrations />
           </TabsContent>
           
           <TabsContent value="management">
-            <ManagementIntegrations searchQuery={searchQuery} />
+            <ManagementIntegrations />
           </TabsContent>
           
           <TabsContent value="automation">
-            <AutomationIntegrations searchQuery={searchQuery} />
+            <AutomationIntegrations />
           </TabsContent>
         </Tabs>
       </CardContent>
