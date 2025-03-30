@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileText, FolderPlus, Upload } from 'lucide-react';
+import { FileText, FolderPlus, Upload, Plus, Loader2, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { uploadFile } from '@/utils/supabase/storage/uploadFile';
+import { uploadDocument } from '@/utils/documents/uploadDocument';
 import { useAuth } from '@/hooks/use-auth';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { createFolder } from '@/utils/documents/folderUtils';
+import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 
 interface DocumentStructureTabProps {
   onOpenChange: (open: boolean) => void;
@@ -14,9 +18,49 @@ interface DocumentStructureTabProps {
 
 const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChange }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [categories, setCategories] = useState<{id: string, name: string, description?: string}[]>([
+    { id: 'financial', name: 'Financial Documents', description: 'Budgets, financial statements, and banking documents' },
+    { id: 'legal', name: 'Legal Documents', description: 'Contracts, legal notices, and regulatory documents' },
+    { id: 'meetings', name: 'Meeting Minutes', description: 'Records of board and association meetings' }
+  ]);
+  const [bucketInitialized, setBucketInitialized] = useState(false);
+  const [initializingBucket, setInitializingBucket] = useState(false);
+  
   const { user } = useAuth();
+
+  useEffect(() => {
+    checkBucketExists();
+  }, []);
+
+  const checkBucketExists = async () => {
+    setInitializingBucket(true);
+    const exists = await ensureDocumentsBucketExists();
+    setBucketInitialized(exists);
+    setInitializingBucket(false);
+  };
+
+  const handleInitializeBucket = async () => {
+    setInitializingBucket(true);
+    try {
+      const exists = await ensureDocumentsBucketExists(true);
+      setBucketInitialized(exists);
+      if (exists) {
+        toast.success("Document storage initialized");
+      } else {
+        toast.error("Failed to initialize document storage");
+      }
+    } catch (error) {
+      console.error("Error initializing storage:", error);
+      toast.error("An error occurred initializing document storage");
+    } finally {
+      setInitializingBucket(false);
+    }
+  };
 
   const handleUpload = async () => {
     if (!file) {
@@ -29,15 +73,24 @@ const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChang
       return;
     }
     
+    if (!bucketInitialized) {
+      toast.error("Document storage not initialized. Please initialize it first.");
+      return;
+    }
+    
     setIsUploading(true);
     
     try {
-      // Upload file to storage
-      const uploadPath = `documents/structure/${Date.now()}-${file.name}`;
-      const url = await uploadFile(file, 'documents', uploadPath);
+      const result = await uploadDocument({
+        file,
+        category: 'structure',
+        description: 'Document structure definition file',
+        tags: ['structure', 'schema'],
+        path: `system/structure/${Date.now()}`
+      });
       
-      if (!url) {
-        throw new Error("Failed to upload document structure file");
+      if (!result.success) {
+        throw new Error(result.error);
       }
       
       toast.success("Document structure file uploaded successfully");
@@ -45,16 +98,53 @@ const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChang
       
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Error uploading file. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Error uploading file. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleAddCategory = () => {
-    // In a real app, this would add a new document category
-    toast.success("New document category added");
-    setShowCategoryDialog(false);
+  const handleAddCategory = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+    
+    if (!bucketInitialized) {
+      toast.error("Document storage not initialized. Please initialize it first.");
+      return;
+    }
+    
+    setIsCreatingCategory(true);
+    
+    try {
+      // Create folder in storage
+      const folderId = categoryName.toLowerCase().replace(/\s+/g, '-');
+      const success = await createFolder('documents', folderId);
+      
+      if (!success) {
+        throw new Error("Failed to create folder in storage");
+      }
+      
+      // Add to local state
+      setCategories([...categories, {
+        id: folderId,
+        name: categoryName,
+        description: categoryDescription
+      }]);
+      
+      // In a real app, we would also store this in the database
+      
+      toast.success("New document category added");
+      setShowCategoryDialog(false);
+      setCategoryName('');
+      setCategoryDescription('');
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast.error(error instanceof Error ? error.message : "Error adding category. Please try again.");
+    } finally {
+      setIsCreatingCategory(false);
+    }
   };
 
   return (
@@ -67,69 +157,116 @@ const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChang
         </p>
       </div>
       
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="border rounded-lg p-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-blue-500" />
-            <h3 className="font-medium">Upload Structure File</h3>
+      {!bucketInitialized && (
+        <div className="border-2 border-dashed p-4 rounded-lg text-center space-y-4">
+          <div className="text-amber-600">
+            <svg 
+              className="h-12 w-12 mx-auto" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={1.5} 
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+              />
+            </svg>
           </div>
-          
-          <FileUploader
-            file={file}
-            setFile={setFile}
-            disabled={isUploading}
-            acceptedTypes=".json,.xml,.xlsx,.csv"
-            maxSize={5 * 1024 * 1024} // 5MB max size
-          />
-          
+          <h3 className="text-lg font-medium">Document Storage Not Initialized</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            The document storage system needs to be initialized before you can manage document structure.
+          </p>
           <Button 
-            className="w-full" 
-            onClick={handleUpload} 
-            disabled={!file || isUploading}
+            onClick={handleInitializeBucket} 
+            disabled={initializingBucket}
           >
-            {isUploading ? "Uploading..." : "Upload Structure File"}
+            {initializingBucket ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Initializing...
+              </>
+            ) : (
+              "Initialize Document Storage"
+            )}
           </Button>
         </div>
-        
-        <div className="border rounded-lg p-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <FolderPlus className="h-5 w-5 text-green-500" />
-            <h3 className="font-medium">Document Categories</h3>
+      )}
+      
+      {bucketInitialized && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="border rounded-lg p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-blue-500" />
+              <h3 className="font-medium">Upload Structure File</h3>
+            </div>
+            
+            <FileUploader
+              file={file}
+              setFile={setFile}
+              disabled={isUploading}
+              acceptedTypes=".json,.xml,.xlsx,.csv"
+              maxSize={5 * 1024 * 1024} // 5MB max size
+            />
+            
+            <Button 
+              className="w-full" 
+              onClick={handleUpload} 
+              disabled={!file || isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Upload Structure File"
+              )}
+            </Button>
+            
+            <div className="text-xs text-muted-foreground">
+              <p>Supported formats: JSON, XML, Excel, and CSV</p>
+              <p>These files define the structure and organization of your documents</p>
+            </div>
           </div>
           
-          <ul className="space-y-2">
-            <li className="flex justify-between items-center p-2 bg-muted/50 rounded">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-blue-500" />
-                <span>Financial Documents</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Default</span>
-            </li>
-            <li className="flex justify-between items-center p-2 bg-muted/50 rounded">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-green-500" />
-                <span>Legal Documents</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Default</span>
-            </li>
-            <li className="flex justify-between items-center p-2 bg-muted/50 rounded">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-amber-500" />
-                <span>Meeting Minutes</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Default</span>
-            </li>
-          </ul>
-          
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => setShowCategoryDialog(true)}
-          >
-            Add Category
-          </Button>
+          <div className="border rounded-lg p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <FolderPlus className="h-5 w-5 text-green-500" />
+              <h3 className="font-medium">Document Categories</h3>
+            </div>
+            
+            <ul className="space-y-2 max-h-60 overflow-y-auto">
+              {categories.map((category, index) => (
+                <li key={index} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-500" />
+                    <div>
+                      <span className="font-medium text-sm">{category.name}</span>
+                      {category.description && (
+                        <p className="text-xs text-muted-foreground">{category.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {index < 3 ? "Default" : "Custom"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setShowCategoryDialog(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Category
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
       
       <div className="flex justify-end space-x-2">
         <Button onClick={() => onOpenChange(false)}>Close</Button>
@@ -147,9 +284,10 @@ const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChang
               <label htmlFor="category-name" className="text-sm font-medium">
                 Category Name
               </label>
-              <input
+              <Input
                 id="category-name"
-                className="w-full p-2 border rounded"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
                 placeholder="Enter category name"
               />
             </div>
@@ -158,20 +296,36 @@ const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChang
               <label htmlFor="category-description" className="text-sm font-medium">
                 Description
               </label>
-              <textarea
+              <Textarea
                 id="category-description"
-                className="w-full p-2 border rounded h-24"
+                value={categoryDescription}
+                onChange={(e) => setCategoryDescription(e.target.value)}
+                className="h-24"
                 placeholder="Enter category description"
               />
             </div>
           </div>
           
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowCategoryDialog(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCategoryDialog(false)}
+              disabled={isCreatingCategory}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddCategory}>
-              Add Category
+            <Button 
+              onClick={handleAddCategory}
+              disabled={isCreatingCategory || !categoryName.trim()}
+            >
+              {isCreatingCategory ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Add Category"
+              )}
             </Button>
           </div>
         </DialogContent>

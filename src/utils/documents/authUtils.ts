@@ -1,40 +1,28 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { isDemoAuthenticated } from '@/utils/auth/demoAuth';
 
 /**
- * Check if the current user is authenticated
- * @returns Promise<boolean> Authentication status
+ * Check if user is authenticated
+ * @returns Promise<boolean> True if authenticated
  */
 export const isUserAuthenticated = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase.auth.getSession();
-    
-    if (error) {
-      console.error('Auth error:', error);
-      return false;
-    }
-    
-    return !!data.session;
+    return !!data.session && !error;
   } catch (error) {
-    console.error('Unexpected auth error:', error);
+    console.error('Error checking authentication:', error);
     return false;
   }
 };
 
 /**
- * Get the current user's ID
- * @returns Promise<string | null> User ID or null
+ * Get current user ID
+ * @returns Promise<string | null> User ID or null if not authenticated
  */
 export const getCurrentUserId = async (): Promise<string | null> => {
   try {
-    const { data, error } = await supabase.auth.getSession();
-    
-    if (error || !data.session) {
-      return null;
-    }
-    
-    return data.session.user.id;
+    const { data } = await supabase.auth.getSession();
+    return data.session?.user?.id || null;
   } catch (error) {
     console.error('Error getting user ID:', error);
     return null;
@@ -42,10 +30,22 @@ export const getCurrentUserId = async (): Promise<string | null> => {
 };
 
 /**
- * Check if the user is using demo credentials
+ * Check if the current session is using demo credentials
  * @returns Promise<boolean> True if using demo credentials
  */
 export const isUsingDemoCredentials = async (): Promise<boolean> => {
-  // Check if the user is using the demo authentication mode
-  return isDemoAuthenticated();
+  try {
+    const { data } = await supabase.auth.getSession();
+    const email = data.session?.user?.email;
+    
+    // Check if this is a demo account
+    return !!email && (
+      email.includes('demo') || 
+      email.endsWith('@example.com') || 
+      email.includes('test-')
+    );
+  } catch (error) {
+    console.error('Error checking demo credentials:', error);
+    return false;
+  }
 };

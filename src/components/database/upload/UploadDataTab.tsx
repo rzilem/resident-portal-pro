@@ -1,11 +1,12 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { uploadFile } from '@/utils/supabase/storage/uploadFile';
+import { uploadDocument } from '@/utils/documents/uploadDocument';
 import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
 import { useAuth } from '@/hooks/use-auth';
 import { FileUploader } from '@/components/ui/file-uploader';
+import { ArrowRight, FileSpreadsheet, FileCheck, AlertCircle, Loader2 } from 'lucide-react';
 
 interface UploadDataTabProps {
   onComplete: () => void;
@@ -15,6 +16,13 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
   const [step, setStep] = useState<'initial' | 'mapping' | 'validation'>('initial');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [validationResults, setValidationResults] = useState<{
+    total: number;
+    valid: number;
+    warnings: number;
+    errors: number;
+  } | null>(null);
+  
   const { user } = useAuth();
   
   const handleFileUpload = async () => {
@@ -45,28 +53,44 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
       }
       
       // Upload file to storage
-      const uploadPath = `imports/data/${Date.now()}-${file.name}`;
-      const url = await uploadFile(file, 'documents', uploadPath);
+      const result = await uploadDocument({
+        file,
+        category: 'imports',
+        description: 'Data import file',
+        tags: ['import', 'bulk-upload'],
+        path: `imports/data/${Date.now()}`
+      });
       
-      if (!url) {
-        throw new Error("Failed to upload file");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to upload file");
       }
       
       toast.success("File uploaded successfully");
       
-      // Move to mapping step
-      setStep('mapping');
+      // Simulate processing the file and move to mapping step
+      // In a real app, we would parse the file here
+      setTimeout(() => {
+        setStep('mapping');
+        setIsUploading(false);
+      }, 1000);
       
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Error uploading file. Please try again.");
-    } finally {
+      toast.error(error instanceof Error ? error.message : "Error uploading file. Please try again.");
       setIsUploading(false);
     }
   };
 
   const handleContinueToValidation = () => {
     // In a real app, you would process the mapping here
+    // Simulate validation results
+    setValidationResults({
+      total: 143,
+      valid: 139,
+      warnings: 4,
+      errors: 0
+    });
+    
     setStep('validation');
   };
 
@@ -82,21 +106,19 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {step === 'initial' && (
         <div className="space-y-6">
           <div className="border-2 border-dashed rounded-lg p-6 text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
+              <FileSpreadsheet className="w-8 h-8 text-primary" />
             </div>
             
             <FileUploader
               file={file}
               setFile={setFile}
               disabled={isUploading}
-              acceptedTypes=".csv,.xls,.xlsx"
+              acceptedTypes=".csv,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
               maxSize={10 * 1024 * 1024} // 10MB max size
             />
             
@@ -104,8 +126,19 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
               <Button 
                 onClick={handleFileUpload} 
                 disabled={!file || isUploading}
+                className="flex items-center gap-2"
               >
-                {isUploading ? "Uploading..." : "Upload File"}
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowRight className="h-4 w-4" />
+                    <span>Upload & Continue</span>
+                  </>
+                )}
               </Button>
               
               <Button 
@@ -171,15 +204,37 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
                 <span className="font-medium">Target: email</span>
               </div>
             </div>
+            <div className="flex items-center justify-between p-3 border rounded-md">
+              <div className="flex items-center">
+                <span className="font-medium">Source: Property Address</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium">→</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium">Target: property.address</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-md">
+              <div className="flex items-center">
+                <span className="font-medium">Source: Unit Number</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium">→</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium">Target: property.unitNumber</span>
+              </div>
+            </div>
           </div>
           <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setStep('initial')}>Back</Button>
-            <Button onClick={handleContinueToValidation}>Continue</Button>
+            <Button onClick={handleContinueToValidation}>Continue to Validation</Button>
           </div>
         </div>
       )}
       
-      {step === 'validation' && (
+      {step === 'validation' && validationResults && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Validation</h3>
           <p className="text-sm text-muted-foreground mb-4">
@@ -188,24 +243,49 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
           <div className="border rounded-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-medium">Total Records</span>
-              <span className="bg-primary/10 text-primary font-medium py-1 px-3 rounded-full">143</span>
+              <span className="bg-primary/10 text-primary font-medium py-1 px-3 rounded-full">
+                {validationResults.total}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-medium">Valid Records</span>
-              <span className="bg-green-100 text-green-800 font-medium py-1 px-3 rounded-full">139</span>
+              <span className="bg-green-100 text-green-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
+                <FileCheck className="h-3.5 w-3.5" />
+                {validationResults.valid}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-medium">Records with Warnings</span>
-              <span className="bg-amber-100 text-amber-800 font-medium py-1 px-3 rounded-full">4</span>
+              <span className="bg-amber-100 text-amber-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {validationResults.warnings}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-medium">Records with Errors</span>
-              <span className="bg-red-100 text-red-800 font-medium py-1 px-3 rounded-full">0</span>
+              <span className="bg-red-100 text-red-800 font-medium py-1 px-3 rounded-full">
+                {validationResults.errors}
+              </span>
             </div>
           </div>
+          
+          {validationResults.warnings > 0 && (
+            <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-sm">
+              <h4 className="font-medium text-amber-800">Warning Details</h4>
+              <ul className="mt-2 space-y-1 text-sm">
+                <li>Row 34: Missing phone number for John Smith</li>
+                <li>Row 67: Invalid email format for manager@example</li>
+                <li>Row 112: Property address may be incomplete</li>
+                <li>Row 129: Missing unit number in multi-unit property</li>
+              </ul>
+            </div>
+          )}
+          
           <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setStep('mapping')}>Back</Button>
-            <Button onClick={handleFinalize}>Finalize Upload</Button>
+            <Button onClick={handleFinalize} disabled={validationResults.errors > 0}>
+              Finalize Import
+            </Button>
           </div>
         </div>
       )}
