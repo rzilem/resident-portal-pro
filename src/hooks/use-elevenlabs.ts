@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
+import { testElevenLabsAPI as testElevenLabsAPIUtil } from '@/utils/elevenlabs';
 
 interface ElevenLabsSettings {
   apiKey: string;
@@ -42,38 +43,10 @@ export function useElevenLabs() {
   }, [updateIntegrationSettings]);
 
   const testElevenLabsAPI = useCallback(async (apiKey: string = elevenLabsIntegration?.apiKey) => {
-    if (!apiKey) {
-      toast.error('No API key provided');
-      return false;
-    }
-
     setIsLoading(true);
     try {
-      // Test the ElevenLabs API by fetching voices
-      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-        method: 'GET',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json'
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`ElevenLabs API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data?.voices?.length > 0) {
-        toast.success('ElevenLabs API connection successful');
-        return true;
-      } else {
-        toast.error('Unexpected response from ElevenLabs API');
-        return false;
-      }
-    } catch (error) {
-      console.error('Error testing ElevenLabs API:', error);
-      toast.error('Failed to connect to ElevenLabs API');
-      return false;
+      const result = await testElevenLabsAPIUtil(apiKey);
+      return result;
     } finally {
       setIsLoading(false);
     }

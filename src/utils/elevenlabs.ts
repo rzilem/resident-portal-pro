@@ -3,6 +3,7 @@
  * ElevenLabs Text-to-Speech API integration
  */
 import { integrationService } from '@/services/integrationService';
+import { toast } from 'sonner';
 
 // Voice IDs for high-quality ElevenLabs voices
 export const VOICE_OPTIONS = {
@@ -16,6 +17,49 @@ interface SpeakOptions {
   voice?: string;
   model?: string;
 }
+
+/**
+ * Tests the ElevenLabs API connection using the provided API key
+ * @param apiKey ElevenLabs API key
+ * @returns Promise resolving to a boolean indicating success or failure
+ */
+export const testElevenLabsAPI = async (apiKey: string): Promise<boolean> => {
+  if (!apiKey) {
+    toast.error('No API key provided');
+    return false;
+  }
+
+  try {
+    console.log('Testing ElevenLabs API connection...');
+    // Test the ElevenLabs API by fetching voices
+    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+      method: 'GET',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data?.voices?.length > 0) {
+      console.log('ElevenLabs API connection successful');
+      toast.success('ElevenLabs API connection successful');
+      return true;
+    } else {
+      console.error('Unexpected response from ElevenLabs API');
+      toast.error('Unexpected response from ElevenLabs API');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error testing ElevenLabs API:', error);
+    toast.error('Failed to connect to ElevenLabs API');
+    return false;
+  }
+};
 
 /**
  * Speaks text using ElevenLabs high-quality voice API
