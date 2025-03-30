@@ -1,19 +1,50 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, FileCheck, RotateCcw, X } from 'lucide-react';
+import { CheckCircle2, FileCheck, RotateCcw, X, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface SuccessStateProps {
   onReset: () => void;
   onClose: () => void;
   recordCount?: number;
+  importType?: string;
 }
 
 const SuccessState: React.FC<SuccessStateProps> = ({ 
   onReset, 
   onClose,
-  recordCount = 143 
+  recordCount = 1,
+  importType = 'association'
 }) => {
+  // Determine the destination based on import type
+  const getDestinationUrl = () => {
+    switch (importType) {
+      case 'association':
+        return '/associations';
+      case 'property':
+        return '/properties';
+      case 'resident':
+        return '/residents';
+      default:
+        return '/dashboard';
+    }
+  };
+  
+  // Get the destination label based on import type
+  const getDestinationLabel = () => {
+    switch (importType) {
+      case 'association':
+        return 'View Associations';
+      case 'property':
+        return 'View Properties';
+      case 'resident':
+        return 'View Residents';
+      default:
+        return 'View Dashboard';
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center space-y-6">
       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
@@ -49,6 +80,16 @@ const SuccessState: React.FC<SuccessStateProps> = ({
         >
           <RotateCcw className="h-4 w-4" />
           <span>Upload Another File</span>
+        </Button>
+        
+        <Button 
+          as={Link}
+          to={getDestinationUrl()}
+          className="flex items-center gap-2"
+          variant="outline"
+        >
+          <ExternalLink className="h-4 w-4" />
+          <span>{getDestinationLabel()}</span>
         </Button>
         
         <Button 

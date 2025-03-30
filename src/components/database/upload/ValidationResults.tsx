@@ -1,8 +1,9 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { importData } from '@/utils/spreadsheets/importData';
 
 interface ValidationResultsProps {
   validationResults: {
@@ -21,6 +22,8 @@ interface ValidationResultsProps {
     targetField: string;
   }[];
   onComplete: () => void;
+  fileName?: string;
+  importType?: string;
 }
 
 const ValidationResults: React.FC<ValidationResultsProps> = ({ 
@@ -28,14 +31,18 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
   onStepChange,
   fileData,
   mappings,
-  onComplete
+  onComplete,
+  fileName = "unknown.xlsx",
+  importType = "association"
 }) => {
+  const [importing, setImporting] = useState(false);
+  
   useEffect(() => {
     // Log for debugging purposes
     console.log("Validation Results component loaded with:", validationResults);
   }, [validationResults]);
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     if (!validationResults) {
       toast.error("No validation results available");
       return;
@@ -46,10 +53,34 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       return;
     }
     
-    // In a real app, you would finalize the import here
-    // For now, we'll simulate a successful import
-    toast.success(`Successfully imported ${validationResults.valid} records with ${validationResults.warnings} warnings`);
-    onComplete();
+    if (!fileData || fileData.rows.length === 0) {
+      toast.error("No data to import");
+      return;
+    }
+    
+    setImporting(true);
+    
+    try {
+      // Import the data into Supabase
+      const result = await importData({
+        records: fileData.rows,
+        mappings,
+        fileName,
+        importType
+      });
+      
+      if (result.success) {
+        toast.success(`Successfully imported ${result.recordsImported} records with ${result.recordsWithWarnings} warnings`);
+        onComplete();
+      } else {
+        toast.error(result.errorMessage || "Error importing data");
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
+    } finally {
+      setImporting(false);
+    }
   };
 
   if (!validationResults) {
@@ -175,13 +206,22 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       )}
       
       <div className="flex justify-end space-x-2 mt-6">
-        <Button variant="outline" onClick={() => onStepChange('mapping')}>Back to Mapping</Button>
+        <Button variant="outline" onClick={() => onStepChange('mapping')} disabled={importing}>
+          Back to Mapping
+        </Button>
         <Button 
           onClick={handleFinalize} 
-          disabled={validationResults.errors > 0}
+          disabled={validationResults.errors > 0 || importing}
           variant={validationResults.errors > 0 ? "outline" : "default"}
         >
-          {validationResults.errors > 0 ? "Cannot Import with Errors" : "Finalize Import"}
+          {importing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span>Processing...</span>
+            </>
+          ) : (
+            validationResults.errors > 0 ? "Cannot Import with Errors" : "Finalize Import"
+          )}
         </Button>
       </div>
     </div>

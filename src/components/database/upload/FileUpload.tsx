@@ -12,6 +12,7 @@ interface FileUploadProps {
   onFileProcessed: (fileData: {
     headers: string[];
     rows: Record<string, any>[];
+    fileName: string;
   }) => void;
   onStepChange: (step: 'initial' | 'mapping' | 'validation') => void;
 }
@@ -60,7 +61,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }
       // Pass the processed data up
       onFileProcessed({ 
         headers: result.headers, 
-        rows: result.rows 
+        rows: result.rows,
+        fileName: file.name
       });
       
       // Move to mapping step
