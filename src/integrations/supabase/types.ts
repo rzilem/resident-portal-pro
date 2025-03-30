@@ -299,6 +299,7 @@ export type Database = {
       }
       document_categories: {
         Row: {
+          access_level: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -307,6 +308,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          access_level?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -315,6 +317,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          access_level?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
