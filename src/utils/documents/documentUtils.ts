@@ -107,11 +107,21 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
     const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
     const categories = await fetchCategories();
     
-    // Ensure accessLevel is properly typed as DocumentAccessLevel
-    return categories.map(category => ({
-      ...category,
-      accessLevel: category.accessLevel as import('@/types/documents').DocumentAccessLevel || 'all'
-    }));
+    // Convert each category to ensure accessLevel is properly typed
+    return categories.map(category => {
+      // Make sure we return an object with the correct properties
+      return {
+        id: category.id,
+        name: category.name,
+        parent: category.parent,
+        description: category.description,
+        isRestricted: category.isRestricted,
+        requiredPermission: category.requiredPermission,
+        sortOrder: category.sortOrder,
+        // Ensure accessLevel is properly typed
+        accessLevel: category.accessLevel as import('@/types/documents').DocumentAccessLevel || 'all'
+      };
+    });
   } catch (error) {
     console.error('Error fetching document categories:', error);
     
