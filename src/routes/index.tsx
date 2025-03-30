@@ -1,6 +1,6 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import App from '../App';
 import NotFound from '../pages/NotFound';
 import Index from '../pages/Index';
 import { mainRoutes } from './mainRoutes';
@@ -14,32 +14,37 @@ import { databaseRoutes } from './databaseRoutes';
 import { vendorRoutes } from './vendorRoutes';
 import { residentRoutes } from './residentRoutes';
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <App />,
-    errorElement: <NotFound />,
-    children: [
-      {
-        index: true,
-        element: <Index />,
-      },
-      ...mainRoutes,
-      ...accountingRoutes,
-      ...communicationRoutes,
-      ...documentRoutes,
-      ...hoaRoutes,
-      ...resaleRoutes,
-      ...settingsRoutes,
-      ...databaseRoutes,
-      ...vendorRoutes,
-      ...residentRoutes,
-    ],
-  },
-]);
+// Create a RouterConfig component that takes a root element
+type RouterConfigProps = {
+  rootElement: React.ReactNode;
+};
 
-const Routes = () => {
+const RouterConfig: React.FC<RouterConfigProps> = ({ rootElement }) => {
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: rootElement,
+      errorElement: <NotFound />,
+      children: [
+        {
+          index: true,
+          element: <Index />,
+        },
+        ...mainRoutes,
+        ...accountingRoutes,
+        ...communicationRoutes,
+        ...documentRoutes,
+        ...hoaRoutes,
+        ...resaleRoutes,
+        ...settingsRoutes,
+        ...databaseRoutes,
+        ...vendorRoutes,
+        ...residentRoutes,
+      ],
+    },
+  ]);
+
   return <RouterProvider router={router} />;
 };
 
-export default Routes;
+export default RouterConfig;
