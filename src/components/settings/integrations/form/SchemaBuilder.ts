@@ -3,39 +3,34 @@ import { z } from "zod";
 import { APIFieldDefinition } from "./FormField";
 
 /**
- * Creates a Zod schema based on field definitions
+ * Creates a Zod schema based on form field definitions
  */
-export const createFormSchema = (fields: APIFieldDefinition[]) => {
-  const shape: Record<string, z.ZodTypeAny> = {};
-  
-  fields.forEach(field => {
-    let validator: z.ZodTypeAny;
+const createFormSchema = (fields: APIFieldDefinition[]) => {
+  const schemaObj: Record<string, any> = {};
+
+  fields.forEach((field) => {
+    let schema: z.ZodType<any> = z.string();
     
-    if (field.type === 'url') {
-      validator = z.string().url({ message: "Please enter a valid URL" });
-    } else {
-      validator = z.string();
+    // Apply validation based on field type
+    if (field.type === 'email') {
+      schema = z.string().email({ message: "Invalid email address" });
+    } else if (field.type === 'url') {
+      schema = z.string().url({ message: "Invalid URL" });
+    } else if (field.type === 'select' && field.options) {
+      schema = z.enum([...field.options.map(opt => opt.value)] as [string, ...string[]]);
     }
     
+    // Make required or optional
     if (field.required) {
-      if (field.type === 'url') {
-        // For URL fields that are required
-        validator = z.string()
-          .min(1, { message: `${field.label} is required` })
-          .url({ message: "Please enter a valid URL" });
-      } else {
-        // For other types that are required
-        validator = z.string().min(1, { message: `${field.label} is required` });
-      }
+      schema = schema.min(1, { message: `${field.label} is required` });
     } else {
-      // Optional fields
-      validator = validator.optional();
+      schema = schema.optional();
     }
     
-    shape[field.name] = validator;
+    schemaObj[field.name] = schema;
   });
-  
-  return z.object(shape);
+
+  return z.object(schemaObj);
 };
 
 export default createFormSchema;

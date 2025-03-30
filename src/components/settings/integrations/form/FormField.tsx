@@ -10,15 +10,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 
 export interface APIFieldDefinition {
   name: string;
   label: string;
-  type: 'text' | 'password' | 'url' | 'textarea';
+  type: 'text' | 'password' | 'url' | 'textarea' | 'email' | 'select';
   description?: string;
   placeholder?: string;
   required?: boolean;
+  hint?: string;
+  options?: { label: string; value: string }[];
+  defaultValue?: string;
 }
 
 interface APIFormFieldProps {
@@ -41,6 +45,23 @@ export const APIFormField: React.FC<APIFormFieldProps> = ({ field, form }) => {
                 placeholder={field.placeholder}
                 {...formField}
               />
+            ) : field.type === 'select' && field.options ? (
+              <Select
+                value={formField.value}
+                onValueChange={formField.onChange}
+                defaultValue={field.defaultValue}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={field.placeholder || `Select ${field.label}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <Input
                 type={field.type}
@@ -51,6 +72,11 @@ export const APIFormField: React.FC<APIFormFieldProps> = ({ field, form }) => {
           </FormControl>
           {field.description && (
             <FormDescription>{field.description}</FormDescription>
+          )}
+          {field.hint && (
+            <FormDescription className="text-xs text-muted-foreground mt-1">
+              {field.hint}
+            </FormDescription>
           )}
           <FormMessage />
         </FormItem>
