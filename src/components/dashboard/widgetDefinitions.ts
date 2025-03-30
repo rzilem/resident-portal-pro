@@ -27,4 +27,9 @@ export const availableWidgets: Array<{
     title: 'CI Insights', 
     description: 'AI-driven community insights' 
   },
+  { 
+    type: 'chatbot', 
+    title: 'AI Assistant', 
+    description: 'Get answers about your community system' 
+  },
 ];

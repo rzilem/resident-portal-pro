@@ -18,6 +18,7 @@ export type WidgetType =
   | 'announcements'
   | 'directory'
   | 'ci-insights'
+  | 'chatbot'
   | string; // Add string to make it compatible with the User Widget type
 
 export interface Widget {

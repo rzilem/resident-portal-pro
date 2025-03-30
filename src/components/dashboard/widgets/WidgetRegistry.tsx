@@ -9,6 +9,7 @@ import TasksWidget from './TasksWidget';
 import MaintenanceWidget from './MaintenanceWidget';
 import DocumentsWidget from './DocumentsWidget';
 import CIInsightsWidget from './CIInsightsWidget';
+import ChatbotWidget from './ChatbotWidget';
 
 // Create more realistic placeholder widgets for components we haven't fully implemented yet
 const PropertiesWidget = ({ cardClass, size }: { cardClass?: string, size?: 'small' | 'medium' | 'large' }) => (
@@ -315,6 +316,7 @@ export const widgetComponents: Record<WidgetType, React.ComponentType<any>> = {
   'announcements': AnnouncementsWidget,
   'directory': DirectoryWidget,
   'ci-insights': CIInsightsWidget,
+  'chatbot': ChatbotWidget,
 };
 
 interface DynamicWidgetProps {
@@ -338,6 +340,8 @@ export const DynamicWidget = ({ type, size, config, cardClass = '' }: DynamicWid
       return <DocumentsWidget size={size} cardClass={cardClass} />;
     case 'ci-insights':
       return <CIInsightsWidget size={size} cardClass={cardClass} className={cardClass} />;
+    case 'chatbot':
+      return <ChatbotWidget size={size} cardClass={cardClass} />;
     default:
       return (
         <Card className={cardClass}>
