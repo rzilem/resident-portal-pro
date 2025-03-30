@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { profileFormSchema } from "./profile/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +27,7 @@ interface UserProfile {
 }
 
 async function fetchProfile(): Promise<UserProfile> {
+  // This is a mock function - in a real app, you would fetch from an API
   return {
     id: '1',
     firstName: 'Alex',
