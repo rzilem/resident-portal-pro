@@ -13,6 +13,7 @@ import { settingsRoutes } from './settingsRoutes';
 import { databaseRoutes } from './databaseRoutes';
 import { vendorRoutes } from './vendorRoutes';
 import { residentRoutes } from './residentRoutes';
+import Login from '../pages/Login';
 
 // Create a RouterConfig component that takes a root element
 type RouterConfigProps = {
@@ -29,6 +30,10 @@ const RouterConfig: React.FC<RouterConfigProps> = ({ rootElement }) => {
         {
           index: true,
           element: <Index />,
+        },
+        {
+          path: '/login',
+          element: <Login />,
         },
         ...mainRoutes,
         ...accountingRoutes,
