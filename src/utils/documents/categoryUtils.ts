@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
 
@@ -23,7 +22,7 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
       id: category.id,
       name: category.name,
       description: category.description || '',
-      accessLevel: category.access_level as DocumentAccessLevel || 'all'
+      accessLevel: (category.access_level || 'all') as DocumentAccessLevel
     }));
   } catch (error) {
     console.error('Unexpected error getting document categories:', error);
@@ -59,7 +58,7 @@ export const createDocumentCategory = async (
       id: data.id,
       name: data.name,
       description: data.description || '',
-      accessLevel: (data.access_level as DocumentAccessLevel) || 'all'
+      accessLevel: (data.access_level || 'all') as DocumentAccessLevel
     };
   } catch (error) {
     console.error('Unexpected error creating document category:', error);
@@ -83,7 +82,7 @@ export const updateDocumentCategory = async (
       .update({
         name: updates.name,
         description: updates.description,
-        access_level: updates.accessLevel
+        access_level: updates.accessLevel || 'all'
       })
       .eq('id', id)
       .select()
@@ -98,7 +97,7 @@ export const updateDocumentCategory = async (
       id: data.id,
       name: data.name,
       description: data.description || '',
-      accessLevel: (data.access_level as DocumentAccessLevel) || 'all'
+      accessLevel: (data.access_level || 'all') as DocumentAccessLevel
     };
   } catch (error) {
     console.error('Unexpected error updating document category:', error);
