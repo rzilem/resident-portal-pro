@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bot, Send, ArrowDown } from 'lucide-react';
+import { Bot, Send, ArrowDown, Mic } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/components/ui/use-toast';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -18,12 +19,16 @@ interface ChatbotWidgetProps {
 }
 
 const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: 'Hello! I\'m your AI assistant. How can I help you with your community management system today?' }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,6 +76,77 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
       // Add AI response with proper type annotation
       setMessages([...newMessages, { role: 'assistant', content: responseText }]);
     }, 1000);
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        startRecording(stream);
+      } catch (error) {
+        console.error('Error accessing microphone:', error);
+        toast({
+          title: "Microphone Access Denied",
+          description: "Please allow microphone access to use voice input.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const startRecording = (stream: MediaStream) => {
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = mediaRecorder;
+    audioChunksRef.current = [];
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunksRef.current.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      // In a real implementation, we would send the audio to a speech-to-text service
+      // and use the transcript as input. For now, we'll simulate this behavior.
+      setIsRecording(false);
+      
+      toast({
+        title: "Speech processed",
+        description: "Voice input converted to text",
+      });
+      
+      // Simulate a voice message (in a real app, this would be the transcript)
+      const simulatedMessages = [
+        "Show me recent maintenance requests",
+        "What's the status of my recent payment?",
+        "When is the next community meeting?",
+        "Where can I find the community guidelines?",
+        "How do I submit a maintenance request?"
+      ];
+      const randomMessage = simulatedMessages[Math.floor(Math.random() * simulatedMessages.length)];
+      setInputValue(randomMessage);
+      
+      // Clean up the stream tracks
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    mediaRecorder.start();
+    setIsRecording(true);
+    
+    // Automatically stop recording after 5 seconds
+    setTimeout(() => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+    }, 5000);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
   };
 
   return (
@@ -122,17 +198,27 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
         
         <form onSubmit={handleSendMessage} className="mt-3">
           <div className="flex gap-2">
+            <Button
+              type="button"
+              size="icon"
+              variant={isRecording ? "destructive" : "outline"}
+              onClick={toggleRecording}
+              className="flex-shrink-0"
+              title={isRecording ? "Stop recording" : "Start voice input"}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
             <Input 
               value={inputValue} 
               onChange={(e) => setInputValue(e.target.value)} 
               placeholder="Ask me anything..." 
               className="flex-1"
-              disabled={isLoading}
+              disabled={isLoading || isRecording}
             />
             <Button 
               type="submit" 
               size="sm" 
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || isRecording || !inputValue.trim()}
             >
               {isLoading ? <ArrowDown className="h-4 w-4 animate-bounce" /> : <Send className="h-4 w-4" />}
             </Button>
