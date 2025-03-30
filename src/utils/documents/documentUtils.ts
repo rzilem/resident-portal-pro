@@ -105,21 +105,17 @@ export const getDocumentCategories = async (): Promise<{id: string, name: string
     // For now, we'll use the imported function from uploadUtils
     // In a real app, we would implement the DB query here
     const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
-    const categories = await fetchCategories();
+    const rawCategories = await fetchCategories();
     
-    // Convert each category to ensure accessLevel is properly typed
-    return categories.map(category => {
-      // Make sure we return an object with the correct properties
+    // The fetchCategories function returns an array of strings, 
+    // so we need to convert them to DocumentCategory objects
+    return rawCategories.map(categoryName => {
+      // Create a DocumentCategory object from the category name string
       return {
-        id: category.id,
-        name: category.name,
-        parent: category.parent,
-        description: category.description,
-        isRestricted: category.isRestricted,
-        requiredPermission: category.requiredPermission,
-        sortOrder: category.sortOrder,
-        // Ensure accessLevel is properly typed
-        accessLevel: category.accessLevel as import('@/types/documents').DocumentAccessLevel || 'all'
+        id: categoryName.toLowerCase().replace(/\s+/g, '_'),
+        name: categoryName,
+        // Default values for other properties
+        accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel
       };
     });
   } catch (error) {
