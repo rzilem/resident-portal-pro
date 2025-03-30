@@ -12,6 +12,7 @@ import WebhookDialog from './dialogs/WebhookDialog';
 import WebhookEndpointDialog from './dialogs/WebhookEndpointDialog';
 import ConfigFormDialog from './dialogs/ConfigFormDialog';
 import ElevenLabsDialog from './dialogs/ElevenLabsDialog';
+import XAIDialog from './dialogs/XAIDialog';
 import { useIntegrationCard } from './hooks/useIntegrationCard';
 
 interface Integration {
@@ -29,6 +30,7 @@ interface IntegrationCardProps {
   isWebhook?: boolean;
   isWebhookEndpoint?: boolean;
   isElevenLabs?: boolean;
+  isXAI?: boolean;
   customActions?: React.ReactNode;
   apiFields?: APIConfigFormProps['fields'];
 }
@@ -42,6 +44,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   isWebhook,
   isWebhookEndpoint,
   isElevenLabs,
+  isXAI,
   customActions,
   apiFields
 }) => {
@@ -57,6 +60,8 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     setShowConfigForm,
     showElevenLabsDialog,
     setShowElevenLabsDialog,
+    showXAIDialog,
+    setShowXAIDialog,
     isConnected,
     handleConnect,
     handleDisconnect,
@@ -70,7 +75,8 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     handleOpenApiKeyDialog,
     handleOpenWebhookDialog,
     handleOpenWebhookEndpointDialog,
-    handleOpenElevenLabsDialog
+    handleOpenElevenLabsDialog,
+    handleOpenXAIDialog
   } = useIntegrationCard({ title, integrations });
 
   const getConfigFields = () => {
@@ -127,6 +133,11 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           <ApiKeyContent 
             title={title}
             onConfigureClick={handleOpenElevenLabsDialog}
+          />
+        ) : isXAI ? (
+          <ApiKeyContent 
+            title={title}
+            onConfigureClick={handleOpenXAIDialog}
           />
         ) : customActions ? (
           customActions
@@ -187,9 +198,16 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             onOpenChange={setShowElevenLabsDialog}
           />
         )}
+        
+        {isXAI && (
+          <XAIDialog
+            open={showXAIDialog}
+            onOpenChange={setShowXAIDialog}
+          />
+        )}
       </CardContent>
       
-      {!integrations && !isApiKey && !isWebhook && !isWebhookEndpoint && !isElevenLabs && !customActions && (
+      {!integrations && !isApiKey && !isWebhook && !isWebhookEndpoint && !isElevenLabs && !isXAI && !customActions && (
         <CardFooter className="pt-0">
           <Button variant="outline" size="sm" className="w-full">
             Learn More

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { toast } from 'sonner';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
 import ElevenLabsTest from '@/components/settings/integrations/ElevenLabsTest';
+import XAITest from '@/components/settings/integrations/XAITest';
 
 const Integrations = () => {
   useEffect(() => {
@@ -20,7 +21,10 @@ const Integrations = () => {
   return (
     <div className="animate-fade-in space-y-6">
       <IntegrationSettings />
-      <ElevenLabsTest />
+      <div className="grid gap-6 md:grid-cols-2">
+        <ElevenLabsTest />
+        <XAITest />
+      </div>
     </div>
   );
 };
