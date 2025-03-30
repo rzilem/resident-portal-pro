@@ -1,12 +1,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { testBucketAccess } from '@/utils/documents/bucketUtils';
+import { testBucketAccess, ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 
 export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -26,6 +27,7 @@ export const useDocumentsBucket = () => {
       if (!isAuthValid && !user) {
         console.log('User is not authenticated, skipping bucket check');
         setBucketReady(false);
+        setDemoMode(false);
         setIsLoading(false);
         setErrorMessage('Authentication required to use document storage');
         return;
@@ -33,20 +35,24 @@ export const useDocumentsBucket = () => {
 
       console.log('Checking document bucket exists...');
       
-      // Check if we can access the bucket
+      // First try to ensure bucket exists
+      const bucketExists = await ensureDocumentsBucketExists();
+      
+      // Then check if we can access the bucket
       const canAccess = await testBucketAccess();
       
       if (canAccess) {
         console.log('Document storage is ready and accessible');
         setBucketReady(true);
+        setDemoMode(false);
         setErrorMessage(null);
       } else {
         console.log('Document storage is not accessible');
         setErrorMessage('Document storage is not accessible');
         setBucketReady(false);
         
-        // Since we can't create the bucket due to RLS errors,
-        // we'll treat it as a demo mode situation
+        // Since we can't access the bucket, we'll treat it as a demo mode situation
+        setDemoMode(true);
         if (retryCount === 0) {
           toast.info("Using demo mode for document storage");
         }
@@ -59,6 +65,7 @@ export const useDocumentsBucket = () => {
       toast.error("Failed to connect to document storage");
       setIsLoading(false);
       setBucketReady(false);
+      setDemoMode(true);
     }
   }, [retryCount, user]);
   
@@ -76,12 +83,14 @@ export const useDocumentsBucket = () => {
         } else {
           setIsLoading(false);
           setBucketReady(false);
+          setDemoMode(false);
           setErrorMessage('Authentication required to use document storage');
         }
       } catch (error) {
         console.error('Error checking auth session:', error);
         setIsLoading(false);
         setBucketReady(false);
+        setDemoMode(true);
         setErrorMessage('Error checking authentication status');
       }
     };
@@ -111,6 +120,7 @@ export const useDocumentsBucket = () => {
 
   return { 
     bucketReady, 
+    demoMode,
     isLoading, 
     isCreating,
     errorMessage,

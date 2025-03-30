@@ -12,6 +12,7 @@ interface UploadButtonProps {
   setUploading: (uploading: boolean) => void;
   setError: (error: string | null) => void;
   setSuccess: (success: boolean) => void;
+  demoMode?: boolean;
 }
 
 export const UploadButton: React.FC<UploadButtonProps> = ({ 
@@ -20,7 +21,8 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
   uploading, 
   setUploading, 
   setError, 
-  setSuccess 
+  setSuccess,
+  demoMode = false
 }) => {
   const handleUpload = async () => {
     if (!file) {
@@ -33,21 +35,32 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
     setSuccess(false);
     
     try {
-      // Create a unique file path
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-      
-      // Upload file to Supabase storage
-      const { error } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
+      if (demoMode) {
+        // In demo mode, we simulate a successful upload
+        console.log('Demo mode: Simulating upload of file:', file.name);
         
-      if (error) {
-        throw error;
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        console.log('Demo mode: Upload simulation complete');
+        setSuccess(true);
+      } else {
+        // Create a unique file path
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+        
+        // Upload file to Supabase storage
+        const { error } = await supabase.storage
+          .from('documents')
+          .upload(filePath, file);
+          
+        if (error) {
+          throw error;
+        }
+        
+        setSuccess(true);
       }
-      
-      setSuccess(true);
     } catch (error: any) {
       setError(error.message || 'Error uploading file');
     } finally {

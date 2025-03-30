@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -18,7 +19,7 @@ interface FileUploadProps {
 const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { bucketReady, errorMessage, retryCheck } = useDocumentsBucket();
+  const { bucketReady, demoMode, errorMessage, retryCheck } = useDocumentsBucket();
   
   const handleFileUpload = async () => {
     if (!file) {
@@ -79,7 +80,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }
   };
 
   const renderStorageError = () => {
-    if (!bucketReady && errorMessage) {
+    if (demoMode) {
       return (
         <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded">
           <div className="flex items-start">
@@ -87,7 +88,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }
             <div>
               <h3 className="text-sm font-medium text-amber-800">Demo Mode Active</h3>
               <p className="text-sm text-amber-700 mt-1">
-                Document storage is unavailable. Using demo mode instead. Data will be processed locally.
+                Document storage is currently unavailable. Using demo mode instead. Data will be processed locally.
               </p>
               <Button 
                 variant="outline" 
