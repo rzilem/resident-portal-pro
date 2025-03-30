@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
  * Get available document categories
  * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
  */
-export const getUploadDocumentCategories = async (): Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> => {
+export const getDocumentCategories = async (): Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> => {
   try {
     // First try to get categories from database
     const { data, error } = await supabase

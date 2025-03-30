@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from "sonner";
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 export const useSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,10 +29,13 @@ export const useSignup = () => {
     }
     
     try {
-      // Correct call to signUp with only email and password
       const { error, data } = await signUp(
         signupValues.email, 
-        signupValues.password
+        signupValues.password, 
+        {
+          first_name: signupValues.firstName,
+          last_name: signupValues.lastName
+        }
       );
       
       if (error) {

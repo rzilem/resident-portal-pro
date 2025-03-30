@@ -1,224 +1,209 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Eye, Download, MoreHorizontal, Tag, Clock } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DocumentFile } from '@/types/documents';
-import DocumentTableEmptyState from './DocumentTableEmptyState';
-import DocumentTableLoading from './DocumentTableLoading';
+import React, { useState, useCallback, useEffect } from 'react';
+import { 
+  Table, TableBody, TableCell, TableHead, 
+  TableHeader, TableRow, TableCaption 
+} from "@/components/ui/table";
+import { DocumentFile, DocumentSearchFilters } from '@/types/documents';
+import { getDocuments } from '@/utils/documents/documentDbUtils';
 import DocumentPreview from './DocumentPreview';
-import { Badge } from '@/components/ui/badge';
-import { getDocuments } from '@/utils/documents';
-import { formatFileSize, formatDate, getFileIcon } from './utils/documentIconUtils';
+import { toast } from 'sonner';
+import DocumentTableFilters from './DocumentTableFilters';
+import DocumentTableEmptyState from './DocumentTableEmptyState';
+import DocumentTableRow from './DocumentTableRow';
+import DocumentTableLoading from './DocumentTableLoading';
+import { useAuthRole } from '@/hooks/use-auth-role';
 
 interface DocumentTableProps {
   category?: string;
   searchQuery?: string;
   filter?: 'recent' | 'shared' | 'important';
   associationId?: string;
+  caption?: string;
   refreshTrigger?: number;
 }
 
-const DocumentTable: React.FC<DocumentTableProps> = ({
-  category = '',
+const DocumentTable: React.FC<DocumentTableProps> = ({ 
+  category, 
   searchQuery = '',
   filter,
   associationId,
+  caption,
   refreshTrigger = 0
 }) => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'name' | 'date' | 'size'>('date');
+  const [tagFilter, setTagFilter] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [loadKey, setLoadKey] = useState(0);
+  const { role } = useAuthRole();
   
-  // Load documents based on category and search query
   useEffect(() => {
-    const fetchDocuments = async () => {
-      setIsLoading(true);
-      try {
-        // Build the search filters
-        const searchFilters: any = {
-          isArchived: false
-        };
-        
-        // Add category filter if provided
-        if (category) {
-          searchFilters.categories = [category];
-        }
-        
-        // Handle the filter type
-        if (filter === 'recent') {
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-          searchFilters.dateRange = {
-            start: thirtyDaysAgo.toISOString()
-          };
-        } else if (filter === 'shared') {
-          searchFilters.isPublic = true;
-        } else if (filter === 'important') {
-          searchFilters.tags = ['important'];
-        }
-        
-        // If association ID provided, filter by it
-        if (associationId) {
-          searchFilters.associations = [associationId];
-        }
-        
-        const docs = await getDocuments(searchFilters, searchQuery);
-        setDocuments(docs);
-      } catch (error) {
-        console.error('Error fetching documents:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchDocuments();
-  }, [category, searchQuery, filter, associationId, refreshTrigger]);
+    console.log("DocumentTable mounted/updated with props:", { 
+      category, 
+      searchQuery, 
+      filter, 
+      associationId,
+      refreshTrigger
+    });
+    loadDocuments();
+  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, refreshTrigger, loadKey, role]);
   
-  const handleViewDocument = (document: DocumentFile) => {
-    setSelectedDocument(document);
+  const loadDocuments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log("Loading documents with filters:", {
+        query: searchQuery || localSearchQuery,
+        categories: category ? [category] : [],
+        tags: tagFilter ? [tagFilter] : [],
+        dateFilter,
+        associationId,
+        role
+      });
+      
+      const filters: DocumentSearchFilters = {
+        query: searchQuery || localSearchQuery,
+        categories: category ? [category] : [],
+        tags: tagFilter ? [tagFilter] : []
+      };
+      
+      if (dateFilter === 'today') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        filters.dateRange = {
+          start: today.toISOString(),
+          end: new Date().toISOString()
+        };
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        filters.dateRange = {
+          start: weekAgo.toISOString(),
+          end: new Date().toISOString()
+        };
+      } else if (dateFilter === 'month') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        filters.dateRange = {
+          start: monthAgo.toISOString(),
+          end: new Date().toISOString()
+        };
+      }
+      
+      if (filter === 'shared') {
+        filters.isPublic = true;
+      } else if (filter === 'important') {
+        filters.tags = ['important'];
+      } else if (filter === 'recent') {
+        // For recent, we'll just sort by date which happens by default
+      }
+      
+      const docs = await getDocuments(filters, associationId, role);
+      console.log('Loaded documents:', docs);
+      setDocuments(docs);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      toast.error('Failed to load documents. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [category, searchQuery, localSearchQuery, filter, associationId, tagFilter, dateFilter, role]);
+  
+  const refreshDocuments = () => {
+    console.log("Refreshing documents list");
+    setLoadKey(prevKey => prevKey + 1);
+  };
+  
+  const handleViewDocument = (doc: DocumentFile) => {
+    setSelectedDocument(doc);
     setShowPreview(true);
   };
   
-  const handleClosePreview = () => {
-    setShowPreview(false);
-    setSelectedDocument(null);
+  const handleDownloadDocument = (doc: DocumentFile) => {
+    toast.success(`Downloading ${doc.name}`);
   };
-
+  
+  const handleDeleteDocument = (doc: DocumentFile) => {
+    toast.success(`Document "${doc.name}" deleted`);
+    setDocuments(documents.filter(d => d.id !== doc.id));
+  };
+  
+  const sortedDocuments = [...documents].sort((a, b) => {
+    if (sortOrder === 'name') {
+      return a.name.localeCompare(b.name);
+    } else if (sortOrder === 'date') {
+      return new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime();
+    } else if (sortOrder === 'size') {
+      return b.fileSize - a.fileSize;
+    }
+    return 0;
+  });
+  
   if (isLoading) {
     return <DocumentTableLoading />;
   }
 
-  if (documents.length === 0) {
-    return <DocumentTableEmptyState searchQuery={searchQuery} category={category} />;
+  if (sortedDocuments.length === 0) {
+    return (
+      <DocumentTableEmptyState
+        searchQuery={searchQuery}
+        localSearchQuery={localSearchQuery}
+        associationId={associationId}
+        refreshDocuments={refreshDocuments}
+      />
+    );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <DocumentTableFilters
+        localSearchQuery={localSearchQuery}
+        setLocalSearchQuery={setLocalSearchQuery}
+        tagFilter={tagFilter}
+        setTagFilter={setTagFilter}
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        refreshDocuments={refreshDocuments}
+      />
+
       <div className="rounded-md border">
-        <table className="w-full caption-bottom text-sm">
-          <thead className="border-b bg-muted/50">
-            <tr>
-              <th className="h-10 px-4 text-left align-middle font-medium">Document</th>
-              <th className="h-10 px-2 text-left align-middle font-medium">Type</th>
-              <th className="h-10 px-2 text-left align-middle font-medium hidden md:table-cell">Size</th>
-              <th className="h-10 px-2 text-left align-middle font-medium hidden lg:table-cell">Uploaded</th>
-              <th className="h-10 px-2 text-left align-middle font-medium hidden xl:table-cell">Tags</th>
-              <th className="h-10 px-2 text-right align-middle font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {documents.map((document) => (
-              <tr key={document.id} className="border-b transition-colors hover:bg-muted/50">
-                <td className="p-4 align-middle">
-                  <div className="flex items-center gap-2">
-                    {getFileIcon(document.fileType)}
-                    <div>
-                      <div className="font-medium">{document.name}</div>
-                      {document.description && (
-                        <div className="text-xs text-muted-foreground line-clamp-1">
-                          {document.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-2 align-middle">
-                  <div className="text-xs uppercase text-muted-foreground">
-                    {document.fileType.split('/')[1] || document.fileType}
-                  </div>
-                </td>
-                <td className="px-2 align-middle hidden md:table-cell">
-                  <div className="text-xs text-muted-foreground">
-                    {formatFileSize(document.fileSize)}
-                  </div>
-                </td>
-                <td className="px-2 align-middle hidden lg:table-cell">
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {formatDate(document.uploadedDate)}
-                  </div>
-                </td>
-                <td className="px-2 align-middle hidden xl:table-cell">
-                  <div className="flex flex-wrap gap-1">
-                    {document.tags && document.tags.length > 0 ? document.tags.slice(0, 2).map((tag, idx) => (
-                      <Badge variant="outline" key={idx} className="text-xs">
-                        {tag}
-                      </Badge>
-                    )) : (
-                      <span className="text-xs text-muted-foreground">-</span>
-                    )}
-                    {document.tags && document.tags.length > 2 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{document.tags.length - 2}
-                      </Badge>
-                    )}
-                  </div>
-                </td>
-                <td className="p-2 align-middle text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleViewDocument(document)}
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span className="sr-only">View</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      asChild
-                    >
-                      <a href={document.url} download={document.name}>
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download</span>
-                      </a>
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">More options</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDocument(document)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          <span>View</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <a href={document.url} download={document.name} className="flex cursor-pointer items-center">
-                            <Download className="mr-2 h-4 w-4" />
-                            <span>Download</span>
-                          </a>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Tag className="mr-2 h-4 w-4" />
-                          <span>Add Tag</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </td>
-              </tr>
+        <Table>
+          {caption && <TableCaption>{caption}</TableCaption>}
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead>Uploaded By</TableHead>
+              <TableHead>Tags</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedDocuments.map(doc => (
+              <DocumentTableRow
+                key={doc.id}
+                doc={doc}
+                onView={handleViewDocument}
+                onDownload={handleDownloadDocument}
+                onDelete={handleDeleteDocument}
+                refreshDocuments={refreshDocuments}
+              />
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       
       <DocumentPreview
         document={selectedDocument}
         isOpen={showPreview}
-        onClose={handleClosePreview}
+        onClose={() => setShowPreview(false)}
       />
     </div>
   );

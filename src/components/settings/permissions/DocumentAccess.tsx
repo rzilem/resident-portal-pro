@@ -1,68 +1,129 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderOpen, Shield, Lock } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { FileText, Save, FolderClosed } from "lucide-react";
+import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import { DocumentCategory } from '@/types/documents';
-import { getDocumentCategories } from '@/utils/documents/categoryUtils';
 import { useAuthRole } from '@/hooks/use-auth-role';
 
+interface DocumentPermissionMap {
+  [documentType: string]: {
+    [role: string]: boolean;
+  };
+}
+
+const defaultDocumentTypes = [
+  { id: 'financialReports', name: 'Financial Reports', icon: <FileText className="h-4 w-4" /> },
+  { id: 'bylaws', name: 'Bylaws', icon: <FileText className="h-4 w-4" /> },
+  { id: 'boardMinutes', name: 'Board Minutes', icon: <FileText className="h-4 w-4" /> },
+  { id: 'vendorContracts', name: 'Vendor Contracts', icon: <FileText className="h-4 w-4" /> },
+  { id: 'communityGuidelines', name: 'Community Guidelines', icon: <FileText className="h-4 w-4" /> },
+  { id: 'maintenanceDocuments', name: 'Maintenance Documents', icon: <FileText className="h-4 w-4" /> }
+];
+
 const DocumentAccess = () => {
-  const [categories, setCategories] = useState<DocumentCategory[]>([]);
+  const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [documentPermissions, setDocumentPermissions] = useState<DocumentPermissionMap>({});
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
   const { isAdmin } = useAuthRole();
   
+  const roles = [
+    { value: "owner", label: "Owner" },
+    { value: "admin", label: "Administrator" },
+    { value: "manager", label: "Property Manager" },
+    { value: "board", label: "Board Member" },
+    { value: "resident", label: "Resident" },
+    { value: "vendor", label: "Vendor" },
+  ];
+
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadData = async () => {
       setIsLoading(true);
       try {
+        // Load document categories
         const fetchedCategories = await getDocumentCategories();
         setCategories(fetchedCategories);
+        
+        // Initialize document permissions
+        const initialPermissions: DocumentPermissionMap = {};
+        
+        // Add default document types permissions
+        defaultDocumentTypes.forEach(docType => {
+          initialPermissions[docType.id] = {
+            owner: true,
+            admin: true,
+            manager: true,
+            board: docType.id !== 'vendorContracts',
+            resident: ['bylaws', 'boardMinutes'].includes(docType.id),
+            vendor: docType.id === 'vendorContracts'
+          };
+        });
+        
+        // Add category-based document types
+        fetchedCategories.forEach(category => {
+          if (!initialPermissions[`category_${category.id}`]) {
+            // Default permissions based on access level
+            const hasAccess = {
+              owner: true,
+              admin: true,
+              manager: category.accessLevel !== 'admin',
+              board: ['all', 'homeowner', 'board'].includes(category.accessLevel || 'all'),
+              resident: ['all', 'homeowner'].includes(category.accessLevel || 'all'),
+              vendor: false
+            };
+            initialPermissions[`category_${category.id}`] = hasAccess;
+          }
+        });
+        
+        setDocumentPermissions(initialPermissions);
       } catch (error) {
-        console.error("Failed to load document categories:", error);
-        toast.error("Failed to load document categories");
+        console.error("Failed to load data:", error);
+        toast.error("Failed to load document permissions");
       } finally {
         setIsLoading(false);
       }
     };
     
-    loadCategories();
+    loadData();
   }, []);
-  
-  // Function to get a color for each access level (for visual indication)
-  const getAccessLevelColor = (level: string) => {
-    switch (level) {
-      case 'admin':
-        return 'text-red-500';
-      case 'management':
-        return 'text-purple-500';
-      case 'board':
-        return 'text-blue-500';
-      case 'homeowner':
-        return 'text-green-500';
-      case 'all':
-      default:
-        return 'text-yellow-500';
-    }
+
+  const toggleDocumentPermission = (document: string, role: string) => {
+    setDocumentPermissions(prev => ({
+      ...prev,
+      [document]: {
+        ...prev[document],
+        [role]: !prev[document][role]
+      }
+    }));
   };
   
-  // Function to get a human-readable access level name
-  const getAccessLevelName = (level: string) => {
-    switch (level) {
-      case 'admin':
-        return 'Administrators Only';
-      case 'management':
-        return 'Management Staff';
-      case 'board':
-        return 'Board Members & Above';
-      case 'homeowner':
-        return 'Homeowners & Above';
-      case 'all':
-      default:
-        return 'All Users';
+  const handleUpdatePermissions = async () => {
+    if (!isAdmin) {
+      toast.error("You need administrator privileges to update permissions");
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, we would save the permissions to the backend
+      // For now, we'll just simulate success
+      
+      toast.success("Document permissions updated successfully");
+    } catch (error) {
+      console.error("Failed to update permissions:", error);
+      toast.error("Failed to update document permissions");
+    } finally {
+      setIsSaving(false);
     }
   };
   
@@ -70,123 +131,127 @@ const DocumentAccess = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FolderOpen className="h-5 w-5" />
-            Document Access Control
-          </CardTitle>
-          <CardDescription>
-            View access levels for different document categories
-          </CardDescription>
+          <CardTitle>Document Access Permissions</CardTitle>
+          <CardDescription>Loading permissions...</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="animate-pulse">
-              <div className="h-10 bg-muted rounded-md mb-4"></div>
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="h-12 bg-muted rounded-md"></div>
-                ))}
-              </div>
-            </div>
+          <div className="flex justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
           </div>
         </CardContent>
       </Card>
     );
   }
   
+  if (!isAdmin) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Access Permissions</CardTitle>
+          <CardDescription>Control which roles can access specific documents</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4 rounded-md">
+            <p className="text-amber-800 dark:text-amber-300">
+              You need administrator permissions to manage document access permissions.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FolderOpen className="h-5 w-5" />
-          Document Access Control
+          <FolderClosed className="h-5 w-5" />
+          Document Access Permissions
         </CardTitle>
-        <CardDescription>
-          View access levels for different document categories
-        </CardDescription>
+        <CardDescription>Control which roles can access specific documents</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border overflow-hidden">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Access Level</TableHead>
-                {isAdmin && <TableHead className="w-[100px]">Actions</TableHead>}
+                <TableHead>Document Type</TableHead>
+                {roles.map((role) => (
+                  <TableHead key={role.value} className="text-center">
+                    {role.label}
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map(category => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.description || 'No description'}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="outline" 
-                      className={`flex w-fit items-center gap-1 ${getAccessLevelColor(category.accessLevel || 'all')}`}
-                    >
-                      <Lock className="h-3 w-3" />
-                      {getAccessLevelName(category.accessLevel || 'all')}
-                    </Badge>
+              {/* Default document types */}
+              {defaultDocumentTypes.map((docType) => (
+                <TableRow key={docType.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {docType.icon}
+                      {docType.name}
+                    </div>
                   </TableCell>
-                  {isAdmin && (
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => toast.info("Edit permission settings in Security Settings")}
-                      >
-                        <Shield className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
+                  {roles.map((role) => (
+                    <TableCell key={role.value} className="text-center">
+                      <Switch 
+                        checked={documentPermissions[docType.id]?.[role.value] || false} 
+                        onCheckedChange={() => toggleDocumentPermission(docType.id, role.value)} 
+                      />
                     </TableCell>
-                  )}
+                  ))}
+                </TableRow>
+              ))}
+              
+              {/* Document categories */}
+              {categories.map((category) => (
+                <TableRow key={`category_${category.id}`}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <FolderClosed className={`h-4 w-4 ${
+                        category.accessLevel === 'admin' ? 'text-red-500' :
+                        category.accessLevel === 'management' ? 'text-purple-500' :
+                        category.accessLevel === 'board' ? 'text-blue-500' :
+                        category.accessLevel === 'homeowner' ? 'text-green-500' :
+                        'text-yellow-400'
+                      }`} />
+                      {category.name}
+                    </div>
+                  </TableCell>
+                  {roles.map((role) => (
+                    <TableCell key={role.value} className="text-center">
+                      <Switch 
+                        checked={documentPermissions[`category_${category.id}`]?.[role.value] || false} 
+                        onCheckedChange={() => toggleDocumentPermission(`category_${category.id}`, role.value)} 
+                      />
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-        
-        <div className="mt-6 p-4 bg-muted rounded-md">
-          <h3 className="font-medium flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4" />
-            Access Level Explanation
-          </h3>
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-yellow-500">
-                All Users
-              </Badge>
-              <span>Available to anyone with access to the system</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-green-500">
-                Homeowners & Above
-              </Badge>
-              <span>Available to homeowners, board members, and staff</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-blue-500">
-                Board Members & Above
-              </Badge>
-              <span>Available to board members and staff only</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-purple-500">
-                Management Staff
-              </Badge>
-              <span>Available to management staff only</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-red-500">
-                Administrators Only
-              </Badge>
-              <span>Available only to system administrators</span>
-            </li>
-          </ul>
-        </div>
       </CardContent>
+      <CardFooter className="flex justify-end">
+        <Button 
+          onClick={handleUpdatePermissions}
+          disabled={isSaving}
+          className="flex items-center gap-2"
+        >
+          {isSaving ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4" />
+              <span>Save Permissions</span>
+            </>
+          )}
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

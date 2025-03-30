@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -20,9 +19,11 @@ export function Sidebar({
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const { settings } = useCompanySettings();
+  const {
+    settings
+  } = useCompanySettings();
 
-  const isHoaPage = location.pathname.startsWith('/hoa');
+  const isHoaPage = location.pathname === '/hoa/dashboard' || location.pathname === '/hoa/finances' || location.pathname === '/hoa/maintenance' || location.pathname === '/hoa/members' || location.pathname === '/hoa/events';
 
   if (isHoaPage) {
     return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
@@ -46,18 +47,16 @@ export function Sidebar({
     sessionStorage.setItem('open-branding-tab', 'true');
   };
 
-  return (
-    <SidebarProvider defaultOpen={true}>
-      <div className={cn("pb-12 border-r min-h-screen bg-background w-64", className)}>
+  return <SidebarProvider defaultOpen={true}>
+      <div className={cn("pb-12 border-r min-h-screen bg-background", className)}>
         <SidebarContent className="space-y-4 py-4">
-          <SidebarHeader className="py-2 px-4 my-0">
+          <SidebarHeader className="py-2 px-[71px] my-0">
             <div className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group" onClick={handleLogoClick}>
-              {settings.logoUrl ? (
-                <>
+              {settings.logoUrl ? <>
                   <img 
                     src={settings.logoUrl} 
                     alt={settings.companyName || "Company Logo"} 
-                    className="h-16 max-w-[200px] object-contain" 
+                    className="h-16 max-w-[250px] object-contain" 
                   />
                   <TooltipProvider>
                     <Tooltip>
@@ -69,9 +68,7 @@ export function Sidebar({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </>
-              ) : (
-                <>
+                </> : <>
                   <div className="text-xl font-semibold tracking-tight">
                     {settings.companyName || "HOA Management"}
                   </div>
@@ -85,8 +82,7 @@ export function Sidebar({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </>
-              )}
+                </>}
             </div>
           </SidebarHeader>
           <ScrollArea className="h-[calc(100vh-8rem)] px-3">
@@ -109,6 +105,5 @@ export function Sidebar({
           </ScrollArea>
         </SidebarContent>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 }

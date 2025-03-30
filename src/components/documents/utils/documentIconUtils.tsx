@@ -1,46 +1,42 @@
 
 import React from 'react';
-import { FileText, FileSpreadsheet } from 'lucide-react';
+import { 
+  FileText, File, FileCode, 
+  FileSpreadsheet, Image
+} from "lucide-react";
 
-/**
- * Returns an icon component based on file type
- */
-export const getFileIcon = (fileType: string): React.ReactElement => {
-  if (fileType.includes('pdf')) {
-    return <FileText className="h-4 w-4 text-red-500" />;
-  }
-  if (fileType.includes('word') || fileType.includes('docx')) {
-    return <FileText className="h-4 w-4 text-blue-500" />;
-  }
-  if (fileType.includes('excel') || fileType.includes('xlsx')) {
-    return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
-  }
-  return <FileText className="h-4 w-4 text-gray-500" />;
-};
-
-/**
- * Returns an icon component based on document name
- * Alternative to getFileIcon that works with file names
- */
-export const getDocumentIcon = (fileName: string): React.ReactElement => {
-  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+// Helper function to determine icon based on file name or type
+export const getDocumentIcon = (fileName: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
   
-  if (extension === 'pdf') {
-    return <FileText className="h-4 w-4 text-red-500" />;
+  switch(extension) {
+    case 'pdf':
+      return <FileText className="h-5 w-5 text-red-500" />;
+    case 'doc':
+    case 'docx':
+      return <FileText className="h-5 w-5 text-blue-500" />;
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+      return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+      return <Image className="h-5 w-5 text-purple-500" />;
+    case 'html':
+    case 'css':
+    case 'js':
+    case 'ts':
+    case 'json':
+      return <FileCode className="h-5 w-5 text-yellow-500" />;
+    default:
+      return <File className="h-5 w-5 text-gray-500" />;
   }
-  if (extension === 'doc' || extension === 'docx') {
-    return <FileText className="h-4 w-4 text-blue-500" />;
-  }
-  if (extension === 'xls' || extension === 'xlsx') {
-    return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
-  }
-  return <FileText className="h-4 w-4 text-gray-500" />;
 };
 
-/**
- * Format a date for display
- */
-export const formatDate = (dateString: string): string => {
+// Format date for display
+export const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -48,14 +44,13 @@ export const formatDate = (dateString: string): string => {
   });
 };
 
-/**
- * Format file size from bytes to human-readable format
- */
+// Format file size for display
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
   
+  const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };

@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import { toast } from "sonner";
 import { userPreferencesService } from '@/services/userPreferencesService';
 import { companySettingsService } from '@/services/companySettingsService';
@@ -39,14 +38,14 @@ const defaultPreferences: UserPreferences = {
 };
 
 export const useSettings = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
-  const [isLoading2, setIsLoading2] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadPreferences = async () => {
-      if (user?.id) {
-        setIsLoading2(true);
+      if (isAuthenticated && user?.id) {
+        setIsLoading(true);
         try {
           const storedPreferences = await userPreferencesService.getPreferences(user.id);
           
@@ -61,46 +60,44 @@ export const useSettings = () => {
           console.error('Error loading preferences:', error);
           toast.error('Failed to load preferences');
         } finally {
-          setIsLoading2(false);
+          setIsLoading(false);
         }
       } else {
         console.log('Not authenticated, using default preferences');
         setPreferences(defaultPreferences);
-        setIsLoading2(false);
+        setIsLoading(false);
       }
     };
 
-    if (!isLoading) {
-      loadPreferences();
-    }
-  }, [isLoading, user?.id]);
+    loadPreferences();
+  }, [isAuthenticated, user?.id]);
 
   const savePreferences = useCallback(async (newPreferences: Partial<UserPreferences>) => {
     setPreferences(current => ({ ...current, ...newPreferences }));
     
-    if (user?.id) {
+    if (isAuthenticated && user?.id) {
       const updatedPreferences = { ...preferences, ...newPreferences };
       console.log('Saving preferences to Supabase:', updatedPreferences);
       await userPreferencesService.savePreferences(user.id, updatedPreferences);
     } else {
       console.log('Not authenticated, preferences only saved locally');
     }
-  }, [preferences, user?.id]);
+  }, [preferences, isAuthenticated, user?.id]);
 
   const updatePreference = useCallback(async (key: string, value: any) => {
     setPreferences(current => ({ ...current, [key]: value }));
     
-    if (user?.id) {
+    if (isAuthenticated && user?.id) {
       const updatedPreferences = { ...preferences, [key]: value };
       console.log(`Saving preference update to Supabase: ${key}=`, value);
       await userPreferencesService.savePreferences(user.id, updatedPreferences);
     } else {
       console.log('Not authenticated, preference only saved locally');
     }
-  }, [preferences, user?.id]);
+  }, [preferences, isAuthenticated, user?.id]);
 
   const uploadCompanyLogo = useCallback(async (file: File): Promise<string | null> => {
-    if (!user?.id) {
+    if (!isAuthenticated || !user?.id) {
       toast.error('You must be logged in to upload a logo');
       return null;
     }
@@ -111,7 +108,7 @@ export const useSettings = () => {
       console.error('Error uploading company logo:', error);
       return null;
     }
-  }, [user?.id]);
+  }, [isAuthenticated, user?.id]);
 
   const updateCompanySetting = updatePreference;
 
@@ -123,7 +120,7 @@ export const useSettings = () => {
   return {
     preferences,
     companySettings,
-    isLoading: isLoading || isLoading2,
+    isLoading,
     savePreferences,
     updatePreference,
     uploadCompanyLogo,

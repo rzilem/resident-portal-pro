@@ -25,14 +25,14 @@ export const isFilePreviewable = (fileType: string): boolean => {
   const lowerType = fileType.toLowerCase();
   
   // Expanded list of previewable file types
-  const previewableTypes = [
-    'pdf', 'application/pdf',
-    'jpeg', 'jpg', 'png', 'gif', 'svg', 'webp', 'bmp',
-    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp', 'image/bmp'
-  ];
-  
-  // Check if any of the previewable types is included in the fileType
-  return previewableTypes.some(type => lowerType.includes(type));
+  return lowerType.includes('pdf') || 
+         lowerType.includes('image') || 
+         lowerType.includes('jpg') || 
+         lowerType.includes('jpeg') || 
+         lowerType.includes('png') || 
+         lowerType.includes('gif') ||
+         lowerType.includes('svg') ||
+         lowerType.includes('webp');
 };
 
 /**
@@ -53,7 +53,6 @@ export const getMimeTypeFromFileName = (fileName: string): string => {
     'gif': 'image/gif',
     'svg': 'image/svg+xml',
     'webp': 'image/webp',
-    'bmp': 'image/bmp',
     'doc': 'application/msword',
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'xls': 'application/vnd.ms-excel',
@@ -77,6 +76,57 @@ export const getMimeTypeFromFileName = (fileName: string): string => {
 };
 
 /**
+ * Sanitize the URL to ensure it's valid and safe
+ * @param url The URL to sanitize
+ * @returns Sanitized URL
+ */
+export const sanitizeDocumentUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Special case for lovable uploads
+  if (url.startsWith('/lovable-uploads/')) {
+    return url;
+  }
+  
+  // Ensure protocol is specified
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+/**
+ * Get available document categories
+ * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
+ */
+export const getDocumentCategories = async (): Promise<{id: string, name: string, parent?: string, description?: string, isRestricted?: boolean, requiredPermission?: string, sortOrder?: number, accessLevel?: import('@/types/documents').DocumentAccessLevel}[]> => {
+  try {
+    // First try to get categories from database
+    // For now, we'll use the imported function from uploadUtils
+    // In a real app, we would implement the DB query here
+    const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
+    const categories = await fetchCategories();
+    
+    // Ensure accessLevel is properly typed as DocumentAccessLevel
+    return categories.map(category => ({
+      ...category,
+      accessLevel: category.accessLevel as import('@/types/documents').DocumentAccessLevel || 'all'
+    }));
+  } catch (error) {
+    console.error('Error fetching document categories:', error);
+    
+    // Return default categories on error
+    return [
+      { id: 'GENERAL', name: 'GENERAL', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'FINANCIAL', name: 'FINANCIAL', accessLevel: 'board' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'LEGAL', name: 'LEGAL', accessLevel: 'management' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'MAINTENANCE', name: 'MAINTENANCE', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
+      { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' as import('@/types/documents').DocumentAccessLevel }
+    ];
+  }
+};
+
+/**
  * Detect if we can generate an Office Online preview URL
  * @param fileType The file's MIME type or extension
  * @returns Boolean indicating if file can use Office Online viewer
@@ -86,19 +136,12 @@ export const canUseOfficeViewer = (fileType: string): boolean => {
   
   const lowerType = fileType.toLowerCase();
   
-  // Office file extensions
-  const officeExtensions = [
-    'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
-    'vnd.ms-word', 'vnd.openxmlformats-officedocument.wordprocessingml', 
-    'vnd.ms-excel', 'vnd.openxmlformats-officedocument.spreadsheetml',
-    'vnd.ms-powerpoint', 'vnd.openxmlformats-officedocument.presentationml'
-  ];
-  
-  // Check if any of the office extensions is included in the fileType
-  const isOfficeDocument = officeExtensions.some(ext => lowerType.includes(ext));
-    
-  console.log(`Checking if "${lowerType}" can use Office viewer: ${isOfficeDocument}`);
-  return isOfficeDocument;
+  return lowerType.includes('word') || 
+         lowerType.includes('doc') || 
+         lowerType.includes('xls') || 
+         lowerType.includes('xlsx') || 
+         lowerType.includes('ppt') || 
+         lowerType.includes('pptx');
 };
 
 /**
@@ -109,7 +152,5 @@ export const canUseOfficeViewer = (fileType: string): boolean => {
 export const getOfficeViewerUrl = (fileUrl: string): string => {
   // Ensure the fileUrl is properly encoded
   const encodedFileUrl = encodeURIComponent(fileUrl);
-  console.log(`Creating Office viewer URL for: ${fileUrl}`);
-  console.log(`Encoded URL: ${encodedFileUrl}`);
   return `https://view.officeapps.live.com/op/view.aspx?src=${encodedFileUrl}`;
 };

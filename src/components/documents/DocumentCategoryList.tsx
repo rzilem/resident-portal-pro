@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import CategorySecurityGuide from './CategorySecurityGuide';
 import CategoryItem from './CategoryItem';
 import CategoryEditForm from './CategoryEditForm';
-import { updateDocumentCategory } from '@/utils/documents/categoryUtils';
+import { syncCategoriesToSupabase } from '@/utils/documents/categoryUtils';
 
 interface DocumentCategoryListProps {
   categories: DocumentCategory[];
@@ -76,25 +76,14 @@ const DocumentCategoryList: React.FC<DocumentCategoryListProps> = ({
       setIsSyncing(true);
       
       try {
-        // Save each updated category individually
-        let success = true;
-        for (const category of editedCategories) {
-          // Find the original category to check if it changed
-          const originalCategory = categories.find(c => c.id === category.id);
-          if (originalCategory && JSON.stringify(originalCategory) !== JSON.stringify(category)) {
-            const result = await updateDocumentCategory(category.id, category);
-            if (!result) {
-              success = false;
-              console.error(`Failed to update category: ${category.id}`);
-            }
-          }
-        }
+        // Synchronize the changes to Supabase
+        const success = await syncCategoriesToSupabase(editedCategories);
         
         if (success) {
           setEditMode(false);
           toast.success("Categories saved and synchronized with database");
         } else {
-          toast.error("Failed to synchronize some categories with database");
+          toast.error("Failed to synchronize categories with database");
         }
       } catch (error) {
         console.error("Error during category synchronization:", error);

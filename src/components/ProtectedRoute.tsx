@@ -1,35 +1,30 @@
 
 import React, { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/use-auth';
-import DashboardLayout from './DashboardLayout';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
-    );
+  console.log('ProtectedRoute: User:', user);
+  console.log('ProtectedRoute: Loading:', loading);
+  console.log('ProtectedRoute: Current location:', location.pathname);
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    console.log('ProtectedRoute: Redirecting to /login from:', location.pathname);
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return (
-    <DashboardLayout>
-      {children}
-    </DashboardLayout>
-  );
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

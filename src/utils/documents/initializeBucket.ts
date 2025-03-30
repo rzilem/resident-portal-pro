@@ -1,6 +1,10 @@
 
-import { isAuthenticated } from './authUtils';
+/**
+ * Initialize Supabase storage for document management
+ */
+
 import { ensureDocumentsBucketExists, testBucketAccess } from './bucketUtils';
+import { isUserAuthenticated } from './authUtils';
 import { toast } from 'sonner';
 
 /**
@@ -11,8 +15,8 @@ export const initializeDocumentStorage = async (): Promise<boolean> => {
   console.log('Initializing document storage...');
   
   // Check if user is authenticated
-  const authenticated = await isAuthenticated();
-  if (!authenticated) {
+  const isAuthenticated = await isUserAuthenticated();
+  if (!isAuthenticated) {
     console.log('User is not authenticated, skipping storage initialization');
     return false;
   }
@@ -68,4 +72,3 @@ export const handleDocumentStorageError = (error: unknown): string => {
   // Generic error message as fallback
   return 'An error occurred with document storage. Please try again later.';
 };
-

@@ -1,27 +1,34 @@
 
 import React, { useEffect, useState } from 'react';
-import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
+import { useAuth } from '@/contexts/auth/AuthProvider';
+import { ensureDocumentsBucketExists } from '@/utils/documents';
 import { toast } from 'sonner';
 
 const DocumentStorageInitializer: React.FC = () => {
+  const { user, isAuthenticated } = useAuth();
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const initStorage = async () => {
-      try {
-        const success = await ensureDocumentsBucketExists();
-        console.log('Document storage initialization:', success ? 'successful' : 'failed');
-        setInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize document storage:', error);
-        // Don't show error toast to avoid confusing users
-        // The app should still work for most features
-        setInitialized(true);
+      if (isAuthenticated && user && !initialized) {
+        try {
+          const success = await ensureDocumentsBucketExists();
+          
+          if (success) {
+            console.log('Document storage initialized successfully');
+            setInitialized(true);
+          } else {
+            console.error('Failed to initialize document bucket');
+            toast.error('Failed to initialize document storage. Some features may not work properly.');
+          }
+        } catch (error) {
+          console.error('Error initializing document storage:', error);
+        }
       }
     };
 
     initStorage();
-  }, []);
+  }, [isAuthenticated, user, initialized]);
 
   return null; // This component doesn't render anything
 };
