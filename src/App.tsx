@@ -6,22 +6,15 @@ import DocumentStorageInitializer from './components/documents/DocumentStorageIn
 import { AuthProvider } from './contexts/auth/AuthProvider';
 import { Outlet } from 'react-router-dom';
 
-// This is the App shell that will be used as the root element in the router
-function AppShell() {
-  return (
-    <div className="app">
-      <DocumentStorageInitializer />
-      <Outlet />
-      <Toaster position="top-right" />
-    </div>
-  );
-}
-
-// Main App component that sets up providers and router
+// App component that sets up providers and router
 function App() {
   return (
     <AuthProvider>
-      <RouterConfig rootElement={<AppShell />} />
+      <div className="app">
+        <DocumentStorageInitializer />
+        <RouterConfig />
+        <Toaster position="top-right" />
+      </div>
     </AuthProvider>
   );
 }

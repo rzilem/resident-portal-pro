@@ -15,40 +15,36 @@ import { vendorRoutes } from './vendorRoutes';
 import { residentRoutes } from './residentRoutes';
 import Login from '../pages/Login';
 
-// Create a RouterConfig component that takes a root element
-type RouterConfigProps = {
-  rootElement: React.ReactNode;
-};
+// Create the router outside of any component
+const router = createBrowserRouter([
+  {
+    path: '/',
+    errorElement: <NotFound />,
+    children: [
+      {
+        index: true,
+        element: <Index />,
+      },
+      {
+        path: '/login',
+        element: <Login />,
+      },
+      ...mainRoutes,
+      ...accountingRoutes,
+      ...communicationRoutes,
+      ...documentRoutes,
+      ...hoaRoutes,
+      ...resaleRoutes,
+      ...settingsRoutes,
+      ...databaseRoutes,
+      ...vendorRoutes,
+      ...residentRoutes,
+    ],
+  },
+]);
 
-const RouterConfig: React.FC<RouterConfigProps> = ({ rootElement }) => {
-  const router = createBrowserRouter([
-    {
-      path: '/',
-      element: rootElement,
-      errorElement: <NotFound />,
-      children: [
-        {
-          index: true,
-          element: <Index />,
-        },
-        {
-          path: '/login',
-          element: <Login />,
-        },
-        ...mainRoutes,
-        ...accountingRoutes,
-        ...communicationRoutes,
-        ...documentRoutes,
-        ...hoaRoutes,
-        ...resaleRoutes,
-        ...settingsRoutes,
-        ...databaseRoutes,
-        ...vendorRoutes,
-        ...residentRoutes,
-      ],
-    },
-  ]);
-
+// RouterConfig component
+const RouterConfig = () => {
   return <RouterProvider router={router} />;
 };
 

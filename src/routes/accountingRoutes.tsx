@@ -1,6 +1,5 @@
 
 import React from 'react';
-import DashboardLayout from '../components/DashboardLayout';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AccountingDashboard from '../pages/accounting/AccountingDashboard';
 import InvoiceQueue from '../pages/accounting/InvoiceQueue';
@@ -15,9 +14,7 @@ export const accountingRoutes = [
     path: '/accounting/dashboard',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <AccountingDashboard />
-        </DashboardLayout>
+        <AccountingDashboard />
       </ProtectedRoute>
     ),
   },
@@ -25,9 +22,7 @@ export const accountingRoutes = [
     path: '/accounting/invoice-queue',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <InvoiceQueue />
-        </DashboardLayout>
+        <InvoiceQueue />
       </ProtectedRoute>
     ),
   },
@@ -35,9 +30,7 @@ export const accountingRoutes = [
     path: '/accounting/transactions',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <Transactions />
-        </DashboardLayout>
+        <Transactions />
       </ProtectedRoute>
     ),
   },
@@ -45,9 +38,7 @@ export const accountingRoutes = [
     path: '/accounting/payments',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <Payments />
-        </DashboardLayout>
+        <Payments />
       </ProtectedRoute>
     ),
   },
@@ -55,9 +46,7 @@ export const accountingRoutes = [
     path: '/accounting/journal-entries',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <JournalEntries />
-        </DashboardLayout>
+        <JournalEntries />
       </ProtectedRoute>
     ),
   },
@@ -65,9 +54,7 @@ export const accountingRoutes = [
     path: '/accounting/gl-accounts',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <GlAccounts />
-        </DashboardLayout>
+        <GlAccounts />
       </ProtectedRoute>
     ),
   },
@@ -75,9 +62,7 @@ export const accountingRoutes = [
     path: '/accounting/reports',
     element: (
       <ProtectedRoute>
-        <DashboardLayout>
-          <AccountingReports />
-        </DashboardLayout>
+        <AccountingReports />
       </ProtectedRoute>
     ),
   },
