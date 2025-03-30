@@ -26,13 +26,6 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
   const showHoaBackButton = location.state?.from?.startsWith('/hoa');
   const hoaPage = location.state?.from || '/hoa/dashboard';
 
-  // Auto close sidebar on mobile when navigating
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [location.pathname, isMobile]);
-  
   // Initialize sidebar state based on screen size
   useEffect(() => {
     const handleResize = () => {
@@ -59,30 +52,24 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
 
   return (
     <div className="min-h-screen bg-background flex w-full">
-      {/* Render appropriate sidebar based on whether we're in an HOA page */}
-      {isHoaPage ? (
-        <div 
-          className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        >
+      {/* Sidebar - always render, but conditionally translate it off-screen on mobile */}
+      <div 
+        className={`fixed md:relative inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        {isHoaPage ? (
           <HoaSidebar 
             collapsed={!sidebarOpen} 
             onCollapse={toggleSidebar} 
           />
-        </div>
-      ) : (
-        <div 
-          className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        >
-          <Sidebar className="min-h-screen"/>
-        </div>
-      )}
+        ) : (
+          <Sidebar className="min-h-screen h-full"/>
+        )}
+      </div>
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen w-full">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Header - pass propTitle directly to DashboardHeaderWithNav */}
         <DashboardHeaderWithNav 
           toggleSidebar={toggleSidebar} 
