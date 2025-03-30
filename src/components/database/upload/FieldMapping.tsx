@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -37,8 +37,20 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
     onMappingsChange(updatedMappings);
   };
 
+  useEffect(() => {
+    // Log to help with debugging
+    console.log("Field mapping component loaded with data:", { 
+      hasFileData: !!fileData, 
+      mappingsCount: mappings.length,
+      rowsCount: fileData?.rows.length
+    });
+  }, [fileData, mappings]);
+
   const handleContinueToValidation = () => {
-    if (!fileData) return;
+    if (!fileData || fileData.rows.length === 0) {
+      toast.error("No data found to validate. Please upload a file with data.");
+      return;
+    }
     
     // Validate the mappings
     const requiredFields = [
@@ -49,7 +61,7 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
       'property_units_count'
     ];
     
-    const mapped = mappings.map(m => m.targetField);
+    const mapped = mappings.filter(m => m.targetField).map(m => m.targetField);
     
     const missingRequired = requiredFields.filter(field => !mapped.includes(field));
     
@@ -59,7 +71,7 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
     }
     
     // Process the data with mappings
-    const totalRecords = fileData.rows.length || 0;
+    const totalRecords = fileData.rows.length;
     let valid = 0;
     let warnings = 0;
     let errors = 0;
@@ -71,37 +83,40 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
       
       // Check for email format
       const emailMapping = mappings.find(m => m.targetField === 'association_email');
-      if (emailMapping) {
+      if (emailMapping && emailMapping.sourceField) {
         const email = row[emailMapping.sourceField];
-        if (email && !email.toString().includes('@')) {
+        if (email && !String(email).includes('@')) {
           hasWarning = true;
         }
       }
       
       // Check for empty required fields
-      requiredFields.forEach(reqField => {
+      for (const reqField of requiredFields) {
         const mapping = mappings.find(m => m.targetField === reqField);
-        if (mapping) {
+        if (mapping && mapping.sourceField) {
           const value = row[mapping.sourceField];
-          if (!value) {
+          if (!value && value !== 0) {
             hasError = true;
+            break;
           }
         }
-      });
+      }
       
       if (hasError) errors++;
       else if (hasWarning) warnings++;
       else valid++;
     });
     
-    // Set validation results
-    onValidationPrepared({
+    // Set validation results and move to next step
+    const validationResults = {
       total: totalRecords,
       valid,
       warnings,
       errors
-    });
+    };
     
+    console.log("Validation results:", validationResults);
+    onValidationPrepared(validationResults);
     onStepChange('validation');
   };
 

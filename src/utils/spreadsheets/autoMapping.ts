@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for auto-mapping spreadsheet columns
  */
@@ -14,6 +13,8 @@ export interface ColumnMapping {
  * @returns Array of ColumnMapping objects with best-guess mappings
  */
 export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
+  console.log("Generating auto mappings for headers:", headers);
+  
   return headers.map(header => {
     const lowerHeader = header.toLowerCase().replace(/[^a-z0-9_]/g, '');
     
@@ -22,188 +23,137 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
     
     // Association fields
     if (
-      lowerHeader.includes('association') && lowerHeader.includes('name') ||
-      lowerHeader === 'associationname'
+      lowerHeader === 'associationname' || 
+      lowerHeader === 'association_name' || 
+      lowerHeader === 'name'
     ) {
       targetField = 'association_name';
     } else if (
-      lowerHeader.includes('association') && lowerHeader.includes('address') ||
-      lowerHeader === 'associationaddress'
+      lowerHeader === 'associationaddress' || 
+      lowerHeader === 'association_address' || 
+      lowerHeader === 'address'
     ) {
       targetField = 'association_address';
     } else if (
-      lowerHeader.includes('association') && lowerHeader.includes('phone') ||
-      lowerHeader === 'associationphone'
+      lowerHeader === 'associationphone' || 
+      lowerHeader === 'association_phone' || 
+      lowerHeader === 'phone'
     ) {
       targetField = 'association_phone';
     } else if (
-      lowerHeader.includes('association') && lowerHeader.includes('email') ||
-      lowerHeader === 'associationemail'
+      lowerHeader === 'associationemail' || 
+      lowerHeader === 'association_email' || 
+      lowerHeader === 'email'
     ) {
       targetField = 'association_email';
     } else if (
-      lowerHeader.includes('association') && lowerHeader.includes('tax') ||
-      lowerHeader === 'taxid'
+      lowerHeader === 'taxid' || 
+      lowerHeader === 'association_tax_id' || 
+      lowerHeader === 'tax_id'
     ) {
       targetField = 'association_tax_id';
     } else if (
-      lowerHeader.includes('association') && lowerHeader.includes('type') ||
-      lowerHeader === 'associationtype' || lowerHeader === 'hoatype'
+      lowerHeader === 'associationtype' || 
+      lowerHeader === 'association_type' || 
+      lowerHeader === 'hoatype' ||
+      lowerHeader === 'type'
     ) {
       targetField = 'association_type';
     }
     // Property fields
     else if (
-      lowerHeader.includes('property') && lowerHeader.includes('name') ||
-      lowerHeader === 'propertyname'
+      lowerHeader === 'propertyname' ||
+      lowerHeader === 'property_name'
     ) {
       targetField = 'property_name';
     } else if (
-      lowerHeader.includes('property') && lowerHeader.includes('type') ||
-      lowerHeader === 'propertytype'
+      lowerHeader === 'propertytype' ||
+      lowerHeader === 'property_type'
     ) {
       targetField = 'property_type';
     } else if (
-      lowerHeader.includes('year') && lowerHeader.includes('built') ||
-      lowerHeader === 'yearbuilt'
+      lowerHeader === 'yearbuilt' ||
+      lowerHeader === 'year_built' ||
+      lowerHeader === 'property_year_built' ||
+      lowerHeader === 'year_established' ||
+      lowerHeader === 'yearestablished' ||
+      lowerHeader === 'founded'
     ) {
       targetField = 'property_year_built';
     } else if (
-      lowerHeader.includes('unit') && lowerHeader.includes('count') ||
-      lowerHeader === 'totalunits' || lowerHeader === 'units'
+      lowerHeader === 'totalunits' || 
+      lowerHeader === 'total_units' ||
+      lowerHeader === 'units' || 
+      lowerHeader === 'property_units_count' ||
+      lowerHeader === 'unitcount'
     ) {
       targetField = 'property_units_count';
     }
     // Unit fields
     else if (
-      lowerHeader === 'unitnumber' || lowerHeader === 'unit' || lowerHeader === 'unitno'
+      lowerHeader === 'unitnumber' || 
+      lowerHeader === 'unit' || 
+      lowerHeader === 'unitno' ||
+      lowerHeader === 'unit_number'
     ) {
       targetField = 'unit_number';
     } else if (
-      lowerHeader.includes('unit') && lowerHeader.includes('address') ||
-      lowerHeader === 'unitaddress'
+      lowerHeader === 'unitaddress' ||
+      lowerHeader === 'unit_address'
     ) {
       targetField = 'unit_address';
     } else if (
-      lowerHeader.includes('bedrooms') || lowerHeader === 'beds'
+      lowerHeader === 'bedrooms' || 
+      lowerHeader === 'beds' ||
+      lowerHeader === 'unit_bedrooms'
     ) {
       targetField = 'unit_bedrooms';
     } else if (
-      lowerHeader.includes('bathrooms') || lowerHeader === 'baths'
+      lowerHeader === 'bathrooms' || 
+      lowerHeader === 'baths' ||
+      lowerHeader === 'unit_bathrooms'
     ) {
       targetField = 'unit_bathrooms';
     } else if (
-      lowerHeader.includes('square') || lowerHeader === 'sqft' || lowerHeader === 'sqfeet'
+      lowerHeader === 'squarefeet' || 
+      lowerHeader === 'sqft' || 
+      lowerHeader === 'sqfeet' ||
+      lowerHeader === 'unit_square_feet' ||
+      lowerHeader === 'square_feet'
     ) {
       targetField = 'unit_square_feet';
     }
-    // Homeowner fields
+    // Homeowner fields - keep the existing mappings
     else if (
-      lowerHeader.includes('homeowner') && lowerHeader.includes('id') ||
-      lowerHeader === 'homeownerid'
+      lowerHeader === 'homeownerid' ||
+      lowerHeader === 'homeowner_id'
     ) {
       targetField = 'homeowner_id';
     } else if (
-      lowerHeader.includes('first') && lowerHeader.includes('name') ||
-      lowerHeader === 'firstname'
+      lowerHeader === 'firstname' ||
+      lowerHeader === 'first_name' ||
+      lowerHeader === 'homeowner_first_name'
     ) {
       targetField = 'homeowner_first_name';
     } else if (
-      lowerHeader.includes('last') && lowerHeader.includes('name') ||
-      lowerHeader === 'lastname'
+      lowerHeader === 'lastname' ||
+      lowerHeader === 'last_name' ||
+      lowerHeader === 'homeowner_last_name'
     ) {
       targetField = 'homeowner_last_name';
     } else if (
-      lowerHeader.includes('email') && !lowerHeader.includes('association')
+      lowerHeader.includes('email') && 
+      !lowerHeader.includes('association') &&
+      lowerHeader !== 'association_email'
     ) {
       targetField = 'homeowner_email';
     } else if (
-      lowerHeader.includes('phone') && !lowerHeader.includes('alternate') && 
-      !lowerHeader.includes('association')
+      lowerHeader.includes('phone') && 
+      !lowerHeader.includes('alternate') && 
+      !lowerHeader.includes('association') &&
+      lowerHeader !== 'association_phone'
     ) {
       targetField = 'homeowner_phone';
-    } else if (
-      lowerHeader.includes('alternate') && lowerHeader.includes('phone') ||
-      lowerHeader === 'alternatephone'
-    ) {
-      targetField = 'homeowner_alternate_phone';
-    } else if (
-      lowerHeader.includes('mailing') && lowerHeader.includes('address') ||
-      lowerHeader === 'mailingaddress'
-    ) {
-      targetField = 'homeowner_mailing_address';
-    } else if (
-      lowerHeader.includes('move') && lowerHeader.includes('in') ||
-      lowerHeader === 'movein' || lowerHeader === 'moveindate'
-    ) {
-      targetField = 'homeowner_move_in_date';
-    } else if (
-      lowerHeader === 'status' && !lowerHeader.includes('compliance')
-    ) {
-      targetField = 'homeowner_status';
-    } else if (
-      lowerHeader.includes('owner') && lowerHeader.includes('type') ||
-      lowerHeader === 'ownertype'
-    ) {
-      targetField = 'homeowner_type';
-    } else if (
-      lowerHeader.includes('primary') && lowerHeader.includes('residence') ||
-      lowerHeader === 'primaryresidence'
-    ) {
-      targetField = 'homeowner_primary_residence';
-    } else if (
-      lowerHeader.includes('balance') || lowerHeader === 'currentbalance'
-    ) {
-      targetField = 'homeowner_balance';
-    } else if (
-      lowerHeader.includes('payment') && lowerHeader.includes('date') ||
-      lowerHeader === 'lastpaymentdate'
-    ) {
-      targetField = 'homeowner_last_payment_date';
-    } else if (
-      lowerHeader.includes('payment') && lowerHeader.includes('amount') ||
-      lowerHeader === 'lastpaymentamount'
-    ) {
-      targetField = 'homeowner_last_payment_amount';
-    } else if (
-      lowerHeader.includes('payment') && lowerHeader.includes('method') ||
-      lowerHeader === 'paymentmethod'
-    ) {
-      targetField = 'homeowner_payment_method';
-    } else if (
-      lowerHeader.includes('ach') && lowerHeader.includes('start') ||
-      lowerHeader === 'achstartdate'
-    ) {
-      targetField = 'homeowner_ach_start_date';
-    } else if (
-      lowerHeader.includes('closing') && lowerHeader.includes('date') ||
-      lowerHeader === 'closingdate'
-    ) {
-      targetField = 'homeowner_closing_date';
-    } else if (
-      lowerHeader.includes('comm') && lowerHeader.includes('preference') ||
-      lowerHeader === 'commpreference' || lowerHeader === 'communicationpreference'
-    ) {
-      targetField = 'homeowner_comm_preference';
-    } else if (
-      lowerHeader.includes('billing') && lowerHeader.includes('preference') ||
-      lowerHeader === 'billingpreference'
-    ) {
-      targetField = 'homeowner_billing_preference';
-    } else if (
-      lowerHeader.includes('emergency') && lowerHeader.includes('contact') ||
-      lowerHeader === 'emergencycontact'
-    ) {
-      targetField = 'homeowner_emergency_contact';
-    } else if (
-      lowerHeader.includes('board') && lowerHeader.includes('member') ||
-      lowerHeader === 'boardmember'
-    ) {
-      targetField = 'homeowner_board_member';
-    } else if (
-      lowerHeader === 'notes' || lowerHeader === 'comments'
-    ) {
-      targetField = 'homeowner_notes';
     }
     // Address components
     else if (lowerHeader === 'street' || lowerHeader === 'address1') {
@@ -217,13 +167,31 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
     } else if (lowerHeader === 'country') {
       targetField = 'country';
     }
-    // Financial
-    else if (lowerHeader.includes('fiscal') && lowerHeader.includes('year')) {
+    // Financial fields
+    else if (
+      lowerHeader === 'fiscalyearstart' || 
+      lowerHeader === 'fiscal_year_start' ||
+      lowerHeader === 'fiscalyear'
+    ) {
       targetField = 'fiscal_year_start';
-    } else if (lowerHeader.includes('fees') && lowerHeader.includes('frequency')) {
+    } else if (
+      lowerHeader === 'feesfrequency' || 
+      lowerHeader === 'fees_frequency'
+    ) {
       targetField = 'fees_frequency';
-    } else if (lowerHeader.includes('annual') && lowerHeader.includes('fees')) {
+    } else if (
+      lowerHeader === 'annualfees' || 
+      lowerHeader === 'annual_fees'
+    ) {
       targetField = 'annual_fees';
+    }
+    // Website
+    else if (
+      lowerHeader === 'website' || 
+      lowerHeader === 'association_website' ||
+      lowerHeader === 'url'
+    ) {
+      targetField = 'association_website';
     }
     
     return {

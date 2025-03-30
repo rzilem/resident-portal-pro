@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileCheck, AlertCircle } from 'lucide-react';
+import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ValidationResultsProps {
   validationResults: {
@@ -29,59 +30,129 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
   mappings,
   onComplete
 }) => {
+  useEffect(() => {
+    // Log for debugging purposes
+    console.log("Validation Results component loaded with:", validationResults);
+  }, [validationResults]);
+
   const handleFinalize = () => {
+    if (!validationResults) {
+      toast.error("No validation results available");
+      return;
+    }
+    
+    if (validationResults.errors > 0) {
+      toast.error("Please correct errors before finalizing");
+      return;
+    }
+    
     // In a real app, you would finalize the import here
+    // For now, we'll simulate a successful import
+    toast.success(`Successfully imported ${validationResults.valid} records with ${validationResults.warnings} warnings`);
     onComplete();
   };
 
-  if (!validationResults) return null;
+  if (!validationResults) {
+    return (
+      <div className="text-center py-8">
+        <AlertCircle className="mx-auto h-12 w-12 text-orange-500 mb-4" />
+        <h3 className="text-lg font-medium">No Validation Results</h3>
+        <p className="text-sm text-muted-foreground mt-2 mb-4">
+          Please complete the mapping step first.
+        </p>
+        <Button onClick={() => onStepChange('mapping')}>Return to Mapping</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Validation</h3>
+      <h3 className="text-lg font-medium">Validation Results</h3>
       <p className="text-sm text-muted-foreground mb-4">
         Check your data for errors before finalizing
       </p>
-      <div className="border rounded-md p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="font-medium">Total Records</span>
-          <span className="bg-primary/10 text-primary font-medium py-1 px-3 rounded-full">
-            {validationResults.total}
-          </span>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Total Records</span>
+            <span className="bg-primary/10 text-primary font-medium py-1 px-3 rounded-full">
+              {validationResults.total}
+            </span>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full">
+            <div 
+              className="h-2 bg-primary rounded-full" 
+              style={{ width: '100%' }}
+            ></div>
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-medium">Valid Records</span>
-          <span className="bg-green-100 text-green-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
-            <FileCheck className="h-3.5 w-3.5" />
-            {validationResults.valid}
-          </span>
+        
+        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Valid Records</span>
+            <span className="bg-green-100 text-green-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {validationResults.valid}
+            </span>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full">
+            <div 
+              className="h-2 bg-green-500 rounded-full" 
+              style={{ width: `${(validationResults.valid / validationResults.total) * 100}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-medium">Records with Warnings</span>
-          <span className="bg-amber-100 text-amber-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
-            <AlertCircle className="h-3.5 w-3.5" />
-            {validationResults.warnings}
-          </span>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Records with Warnings</span>
+            <span className="bg-amber-100 text-amber-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {validationResults.warnings}
+            </span>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full">
+            <div 
+              className="h-2 bg-amber-500 rounded-full" 
+              style={{ width: `${(validationResults.warnings / validationResults.total) * 100}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-medium">Records with Errors</span>
-          <span className="bg-red-100 text-red-800 font-medium py-1 px-3 rounded-full">
-            {validationResults.errors}
-          </span>
+        
+        <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Records with Errors</span>
+            <span className="bg-red-100 text-red-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
+              <XCircle className="h-3.5 w-3.5" />
+              {validationResults.errors}
+            </span>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full">
+            <div 
+              className="h-2 bg-red-500 rounded-full" 
+              style={{ width: `${(validationResults.errors / validationResults.total) * 100}%` }}
+            ></div>
+          </div>
         </div>
       </div>
       
       {validationResults.warnings > 0 && (
-        <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-sm">
-          <h4 className="font-medium text-amber-800">Warning Details</h4>
+        <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-sm mb-4">
+          <h4 className="font-medium text-amber-800 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Warning Details
+          </h4>
           <ul className="mt-2 space-y-1 text-sm">
             {validationResults.warnings > 0 && (
               <li>Some email addresses may be invalid (missing @ symbol)</li>
             )}
-            {fileData && mappings.find(m => m.targetField === 'phone') && (
+            {fileData && mappings.find(m => m.targetField === 'homeowner_phone') && (
               <li>Some phone numbers may be in an incorrect format</li>
             )}
-            {fileData && !mappings.find(m => m.targetField === 'property.unitNumber') && (
+            {fileData && !mappings.find(m => m.targetField === 'unit_number') && (
               <li>Unit numbers not mapped for possible multi-unit properties</li>
             )}
           </ul>
@@ -89,18 +160,28 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       )}
       
       {validationResults.errors > 0 && (
-        <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded-sm">
-          <h4 className="font-medium text-red-800">Error Details</h4>
+        <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded-sm mb-4">
+          <h4 className="font-medium text-red-800 flex items-center gap-2">
+            <XCircle className="h-4 w-4" />
+            Error Details
+          </h4>
           <ul className="mt-2 space-y-1 text-sm">
-            <li>Some records are missing required fields (First Name, Last Name, or Email)</li>
+            <li>Some records are missing required fields (Association Name, Address, Phone, Email, or Total Units)</li>
+            {fileData && mappings.some(m => m.targetField === 'association_email') && (
+              <li>Some association email addresses are completely missing</li>
+            )}
           </ul>
         </div>
       )}
       
-      <div className="flex justify-end space-x-2 mt-4">
-        <Button variant="outline" onClick={() => onStepChange('mapping')}>Back</Button>
-        <Button onClick={handleFinalize} disabled={validationResults.errors > 0}>
-          Finalize Import
+      <div className="flex justify-end space-x-2 mt-6">
+        <Button variant="outline" onClick={() => onStepChange('mapping')}>Back to Mapping</Button>
+        <Button 
+          onClick={handleFinalize} 
+          disabled={validationResults.errors > 0}
+          variant={validationResults.errors > 0 ? "outline" : "default"}
+        >
+          {validationResults.errors > 0 ? "Cannot Import with Errors" : "Finalize Import"}
         </Button>
       </div>
     </div>

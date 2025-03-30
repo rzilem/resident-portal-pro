@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { generateAutoMappings } from '@/utils/spreadsheets/autoMapping';
 import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
+import { toast } from 'sonner';
 
 // Import refactored components
 import FileUpload from './FileUpload';
@@ -34,12 +35,28 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
   
   const { user } = useAuth();
   
+  // Debug logs on state changes
+  useEffect(() => {
+    console.log("Step changed:", step);
+  }, [step]);
+
+  useEffect(() => {
+    console.log("Validation results updated:", validationResults);
+  }, [validationResults]);
+  
   const handleFileProcessed = (data: {headers: string[]; rows: Record<string, any>[]}) => {
+    console.log("File processed:", { 
+      headers: data.headers, 
+      rowCount: data.rows.length 
+    });
     setFileData(data);
     
     // Generate default mappings based on headers
     const autoMappings = generateAutoMappings(data.headers);
     setMappings(autoMappings);
+    
+    // Move to mapping step
+    setStep('mapping');
   };
 
   const handleValidationPrepared = (results: {
@@ -48,7 +65,13 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
     warnings: number;
     errors: number;
   }) => {
+    console.log("Setting validation results:", results);
     setValidationResults(results);
+  };
+
+  const handleStepChange = (newStep: 'initial' | 'mapping' | 'validation') => {
+    console.log("Changing step from", step, "to", newStep);
+    setStep(newStep);
   };
 
   return (
@@ -56,7 +79,7 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
       {step === 'initial' && (
         <FileUpload 
           onFileProcessed={handleFileProcessed}
-          onStepChange={setStep}
+          onStepChange={handleStepChange}
         />
       )}
       
@@ -65,15 +88,15 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
           fileData={fileData}
           mappings={mappings}
           onMappingsChange={setMappings}
-          onStepChange={setStep}
+          onStepChange={handleStepChange}
           onValidationPrepared={handleValidationPrepared}
         />
       )}
       
-      {step === 'validation' && validationResults && (
+      {step === 'validation' && (
         <ValidationResults
           validationResults={validationResults}
-          onStepChange={setStep}
+          onStepChange={handleStepChange}
           fileData={fileData}
           mappings={mappings}
           onComplete={onComplete}
