@@ -27,17 +27,27 @@ export const speakWithElevenLabs = async (
   try {
     // Get the API key from integration settings
     const elevenLabsIntegration = integrationService.getIntegration('current-user', 'ElevenLabs');
+    
+    // Log integration info for debugging (without exposing full API key)
+    if (elevenLabsIntegration?.apiKey) {
+      const keyLength = elevenLabsIntegration.apiKey.length;
+      console.log(`Found ElevenLabs API key (${keyLength} chars)`);
+    } else {
+      console.log('No ElevenLabs API key found in integration settings');
+    }
+    
     const apiKey = elevenLabsIntegration?.apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
     
     if (!apiKey) {
-      console.warn('ElevenLabs API key not found. Falling back to Web Speech API.');
-      fallbackToWebSpeech(text);
-      return;
+      console.warn('ElevenLabs API key not found. Cannot proceed with speech synthesis.');
+      throw new Error('ElevenLabs API key not found');
     }
     
     // Use settings from integration or defaults
     const selectedVoice = voice || elevenLabsIntegration?.defaultVoiceId || VOICE_OPTIONS.SARAH;
     const selectedModel = model || elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2';
+    
+    console.log(`Using ElevenLabs with voice: ${selectedVoice}, model: ${selectedModel}`);
     
     // Create request to ElevenLabs API
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}/stream`, {
@@ -57,7 +67,8 @@ export const speakWithElevenLabs = async (
     });
 
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 
     // Convert the response to audio and play it
@@ -70,30 +81,52 @@ export const speakWithElevenLabs = async (
       URL.revokeObjectURL(audioUrl);
     };
     
+    console.log('Playing ElevenLabs audio...');
     await audio.play();
+    
+    // Return a promise that resolves when audio finishes playing
+    return new Promise((resolve) => {
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        console.log('ElevenLabs audio playback completed');
+        resolve();
+      };
+    });
   } catch (error) {
     console.error('Error with ElevenLabs TTS:', error);
-    // Fall back to Web Speech API if ElevenLabs fails
-    fallbackToWebSpeech(text);
+    // Don't automatically fall back - throw the error so the caller can decide
+    throw error;
   }
 };
 
 /**
  * Fallback to Web Speech API if ElevenLabs is unavailable
  */
-const fallbackToWebSpeech = (text: string): void => {
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95; // Slightly slower for better clarity
-    
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => 
-      voice.name.includes('Google') || voice.name.includes('Natural'));
-    
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+export const fallbackToWebSpeech = (text: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95; // Slightly slower for better clarity
+      
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.name.includes('Google') || voice.name.includes('Natural'));
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      utterance.onend = () => {
+        resolve();
+      };
+      
+      utterance.onerror = (event) => {
+        reject(new Error(`Speech synthesis error: ${event.error}`));
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      reject(new Error('Speech synthesis not supported in this browser'));
     }
-    
-    window.speechSynthesis.speak(utterance);
-  }
+  });
 };

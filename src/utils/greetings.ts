@@ -29,9 +29,19 @@ export const speakGreeting = async (name: string | undefined): Promise<void> => 
   const greeting = getTimeBasedGreeting();
   const message = `${greeting}, ${name}. Welcome to your dashboard.`;
   
-  // Use ElevenLabs for high-quality natural voice
-  await speakWithElevenLabs(message, {
-    voice: VOICE_OPTIONS.SARAH, // Choose the voice that sounds best
-    model: 'eleven_turbo_v2',   // Faster model with good quality
-  });
+  try {
+    console.log('Attempting to speak greeting with ElevenLabs...');
+    
+    // Use ElevenLabs for high-quality natural voice
+    await speakWithElevenLabs(message, {
+      voice: VOICE_OPTIONS.SARAH, // Choose the voice that sounds best
+      model: 'eleven_turbo_v2',   // Faster model with good quality
+    });
+    
+    console.log('ElevenLabs greeting completed successfully');
+  } catch (error) {
+    console.error('Failed to use ElevenLabs for greeting, error:', error);
+    // Do not automatically fall back to web speech - we'll let the calling code handle fallback
+    throw error;
+  }
 };

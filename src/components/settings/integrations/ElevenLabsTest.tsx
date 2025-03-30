@@ -19,6 +19,12 @@ const ElevenLabsTest = () => {
 
     setIsPlaying(true);
     try {
+      console.log("Testing ElevenLabs with settings:", {
+        voiceId: settings.defaultVoiceId,
+        model: settings.defaultModel,
+        apiKey: settings.apiKey ? "API key exists" : "No API key"
+      });
+      
       await speakWithElevenLabs(
         "Hello! Your ElevenLabs integration is working correctly. This is a test of the voice synthesis API.",
         {
