@@ -1,11 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { toast } from 'sonner';
-import { ColumnMapping } from '@/utils/spreadsheets/autoMapping';
+import { ColumnMapping, validateMappings } from '@/utils/spreadsheets/mapping';
 import MappingHeader from './mapping/MappingHeader';
 import MappingFieldsList from './mapping/MappingFieldsList';
 import MappingFooter from './mapping/MappingFooter';
-import { validateMappings } from './mapping/validateMappings';
 
 interface FieldMappingProps {
   fileData: {

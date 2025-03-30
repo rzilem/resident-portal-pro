@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { generateAutoMappings } from '@/utils/spreadsheets/autoMapping';
+import { generateAutoMappings } from '@/utils/spreadsheets/mapping';
 import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
 import { toast } from 'sonner';
 
