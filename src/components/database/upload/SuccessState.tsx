@@ -82,11 +82,10 @@ const SuccessState: React.FC<SuccessStateProps> = ({
           <span>Upload Another File</span>
         </Button>
         
-        <Button 
-          as={Link}
-          to={getDestinationUrl()}
-          className="flex items-center gap-2"
+        <Button
           variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => window.location.href = getDestinationUrl()}
         >
           <ExternalLink className="h-4 w-4" />
           <span>{getDestinationLabel()}</span>

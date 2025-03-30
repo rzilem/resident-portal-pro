@@ -242,32 +242,38 @@ export const saveResidentData = async (
       let userId: string | null = null;
       
       if (residentData.homeowner_email) {
-        const { data: userData } = await supabase.auth.admin.listUsers({
-          filter: {
-            email: residentData.homeowner_email
-          }
-        });
+        // Check if user exists by email in public.profiles instead of auth.users
+        const { data: userData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', residentData.homeowner_email)
+          .maybeSingle();
         
-        if (userData && userData.users.length > 0) {
-          userId = userData.users[0].id;
+        if (userData) {
+          userId = userData.id;
+          console.log('Found existing user with ID:', userId);
         } else {
-          // Create user in auth system
-          const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
-            email: residentData.homeowner_email,
-            password: Math.random().toString(36).slice(-8),
-            email_confirm: true,
-            user_metadata: {
-              first_name: residentData.homeowner_first_name,
-              last_name: residentData.homeowner_last_name
-            }
-          });
+          // Create a new profile for this user
+          const newUserId = crypto.randomUUID();
           
-          if (userError) {
-            console.error('Error creating user:', userError);
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: newUserId,
+              email: residentData.homeowner_email,
+              first_name: residentData.homeowner_first_name,
+              last_name: residentData.homeowner_last_name,
+              role: 'resident'
+            });
+            
+          if (profileError) {
+            console.error('Error creating user profile:', profileError);
             warningsCount++;
-          } else if (newUser.user) {
-            userId = newUser.user.id;
+            continue;
           }
+          
+          userId = newUserId;
+          console.log('Created new user profile with ID:', userId);
         }
       }
       
@@ -313,7 +319,7 @@ export const saveResidentData = async (
 };
 
 /**
- * Save import log to database
+ * Save import log to database - temporarily disabled until we create the table
  */
 export const saveImportLog = async (
   importData: ImportedData,
@@ -328,7 +334,8 @@ export const saveImportLog = async (
       return;
     }
     
-    const importLog = {
+    // Log import details to console instead of database for now
+    console.log('Import log:', {
       user_id: userId,
       file_name: importData.fileName,
       import_type: importData.importType,
@@ -336,10 +343,11 @@ export const saveImportLog = async (
       successful_count: result.recordsImported,
       warnings_count: result.recordsWithWarnings,
       errors_count: result.recordsWithErrors,
-      mapping: importData.mappings,
       status: result.success ? 'completed' : 'failed'
-    };
+    });
     
+    // Uncomment this when import_logs table is created
+    /*
     const { error } = await supabase
       .from('import_logs')
       .insert(importLog);
@@ -347,6 +355,7 @@ export const saveImportLog = async (
     if (error) {
       console.error('Error saving import log:', error);
     }
+    */
   } catch (error) {
     console.error('Error in saveImportLog:', error);
   }
