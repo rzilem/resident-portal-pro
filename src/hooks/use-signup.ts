@@ -29,7 +29,7 @@ export const useSignup = () => {
     }
     
     try {
-      // Add user metadata as options with Supabase Auth
+      // Correct call to signUp with only email and password
       const { error, data } = await signUp(
         signupValues.email, 
         signupValues.password
