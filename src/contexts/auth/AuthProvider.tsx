@@ -1,5 +1,4 @@
-
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import * as React from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/supabase';
@@ -18,9 +17,9 @@ interface AuthContextProps {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextProps | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { 
     session, 
     user, 
@@ -42,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   // Set up auth state listener and check for existing session
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("AuthProvider: Setting up auth state listener");
     
     // Set up auth state listener FIRST
@@ -122,7 +121,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 export const useAuth = (): AuthContextProps => {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

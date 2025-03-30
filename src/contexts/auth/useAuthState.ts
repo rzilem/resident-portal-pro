@@ -1,24 +1,21 @@
 
-import { useState } from 'react';
+import * as React from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { Profile } from '@/types/supabase';
 
 export const useAuthState = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = React.useState<Session | null>(null);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [profile, setProfile] = React.useState<Profile | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
 
   return {
-    // State
     session,
     user,
     profile,
     loading,
     isAuthenticated,
-    
-    // State setters
     setSession,
     setUser,
     setProfile,
