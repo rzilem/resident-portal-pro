@@ -41,7 +41,14 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
     if (!fileData) return;
     
     // Validate the mappings
-    const requiredFields = ['firstName', 'lastName', 'email'];
+    const requiredFields = [
+      'association_name', 
+      'association_address', 
+      'association_phone', 
+      'association_email', 
+      'property_units_count'
+    ];
+    
     const mapped = mappings.map(m => m.targetField);
     
     const missingRequired = requiredFields.filter(field => !mapped.includes(field));
@@ -63,7 +70,7 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
       let hasError = false;
       
       // Check for email format
-      const emailMapping = mappings.find(m => m.targetField === 'email');
+      const emailMapping = mappings.find(m => m.targetField === 'association_email');
       if (emailMapping) {
         const email = row[emailMapping.sourceField];
         if (email && !email.toString().includes('@')) {
@@ -137,18 +144,62 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
                 onChange={(e) => handleUpdateMapping(index, e.target.value)}
               >
                 <option value="">-- Select Field --</option>
-                <optgroup label="Basic Info">
-                  <option value="firstName">First Name</option>
-                  <option value="lastName">Last Name</option>
-                  <option value="email">Email</option>
-                  <option value="phone">Phone</option>
+                <optgroup label="Association Info">
+                  <option value="association_name">Association Name</option>
+                  <option value="association_address">Association Address</option>
+                  <option value="association_phone">Association Phone</option>
+                  <option value="association_email">Association Email</option>
+                  <option value="association_tax_id">Association Tax ID</option>
+                  <option value="association_type">Association Type</option>
                 </optgroup>
-                <optgroup label="Property">
-                  <option value="property.address">Property Address</option>
-                  <option value="property.unitNumber">Unit Number</option>
-                  <option value="property.city">City</option>
-                  <option value="property.state">State</option>
-                  <option value="property.zip">ZIP Code</option>
+                <optgroup label="Property Info">
+                  <option value="property_name">Property Name</option>
+                  <option value="property_type">Property Type</option>
+                  <option value="property_year_built">Year Built</option>
+                  <option value="property_units_count">Total Units</option>
+                </optgroup>
+                <optgroup label="Unit Info">
+                  <option value="unit_number">Unit Number</option>
+                  <option value="unit_address">Unit Address</option>
+                  <option value="unit_bedrooms">Bedrooms</option>
+                  <option value="unit_bathrooms">Bathrooms</option>
+                  <option value="unit_square_feet">Square Feet</option>
+                </optgroup>
+                <optgroup label="Homeowner Info">
+                  <option value="homeowner_id">Homeowner ID</option>
+                  <option value="homeowner_first_name">First Name</option>
+                  <option value="homeowner_last_name">Last Name</option>
+                  <option value="homeowner_email">Email</option>
+                  <option value="homeowner_phone">Phone</option>
+                  <option value="homeowner_alternate_phone">Alternate Phone</option>
+                  <option value="homeowner_mailing_address">Mailing Address</option>
+                  <option value="homeowner_move_in_date">Move In Date</option>
+                  <option value="homeowner_status">Status</option>
+                  <option value="homeowner_type">Owner Type</option>
+                  <option value="homeowner_primary_residence">Primary Residence</option>
+                  <option value="homeowner_balance">Current Balance</option>
+                  <option value="homeowner_last_payment_date">Last Payment Date</option>
+                  <option value="homeowner_last_payment_amount">Last Payment Amount</option>
+                  <option value="homeowner_payment_method">Payment Method</option>
+                  <option value="homeowner_ach_start_date">ACH Start Date</option>
+                  <option value="homeowner_closing_date">Closing Date</option>
+                  <option value="homeowner_comm_preference">Communication Preference</option>
+                  <option value="homeowner_billing_preference">Billing Preference</option>
+                  <option value="homeowner_emergency_contact">Emergency Contact</option>
+                  <option value="homeowner_board_member">Board Member</option>
+                  <option value="homeowner_notes">Notes</option>
+                </optgroup>
+                <optgroup label="Address Components">
+                  <option value="street">Street</option>
+                  <option value="city">City</option>
+                  <option value="state">State</option>
+                  <option value="zip">ZIP Code</option>
+                  <option value="country">Country</option>
+                </optgroup>
+                <optgroup label="Financial">
+                  <option value="fiscal_year_start">Fiscal Year Start</option>
+                  <option value="fees_frequency">Fees Frequency</option>
+                  <option value="annual_fees">Annual Fees</option>
                 </optgroup>
                 <optgroup label="Other">
                   <option value="ignore">Ignore This Field</option>
