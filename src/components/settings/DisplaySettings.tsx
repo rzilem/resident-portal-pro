@@ -1,247 +1,160 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sun, Moon, Monitor, Palette, Image as ImageIcon, Grid, Building } from "lucide-react";
 import { useSettings } from '@/hooks/use-settings';
-import { useTheme } from '@/hooks/use-theme';
+import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import ThemePresets from './display/ThemePresets';
-import CustomBackground from './display/CustomBackground';
 import ColorCustomizer from './display/ColorCustomizer';
+import CustomBackground from './display/CustomBackground';
 import LogoUploader from './display/LogoUploader';
-import { toast } from 'sonner';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
-  const { theme, setTheme } = useTheme();
-  
-  // Check if we should automatically open a specific tab
-  const [activeSubTab, setActiveSubTab] = useState<string>("basic");
-  
-  const [localTheme, setLocalTheme] = useState(theme || "light");
-  const [cardStyle, setCardStyle] = useState("default");
-  const [density, setDensity] = useState("comfortable");
-  const [animations, setAnimations] = useState(true);
-  
-  useEffect(() => {
-    // Check if we should open the branding tab (from sidebar logo click)
-    if (sessionStorage.getItem('open-branding-tab') === 'true') {
-      setActiveSubTab('branding');
-      sessionStorage.removeItem('open-branding-tab');
-    }
-  }, []);
-  
-  useEffect(() => {
-    if (preferences) {
-      setLocalTheme(preferences.theme || "light");
-      setCardStyle(preferences.cardStyle || "default");
-      setDensity(preferences.density || "comfortable");
-      setAnimations(preferences.animations !== undefined ? preferences.animations : true);
-    }
-  }, [preferences]);
 
-  const handleThemeChange = (value: string) => {
-    if (!value) return;
-    
-    const newTheme = value as "light" | "dark" | "system";
-    setLocalTheme(newTheme);
-    setTheme(newTheme);
-    updatePreference("theme", newTheme);
+  const handleToggleAnimations = (checked: boolean) => {
+    updatePreference('animations', checked);
   };
 
-  useEffect(() => {
-    document.body.classList.remove('card-style-default', 'card-style-flat', 'card-style-glass');
-    document.body.classList.add(`card-style-${cardStyle}`);
-    
-    document.body.classList.remove('density-comfortable', 'density-compact');
-    document.body.classList.add(`density-${density}`);
-    
-    if (animations) {
-      document.body.classList.remove('animations-disabled');
-    } else {
-      document.body.classList.add('animations-disabled');
-    }
-  }, [cardStyle, density, animations]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Show loading state
-      toast.loading("Saving preferences...");
-      
-      // Save each preference independently
-      await updatePreference("cardStyle", cardStyle);
-      await updatePreference("density", density);
-      await updatePreference("animations", animations);
-      
-      // Show success message
-      toast.success("Preferences saved successfully");
-    } catch (error) {
-      console.error("Error saving display settings:", error);
-      toast.error("Failed to save preferences");
-    }
+  const handleToggleDensity = (density: string) => {
+    updatePreference('density', density);
   };
+
+  const handleToggleCardStyle = (style: string) => {
+    updatePreference('cardStyle', style);
+  };
+  
+  const handleToggleVoiceGreeting = (checked: boolean) => {
+    updatePreference('voiceGreetingEnabled', checked);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[300px] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Theme Settings</CardTitle>
-            <CardDescription>Customize the appearance of your interface</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-              <TabsList className="grid grid-cols-5 mb-4">
-                <TabsTrigger value="basic">
-                  <Monitor className="h-4 w-4 mr-2" />
-                  Basic
-                </TabsTrigger>
-                <TabsTrigger value="presets">
-                  <Grid className="h-4 w-4 mr-2" />
-                  Themes
-                </TabsTrigger>
-                <TabsTrigger value="background">
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  Background
-                </TabsTrigger>
-                <TabsTrigger value="colors">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Colors
-                </TabsTrigger>
-                <TabsTrigger value="branding">
-                  <Building className="h-4 w-4 mr-2" />
-                  Branding
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="basic" className="space-y-6">
-                <div className="space-y-4">
-                  <Label>Theme Mode</Label>
-                  <ToggleGroup 
-                    type="single" 
-                    value={localTheme} 
-                    onValueChange={handleThemeChange}
-                    className="justify-start"
-                  >
-                    <ToggleGroupItem value="light" aria-label="Light Mode">
-                      <Sun className="h-4 w-4 mr-2" />
-                      Light
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="dark" aria-label="Dark Mode">
-                      <Moon className="h-4 w-4 mr-2" />
-                      Dark
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="system" aria-label="System Mode">
-                      <Monitor className="h-4 w-4 mr-2" />
-                      System
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-                
-                <div className="space-y-4">
-                  <Label>Card Style</Label>
-                  <RadioGroup 
-                    value={cardStyle} 
-                    onValueChange={setCardStyle} 
-                    className="flex flex-col space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="default" id="card-default" />
-                      <Label htmlFor="card-default" className="font-normal cursor-pointer">Default</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="flat" id="card-flat" />
-                      <Label htmlFor="card-flat" className="font-normal cursor-pointer">Flat</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="glass" id="card-glass" />
-                      <Label htmlFor="card-glass" className="font-normal cursor-pointer">Glass Morphism</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <div className="space-y-4">
-                  <Label>Layout Density</Label>
-                  <RadioGroup 
-                    value={density} 
-                    onValueChange={setDensity} 
-                    className="flex flex-col space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="comfortable" id="density-comfortable" />
-                      <Label htmlFor="density-comfortable" className="font-normal cursor-pointer">Comfortable</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="compact" id="density-compact" />
-                      <Label htmlFor="density-compact" className="font-normal cursor-pointer">Compact</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <div className="flex items-center justify-between py-2">
-                  <Label htmlFor="animations" className="font-normal cursor-pointer">
-                    Enable animations
-                  </Label>
+    <div className="space-y-6">
+      <Tabs defaultValue="interface">
+        <TabsList className="mb-4">
+          <TabsTrigger value="interface">Interface</TabsTrigger>
+          <TabsTrigger value="theme">Theme</TabsTrigger>
+          <TabsTrigger value="branding">Branding</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="interface" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Interface Settings</CardTitle>
+              <CardDescription>
+                Customize how the application interface appears and behaves
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="animations" className="text-base">Animations</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable or disable interface animations
+                    </p>
+                  </div>
                   <Switch 
                     id="animations" 
-                    checked={animations} 
-                    onCheckedChange={setAnimations} 
+                    checked={preferences.animations !== false}
+                    onCheckedChange={handleToggleAnimations}
                   />
                 </div>
-              </TabsContent>
+              </div>
               
-              <TabsContent value="presets">
-                <ThemePresets />
-              </TabsContent>
-              
-              <TabsContent value="background">
-                <CustomBackground />
-              </TabsContent>
-              
-              <TabsContent value="colors">
-                <ColorCustomizer />
-              </TabsContent>
-              
-              <TabsContent value="branding" id="branding-tab">
-                <div className="space-y-6">
-                  <LogoUploader />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="voice-greeting" className="text-base">Voice Greeting</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable or disable voice greeting on dashboard
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {preferences.voiceGreetingEnabled ? 
+                      <Volume2 className="w-4 h-4 text-muted-foreground" /> : 
+                      <VolumeX className="w-4 h-4 text-muted-foreground" />
+                    }
+                    <Switch 
+                      id="voice-greeting" 
+                      checked={preferences.voiceGreetingEnabled !== false}
+                      onCheckedChange={handleToggleVoiceGreeting}
+                    />
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : "Save Preferences"}
-            </Button>
-          </CardFooter>
-        </Card>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="density">Table Density</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    className={`rounded-md border p-2 text-sm ${preferences.density === 'compact' ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={() => handleToggleDensity('compact')}
+                  >
+                    Compact
+                  </button>
+                  <button
+                    className={`rounded-md border p-2 text-sm ${preferences.density === 'default' ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={() => handleToggleDensity('default')}
+                  >
+                    Default
+                  </button>
+                  <button
+                    className={`rounded-md border p-2 text-sm ${preferences.density === 'spacious' ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={() => handleToggleDensity('spacious')}
+                  >
+                    Spacious
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="card-style">Card Style</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    className={`rounded-md border p-2 text-sm ${preferences.cardStyle === 'default' ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={() => handleToggleCardStyle('default')}
+                  >
+                    Default
+                  </button>
+                  <button
+                    className={`rounded-md border p-2 text-sm ${preferences.cardStyle === 'flat' ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={() => handleToggleCardStyle('flat')}
+                  >
+                    Flat
+                  </button>
+                  <button
+                    className={`rounded-md border p-2 text-sm ${preferences.cardStyle === 'glass' ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={() => handleToggleCardStyle('glass')}
+                  >
+                    Glass
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Dashboard Layout</CardTitle>
-            <CardDescription>Customize your dashboard widgets and layout</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">Dashboard customization options coming soon</p>
-              <Button variant="outline" className="mt-4" disabled>
-                Customize Layout
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </form>
+        <TabsContent value="theme" className="space-y-6">
+          <ThemePresets />
+          <ColorCustomizer />
+          <CustomBackground />
+        </TabsContent>
+        
+        <TabsContent value="branding" className="space-y-6">
+          <LogoUploader />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

@@ -41,6 +41,9 @@ export interface UserPreferences {
   // Company branding settings
   logoUrl?: string | null;
   companyName?: string;
+  
+  // Voice greeting settings
+  voiceGreetingEnabled?: boolean;
 }
 
 export interface Widget {
