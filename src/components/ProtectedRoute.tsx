@@ -1,6 +1,6 @@
 
 import React, { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import DashboardLayout from './DashboardLayout';
 
@@ -10,11 +10,6 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
-  const location = useLocation();
-
-  console.log('ProtectedRoute: User:', user);
-  console.log('ProtectedRoute: Loading:', isLoading);
-  console.log('ProtectedRoute: Current location:', location.pathname);
 
   if (isLoading) {
     return (
@@ -27,8 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    console.log('ProtectedRoute: Redirecting to /login from:', location.pathname);
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return (
