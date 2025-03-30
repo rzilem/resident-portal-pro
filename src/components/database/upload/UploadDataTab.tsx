@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -52,12 +51,13 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
         return;
       }
       
-      // Upload file to storage
+      // Upload file to storage using the default association ID for system uploads
       const result = await uploadDocument({
         file,
         category: 'imports',
         description: 'Data import file',
         tags: ['import', 'bulk-upload'],
+        associationId: '00000000-0000-0000-0000-000000000000', // System-wide association ID
         path: `imports/data/${Date.now()}`
       });
       
@@ -170,7 +170,6 @@ const UploadDataTab: React.FC<UploadDataTabProps> = ({ onComplete }) => {
             Map your source data fields to system fields
           </p>
           <div className="grid gap-4">
-            {/* Example mapping UI */}
             <div className="flex items-center justify-between p-3 border rounded-md">
               <div className="flex items-center">
                 <span className="font-medium">Source: First Name</span>

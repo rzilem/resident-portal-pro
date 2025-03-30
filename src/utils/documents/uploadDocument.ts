@@ -20,7 +20,7 @@ export const uploadDocument = async ({
   category = 'general',
   description = '',
   tags = [],
-  associationId,
+  associationId = '00000000-0000-0000-0000-000000000000', // Default system-wide association ID
   path,
   isPublic = false
 }: UploadDocumentOptions): Promise<{ success: boolean; url?: string; error?: string }> => {
@@ -131,7 +131,7 @@ export const uploadDocument = async ({
         category: category,
         tags: tags.length > 0 ? tags : null,
         uploaded_by: user.id,
-        association_id: associationId || null,
+        association_id: associationId,
         is_public: isPublic,
         version: 1
       });

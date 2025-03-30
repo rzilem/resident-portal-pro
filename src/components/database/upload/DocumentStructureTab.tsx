@@ -1,335 +1,246 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileText, FolderPlus, Upload, Plus, Loader2, X, Check } from 'lucide-react';
-import { toast } from 'sonner';
-import { FileUploader } from '@/components/ui/file-uploader';
-import { uploadDocument } from '@/utils/documents/uploadDocument';
-import { useAuth } from '@/hooks/use-auth';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { createFolder } from '@/utils/documents/folderUtils';
-import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
 
-interface DocumentStructureTabProps {
+interface DocumentCategoryProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const DocumentStructureTab: React.FC<DocumentStructureTabProps> = ({ onOpenChange }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [categoryName, setCategoryName] = useState('');
-  const [categoryDescription, setCategoryDescription] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
-  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
-  const [categories, setCategories] = useState<{id: string, name: string, description?: string}[]>([
-    { id: 'financial', name: 'Financial Documents', description: 'Budgets, financial statements, and banking documents' },
-    { id: 'legal', name: 'Legal Documents', description: 'Contracts, legal notices, and regulatory documents' },
-    { id: 'meetings', name: 'Meeting Minutes', description: 'Records of board and association meetings' }
-  ]);
-  const [bucketInitialized, setBucketInitialized] = useState(false);
-  const [initializingBucket, setInitializingBucket] = useState(false);
+interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+  access_level: string;
+  sort_order: number;
+}
+
+const DocumentStructureTab: React.FC<DocumentCategoryProps> = ({ onOpenChange }) => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
-  const { user } = useAuth();
-
   useEffect(() => {
-    checkBucketExists();
+    fetchCategories();
   }, []);
-
-  const checkBucketExists = async () => {
-    setInitializingBucket(true);
-    const exists = await ensureDocumentsBucketExists();
-    setBucketInitialized(exists);
-    setInitializingBucket(false);
-  };
-
-  const handleInitializeBucket = async () => {
-    setInitializingBucket(true);
+  
+  const fetchCategories = async () => {
+    setIsLoading(true);
     try {
-      const exists = await ensureDocumentsBucketExists(true);
-      setBucketInitialized(exists);
-      if (exists) {
-        toast.success("Document storage initialized");
-      } else {
-        toast.error("Failed to initialize document storage");
-      }
-    } catch (error) {
-      console.error("Error initializing storage:", error);
-      toast.error("An error occurred initializing document storage");
-    } finally {
-      setInitializingBucket(false);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      toast.error("Please select a file first");
-      return;
-    }
-    
-    if (!user) {
-      toast.error("You must be logged in to upload documents");
-      return;
-    }
-    
-    if (!bucketInitialized) {
-      toast.error("Document storage not initialized. Please initialize it first.");
-      return;
-    }
-    
-    setIsUploading(true);
-    
-    try {
-      const result = await uploadDocument({
-        file,
-        category: 'structure',
-        description: 'Document structure definition file',
-        tags: ['structure', 'schema'],
-        path: `system/structure/${Date.now()}`
-      });
+      const { data, error } = await supabase
+        .from('document_categories')
+        .select('*')
+        .order('sort_order', { ascending: true });
       
-      if (!result.success) {
-        throw new Error(result.error);
+      if (error) {
+        throw error;
       }
       
-      toast.success("Document structure file uploaded successfully");
-      setFile(null);
-      
+      setCategories(data || []);
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(error instanceof Error ? error.message : "Error uploading file. Please try again.");
+      console.error('Error fetching document categories:', error);
+      toast.error('Failed to load document categories');
     } finally {
-      setIsUploading(false);
+      setIsLoading(false);
     }
   };
-
-  const handleAddCategory = async () => {
-    if (!categoryName.trim()) {
-      toast.error("Category name is required");
+  
+  const addNewCategory = () => {
+    const newCategory: Category = {
+      id: `temp-${Date.now()}`, // Will be replaced with real ID after save
+      name: '',
+      description: '',
+      access_level: 'all',
+      sort_order: categories.length + 1
+    };
+    
+    setCategories([...categories, newCategory]);
+  };
+  
+  const removeCategory = (index: number) => {
+    setCategories(categories.filter((_, i) => i !== index));
+  };
+  
+  const updateCategory = (index: number, field: keyof Category, value: any) => {
+    const updatedCategories = [...categories];
+    updatedCategories[index] = {
+      ...updatedCategories[index],
+      [field]: value
+    };
+    setCategories(updatedCategories);
+  };
+  
+  const saveCategories = async () => {
+    // Validate categories
+    const invalidCategories = categories.filter(cat => !cat.name.trim());
+    if (invalidCategories.length > 0) {
+      toast.error('All categories must have a name');
       return;
     }
     
-    if (!bucketInitialized) {
-      toast.error("Document storage not initialized. Please initialize it first.");
-      return;
-    }
-    
-    setIsCreatingCategory(true);
+    setIsSaving(true);
     
     try {
-      // Create folder in storage
-      const folderId = categoryName.toLowerCase().replace(/\s+/g, '-');
-      const success = await createFolder('documents', folderId);
+      // Filter out categories with temp IDs (new ones) to insert
+      const newCategories = categories.filter(cat => cat.id.startsWith('temp-'));
+      const existingCategories = categories.filter(cat => !cat.id.startsWith('temp-'));
       
-      if (!success) {
-        throw new Error("Failed to create folder in storage");
+      // Insert new categories
+      if (newCategories.length > 0) {
+        const { error: insertError } = await supabase
+          .from('document_categories')
+          .insert(newCategories.map(cat => ({
+            name: cat.name,
+            description: cat.description,
+            access_level: cat.access_level,
+            sort_order: cat.sort_order
+          })));
+        
+        if (insertError) throw insertError;
       }
       
-      // Add to local state
-      setCategories([...categories, {
-        id: folderId,
-        name: categoryName,
-        description: categoryDescription
-      }]);
+      // Update existing categories
+      for (const category of existingCategories) {
+        const { error: updateError } = await supabase
+          .from('document_categories')
+          .update({
+            name: category.name,
+            description: category.description,
+            access_level: category.access_level,
+            sort_order: category.sort_order
+          })
+          .eq('id', category.id);
+          
+        if (updateError) throw updateError;
+      }
       
-      // In a real app, we would also store this in the database
-      
-      toast.success("New document category added");
-      setShowCategoryDialog(false);
-      setCategoryName('');
-      setCategoryDescription('');
+      toast.success('Document categories saved successfully');
+      fetchCategories(); // Refresh the list
     } catch (error) {
-      console.error("Error adding category:", error);
-      toast.error(error instanceof Error ? error.message : "Error adding category. Please try again.");
+      console.error('Error saving document categories:', error);
+      toast.error('Failed to save document categories');
     } finally {
-      setIsCreatingCategory(false);
+      setIsSaving(false);
     }
   };
-
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
-      <div className="bg-muted/40 rounded-lg p-4 text-sm">
-        <h4 className="font-medium mb-2">Document Structure Management</h4>
-        <p>
-          Upload document structure files or add document categories to organize your association's files.
-          Document structures help maintain consistency in your filing system.
-        </p>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Document Categories</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={addNewCategory}
+          className="flex items-center gap-1"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Category</span>
+        </Button>
       </div>
       
-      {!bucketInitialized && (
-        <div className="border-2 border-dashed p-4 rounded-lg text-center space-y-4">
-          <div className="text-amber-600">
-            <svg 
-              className="h-12 w-12 mx-auto" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
+      <div className="space-y-4">
+        {categories.length === 0 ? (
+          <div className="text-center py-8 border rounded-md bg-muted/30">
+            <p className="text-muted-foreground">No document categories defined yet</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={addNewCategory}
+              className="mt-2"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={1.5} 
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-              />
-            </svg>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Your First Category
+            </Button>
           </div>
-          <h3 className="text-lg font-medium">Document Storage Not Initialized</h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            The document storage system needs to be initialized before you can manage document structure.
-          </p>
+        ) : (
+          categories.map((category, index) => (
+            <div key={category.id} className="border rounded-md p-4 space-y-3">
+              <div className="flex justify-between">
+                <div className="font-medium">Category {index + 1}</div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => removeCategory(index)}
+                  className="h-6 w-6 p-0 text-destructive hover:text-destructive/80"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor={`category-name-${index}`} className="mb-1">Category Name</Label>
+                  <Input 
+                    id={`category-name-${index}`}
+                    value={category.name} 
+                    onChange={(e) => updateCategory(index, 'name', e.target.value)}
+                    placeholder="e.g., Financial Documents"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor={`category-desc-${index}`} className="mb-1">Description</Label>
+                  <Textarea 
+                    id={`category-desc-${index}`}
+                    value={category.description || ''} 
+                    onChange={(e) => updateCategory(index, 'description', e.target.value)}
+                    placeholder="What types of documents belong in this category"
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`category-access-${index}`}>Restrict Access</Label>
+                  <Switch 
+                    id={`category-access-${index}`}
+                    checked={category.access_level === 'restricted'} 
+                    onCheckedChange={(checked) => 
+                      updateCategory(index, 'access_level', checked ? 'restricted' : 'all')
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      
+      {categories.length > 0 && (
+        <div className="flex justify-end">
           <Button 
-            onClick={handleInitializeBucket} 
-            disabled={initializingBucket}
+            onClick={saveCategories} 
+            disabled={isSaving}
+            className="flex items-center gap-2"
           >
-            {initializingBucket ? (
+            {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Initializing...
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving...</span>
               </>
             ) : (
-              "Initialize Document Storage"
+              <>
+                <Save className="h-4 w-4" />
+                <span>Save Categories</span>
+              </>
             )}
           </Button>
         </div>
       )}
-      
-      {bucketInitialized && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="border rounded-lg p-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-blue-500" />
-              <h3 className="font-medium">Upload Structure File</h3>
-            </div>
-            
-            <FileUploader
-              file={file}
-              setFile={setFile}
-              disabled={isUploading}
-              acceptedTypes=".json,.xml,.xlsx,.csv"
-              maxSize={5 * 1024 * 1024} // 5MB max size
-            />
-            
-            <Button 
-              className="w-full" 
-              onClick={handleUpload} 
-              disabled={!file || isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                "Upload Structure File"
-              )}
-            </Button>
-            
-            <div className="text-xs text-muted-foreground">
-              <p>Supported formats: JSON, XML, Excel, and CSV</p>
-              <p>These files define the structure and organization of your documents</p>
-            </div>
-          </div>
-          
-          <div className="border rounded-lg p-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <FolderPlus className="h-5 w-5 text-green-500" />
-              <h3 className="font-medium">Document Categories</h3>
-            </div>
-            
-            <ul className="space-y-2 max-h-60 overflow-y-auto">
-              {categories.map((category, index) => (
-                <li key={index} className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-blue-500" />
-                    <div>
-                      <span className="font-medium text-sm">{category.name}</span>
-                      {category.description && (
-                        <p className="text-xs text-muted-foreground">{category.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {index < 3 ? "Default" : "Custom"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => setShowCategoryDialog(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Category
-            </Button>
-          </div>
-        </div>
-      )}
-      
-      <div className="flex justify-end space-x-2">
-        <Button onClick={() => onOpenChange(false)}>Close</Button>
-      </div>
-      
-      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-        <DialogContent>
-          <DialogTitle>Add Document Category</DialogTitle>
-          <DialogDescription>
-            Create a new document category for organizing files
-          </DialogDescription>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="category-name" className="text-sm font-medium">
-                Category Name
-              </label>
-              <Input
-                id="category-name"
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
-                placeholder="Enter category name"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="category-description" className="text-sm font-medium">
-                Description
-              </label>
-              <Textarea
-                id="category-description"
-                value={categoryDescription}
-                onChange={(e) => setCategoryDescription(e.target.value)}
-                className="h-24"
-                placeholder="Enter category description"
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCategoryDialog(false)}
-              disabled={isCreatingCategory}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleAddCategory}
-              disabled={isCreatingCategory || !categoryName.trim()}
-            >
-              {isCreatingCategory ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                "Add Category"
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
