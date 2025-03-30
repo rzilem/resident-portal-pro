@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
 import { testElevenLabsAPI as testElevenLabsAPIUtil } from '@/utils/elevenlabs';
@@ -15,7 +15,8 @@ export function useElevenLabs() {
   const { 
     updateIntegrationSettings, 
     getIntegration, 
-    isConnected 
+    isConnected,
+    connectIntegration 
   } = useIntegrations();
 
   const elevenLabsIntegration = getIntegration('ElevenLabs');
@@ -26,10 +27,21 @@ export function useElevenLabs() {
     setIsLoading(true);
     try {
       console.log('Saving ElevenLabs settings:', settings);
+      
+      // First ensure we're connected if not already connected
+      if (!isElevenLabsConnected) {
+        await connectIntegration('ElevenLabs', {
+          ...settings,
+          enabled: true
+        });
+      }
+      
+      // Then update the settings
       const result = await updateIntegrationSettings('ElevenLabs', {
         ...settings,
         enabled: true
       });
+      
       console.log('ElevenLabs settings saved:', result);
       toast.success('ElevenLabs settings saved permanently');
       return true;
@@ -40,7 +52,7 @@ export function useElevenLabs() {
     } finally {
       setIsLoading(false);
     }
-  }, [updateIntegrationSettings]);
+  }, [updateIntegrationSettings, connectIntegration, isElevenLabsConnected]);
 
   const testElevenLabsAPI = useCallback(async (apiKey: string = elevenLabsIntegration?.apiKey) => {
     setIsLoading(true);

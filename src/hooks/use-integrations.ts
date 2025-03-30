@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { integrationService } from '@/services/integrationService';
@@ -85,7 +84,7 @@ export function useIntegrations(entityId: string = 'current-user') {
           ...prev,
           [integrationId]: updatedIntegration
         }));
-        toast.success(`${integrationId} settings updated successfully`);
+        console.log(`${integrationId} settings updated successfully`, updatedIntegration);
       }
       return updatedIntegration;
     } catch (err) {
@@ -138,9 +137,13 @@ export function useIntegrations(entityId: string = 'current-user') {
     connectIntegration,
     disconnectIntegration,
     updateIntegrationSettings,
-    testWebhook,
-    isConnected,
-    getIntegration,
+    testWebhook: integrationService.testWebhook,
+    isConnected: useCallback((integrationId: string) => {
+      return integrations[integrationId]?.enabled || false;
+    }, [integrations]),
+    getIntegration: useCallback((integrationId: string) => {
+      return integrations[integrationId] || null;
+    }, [integrations]),
     fetchIntegrations
   };
 }

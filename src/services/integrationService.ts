@@ -1,4 +1,3 @@
-
 interface IntegrationSettings {
   enabled: boolean;
   apiKey?: string;
@@ -10,7 +9,25 @@ interface IntegrationSettings {
 }
 
 // Integration settings storage - in real app this would be persistent
-let integrationSettings: Record<string, Record<string, IntegrationSettings>> = {};
+// Initialize with localStorage data if available
+let integrationSettings: Record<string, Record<string, IntegrationSettings>> = (() => {
+  try {
+    const saved = localStorage.getItem('integrationSettings');
+    return saved ? JSON.parse(saved) : {};
+  } catch (e) {
+    console.error('Error loading integration settings:', e);
+    return {};
+  }
+})();
+
+// Helper to persist settings to localStorage
+const persistSettings = () => {
+  try {
+    localStorage.setItem('integrationSettings', JSON.stringify(integrationSettings));
+  } catch (e) {
+    console.error('Error saving integration settings:', e);
+  }
+};
 
 // Integration schema registry - defines what fields each integration requires
 const integrationSchemas: Record<string, { fields: string[] }> = {
@@ -63,6 +80,9 @@ export const integrationService = {
     
     console.log(`Connected integration ${integrationId} for ${entityId}`, integrationSettings[entityId][integrationId]);
     
+    // Persist to localStorage
+    persistSettings();
+    
     return integrationSettings[entityId][integrationId];
   },
 
@@ -76,6 +96,10 @@ export const integrationService = {
     
     integrationSettings[entityId][integrationId].enabled = false;
     console.log(`Disconnected integration ${integrationId} for ${entityId}`);
+    
+    // Persist to localStorage
+    persistSettings();
+    
     return true;
   },
 
@@ -107,6 +131,9 @@ export const integrationService = {
       updatedFields: Object.keys(updates),
       enabled: integrationSettings[entityId][integrationId].enabled
     });
+    
+    // Persist to localStorage
+    persistSettings();
     
     return integrationSettings[entityId][integrationId];
   },

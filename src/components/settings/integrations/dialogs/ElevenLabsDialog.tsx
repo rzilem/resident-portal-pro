@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Volume2, Loader2 } from 'lucide-react';
 import { useElevenLabs } from '@/hooks/use-elevenlabs';
 import { VOICE_OPTIONS } from '@/utils/elevenlabs';
+import { toast } from 'sonner';
 
 interface ElevenLabsDialogProps {
   open: boolean;
@@ -34,6 +35,11 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
   }, [open, settings]);
 
   const handleSave = async () => {
+    if (!apiKey.trim()) {
+      toast.error('API key is required');
+      return;
+    }
+    
     const success = await saveElevenLabsSettings({
       apiKey,
       defaultVoiceId,
@@ -46,9 +52,20 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
   };
 
   const handleTest = async () => {
+    if (!apiKey.trim()) {
+      toast.error('API key is required');
+      return;
+    }
+    
     setIsTesting(true);
-    await testElevenLabsAPI(apiKey);
+    const success = await testElevenLabsAPI(apiKey);
     setIsTesting(false);
+    
+    if (success) {
+      toast.success('ElevenLabs API connection test successful');
+    } else {
+      toast.error('ElevenLabs API connection test failed');
+    }
   };
 
   return (
