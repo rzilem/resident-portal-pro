@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for generating time-based greetings
  */
@@ -35,9 +34,9 @@ export const speakGreeting = async (name: string | undefined): Promise<void> => 
     
     // Use ElevenLabs for high-quality natural voice, with fallback to Web Speech API
     await speakWithElevenLabs(message, {
-      voice: VOICE_OPTIONS.SARAH, // Choose the voice that sounds best
-      model: 'eleven_turbo_v2',   // Faster model with good quality
-      fallbackToDefault: true     // Fall back to Web Speech API if ElevenLabs fails
+      voice: VOICE_OPTIONS.ARIA, // Changed to Aria voice
+      model: 'eleven_turbo_v2',   
+      fallbackToDefault: true     
     });
     
     debugLog('Greeting completed successfully');
