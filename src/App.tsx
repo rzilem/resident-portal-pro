@@ -3,7 +3,7 @@ import React from 'react';
 import { Toaster } from 'sonner';
 import Routes from './routes';
 import DocumentStorageInitializer from './components/documents/DocumentStorageInitializer';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/auth/AuthProvider';
 
 function App() {
   return (

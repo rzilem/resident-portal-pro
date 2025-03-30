@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { ProfileFormValues } from '@/components/settings/profile/types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 
 type UseProfileFormProps = {
   initialData?: Partial<ProfileFormValues>;
