@@ -1,61 +1,10 @@
 
 import React from 'react';
-import { 
-  FileText, File, FileCode, 
-  FileSpreadsheet, Image
-} from "lucide-react";
+import { FileText, FileSpreadsheet } from 'lucide-react';
 
-// Helper function to determine icon based on file name or type
-export const getDocumentIcon = (fileName: string) => {
-  if (!fileName) return <File className="h-5 w-5 text-gray-500" />;
-  
-  const extension = fileName.split('.').pop()?.toLowerCase() || '';
-  
-  switch(extension) {
-    case 'pdf':
-      return <FileText className="h-5 w-5 text-red-500" />;
-    case 'doc':
-    case 'docx':
-      return <FileText className="h-5 w-5 text-blue-500" />;
-    case 'xls':
-    case 'xlsx':
-    case 'csv':
-      return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-    case 'webp':
-    case 'svg':
-      return <Image className="h-5 w-5 text-purple-500" />;
-    case 'html':
-    case 'css':
-    case 'js':
-    case 'ts':
-    case 'json':
-      return <FileCode className="h-5 w-5 text-yellow-500" />;
-    default:
-      return <File className="h-5 w-5 text-gray-500" />;
-  }
-};
-
-// Format date for display
-export const formatDate = (dateString: string) => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
-// Format file size for display
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+export const getFileIcon = (fileType: string): React.ReactElement => {
+  if (fileType.includes('pdf')) return <FileText className="h-4 w-4 text-red-500" />;
+  if (fileType.includes('word') || fileType.includes('docx')) return <FileText className="h-4 w-4 text-blue-500" />;
+  if (fileType.includes('excel') || fileType.includes('xlsx')) return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
+  return <FileText className="h-4 w-4 text-gray-500" />;
 };
