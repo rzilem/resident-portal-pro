@@ -3,11 +3,8 @@
 export * from './documentDbUtils';
 export * from './documentUtils';
 
-// Export from ensureDocumentStorage.ts
-export { ensureDocumentsBucketExists } from './ensureDocumentStorage';
-
 // Export from bucketUtils
-export { initializeDocumentsBucket, testBucketAccess } from './bucketUtils';
+export { initializeDocumentsBucket, testBucketAccess, ensureDocumentsBucketExists } from './bucketUtils';
 
 // Export from uploadUtils
 export { 
