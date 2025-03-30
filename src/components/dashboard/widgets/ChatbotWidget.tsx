@@ -38,8 +38,8 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
     
     if (!inputValue.trim()) return;
     
-    // Add user message
-    const newMessages = [...messages, { role: 'user', content: inputValue }];
+    // Add user message with proper type annotation
+    const newMessages: ChatMessage[] = [...messages, { role: 'user', content: inputValue }];
     setMessages(newMessages);
     setInputValue('');
     setIsLoading(true);
@@ -68,6 +68,7 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
         responseText = 'I understand your question about "' + inputValue + '". In a production environment, I would connect to our knowledge base to provide a detailed answer. Is there something specific about the community management system you\'d like to know?';
       }
       
+      // Add AI response with proper type annotation
       setMessages([...newMessages, { role: 'assistant', content: responseText }]);
     }, 1000);
   };
