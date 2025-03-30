@@ -12,7 +12,6 @@ import IntegrationsCard from './profile/cards/IntegrationsCard';
 import ExportDataCard from './profile/cards/ExportDataCard';
 import { useAuth } from '@/hooks/use-auth';
 
-// Define the UserProfile interface to match the structure we're using
 interface UserProfile {
   id: string;
   firstName: string;
@@ -27,7 +26,6 @@ interface UserProfile {
 }
 
 async function fetchProfile(): Promise<UserProfile> {
-  // This would be an API call in a real app
   return {
     id: '1',
     firstName: 'Alex',
@@ -43,7 +41,6 @@ async function fetchProfile(): Promise<UserProfile> {
 }
 
 async function updateProfile(data: any): Promise<any> {
-  // This would be an API call in a real app
   console.log('Saving profile data:', data);
   return { success: true };
 }
@@ -98,7 +95,6 @@ export default function ProfileSettings() {
     }
   }
 
-  // Create a form adapter that matches what PersonalInfoCard expects
   const formAdapter = {
     getValues: (field: string) => form.getValues(field as any) as string,
     setValue: (field: string, value: string) => form.setValue(field as any, value),
