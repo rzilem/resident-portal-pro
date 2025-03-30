@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
