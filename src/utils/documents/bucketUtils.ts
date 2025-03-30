@@ -116,3 +116,11 @@ export const testBucketAccess = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Initialize document storage bucket - alias for ensureDocumentsBucketExists
+ * @returns Promise<boolean> True if initialization was successful
+ */
+export const initializeDocumentsBucket = async (): Promise<boolean> => {
+  return ensureDocumentsBucketExists();
+};

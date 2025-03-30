@@ -5,7 +5,7 @@ import { Upload, Loader2, FileCheck, LogIn } from "lucide-react";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { validateFileSize, validateFileType } from '@/utils/documents/fileUtils';
-import { initializeDocumentsBucket } from '@/utils/documents/bucketUtils';
+import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 
 interface SimpleDocumentUploaderProps {
@@ -26,7 +26,7 @@ const SimpleDocumentUploader = ({ onSuccess, className, associationId = '0000000
       }
       
       // Initialize storage
-      const storageReady = await initializeDocumentsBucket();
+      const storageReady = await ensureDocumentsBucketExists();
       if (!storageReady) {
         return { success: false, error: "Document storage is not available" };
       }
