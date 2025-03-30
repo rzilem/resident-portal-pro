@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from "sonner";
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,13 +29,10 @@ export const useSignup = () => {
     }
     
     try {
+      // Add user metadata as options with Supabase Auth
       const { error, data } = await signUp(
         signupValues.email, 
-        signupValues.password, 
-        {
-          first_name: signupValues.firstName,
-          last_name: signupValues.lastName
-        }
+        signupValues.password
       );
       
       if (error) {

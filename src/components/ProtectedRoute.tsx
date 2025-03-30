@@ -1,21 +1,21 @@
 
 import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
   console.log('ProtectedRoute: User:', user);
-  console.log('ProtectedRoute: Loading:', loading);
+  console.log('ProtectedRoute: Loading:', isLoading);
   console.log('ProtectedRoute: Current location:', location.pathname);
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 

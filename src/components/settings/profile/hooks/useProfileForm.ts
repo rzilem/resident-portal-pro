@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { ProfileFormValues } from '../types';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 type UseProfileFormProps = {
   initialData?: Partial<ProfileFormValues>;
@@ -23,7 +23,7 @@ export function useProfileForm({
   onUpdate,
   isReadOnly = false,
 }: UseProfileFormProps = {}) {
-  const { user } = useAuth();
+  const auth = useAuth();
   const [formData, setFormData] = useState<ProfileFormValues>({
     ...defaultFormValues,
     ...initialData,
@@ -42,7 +42,7 @@ export function useProfileForm({
     }
   }, [initialData]);
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = auth.user?.role === 'admin';
 
   const handleInputChange = (field: keyof ProfileFormValues) => (value: string) => {
     setFormData((prev) => ({

@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
-  const { signIn, user, loading } = useAuth();
+  const { signIn, user, isLoading } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,11 +21,11 @@ const Login = () => {
 
   // Effect to redirect if user is already logged in
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !isLoading) {
       console.log('Login component: User already logged in, redirecting to:', from);
       navigate(from, { replace: true });
     }
-  }, [user, loading, navigate, from]);
+  }, [user, isLoading, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

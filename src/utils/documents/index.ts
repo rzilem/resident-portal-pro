@@ -2,6 +2,7 @@
 // Export all document utilities
 export * from './documentDbUtils';
 export * from './documentUtils';
+export * from './authUtils';
 
 // Export from bucketUtils directly
 export { initializeDocumentsBucket, testBucketAccess, ensureDocumentsBucketExists } from './bucketUtils';

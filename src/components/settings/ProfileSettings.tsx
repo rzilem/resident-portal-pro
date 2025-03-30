@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import NotificationsCard from './profile/cards/NotificationsCard';
 import IntegrationsCard from './profile/cards/IntegrationsCard';
 import ExportDataCard from './profile/cards/ExportDataCard';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types/user';
 
 // Define the UserProfile interface to match the structure we're using
@@ -52,7 +52,7 @@ async function updateProfile(data: any): Promise<any> {
 
 export default function ProfileSettings() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const auth = useAuth();
   
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
@@ -112,7 +112,7 @@ export default function ProfileSettings() {
     return <div>Loading...</div>;
   }
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = auth.user?.role === 'admin';
 
   return (
     <div className="space-y-6">
