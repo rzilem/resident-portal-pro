@@ -22,7 +22,14 @@ const createFormSchema = (fields: APIFieldDefinition[]) => {
     
     // Make required or optional
     if (field.required) {
-      schema = schema.min(1, { message: `${field.label} is required` });
+      if (schema instanceof z.ZodString) {
+        schema = schema.min(1, { message: `${field.label} is required` });
+      } else {
+        // For non-string types, use refine to make it required
+        schema = schema.refine(val => val !== undefined && val !== null && val !== '', {
+          message: `${field.label} is required`
+        });
+      }
     } else {
       schema = schema.optional();
     }

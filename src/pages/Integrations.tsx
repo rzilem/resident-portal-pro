@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { toast } from 'sonner';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
+import ElevenLabsTest from '@/components/settings/integrations/ElevenLabsTest';
 
 const Integrations = () => {
   useEffect(() => {
@@ -17,8 +18,9 @@ const Integrations = () => {
   }, []);
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       <IntegrationSettings />
+      <ElevenLabsTest />
     </div>
   );
 };
