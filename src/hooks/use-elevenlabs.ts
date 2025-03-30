@@ -24,11 +24,13 @@ export function useElevenLabs() {
   const saveElevenLabsSettings = useCallback(async (settings: ElevenLabsSettings) => {
     setIsLoading(true);
     try {
-      await updateIntegrationSettings('ElevenLabs', {
+      console.log('Saving ElevenLabs settings:', settings);
+      const result = await updateIntegrationSettings('ElevenLabs', {
         ...settings,
         enabled: true
       });
-      toast.success('ElevenLabs settings saved successfully');
+      console.log('ElevenLabs settings saved:', result);
+      toast.success('ElevenLabs settings saved permanently');
       return true;
     } catch (error) {
       console.error('Error saving ElevenLabs settings:', error);
