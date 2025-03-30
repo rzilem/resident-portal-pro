@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ColumnMapping } from '@/utils/spreadsheets/autoMapping';
+import { ColumnMapping } from '@/utils/spreadsheets/mapping/types';
 import MappingField from './MappingField';
 
 interface MappingFieldsListProps {
