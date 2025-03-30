@@ -1,18 +1,17 @@
 
 /**
- * File utility functions for document management
+ * Utility functions for handling files
  */
 
 /**
  * Validate file size
  * @param file File to validate
- * @param maxSizeMB Maximum file size in MB
- * @throws Error if file size exceeds maximum
+ * @param maxSizeMB Maximum size in MB
  */
 export const validateFileSize = (file: File, maxSizeMB: number): void => {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   if (file.size > maxSizeBytes) {
-    throw new Error(`File size exceeds maximum allowed size (${maxSizeMB}MB)`);
+    throw new Error(`File size exceeds ${maxSizeMB}MB limit. Please select a smaller file.`);
   }
 };
 
@@ -20,38 +19,33 @@ export const validateFileSize = (file: File, maxSizeMB: number): void => {
  * Validate file type
  * @param file File to validate
  * @param allowedTypes Array of allowed MIME types
- * @throws Error if file type is not allowed
  */
 export const validateFileType = (file: File, allowedTypes: string[]): void => {
   if (!allowedTypes.includes(file.type)) {
-    throw new Error(`File type "${file.type}" is not allowed`);
+    throw new Error(`File type "${file.type}" is not supported. Allowed types: ${allowedTypes.join(', ')}`);
   }
 };
 
 /**
- * Format file size for display
+ * Format file size from bytes to human-readable
  * @param bytes File size in bytes
- * @returns Formatted file size string
+ * @returns Formatted string (e.g., "1.5 MB")
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
   
+  const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 /**
- * Download a file from a URL
- * @param url URL of the file to download
- * @param filename Optional filename for the downloaded file
+ * Get file extension from filename
+ * @param filename Filename
+ * @returns File extension without dot
  */
-export const downloadFile = (url: string, filename?: string): void => {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename || url.split('/').pop() || 'download';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+export const getFileExtension = (filename: string): string => {
+  return filename.split('.').pop()?.toLowerCase() || '';
 };

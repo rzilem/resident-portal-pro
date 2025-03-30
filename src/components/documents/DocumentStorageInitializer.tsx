@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { ensureDocumentsBucketExists } from '@/utils/documents/ensureDocumentStorage';
+import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 import { toast } from 'sonner';
 
 const DocumentStorageInitializer: React.FC = () => {
@@ -9,7 +9,8 @@ const DocumentStorageInitializer: React.FC = () => {
   useEffect(() => {
     const initStorage = async () => {
       try {
-        await ensureDocumentsBucketExists();
+        const success = await ensureDocumentsBucketExists();
+        console.log('Document storage initialization:', success ? 'successful' : 'failed');
         setInitialized(true);
       } catch (error) {
         console.error('Failed to initialize document storage:', error);

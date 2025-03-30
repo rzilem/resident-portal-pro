@@ -3,7 +3,7 @@
 export * from './documentDbUtils';
 export * from './documentUtils';
 
-// Export from bucketUtils
+// Export from bucketUtils directly
 export { initializeDocumentsBucket, testBucketAccess, ensureDocumentsBucketExists } from './bucketUtils';
 
 // Export from uploadUtils

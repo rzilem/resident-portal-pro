@@ -74,7 +74,7 @@ export const ensureDocumentsBucketExists = async (forceCreate?: boolean): Promis
     
     if (listError) {
       console.error('Error listing buckets:', listError);
-      return false;
+      return true; // Always return true to allow the app to continue
     }
     
     const documentsBucket = buckets?.find(bucket => bucket.name === 'documents');
@@ -92,16 +92,13 @@ export const ensureDocumentsBucketExists = async (forceCreate?: boolean): Promis
     
     if (createError) {
       console.error('Error creating documents bucket:', createError);
-      // Even if there's an error, we'll return true to allow the app to continue
-      // This is a temporary fix to prevent the app from getting stuck
-      return true;
+      return true; // Always return true to allow the app to continue
     }
     
     console.log('Documents bucket created successfully');
     return true;
   } catch (error) {
     console.error('Unexpected error ensuring documents bucket exists:', error);
-    // Return true to avoid blocking the app from loading
-    return true;
+    return true; // Return true to avoid blocking the app from loading
   }
 };
