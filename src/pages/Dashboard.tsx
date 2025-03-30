@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Widget } from '@/types/dashboard';
@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
+  // Initialize the voice greeting
+  useVoiceGreeting();
+  
   const { preferences, updatePreference, isLoading } = useSettings();
   const [dashboardWidgets, setDashboardWidgets] = useState<Widget[]>([]);
   const [columns, setColumns] = useState(2);
