@@ -1,33 +1,47 @@
+
 // src/components/Login.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const context = useContext(AuthContext);
+  const { signIn, user } = useAuth();
 
-  if (!context) {
-    throw new Error('AuthContext must be used within an AuthProvider');
-  }
-
-  const { login, user } = context;
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log('Login component: Current user:', user);
+  console.log('Login component: Current user:', user?.id);
   console.log('Login component: Redirecting from:', location.state?.from);
 
+  // Get the intended destination from location state, or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Effect to redirect if user is already logged in
+  useEffect(() => {
+    if (user && !error) {
+      console.log('Login component: User already logged in, redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from, error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
     try {
-      await login(email, password);
-      console.log('Login component: Redirecting to:', from);
-      navigate(from, { replace: true });
+      console.log('Login component: Attempting signIn with email:', email);
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        console.error('Login component: Sign-in error:', error.message);
+        throw error;
+      }
+      
+      console.log('Login component: signIn successful, waiting for auth state to update');
+      // The redirection will happen in the useEffect when user state updates
     } catch (err: any) {
       setError('Failed to log in. Please check your credentials.');
       console.error('Login component: Error:', err.message);
