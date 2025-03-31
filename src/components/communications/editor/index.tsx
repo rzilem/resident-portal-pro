@@ -52,18 +52,14 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
     };
 
     const executeCommand = (command: string, value: string | null = null) => {
-      if (readOnly) return;
+      if (readOnly || activeTab !== "visual") return;
       
-      document.execCommand(command, false, value);
-      // After the command is executed, we need to get the updated content
-      const editorElement = document.querySelector('[contenteditable=true]');
-      if (editorElement) {
-        onChange(editorElement.innerHTML);
-      }
+      // Use the visual editor's executeCommand method
+      visualEditorRef.current?.executeCommand(command, value);
     };
 
     const createLink = () => {
-      if (readOnly) return;
+      if (readOnly || activeTab !== "visual") return;
       
       const url = prompt('Enter link URL:');
       if (url) {
@@ -72,11 +68,51 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
     };
 
     const insertImage = () => {
-      if (readOnly) return;
+      if (readOnly || activeTab !== "visual") return;
       
       const url = prompt('Enter image URL:');
       if (url) {
         executeCommand('insertImage', url);
+      }
+    };
+    
+    // Handle toolbar actions
+    const handleToolbarAction = (action: string) => {
+      if (readOnly || activeTab !== "visual") return;
+      
+      switch (action) {
+        case 'bold':
+          executeCommand('bold', null);
+          break;
+        case 'italic':
+          executeCommand('italic', null);
+          break;
+        case 'underline':
+          executeCommand('underline', null);
+          break;
+        case 'bulletList':
+          executeCommand('insertUnorderedList', null);
+          break;
+        case 'orderedList':
+          executeCommand('insertOrderedList', null);
+          break;
+        case 'link':
+          createLink();
+          break;
+        case 'image':
+          insertImage();
+          break;
+        case 'alignLeft':
+          executeCommand('justifyLeft', null);
+          break;
+        case 'alignCenter':
+          executeCommand('justifyCenter', null);
+          break;
+        case 'alignRight':
+          executeCommand('justifyRight', null);
+          break;
+        default:
+          console.log('Unhandled action:', action);
       }
     };
 
@@ -108,9 +144,8 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
         >
           {activeTab === "visual" && !readOnly && (
             <EditorToolbar 
-              executeCommand={executeCommand}
-              createLink={createLink}
-              insertImage={insertImage}
+              onAction={handleToolbarAction}
+              disabled={readOnly}
             />
           )}
           

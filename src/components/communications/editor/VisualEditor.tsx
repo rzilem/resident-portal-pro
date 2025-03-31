@@ -1,8 +1,9 @@
 
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 
 export interface VisualEditorRef {
   insertAtCursor: (text: string) => void;
+  executeCommand: (command: string, value: string | null) => void;
 }
 
 interface VisualEditorProps {
@@ -15,7 +16,26 @@ const VisualEditor = forwardRef<VisualEditorRef, VisualEditorProps>(
   ({ value, onUpdate, readOnly = false }, ref) => {
     const editorRef = useRef<HTMLDivElement>(null);
     
-    // Expose method to parent component to insert at cursor
+    // Make sure editor content is updated when value prop changes
+    useEffect(() => {
+      if (editorRef.current && editorRef.current.innerHTML !== value) {
+        editorRef.current.innerHTML = value;
+      }
+    }, [value]);
+    
+    // Execute editor commands (bold, italic, etc.)
+    const executeCommand = (command: string, value: string | null) => {
+      if (readOnly) return;
+      
+      document.execCommand(command, false, value);
+      
+      // After the command is executed, update the content
+      if (editorRef.current) {
+        onUpdate(editorRef.current.innerHTML);
+      }
+    };
+    
+    // Expose methods to parent component
     useImperativeHandle(ref, () => ({
       insertAtCursor: (text: string) => {
         const selection = window.getSelection();
@@ -50,12 +70,20 @@ const VisualEditor = forwardRef<VisualEditorRef, VisualEditorProps>(
             onUpdate(editorRef.current.innerHTML);
           }
         }
-      }
+      },
+      executeCommand
     }));
     
     const handleInput = () => {
       if (editorRef.current) {
         onUpdate(editorRef.current.innerHTML);
+      }
+    };
+    
+    // Ensure the editor is focused when clicked
+    const handleClick = () => {
+      if (!readOnly && editorRef.current) {
+        editorRef.current.focus();
       }
     };
     
@@ -67,6 +95,7 @@ const VisualEditor = forwardRef<VisualEditorRef, VisualEditorProps>(
           className="min-h-[300px] p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           dangerouslySetInnerHTML={{ __html: value }}
           onInput={handleInput}
+          onClick={handleClick}
           style={{ 
             userSelect: 'text',
             WebkitUserSelect: 'text',
