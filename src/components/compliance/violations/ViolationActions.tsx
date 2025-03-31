@@ -48,7 +48,7 @@ const ViolationActions: React.FC<ViolationActionsProps> = ({ violationId }) => {
 
   return (
     <DropdownMenu>
-      <TooltipProvider>
+      <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
@@ -58,7 +58,7 @@ const ViolationActions: React.FC<ViolationActionsProps> = ({ violationId }) => {
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="left">
             <p>Violation actions</p>
           </TooltipContent>
         </Tooltip>

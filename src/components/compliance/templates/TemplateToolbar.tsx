@@ -22,7 +22,7 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
 }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between gap-2 mt-2 mb-4">
-      <TooltipProvider>
+      <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="default" className="gap-1.5">
@@ -30,14 +30,14 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
               New Template
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="bottom">
             <p>Create a new template</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
       
       <div className="flex items-center gap-2">
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="sm" onClick={onExport} className="gap-1.5">
@@ -45,13 +45,13 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
                 Export
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="top">
               <p>Export templates</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
         
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="sm" onClick={onCancel} className="gap-1.5">
@@ -59,13 +59,13 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
                 Cancel
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="top">
               <p>Discard changes</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
         
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="default" size="sm" onClick={onSave} className="gap-1.5">
@@ -73,7 +73,7 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
                 Save Changes
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="top">
               <p>Save template changes</p>
             </TooltipContent>
           </Tooltip>

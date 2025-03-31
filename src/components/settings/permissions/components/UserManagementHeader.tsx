@@ -22,7 +22,7 @@ const UserManagementHeader = ({ openNewUserDialog }: UserManagementHeaderProps) 
           Manage user accounts and permissions
         </p>
       </div>
-      <TooltipProvider>
+      <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button onClick={openNewUserDialog} size="sm" className="gap-1">
@@ -30,7 +30,7 @@ const UserManagementHeader = ({ openNewUserDialog }: UserManagementHeaderProps) 
               <span>Invite User</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="left">
             <p>Invite a new user to the system</p>
           </TooltipContent>
         </Tooltip>

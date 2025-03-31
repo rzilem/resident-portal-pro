@@ -41,7 +41,7 @@ export const PropertyColumnsSelector = ({ columns, onChange }: PropertyColumnsSe
 
   return (
     <Popover>
-      <TooltipProvider>
+      <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
@@ -51,7 +51,7 @@ export const PropertyColumnsSelector = ({ columns, onChange }: PropertyColumnsSe
               </Button>
             </PopoverTrigger>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="top">
             <p>Customize table columns</p>
           </TooltipContent>
         </Tooltip>

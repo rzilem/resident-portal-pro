@@ -20,6 +20,12 @@ import { Wrench, ChevronRight, CheckCircle } from 'lucide-react';
 import { Alert, AlertSolution } from '@/types/alert';
 import { getAlertSolutions, updateAlertStatus } from '@/utils/alerts';
 import { toast } from 'sonner';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface FixThisButtonProps extends ButtonProps {
   alert: Alert;
@@ -96,16 +102,25 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
 
   return (
     <>
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={() => setIsDialogOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7 px-2 py-0 whitespace-nowrap"
-        {...buttonProps}
-      >
-        <Wrench className="h-3.5 w-3.5 mr-1" />
-        Fix This
-      </Button>
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7 px-2 py-0 whitespace-nowrap"
+              {...buttonProps}
+            >
+              <Wrench className="h-3.5 w-3.5 mr-1" />
+              Fix This
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Apply solution to this alert</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg">
@@ -152,15 +167,34 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
               </div>
               
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleApplySolution} 
-                  disabled={!selectedSolutionId || isApplying}
-                >
-                  {isApplying ? "Applying..." : "Apply Solution"}
-                </Button>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Close without applying solution</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={handleApplySolution} 
+                        disabled={!selectedSolutionId || isApplying}
+                      >
+                        {isApplying ? "Applying..." : "Apply Solution"}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Apply selected solution</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </DialogFooter>
             </>
           ) : (
@@ -182,15 +216,34 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
               )}
               
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Close
-                </Button>
-                <Button 
-                  onClick={handleMarkResolved} 
-                  disabled={isApplying}
-                >
-                  {isApplying ? "Processing..." : "Mark as Resolved"}
-                </Button>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Close
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Close dialog</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={handleMarkResolved} 
+                        disabled={isApplying}
+                      >
+                        {isApplying ? "Processing..." : "Mark as Resolved"}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Mark alert as resolved</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </DialogFooter>
             </div>
           )}

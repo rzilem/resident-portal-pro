@@ -24,7 +24,7 @@ const SecuritySettingsFooter: React.FC<SecuritySettingsFooterProps> = ({
 }) => {
   return (
     <div className="flex justify-end gap-2">
-      <TooltipProvider>
+      <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -35,13 +35,13 @@ const SecuritySettingsFooter: React.FC<SecuritySettingsFooterProps> = ({
               Reset Changes
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="top">
             <p>Discard all changes</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
       
-      <TooltipProvider>
+      <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -62,7 +62,7 @@ const SecuritySettingsFooter: React.FC<SecuritySettingsFooterProps> = ({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="top">
             <p>Save all security changes</p>
           </TooltipContent>
         </Tooltip>

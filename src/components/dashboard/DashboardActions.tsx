@@ -27,7 +27,7 @@ const DashboardActions: React.FC<DashboardActionsProps> = ({
   handleSaveDashboard = () => {}
 }) => {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button 
@@ -39,7 +39,7 @@ const DashboardActions: React.FC<DashboardActionsProps> = ({
             <Settings2 className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side="bottom">
           <p>Customize Dashboard</p>
         </TooltipContent>
       </Tooltip>

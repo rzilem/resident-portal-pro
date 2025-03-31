@@ -73,27 +73,27 @@ const DashboardCustomizer = ({
         </div>
 
         <DialogFooter>
-          <TooltipProvider>
+          <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="top">
                 <p>Discard changes</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
           
-          <TooltipProvider>
+          <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button onClick={saveChanges}>
                   <Check className="h-4 w-4 mr-2" /> Save Changes
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="top">
                 <p>Save dashboard layout</p>
               </TooltipContent>
             </Tooltip>
