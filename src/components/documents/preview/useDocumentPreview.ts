@@ -12,6 +12,14 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
   const [useOfficeViewer, setUseOfficeViewer] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPreviewUrl(null);
+      setPreviewError(null);
+    }
+  }, [isOpen]);
+  
   useEffect(() => {
     documentPreviewLog('isOpen or document changed', { 
       isOpen, 
@@ -53,19 +61,19 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
     documentPreviewLog('Processing URL', { originalUrl: doc.url });
     
     try {
+      // Ensure we have a valid URL
       const cleanUrl = sanitizeDocumentUrl(doc.url);
       documentPreviewLog('Using sanitized URL', { cleanUrl });
       
-      // Only pass the URL to the state setter
+      if (!cleanUrl) {
+        throw new Error("Invalid document URL");
+      }
+      
       setPreviewUrl(cleanUrl);
       setIsLoading(false);
     } catch (error) {
       errorLog('Error processing document URL:', error);
       setPreviewError("Failed to process document URL");
-      
-      // Only pass the URL to the state setter - fixed to pass just one argument
-      const fallbackUrl = sanitizeDocumentUrl(doc.url);
-      setPreviewUrl(fallbackUrl);
       setIsLoading(false);
     }
   };
@@ -90,7 +98,7 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
     
     try {
       // Create a direct download via anchor tag
-      const downloadUrl = previewUrl || sanitizeDocumentUrl(document.url);
+      const downloadUrl = document.url;
       documentPreviewLog('Downloading document', { url: downloadUrl });
       
       const link = window.document.createElement('a');

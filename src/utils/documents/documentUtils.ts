@@ -1,3 +1,4 @@
+
 import { DocumentFile } from '@/types/documents';
 
 /**
@@ -18,7 +19,7 @@ export const sanitizeDocumentUrl = (url: string): string => {
       return url;
     }
     
-    // Validate URL
+    // Simple validation - check if it's a valid URL
     new URL(url);
     return url;
   } catch (error) {
@@ -131,7 +132,7 @@ export const getDocumentById = async (documentId: string): Promise<DocumentFile 
       name: data.name,
       description: data.description || '',
       fileSize: data.file_size,
-      fileType: data.file_type,
+      fileType: data.file_type || getMimeTypeFromFileName(data.name),
       url: data.url,
       category: data.category || 'uncategorized',
       tags: data.tags || [],
@@ -150,6 +151,32 @@ export const getDocumentById = async (documentId: string): Promise<DocumentFile 
   } catch (error) {
     console.error('Exception fetching document:', error);
     return null;
+  }
+};
+
+/**
+ * Get MIME type from filename extension
+ * @param fileName The filename
+ * @returns MIME type string
+ */
+export const getMimeTypeFromFileName = (fileName: string): string => {
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  
+  switch (ext) {
+    case 'pdf': return 'application/pdf';
+    case 'doc': return 'application/msword';
+    case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'xls': return 'application/vnd.ms-excel';
+    case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    case 'ppt': return 'application/vnd.ms-powerpoint';
+    case 'pptx': return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    case 'jpg':
+    case 'jpeg': return 'image/jpeg';
+    case 'png': return 'image/png';
+    case 'gif': return 'image/gif';
+    case 'svg': return 'image/svg+xml';
+    case 'txt': return 'text/plain';
+    default: return 'application/octet-stream';
   }
 };
 

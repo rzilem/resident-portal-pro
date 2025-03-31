@@ -30,31 +30,17 @@ const PreviewContent: React.FC<PreviewContentProps> = ({
   onLoadError,
   onDownload,
 }) => {
-  const sanitizeDocumentUrl = (url: string): string => {
-    if (!url) return '';
-    try {
-      url = url.replace(/ /g, '%20');
-      const decoded = decodeURIComponent(url);
-      if (decoded !== url) {
-        return url;
-      }
-      new URL(url);
-      return url;
-    } catch (error) {
-      console.error('Invalid URL:', url, error);
-      return '';
-    }
-  };
-
+  // Function to safely handle document URLs
   const getPreviewUrl = () => {
     if (!previewUrl && !document.url) return '';
     
     if (useOfficeViewer) {
       return getOfficeViewerUrl(previewUrl || document.url);
     }
-    return previewUrl || (document.url ? sanitizeDocumentUrl(document.url) : '');
+    return previewUrl || document.url || '';
   };
 
+  // Function to get Office viewer URL
   const getOfficeViewerUrl = (url: string | null): string => {
     if (!url) return '';
     // Microsoft Office Online Viewer

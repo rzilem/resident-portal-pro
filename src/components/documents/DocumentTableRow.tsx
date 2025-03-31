@@ -40,35 +40,50 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
       return;
     }
     
-    // Create a temporary anchor element to trigger download
-    const link = document.createElement('a');
-    link.href = doc.url;
-    link.download = doc.name;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Also call the provided onDownload callback
-    onDownload(doc);
+    try {
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = doc.url;
+      link.download = doc.name;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Also call the provided onDownload callback
+      onDownload(doc);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast.error("Failed to download document");
+    }
   };
 
   const handleView = () => {
-    infoLog(`Viewing document: ${doc.name}`, {
-      docId: doc.id,
-      docUrl: doc.url,
-      docType: doc.fileType
-    });
-    
-    // Ensure we have a fileType property
-    const documentToView = {
-      ...doc,
-      fileType: doc.fileType || doc.name.split('.').pop() || ''
-    };
-    
-    // Call the view handler
-    onView(documentToView);
+    // Make sure we have the file type before viewing
+    if (!doc.fileType) {
+      const fileExtension = doc.name.split('.').pop()?.toLowerCase() || '';
+      infoLog(`No fileType found, inferring from extension: ${fileExtension}`, {
+        docId: doc.id,
+        docName: doc.name
+      });
+      
+      // Add fileType based on extension
+      const updatedDoc = {
+        ...doc,
+        fileType: doc.fileType || fileExtension
+      };
+      
+      onView(updatedDoc);
+    } else {
+      infoLog(`Viewing document: ${doc.name}`, {
+        docId: doc.id,
+        docUrl: doc.url,
+        docType: doc.fileType
+      });
+      
+      onView(doc);
+    }
   };
 
   return (
@@ -110,6 +125,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
                   variant="ghost" 
                   size="icon" 
                   onClick={handleView}
+                  className="hover:bg-muted"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -127,6 +143,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
                   variant="ghost" 
                   size="icon" 
                   onClick={handleDownload}
+                  className="hover:bg-muted"
                 >
                   <Download className="h-4 w-4" />
                 </Button>

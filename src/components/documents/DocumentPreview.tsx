@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download } from 'lucide-react';
+import { Download, AlertTriangle } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
 import FileIcon from './preview/FileIcon';
 import PreviewContent from './preview/PreviewContent';
@@ -11,6 +11,7 @@ import DocumentDetailsContent from './preview/DocumentDetailsContent';
 import VersionHistoryContent from './preview/VersionHistoryContent';
 import { useDocumentPreview } from './preview/useDocumentPreview';
 import { documentPreviewLog } from '@/utils/debug';
+import { toast } from 'sonner';
 
 interface DocumentPreviewProps {
   document: DocumentFile | null;
@@ -35,13 +36,24 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     handleDownload
   } = useDocumentPreview(document, isOpen);
   
-  documentPreviewLog('Rendering component', {
-    hasDocument: !!document,
-    isOpen,
-    isLoading,
-    hasError: !!previewError,
-    activeTab
-  });
+  // Log component render for debugging
+  useEffect(() => {
+    if (isOpen && document) {
+      documentPreviewLog('DocumentPreview opened', {
+        documentId: document.id,
+        documentName: document.name,
+        fileType: document.fileType
+      });
+    }
+  }, [isOpen, document]);
+
+  // Log URL availability
+  useEffect(() => {
+    if (document && !document.url) {
+      documentPreviewLog('Document has no URL', { documentId: document.id, documentName: document.name });
+      toast.error("Document URL is unavailable");
+    }
+  }, [document]);
   
   if (!document) {
     documentPreviewLog('No document provided, not rendering');

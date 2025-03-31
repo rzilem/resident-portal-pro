@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { AlertTriangle, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { AlertTriangle, Download, ExternalLink, RefreshCw } from 'lucide-react';
 
 interface PreviewErrorProps {
   errorMessage: string;
@@ -17,58 +16,52 @@ const PreviewError: React.FC<PreviewErrorProps> = ({
   documentName,
   documentUrl,
   previewUrl,
-  onDownload,
+  onDownload
 }) => {
-  const sanitizeDocumentUrl = (url: string): string => {
-    if (!url) return '';
-    try {
-      url = url.replace(/ /g, '%20');
-      const decoded = decodeURIComponent(url);
-      if (decoded !== url) {
-        return url;
-      }
-      new URL(url);
-      return url;
-    } catch (error) {
-      console.error('Invalid URL:', url, error);
-      return '';
-    }
-  };
-
-  const handleOpenInNewTab = () => {
-    try {
-      if (!documentUrl) {
-        toast.error("Document URL is not available");
-        return;
-      }
-      const url = previewUrl || sanitizeDocumentUrl(documentUrl);
-      window.open(url, '_blank');
-    } catch (error) {
-      toast.error("Failed to open document in new tab");
-    }
+  const url = previewUrl || documentUrl;
+  
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center p-8 text-center">
-      <div>
-        <AlertTriangle className="h-16 w-16 mx-auto text-destructive mb-4" />
-        <h3 className="text-lg font-medium mb-2">Preview Error</h3>
-        <p className="text-muted-foreground mb-4">{errorMessage}</p>
-        <div className="flex gap-2 justify-center">
-          <Button onClick={onDownload}>
-            <Download className="h-4 w-4 mr-2" />
-            Download Instead
-          </Button>
-          {documentUrl && (
-            <Button 
-              variant="outline" 
-              onClick={handleOpenInNewTab}
+    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center">
+      <AlertTriangle className="h-16 w-16 text-amber-500 mb-4" />
+      
+      <h3 className="text-xl font-medium mb-2">Preview Error</h3>
+      
+      <p className="text-muted-foreground mb-2 max-w-md">
+        {errorMessage || "There was an error loading the document preview."}
+      </p>
+      
+      <p className="text-sm text-muted-foreground/70 mb-6 max-w-md">
+        Document: {documentName}
+      </p>
+      
+      <div className="flex flex-wrap gap-3 justify-center">
+        <Button onClick={onDownload}>
+          <Download className="h-4 w-4 mr-2" />
+          Download
+        </Button>
+        
+        {url && (
+          <Button variant="outline" asChild>
+            <a 
+              href={url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               Open in New Tab
-            </Button>
-          )}
-        </div>
+            </a>
+          </Button>
+        )}
+        
+        <Button variant="outline" onClick={handleRefresh}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Reload
+        </Button>
       </div>
     </div>
   );
