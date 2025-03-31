@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ExternalLink, Clock, Calendar, Zap, X, PlayCircle, PauseCircle } from "lucide-react";
+import { Search, ExternalLink, Clock, Calendar as CalendarIcon, Zap, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useWorkflows } from '@/hooks/use-workflows';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +17,7 @@ import { toast } from "sonner";
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 
 const ActiveWorkflows = () => {
   const [selectedTab, setSelectedTab] = useState('all');
@@ -36,7 +35,6 @@ const ActiveWorkflows = () => {
   
   const navigate = useNavigate();
 
-  // Mock associations for demo
   const associations = [
     { id: 'assoc1', name: 'Sunset Park Homeowners Association' },
     { id: 'assoc2', name: 'Mountain View Condominiums' },
@@ -44,9 +42,7 @@ const ActiveWorkflows = () => {
     { id: 'assoc4', name: 'Riverside Estates' }
   ];
 
-  // Filter workflows based on selected tab and search term
   const filteredWorkflows = activeWorkflows.filter(workflow => {
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
@@ -81,17 +77,14 @@ const ActiveWorkflows = () => {
       return;
     }
     
-    // Combine date and time
     const [hours, minutes] = time.split(':').map(Number);
     const scheduledDate = new Date(date);
     scheduledDate.setHours(hours, minutes);
     
     try {
-      // Find the workflow name
       const workflow = activeWorkflows.find(w => w.id === workflowId);
       const workflowName = workflow ? workflow.name : 'Selected Workflow';
       
-      // Create calendar event for the workflow
       await workflowEventService.createWorkflowEvent(
         workflowId,
         `Run: ${workflowName}`,
@@ -102,7 +95,6 @@ const ActiveWorkflows = () => {
       toast.success(`Workflow scheduled for ${format(scheduledDate, 'PPp')}`);
       setSchedulingWorkflow(null);
       
-      // Reset form
       setSelectedAssociation('');
       setDate(undefined);
       setTime("12:00");
@@ -210,7 +202,7 @@ const ActiveWorkflows = () => {
                         size="sm" 
                         onClick={() => setSchedulingWorkflow(workflow.id)}
                       >
-                        <Calendar className="h-4 w-4 mr-2" />
+                        <CalendarIcon className="h-4 w-4 mr-2" />
                         Schedule
                       </Button>
                     </DialogTrigger>
@@ -260,7 +252,7 @@ const ActiveWorkflows = () => {
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0">
-                                <CalendarComponent
+                                <Calendar
                                   mode="single"
                                   selected={date}
                                   onSelect={setDate}
