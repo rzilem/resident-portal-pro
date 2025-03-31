@@ -88,7 +88,7 @@ const XAIDialog: React.FC<XAIDialogProps> = ({
         </DialogHeader>
 
         {!isAuthenticated && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               You need to be logged in to save settings permanently. Settings will be saved in local storage for now.

@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { UserIntegration } from "@/types/supabase";
 
 interface IntegrationSettings {
   enabled: boolean;
@@ -58,7 +59,7 @@ export const integrationService = {
       if (session?.session?.user) {
         const { data: integrations, error } = await supabase
           .from('user_integrations')
-          .select('integration_name, settings, enabled')
+          .select('*')
           .eq('user_id', session.session.user.id);
           
         if (error) {
@@ -71,7 +72,7 @@ export const integrationService = {
           // Format the data for our cache
           const formattedIntegrations: Record<string, IntegrationSettings> = {};
           
-          integrations.forEach(integration => {
+          integrations.forEach((integration: UserIntegration) => {
             formattedIntegrations[integration.integration_name] = {
               ...integration.settings,
               enabled: integration.enabled

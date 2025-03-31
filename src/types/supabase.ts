@@ -29,3 +29,14 @@ export interface ResidentWithDetails extends Resident {
   profile?: Profile;
   property?: Property;
 }
+
+// Define UserIntegration type manually since it might not be in the generated types yet
+export interface UserIntegration {
+  id: string;
+  user_id: string;
+  integration_name: string;
+  settings: Record<string, any>;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
