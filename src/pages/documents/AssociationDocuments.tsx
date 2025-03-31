@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,8 +11,8 @@ import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import { DOCUMENT_CATEGORIES } from '@/components/database/DocumentCategoryStructure';
 import AssociationSelector from '@/components/documents/AssociationSelector';
 import { useAssociations } from '@/hooks/use-associations';
-import { DocumentFile, DocumentCategory, DocumentSearchFilters } from '@/types/documents';
-import { getDocuments, getDocumentCategories } from '@/utils/documents/index';
+import { DocumentFile, DocumentCategory, DocumentSearchFilters, DocumentAccessLevel } from '@/types/documents';
+import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
 import { Button } from '@/components/ui/button';
@@ -38,8 +39,13 @@ const AssociationDocuments = () => {
   
   const loadCategories = async () => {
     try {
-      const cats = await getDocumentCategories();
-      setCategories(cats);
+      const fetchedCategories = await getDocumentCategories();
+      // Cast the accessLevel to the correct type
+      const typedCategories = fetchedCategories.map(cat => ({
+        ...cat,
+        accessLevel: (cat.accessLevel || 'all') as DocumentAccessLevel
+      }));
+      setCategories(typedCategories);
     } catch (error) {
       console.error('Failed to load document categories:', error);
       toast({

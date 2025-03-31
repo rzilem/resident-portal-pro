@@ -130,23 +130,23 @@ export const getDocumentById = async (documentId: string): Promise<DocumentFile 
     return {
       id: data.id,
       name: data.name,
-      description: data.description,
+      description: data.description || '',
       fileSize: data.file_size,
       fileType: data.file_type,
       url: data.url,
-      category: data.category,
-      tags: data.tags,
-      uploadedBy: data.uploaded_by,
-      uploadedDate: data.uploaded_date,
-      lastModified: data.last_modified,
-      version: data.version,
-      previousVersions: data.previous_versions,
-      expirationDate: data.expiration_date,
-      isPublic: data.is_public,
-      isArchived: data.is_archived,
-      properties: data.properties,
-      associations: data.associations,
-      metadata: data.metadata
+      category: data.category || 'uncategorized',
+      tags: data.tags || [],
+      uploadedBy: data.uploaded_by || '',
+      uploadedDate: data.uploaded_date || new Date().toISOString(),
+      lastModified: data.last_modified || new Date().toISOString(),
+      version: data.version || 1,
+      previousVersions: data.previous_versions || [],
+      expirationDate: data.expiration_date || undefined,
+      isPublic: data.is_public || false,
+      isArchived: data.is_archived || false,
+      properties: [],
+      associations: [data.association_id] || [],
+      metadata: {}
     } as DocumentFile;
   } catch (error) {
     console.error('Exception fetching document:', error);
@@ -193,9 +193,9 @@ export const getDocumentCategories = async () => {
     return data.map(category => ({
       id: category.id,
       name: category.name,
-      description: category.description,
-      accessLevel: category.access_level,
-      sortOrder: category.sort_order
+      description: category.description || '',
+      accessLevel: category.access_level as any,
+      sortOrder: category.sort_order || 0
     }));
   } catch (error) {
     console.error('Exception fetching document categories:', error);

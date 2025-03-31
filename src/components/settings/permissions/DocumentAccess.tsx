@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { FileText, Save, FolderClosed } from "lucide-react";
 import { getDocumentCategories } from '@/utils/documents/documentUtils';
-import { DocumentCategory } from '@/types/documents';
+import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
 
 interface DocumentPermissionMap {
@@ -48,7 +48,12 @@ const DocumentAccess = () => {
       try {
         // Load document categories
         const fetchedCategories = await getDocumentCategories();
-        setCategories(fetchedCategories);
+        // Cast the accessLevel to the correct type
+        const typedCategories = fetchedCategories.map(cat => ({
+          ...cat,
+          accessLevel: (cat.accessLevel || 'all') as DocumentAccessLevel
+        }));
+        setCategories(typedCategories);
         
         // Initialize document permissions
         const initialPermissions: DocumentPermissionMap = {};

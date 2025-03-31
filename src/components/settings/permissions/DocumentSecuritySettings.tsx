@@ -25,8 +25,13 @@ const DocumentSecuritySettings = () => {
       setIsLoading(true);
       try {
         const fetchedCategories = await getDocumentCategories();
-        setCategories(fetchedCategories);
-        setOriginalCategories([...fetchedCategories]);
+        // Cast the accessLevel to the correct type
+        const typedCategories = fetchedCategories.map(cat => ({
+          ...cat,
+          accessLevel: (cat.accessLevel || 'all') as DocumentAccessLevel
+        }));
+        setCategories(typedCategories);
+        setOriginalCategories([...typedCategories]);
       } catch (error) {
         console.error("Failed to load document categories:", error);
         toast.error("Failed to load document categories");

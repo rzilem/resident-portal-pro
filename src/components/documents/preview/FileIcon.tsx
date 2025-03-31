@@ -2,11 +2,11 @@
 import React from 'react';
 import { 
   FileText, 
-  FilePdf, 
-  FileImage, 
-  FileSpreadsheet, 
-  FileArchive,
-  FileCode,
+  File as FilePdf, 
+  Image as FileImage, 
+  Table as FileSpreadsheet, 
+  Archive as FileArchive,
+  Code as FileCode,
   File,
   Calendar,
   Presentation
