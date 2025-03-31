@@ -38,7 +38,15 @@ export const useVoiceGreeting = () => {
       setTimeout(async () => {
         try {
           console.log('Speaking greeting to:', name);
-          await speakGreeting(name);
+          
+          // Get greeting options from preferences
+          const greetingOptions = {
+            greetingType: preferences.voiceGreetingType || 'default',
+            customGreeting: preferences.customGreeting,
+            presetGreetingId: preferences.selectedPresetGreeting
+          };
+          
+          await speakGreeting(name, greetingOptions);
           setHasGreeted(true);
         } catch (error) {
           console.error('Error with voice greeting:', error);
@@ -51,7 +59,7 @@ export const useVoiceGreeting = () => {
         }
       }, 1000);
     }
-  }, [user, profile, hasGreeted, isGreeting, preferences.voiceGreetingEnabled]);
+  }, [user, profile, hasGreeted, isGreeting, preferences]);
   
   return { hasGreeted, isGreeting };
 };

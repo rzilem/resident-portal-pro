@@ -3,6 +3,7 @@
  * Utility functions for generating time-based greetings
  */
 import { speakWithElevenLabs, VOICE_OPTIONS } from './elevenlabs';
+import { getPresetGreetingById } from './presetGreetings';
 
 /**
  * Returns the appropriate greeting based on the current time of day
@@ -23,11 +24,37 @@ export const getTimeBasedGreeting = (): string => {
  * Uses ElevenLabs API to speak a greeting to the user
  * Falls back to Web Speech API if ElevenLabs is unavailable
  */
-export const speakGreeting = async (name: string | undefined): Promise<void> => {
+export const speakGreeting = async (
+  name: string | undefined, 
+  options?: { 
+    greetingType?: 'default' | 'custom' | 'preset',
+    customGreeting?: string,
+    presetGreetingId?: string
+  }
+): Promise<void> => {
   if (!name) return;
   
-  const greeting = getTimeBasedGreeting();
-  const message = `${greeting}, ${name}. Welcome to your dashboard.`;
+  let message = '';
+  
+  // Determine which type of greeting to use
+  if (options?.greetingType === 'custom' && options.customGreeting) {
+    // Use custom greeting with name substitution
+    message = options.customGreeting.replace('{name}', name);
+  } else if (options?.greetingType === 'preset' && options.presetGreetingId) {
+    // Use preset greeting
+    const presetText = getPresetGreetingById(options.presetGreetingId);
+    if (presetText) {
+      message = presetText.replace('{name}', name);
+    } else {
+      // Fallback to default if preset not found
+      const greeting = getTimeBasedGreeting();
+      message = `${greeting}, ${name}. Welcome to your dashboard.`;
+    }
+  } else {
+    // Use default time-based greeting
+    const greeting = getTimeBasedGreeting();
+    message = `${greeting}, ${name}. Welcome to your dashboard.`;
+  }
   
   // Use ElevenLabs for high-quality natural voice
   await speakWithElevenLabs(message, {

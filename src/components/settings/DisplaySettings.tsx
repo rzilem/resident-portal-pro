@@ -1,14 +1,18 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import { useSettings } from '@/hooks/use-settings';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import ThemePresets from './display/ThemePresets';
 import ColorCustomizer from './display/ColorCustomizer';
 import CustomBackground from './display/CustomBackground';
 import LogoUploader from './display/LogoUploader';
+import { PRESET_GREETINGS } from '@/utils/presetGreetings';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
@@ -27,6 +31,18 @@ const DisplaySettings = () => {
   
   const handleToggleVoiceGreeting = (checked: boolean) => {
     updatePreference('voiceGreetingEnabled', checked);
+  };
+  
+  const handleChangeGreetingType = (type: string) => {
+    updatePreference('voiceGreetingType', type);
+  };
+  
+  const handleChangeCustomGreeting = (greeting: string) => {
+    updatePreference('customGreeting', greeting);
+  };
+  
+  const handleSelectPresetGreeting = (presetId: string) => {
+    updatePreference('selectedPresetGreeting', presetId);
   };
 
   if (isLoading) {
@@ -71,7 +87,7 @@ const DisplaySettings = () => {
                 </div>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="voice-greeting" className="text-base">Voice Greeting</Label>
@@ -91,6 +107,76 @@ const DisplaySettings = () => {
                     />
                   </div>
                 </div>
+                
+                {preferences.voiceGreetingEnabled !== false && (
+                  <div className="pl-4 border-l-2 border-muted space-y-4">
+                    <div className="space-y-2">
+                      <Label>Greeting Type</Label>
+                      <RadioGroup 
+                        value={preferences.voiceGreetingType || 'default'} 
+                        onValueChange={handleChangeGreetingType}
+                        className="flex flex-col space-y-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="default" id="greeting-default" />
+                          <Label htmlFor="greeting-default" className="cursor-pointer">
+                            Default time-based greeting
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="preset" id="greeting-preset" />
+                          <Label htmlFor="greeting-preset" className="cursor-pointer">
+                            Select from preset greetings
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="custom" id="greeting-custom" />
+                          <Label htmlFor="greeting-custom" className="cursor-pointer">
+                            Custom greeting
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    {preferences.voiceGreetingType === 'preset' && (
+                      <div className="space-y-2">
+                        <Label>Select Preset</Label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {PRESET_GREETINGS.map((preset) => (
+                            <div 
+                              key={preset.id}
+                              className={`rounded-md p-3 cursor-pointer ${
+                                preferences.selectedPresetGreeting === preset.id 
+                                  ? 'bg-primary/10 border border-primary/50' 
+                                  : 'border hover:bg-secondary/50'
+                              }`}
+                              onClick={() => handleSelectPresetGreeting(preset.id)}
+                            >
+                              <div className="font-medium">{preset.title}</div>
+                              <div className="text-sm text-muted-foreground mt-1">{preset.text}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {preferences.voiceGreetingType === 'custom' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="custom-greeting">Custom Greeting Text</Label>
+                        <Textarea 
+                          id="custom-greeting"
+                          placeholder="Enter your custom greeting. Use {name} to include the user's name."
+                          value={preferences.customGreeting || ''}
+                          onChange={(e) => handleChangeCustomGreeting(e.target.value)}
+                          className="min-h-[100px]"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Use {'{name}'} in your text to include the user's name. Example: "Welcome {'{name}'}, your dashboard is ready."
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">

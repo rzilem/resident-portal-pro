@@ -44,6 +44,9 @@ export interface UserPreferences {
   
   // Voice greeting settings
   voiceGreetingEnabled?: boolean;
+  voiceGreetingType?: 'default' | 'custom' | 'preset';
+  customGreeting?: string;
+  selectedPresetGreeting?: string;
 }
 
 export interface Widget {
