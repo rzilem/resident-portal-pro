@@ -7,6 +7,7 @@ import { Alert } from '@/types/alert';
 import AnalysisAlert from '@/components/alerts/AnalysisAlert';
 import { getAlertsForAssociation } from '@/utils/alerts/alertQueries';
 import FixThisButton from '@/components/alerts/FixThisButton';
+import { Badge } from '@/components/ui/badge';
 
 interface AIAnalysisCardProps {
   className?: string;
@@ -25,6 +26,16 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ className = '', associa
     fetchAlerts();
   }, [associationId]);
   
+  const getSeverityBadgeStyle = (severity: Alert['severity']) => {
+    switch (severity) {
+      case 'critical': return 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
+      case 'high': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
+    }
+  };
+  
   return (
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
@@ -41,17 +52,22 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ className = '', associa
           <div className="space-y-3">
             {alerts.map(alert => (
               <div key={alert.id} className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950">
-                <div className="flex flex-col">
-                  <h4 className="text-sm font-medium">{alert.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1 mb-2">{alert.description}</p>
-                  <div className="flex justify-end">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <h4 className="text-sm font-medium truncate">{alert.title}</h4>
+                      <Badge className={`${getSeverityBadgeStyle(alert.severity)} ml-1 shrink-0`} variant="secondary">
+                        {alert.severity}
+                      </Badge>
+                    </div>
                     <FixThisButton 
                       alert={alert} 
                       variant="default" 
                       size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-1 h-7"
+                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-0.5 h-6 px-2 ml-2 shrink-0"
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">{alert.description}</p>
                 </div>
               </div>
             ))}

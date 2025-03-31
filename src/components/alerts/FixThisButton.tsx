@@ -100,7 +100,7 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
         variant="outline" 
         size="sm"
         onClick={() => setIsDialogOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7 px-2 py-0"
+        className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7 px-2 py-0 whitespace-nowrap"
         {...buttonProps}
       >
         <Wrench className="h-3.5 w-3.5 mr-1" />

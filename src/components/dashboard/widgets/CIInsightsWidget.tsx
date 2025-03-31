@@ -75,27 +75,25 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
             <ul className="space-y-3">
               {displayedAlerts.map(alert => (
                 <li key={alert.id} className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950">
-                  <div className="flex flex-col">
-                    <div className="flex items-start justify-between">
-                      <h4 className="text-sm font-medium flex items-center gap-1">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1">
                         {alert.severity === 'critical' && (
-                          <BellRing className="h-3 w-3 text-blue-600 animate-pulse" />
+                          <BellRing className="h-3 w-3 text-blue-600 animate-pulse shrink-0" />
                         )}
-                        <span>{alert.title}</span>
-                      </h4>
-                      <Badge className={getSeverityBadgeStyle(alert.severity)} variant="secondary">
-                        {alert.severity}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 mb-2">{alert.description}</p>
-                    <div className="flex justify-end">
+                        <h4 className="text-sm font-medium truncate">{alert.title}</h4>
+                        <Badge className={`${getSeverityBadgeStyle(alert.severity)} ml-1.5 shrink-0`} variant="secondary">
+                          {alert.severity}
+                        </Badge>
+                      </div>
                       <FixThisButton 
                         alert={alert} 
                         variant="default" 
                         size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-1 h-7"
+                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-0.5 h-6 px-2 ml-2 shrink-0"
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground">{alert.description}</p>
                   </div>
                 </li>
               ))}

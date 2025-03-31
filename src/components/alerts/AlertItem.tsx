@@ -61,39 +61,39 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
       <div className="flex items-start gap-2">
         <div className="mt-0.5">{getAlertIcon(alert.category)}</div>
         <div className="flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-sm font-medium flex items-center">
-              {alert.severity === 'critical' && (
-                <BellRing className="h-3 w-3 mr-1.5 text-indigo-600 animate-pulse" />
-              )}
-              {alert.title}
-            </h4>
-            <div className="flex items-center gap-1.5">
-              <Badge className={getSeverityColor(alert.severity)} variant="secondary">
-                {alert.severity}
-              </Badge>
-              <Badge className={getStatusColor(alert.status)} variant="secondary">
-                {alert.status}
-              </Badge>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <h4 className="text-sm font-medium flex items-center truncate">
+                {alert.severity === 'critical' && (
+                  <BellRing className="h-3 w-3 mr-1.5 text-indigo-600 animate-pulse shrink-0" />
+                )}
+                <span className="truncate">{alert.title}</span>
+              </h4>
+              <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
+                <Badge className={getSeverityColor(alert.severity)} variant="secondary">
+                  {alert.severity}
+                </Badge>
+                <Badge className={getStatusColor(alert.status)} variant="secondary">
+                  {alert.status}
+                </Badge>
+              </div>
             </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-xs flex items-center text-muted-foreground">
-              <Clock className="h-3 w-3 mr-1" />
-              {formatTimestamp(alert.createdAt)}
-            </span>
             
             {(alert.status === 'new' || alert.status === 'in-progress') && (
               <FixThisButton 
                 alert={alert} 
                 variant="default" 
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white h-7 text-xs"
+                className="bg-blue-600 hover:bg-blue-700 text-white h-6 text-xs px-2 py-0 ml-2 shrink-0"
                 onStatusUpdate={onStatusUpdate}
               />
             )}
           </div>
+          <p className="text-xs text-muted-foreground">{alert.description}</p>
+          <span className="text-xs flex items-center text-muted-foreground mt-1.5">
+            <Clock className="h-3 w-3 mr-1" />
+            {formatTimestamp(alert.createdAt)}
+          </span>
         </div>
       </div>
     </div>
