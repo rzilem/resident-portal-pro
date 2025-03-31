@@ -73,3 +73,18 @@ export const getRecipientSummary = (recipients: string[]): string => {
   if (recipients.length === 1) return recipients[0];
   return `${recipients[0]} and ${recipients.length - 1} more`;
 };
+
+// Add the missing filterTemplatesByCommunity function
+export const filterTemplatesByCommunity = (templates: any[], communityId?: string) => {
+  if (!communityId) return templates;
+  
+  return templates.filter(template => {
+    // If template has no communities specified, or specifies 'all', include it
+    if (!template.communities || template.communities.includes('all')) {
+      return true;
+    }
+    
+    // Include if this community is in the template's communities
+    return template.communities.includes(communityId);
+  });
+};
