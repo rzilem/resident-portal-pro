@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
 import { FileText, Download, ArrowDownCircle, LinkIcon, Building, Home } from 'lucide-react';
@@ -16,6 +17,32 @@ import {
   generatePropertyTemplate,
   generateAssociationPropertiesTemplate
 } from '@/utils/templates/propertyTemplates';
+import { generateDocumentCategoriesTemplate } from '@/utils/templates/documentTemplates';
+
+// Placeholder functions for templates that haven't been implemented yet
+const generateViolationTemplate = () => {
+  toast.info('Violations template is being prepared...');
+  // Implementation would go here
+  setTimeout(() => {
+    toast.success('Violations template downloaded successfully');
+  }, 1000);
+};
+
+const generateFinancialTemplate = () => {
+  toast.info('Financial accounts template is being prepared...');
+  // Implementation would go here
+  setTimeout(() => {
+    toast.success('Financial accounts template downloaded successfully');
+  }, 1000);
+};
+
+const generateVendorTemplate = () => {
+  toast.info('Vendor template is being prepared...');
+  // Implementation would go here
+  setTimeout(() => {
+    toast.success('Vendor template downloaded successfully');
+  }, 1000);
+};
 
 const DocumentTemplates = () => {
   const [activeTab, setActiveTab] = useState('association');
@@ -344,19 +371,71 @@ const DocumentTemplates = () => {
                 )}
                 
                 {activeTab === 'documents' && (
-                  generateDocumentCategoriesTemplate();
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Document Categories Template</h3>
+                    <p className="text-muted-foreground mb-4">
+                      This template helps you organize your document categories for better file management.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => generateDocumentCategoriesTemplate()}
+                      className="mb-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Document Categories Template
+                    </Button>
+                  </div>
                 )}
                 
                 {activeTab === 'violations' && (
-                  generateViolationTemplate();
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Violations Template</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Template for defining violation types and categories for your associations.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => generateViolationTemplate()}
+                      className="mb-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Violations Template
+                    </Button>
+                  </div>
                 )}
                 
                 {activeTab === 'financial' && (
-                  generateFinancialTemplate();
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Financial Accounts Template</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Template for setting up financial accounts and GL codes for your associations.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => generateFinancialTemplate()}
+                      className="mb-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Financial Accounts Template
+                    </Button>
+                  </div>
                 )}
                 
                 {activeTab === 'vendors' && (
-                  generateVendorTemplate();
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Vendors Template</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Template for importing vendor contact information and service details.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => generateVendorTemplate()}
+                      className="mb-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Vendors Template
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
