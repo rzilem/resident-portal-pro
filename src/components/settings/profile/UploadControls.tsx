@@ -2,6 +2,12 @@
 import { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, Loader2 } from "lucide-react";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface UploadControlsProps {
   photoUrl: string | null;
@@ -52,48 +58,66 @@ const UploadControls = ({
       />
       
       <div className="flex flex-wrap gap-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm"
-          onClick={handleUploadClick}
-          disabled={isUploading || isRemoving}
-          className="flex items-center gap-1"
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4" />
-              Upload Photo
-            </>
-          )}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={handleUploadClick}
+                disabled={isUploading || isRemoving}
+                className="flex items-center gap-1"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Upload Photo
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Upload a new profile photo</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
         {photoUrl && (
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={onRemovePhoto}
-            disabled={isUploading || isRemoving}
-            className="flex items-center gap-1 text-destructive hover:text-destructive"
-          >
-            {isRemoving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Removing...
-              </>
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4" />
-                Remove
-              </>
-            )}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={onRemovePhoto}
+                  disabled={isUploading || isRemoving}
+                  className="flex items-center gap-1 text-destructive hover:text-destructive"
+                >
+                  {isRemoving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Removing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Remove
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Remove current photo</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     </div>

@@ -6,6 +6,12 @@ import { Printer, Send, Download, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { PDFGeneratorCore } from '@/utils/pdf/PDFGeneratorCore';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface PrintQueueToolbarProps {
   selectedJobs: string[];
@@ -137,35 +143,62 @@ const PrintQueueToolbar: React.FC<PrintQueueToolbarProps> = ({
           </label>
         </div>
         
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handlePrint}
-          disabled={selectedJobs.length === 0}
-        >
-          <Printer className="h-4 w-4 mr-2" />
-          Print
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handlePrint}
+                disabled={selectedJobs.length === 0}
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Print selected jobs</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handleSendToHOAMailers}
-          disabled={selectedJobs.length === 0}
-        >
-          <Send className="h-4 w-4 mr-2" />
-          Send to HOA Mailers
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSendToHOAMailers}
+                disabled={selectedJobs.length === 0}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send to HOA Mailers
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Send selected jobs to HOA mailing service</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handleExport}
-          disabled={selectedJobs.length === 0}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleExport}
+                disabled={selectedJobs.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Export selected jobs to PDF</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );

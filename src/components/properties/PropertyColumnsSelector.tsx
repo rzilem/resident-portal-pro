@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Settings2 } from 'lucide-react';
 import { useSettings } from '@/hooks/use-settings';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 export type PropertyColumn = {
   id: string;
@@ -35,12 +41,22 @@ export const PropertyColumnsSelector = ({ columns, onChange }: PropertyColumnsSe
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1">
-          <Settings2 className="h-4 w-4" />
-          <span className="hidden md:inline">Customize Columns</span>
-        </Button>
-      </PopoverTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 gap-1">
+                <Settings2 className="h-4 w-4" />
+                <span className="hidden md:inline">Customize Columns</span>
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Customize table columns</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      
       <PopoverContent className="w-64">
         <div className="space-y-2">
           <h4 className="font-medium mb-2">Display Columns</h4>

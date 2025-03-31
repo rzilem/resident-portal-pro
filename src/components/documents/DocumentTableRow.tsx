@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   TableRow, TableCell
@@ -11,6 +12,12 @@ import { getDocumentIcon, formatDate } from './utils/documentIconUtils';
 import { formatFileSize } from '@/utils/documents/documentUtils';
 import { toast } from "sonner";
 import { debugLog, infoLog } from '@/utils/debug';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface DocumentTableRowProps {
   doc: DocumentFile;
@@ -96,22 +103,39 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="View"
-            onClick={handleView}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="Download"
-            onClick={handleDownload}
-          >
-            <Download className="h-4 w-4" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleView}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View document</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download document</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           <DocumentActions
             document={doc}

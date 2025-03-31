@@ -5,6 +5,12 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Widget } from '@/types/dashboard';
 import { cn } from '@/lib/utils';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface WidgetListProps {
   widgets: Widget[];
@@ -59,49 +65,96 @@ const WidgetList: React.FC<WidgetListProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center border rounded-md mr-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          disabled={index === 0}
-                          onClick={() => onMoveUp(index)}
-                          className="h-8 px-2 rounded-none rounded-l-md border-r"
-                          title="Move Up"
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          disabled={index === widgets.length - 1}
-                          onClick={() => onMoveDown(index)}
-                          className="h-8 px-2 rounded-none rounded-r-md"
-                          title="Move Down"
-                        >
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={index === 0}
+                                onClick={() => onMoveUp(index)}
+                                className="h-8 px-2 rounded-none rounded-l-md border-r"
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Move Up</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={index === widgets.length - 1}
+                                onClick={() => onMoveDown(index)}
+                                className="h-8 px-2 rounded-none rounded-r-md"
+                              >
+                                <ArrowDown className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Move Down</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => onToggleSize(widget.id)}
-                      >
-                        {widget.size === 'small' ? 'Small' : 
-                         widget.size === 'medium' ? 'Medium' : 'Large'}
-                      </Button>
-                      <Button 
-                        variant={widget.hidden ? "outline" : "ghost"}
-                        size="sm"
-                        onClick={() => onToggleVisibility(widget.id)}
-                      >
-                        {widget.hidden ? 'Show' : 'Hide'}
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => onRemove(widget.id)}
-                      >
-                        Remove
-                      </Button>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => onToggleSize(widget.id)}
+                            >
+                              {widget.size === 'small' ? 'Small' : 
+                               widget.size === 'medium' ? 'Medium' : 'Large'}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Change widget size</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant={widget.hidden ? "outline" : "ghost"}
+                              size="sm"
+                              onClick={() => onToggleVisibility(widget.id)}
+                            >
+                              {widget.hidden ? 'Show' : 'Hide'}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{widget.hidden ? 'Show widget' : 'Hide widget'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => onRemove(widget.id)}
+                            >
+                              Remove
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Remove widget</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 )}

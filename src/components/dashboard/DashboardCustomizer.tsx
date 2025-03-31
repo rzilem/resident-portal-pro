@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -8,11 +9,19 @@ import { useDashboardWidgets } from '@/hooks/use-dashboard-widgets';
 import WidgetList from './WidgetList';
 import AvailableWidgets from './AvailableWidgets';
 import ColumnLayoutSelector from './ColumnLayoutSelector';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
+
 interface DashboardCustomizerProps {
   widgets: Widget[];
   columns?: number;
   onSave: (widgets: Widget[], columns?: number) => void;
 }
+
 const DashboardCustomizer = ({
   widgets,
   columns = 2,
@@ -42,6 +51,7 @@ const DashboardCustomizer = ({
       setDialogOpen(false);
     }
   });
+  
   return <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         
@@ -63,14 +73,34 @@ const DashboardCustomizer = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={saveChanges}>
-            <Check className="h-4 w-4 mr-2" /> Save Changes
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Discard changes</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={saveChanges}>
+                  <Check className="h-4 w-4 mr-2" /> Save Changes
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Save dashboard layout</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </DialogFooter>
       </DialogContent>
     </Dialog>;
 };
+
 export default DashboardCustomizer;

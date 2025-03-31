@@ -35,13 +35,19 @@ import {
   Link 
 } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface DocumentActionsProps {
   document: DocumentFile;
   onView: (document: DocumentFile) => void;
   onEdit?: (document: DocumentFile) => void;
   onDelete?: (document: DocumentFile) => void;
-  refreshDocuments?: () => void;  // Add refreshDocuments prop
+  refreshDocuments?: () => void;
 }
 
 const DocumentActions: React.FC<DocumentActionsProps> = ({
@@ -49,7 +55,7 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
   onView,
   onEdit,
   onDelete,
-  refreshDocuments  // Add refreshDocuments to destructuring
+  refreshDocuments
 }) => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
@@ -97,11 +103,21 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>More options</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -119,7 +135,7 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
           {onEdit && (
             <DropdownMenuItem onClick={() => { 
               onEdit(document);
-              if (refreshDocuments) refreshDocuments();  // Refresh after edit
+              if (refreshDocuments) refreshDocuments();
             }}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
@@ -167,9 +183,18 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
                   readOnly 
                   className="flex-1"
                 />
-                <Button variant="outline" size="icon" onClick={copyShareLink}>
-                  <Copy className="h-4 w-4" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="icon" onClick={copyShareLink}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy link</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -217,7 +242,16 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
                     placeholder="Enter email address"
                   />
                 </div>
-                <Button onClick={handleSendInvite}>Send</Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={handleSendInvite}>Send</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Send invitation</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
             
@@ -236,9 +270,18 @@ const DocumentActions: React.FC<DocumentActionsProps> = ({
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
-              Close
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
+                    Close
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Close dialog</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </DialogFooter>
         </DialogContent>
       </Dialog>

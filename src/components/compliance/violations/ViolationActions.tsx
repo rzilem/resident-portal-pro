@@ -9,6 +9,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, FileEdit, Eye, Trash2, Bell, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface ViolationActionsProps {
   violationId: string;
@@ -42,12 +48,22 @@ const ViolationActions: React.FC<ViolationActionsProps> = ({ violationId }) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Violation actions</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleView}>
           <Eye className="mr-2 h-4 w-4" />
