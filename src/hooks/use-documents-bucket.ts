@@ -20,24 +20,19 @@ export const useDocumentsBucket = () => {
     setErrorMessage(null);
     
     try {
-      // Check user authentication
-      const { data, error } = await supabase.auth.getSession();
-      const isAuthValid = !!data?.session;
+      // First ensure the bucket exists
+      console.log('Checking document bucket exists...');
+      const bucketExists = await ensureDocumentsBucketExists();
       
-      if (!isAuthValid && !user) {
-        console.log('User is not authenticated, skipping bucket check');
+      if (!bucketExists) {
+        console.error('Failed to ensure documents bucket exists');
+        setErrorMessage('Failed to create documents storage bucket');
         setBucketReady(false);
-        setDemoMode(false);
+        setDemoMode(true);
         setIsLoading(false);
-        setErrorMessage('Authentication required to use document storage');
         return;
       }
 
-      console.log('Checking document bucket exists...');
-      
-      // First try to ensure bucket exists
-      const bucketExists = await ensureDocumentsBucketExists();
-      
       // Then check if we can access the bucket
       const canAccess = await testBucketAccess();
       
@@ -67,41 +62,17 @@ export const useDocumentsBucket = () => {
       setBucketReady(false);
       setDemoMode(true);
     }
-  }, [retryCount, user]);
+  }, [retryCount]);
   
   useEffect(() => {
     let isMounted = true;
-    
-    // Check if user is authenticated before checking bucket
-    const checkSessionAndBucket = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        const hasSession = !!data?.session;
-        
-        if (user || hasSession) {
-          checkBucket();
-        } else {
-          setIsLoading(false);
-          setBucketReady(false);
-          setDemoMode(false);
-          setErrorMessage('Authentication required to use document storage');
-        }
-      } catch (error) {
-        console.error('Error checking auth session:', error);
-        setIsLoading(false);
-        setBucketReady(false);
-        setDemoMode(true);
-        setErrorMessage('Error checking authentication status');
-      }
-    };
-    
-    checkSessionAndBucket();
+    checkBucket();
     
     // Cleanup function
     return () => {
       isMounted = false;
     };
-  }, [checkBucket, user]);
+  }, [checkBucket]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries

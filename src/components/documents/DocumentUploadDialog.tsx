@@ -25,7 +25,6 @@ interface DocumentUploadDialogProps {
   associationId?: string;
 }
 
-// Form schema
 const formSchema = z.object({
   file: z.instanceof(File, { message: "Please select a file" }),
   name: z.string().min(1, "File name is required"),
@@ -44,6 +43,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 }) => {
   const [categories, setCategories] = useState<Array<{id: string, name: string}>>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const { activeAssociation } = useAssociations();
   const { user } = useAuth();
   const { bucketReady, demoMode } = useDocumentsBucket();
@@ -84,7 +84,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     };
     
     fetchCategories();
-  }, [categoryId]);
+    
+    if (open) {
+      setUploadError(null);
+    }
+  }, [categoryId, open]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -113,8 +117,16 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     }
     
     setIsUploading(true);
+    setUploadError(null);
     
     try {
+      const bucketReady = await ensureDocumentsBucketExists();
+      if (!bucketReady && !demoMode) {
+        setUploadError("Document storage is not available. Please try again later.");
+        setIsUploading(false);
+        return;
+      }
+      
       const tagArray = values.tags 
         ? values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
         : [];
@@ -140,10 +152,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
           refreshDocuments();
         }
       } else {
-        toast.error("Failed to upload document");
+        setUploadError("Failed to upload document. Please try again.");
       }
     } catch (error) {
       console.error('Document upload error:', error);
+      setUploadError(error instanceof Error ? error.message : "Error uploading document");
       toast.error("Error uploading document");
     } finally {
       setIsUploading(false);
@@ -180,6 +193,18 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         </DialogHeader>
         
         {renderDemoWarning()}
+        
+        {uploadError && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
+            <div className="flex">
+              <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
+              <div>
+                <h3 className="text-sm font-medium text-red-800">Upload Error</h3>
+                <p className="text-sm text-red-700 mt-1">{uploadError}</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -290,7 +315,10 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isUploading}>
+              <Button 
+                type="submit" 
+                disabled={isUploading || (!bucketReady && !demoMode)}
+              >
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

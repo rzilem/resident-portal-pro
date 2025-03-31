@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth/AuthProvider';
-import { ensureDocumentsBucketExists } from '@/utils/documents';
+import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 import { toast } from 'sonner';
 
 const DocumentStorageInitializer: React.FC = () => {

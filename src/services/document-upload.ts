@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { testBucketAccess } from '@/utils/documents/bucketUtils';
+import { testBucketAccess, ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 
 interface UploadDocumentParams {
   file: File;
@@ -22,6 +22,14 @@ export const uploadDocument = async ({
   try {
     console.log('Starting document upload process');
     
+    // First ensure the documents bucket exists
+    const bucketExists = await ensureDocumentsBucketExists();
+    if (!bucketExists) {
+      console.error('Document storage bucket does not exist and could not be created');
+      toast.error('Failed to access document storage');
+      return false;
+    }
+    
     // Get user ID for document ownership with direct session check
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
@@ -33,14 +41,6 @@ export const uploadDocument = async ({
     }
     
     console.log('User authenticated:', user.id);
-    
-    // Test if we can actually upload to the bucket
-    const canUpload = await testBucketAccess();
-    if (!canUpload) {
-      console.error('Document storage not accessible for uploads');
-      toast.error('Cannot upload to document storage. Please check your permissions.');
-      return false;
-    }
     
     // Create a unique file name using uuid
     const fileExtension = file.name.split('.').pop() || '';
@@ -65,40 +65,6 @@ export const uploadDocument = async ({
 
     console.log('Document uploaded successfully to storage');
     
-    // Ensure associationId is a valid UUID
-    let validAssociationId = associationId;
-    
-    try {
-      // Check if the input is already a valid UUID
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(associationId)) {
-        console.log('AssociationId is not a valid UUID format:', associationId);
-        
-        // Try to fetch the association by ID
-        const { data: association, error: associationError } = await supabase
-          .from('associations')
-          .select('id')
-          .eq('id', associationId)
-          .maybeSingle();
-        
-        if (associationError || !association) {
-          console.log('Could not find association with ID:', associationId);
-          console.log('Generating a random UUID as fallback');
-          validAssociationId = uuidv4();
-        } else {
-          console.log('Found association with valid UUID:', association.id);
-          validAssociationId = association.id;
-        }
-      } else {
-        console.log('AssociationId is already a valid UUID:', associationId);
-      }
-    } catch (error) {
-      console.error('Error validating association ID:', error);
-      validAssociationId = uuidv4();
-    }
-    
-    console.log(`Using association ID: ${validAssociationId}`);
-    
     // Get the file URL
     const { data: urlData } = await supabase.storage
       .from('documents')
@@ -120,10 +86,11 @@ export const uploadDocument = async ({
           category: category,
           tags: tags.length > 0 ? tags : null,
           uploaded_by: user.id,
-          association_id: validAssociationId,
+          association_id: associationId,
           is_public: false,
           version: 1,
-          last_modified: new Date().toISOString()
+          last_modified: new Date().toISOString(),
+          uploaded_date: new Date().toISOString()
         })
         .select()
         .single();

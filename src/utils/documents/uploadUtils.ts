@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -172,5 +171,31 @@ export const getDocumentCategories = async (): Promise<string[]> => {
   } catch (error) {
     console.error('Exception fetching document categories:', error);
     return ['uncategorized', 'imports', 'templates', 'reports'];
+  }
+};
+
+/**
+ * Check if the documents table exists
+ * @returns Promise indicating if the table exists
+ */
+export const ensureDocumentsTableExists = async (): Promise<boolean> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // Try to query the documents table to see if it exists
+    const { data, error } = await supabase
+      .from('documents')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      console.error('Error checking documents table:', error.message);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Exception checking documents table:', error);
+    return false;
   }
 };

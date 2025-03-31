@@ -19,7 +19,9 @@ export const testBucketAccess = async (): Promise<boolean> => {
     
     if (!documentsBucket) {
       console.warn('Documents bucket not found');
-      return false;
+      // Try to create it
+      const created = await ensureDocumentsBucketExists();
+      return created;
     }
     
     // Try to list files in the bucket to test access
