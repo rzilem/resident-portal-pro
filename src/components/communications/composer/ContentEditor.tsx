@@ -6,7 +6,7 @@ import { useComposer } from './ComposerContext';
 import FormatSelector from './FormatSelector';
 import { Card } from '@/components/ui/card';
 import { Lightbulb, Tags } from 'lucide-react';
-import HtmlEditor from '../HtmlEditor';
+import HtmlEditor from '../editor';
 import { Textarea } from '@/components/ui/textarea';
 
 interface ContentEditorProps {
