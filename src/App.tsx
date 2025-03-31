@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -60,6 +61,17 @@ const LogoutRedirect = () => {
   
   return <Navigate to="/login" />;
 };
+
+// Scroll to top when route changes
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
 
 const App = () => {
   const AppRoutes = () => {
@@ -151,6 +163,7 @@ const App = () => {
     <BrowserRouter>
       <AuthProvider>
         <DocumentStorageInitializer />
+        <ScrollToTop />
         <Toaster />
         <AppRoutes />
       </AuthProvider>
