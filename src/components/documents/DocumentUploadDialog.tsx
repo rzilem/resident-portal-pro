@@ -15,6 +15,7 @@ import { useAssociations } from '@/hooks/use-associations';
 import { useAuth } from '@/hooks/use-auth';
 import { useDocumentsBucket } from '@/hooks/use-documents-bucket';
 import { supabase } from '@/integrations/supabase/client';
+import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 
 interface DocumentUploadDialogProps {
   open: boolean;
