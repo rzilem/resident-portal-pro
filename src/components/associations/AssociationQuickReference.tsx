@@ -1,86 +1,104 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Mail, Calendar, Clipboard, FileText, Info } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Association } from '@/types/association';
-import { getDaySuffix } from '@/utils/formatters';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Building, Users, Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { Association } from '@/types/supabase';
+import { formatDate, getDaySuffix } from '@/utils/formatters';
 
 interface AssociationQuickReferenceProps {
   association: Association;
-  fullAddress: string;
+  className?: string;
 }
 
 const AssociationQuickReference: React.FC<AssociationQuickReferenceProps> = ({ 
-  association, 
-  fullAddress 
+  association,
+  className = ''
 }) => {
-  const navigate = useNavigate();
+  // Format the established_date if it exists
+  const formattedEstablishedDate = association.established_date 
+    ? formatDate(association.established_date, 'medium')
+    : 'Not specified';
+
+  // Calculate the number of years since establishment
+  const getYearsSinceEstablishment = () => {
+    if (!association.established_date) return null;
+    
+    const establishedDate = new Date(association.established_date);
+    const currentDate = new Date();
+    const yearDiff = currentDate.getFullYear() - establishedDate.getFullYear();
+    
+    return yearDiff;
+  };
+
+  const yearsSinceEstablishment = getYearsSinceEstablishment();
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader className="bg-primary/5 pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Info className="h-5 w-5 text-primary" />
-          Quick Reference
-        </CardTitle>
+    <Card className={className}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl font-semibold">Quick Reference</CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 space-y-3">
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-            Address
-          </h4>
-          <p className="text-sm">{fullAddress}</p>
+      <CardContent className="space-y-3">
+        <div className="flex items-start gap-2">
+          <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="font-medium">Association Type</p>
+            <p className="text-sm text-muted-foreground">
+              {association.type || 'Not specified'}
+            </p>
+          </div>
         </div>
         
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-            Contact
-          </h4>
-          <p className="text-sm">{association.contactInfo.phone}</p>
+        <div className="flex items-start gap-2">
+          <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="font-medium">Number of Units</p>
+            <p className="text-sm text-muted-foreground">
+              {association.total_units || 'Not specified'}
+            </p>
+          </div>
         </div>
         
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-            Email
-          </h4>
-          <p className="text-sm">{association.contactInfo.email}</p>
+        <div className="flex items-start gap-2">
+          <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="font-medium">Established</p>
+            <p className="text-sm text-muted-foreground">
+              {formattedEstablishedDate}
+              {yearsSinceEstablishment !== null && (
+                <span className="ml-1">({yearsSinceEstablishment} years ago)</span>
+              )}
+            </p>
+          </div>
         </div>
         
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-            Next Dues
-          </h4>
-          <p className="text-sm">
-            {association.settings?.dueDay ? 
-              `${association.settings.dueDay}${getDaySuffix(association.settings.dueDay)} of each ${association.settings?.feesFrequency || 'month'}` : 
-              'No due date set'}
-          </p>
+        <div className="flex items-start gap-2">
+          <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="font-medium">Phone</p>
+            <p className="text-sm text-muted-foreground">
+              {association.contact_phone || 'Not specified'}
+            </p>
+          </div>
         </div>
         
-        <div>
-          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-1">
-            <Clipboard className="h-3.5 w-3.5 text-muted-foreground" />
-            Association Type
-          </h4>
-          <p className="text-sm capitalize">{association.type}</p>
+        <div className="flex items-start gap-2">
+          <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="font-medium">Email</p>
+            <p className="text-sm text-muted-foreground">
+              {association.contact_email || 'Not specified'}
+            </p>
+          </div>
         </div>
         
-        <div className="pt-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="w-full text-xs" 
-            onClick={() => navigate(`/documents/AssociationDocuments?id=${association.id}`)}
-          >
-            <FileText className="h-3.5 w-3.5 mr-1.5" />
-            View Documents
-          </Button>
+        <div className="flex items-start gap-2">
+          <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="font-medium">Address</p>
+            <p className="text-sm text-muted-foreground">
+              {association.address || 'Not specified'}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>

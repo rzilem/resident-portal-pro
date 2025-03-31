@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -310,6 +309,9 @@ class AccountingLedgerService {
       }
       
       // Then create all the ledger entries
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id;
+      
       const ledgerEntries = entry.lines.map(line => {
         const isDebit = !!line.debit && line.debit > 0;
         return {
@@ -321,7 +323,7 @@ class AccountingLedgerService {
           description: line.description || entry.description,
           reference_number: entry.reference,
           journal_entry_id: journalData.id,
-          created_by: (supabase.auth.getUser()).data.user?.id
+          created_by: userId
         };
       });
       

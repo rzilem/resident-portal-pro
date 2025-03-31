@@ -101,6 +101,186 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          account_number: string | null
+          account_type: string
+          association_id: string
+          balance: number
+          created_at: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          routing_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_number?: string | null
+          account_type: string
+          association_id: string
+          balance?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          routing_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_number?: string | null
+          account_type?: string
+          association_id?: string
+          balance?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          routing_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_statements: {
+        Row: {
+          association_id: string
+          bank_account_id: string
+          beginning_balance: number
+          created_at: string | null
+          ending_balance: number
+          file_url: string | null
+          id: string
+          is_reconciled: boolean
+          reconciled_by: string | null
+          reconciled_date: string | null
+          statement_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          association_id: string
+          bank_account_id: string
+          beginning_balance: number
+          created_at?: string | null
+          ending_balance: number
+          file_url?: string | null
+          id?: string
+          is_reconciled?: boolean
+          reconciled_by?: string | null
+          reconciled_date?: string | null
+          statement_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string
+          bank_account_id?: string
+          beginning_balance?: number
+          created_at?: string | null
+          ending_balance?: number
+          file_url?: string | null
+          id?: string
+          is_reconciled?: boolean
+          reconciled_by?: string | null
+          reconciled_date?: string | null
+          statement_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statements_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statements_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_transactions: {
+        Row: {
+          amount: number
+          association_id: string
+          bank_account_id: string
+          check_number: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_reconciled: boolean
+          statement_id: string | null
+          status: string
+          transaction_date: string
+          transaction_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          association_id: string
+          bank_account_id: string
+          check_number?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_reconciled?: boolean
+          statement_id?: string | null
+          status?: string
+          transaction_date: string
+          transaction_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          association_id?: string
+          bank_account_id?: string
+          check_number?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_reconciled?: boolean
+          statement_id?: string | null
+          status?: string
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bid_request_vendors: {
         Row: {
           bid_amount: number | null
@@ -380,6 +560,180 @@ export type Database = {
           version?: number | null
         }
         Relationships: []
+      }
+      gl_accounts: {
+        Row: {
+          association_id: string | null
+          category: string
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean
+          name: string
+          parent_id: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          association_id?: string | null
+          category: string
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_id?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string | null
+          category?: string
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_id?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gl_accounts_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gl_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "gl_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          association_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          entry_date: string
+          id: string
+          posted_by: string | null
+          posted_date: string | null
+          reference: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          association_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_date: string
+          id?: string
+          posted_by?: string | null
+          posted_date?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_date?: string
+          id?: string
+          posted_by?: string | null
+          posted_date?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_entries: {
+        Row: {
+          account_id: string | null
+          amount: number
+          association_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          entry_type: string
+          gl_account_id: string | null
+          id: string
+          journal_entry_id: string | null
+          reference_number: string | null
+          transaction_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          association_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_type: string
+          gl_account_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          reference_number?: string | null
+          transaction_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          association_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_type?: string
+          gl_account_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          reference_number?: string | null
+          transaction_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_gl_account_id_fkey"
+            columns: ["gl_account_id"]
+            isOneToOne: false
+            referencedRelation: "gl_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       letter_templates: {
         Row: {

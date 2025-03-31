@@ -17,7 +17,8 @@ import {
   FormField, 
   FormItem, 
   FormLabel, 
-  FormMessage 
+  FormMessage,
+  FormDescription
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -102,10 +103,16 @@ const BankAccountDialog: React.FC<BankAccountDialogProps> = ({
         // Update existing account
         await updateAccount(account.id, values);
       } else {
-        // Create new account
+        // Create new account - making sure all required fields are present
         await createAccount({
-          ...values,
-          associationId
+          associationId,
+          name: values.name,
+          accountType: values.accountType,
+          accountNumber: values.accountNumber,
+          routingNumber: values.routingNumber,
+          balance: values.balance,
+          isActive: values.isActive,
+          notes: values.notes
         });
       }
       onClose(true);
