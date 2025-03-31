@@ -50,13 +50,18 @@ export const useViolations = (associationId?: string): UseViolationsResult => {
         if (error) throw error;
 
         // Transform data for the table
-        const formattedViolations = data?.map(item => ({
-          id: item.id,
-          property: item.properties?.address || 'Unknown Property', // Fix: access address directly from properties object
-          violation_type: item.violation_type || 'Unspecified',
-          reported_date: item.reported_date,
-          status: item.status || 'open'
-        })) || [];
+        const formattedViolations = data?.map(item => {
+          // Ensure properties is handled as a single object, not an array
+          const propertyAddress = typeof item.properties === 'object' ? item.properties.address : 'Unknown Property';
+          
+          return {
+            id: item.id,
+            property: propertyAddress,
+            violation_type: item.violation_type || 'Unspecified',
+            reported_date: item.reported_date,
+            status: item.status || 'open'
+          };
+        }) || [];
 
         setViolations(formattedViolations);
       } catch (err) {
