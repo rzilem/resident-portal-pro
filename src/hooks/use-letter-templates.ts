@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -50,6 +49,74 @@ const sampleTemplates: LetterTemplate[] = [
     description: 'Notification of upcoming annual meeting',
     category: 'Meeting',
     content: '<p>Dear {{resident.name}},</p><p>The Annual Meeting of the {{association.name}} will be held on {{date.meeting}} at 7:00 PM...</p>',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '6',
+    name: 'Notice of Violation',
+    description: 'Formal notice for community rule violations',
+    category: 'Compliance',
+    content: `
+<p>Dear {{resident.name}},</p>
+
+<p>A notice of violation was previously sent to you regarding the violation identified on your property that is not in compliance with the {{association.name}} Governing Documents. As of the date of this letter, the issue remains non-compliant. Such non-compliance constitutes a violation of the Association's Governing Documents along with the Rules & Regulations and therefore a fine in the amount of {{financial.lateFee}} has been assessed to your account.</p>
+
+<div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
+<p>An inspection performed on {{date.current}} showed the following issue(s):</p>
+<p><strong>{{violation.type}}</strong> - {{violation.description}}</p>
+
+<p>We appreciate your cooperation in correcting this matter as quickly as possible. To correct:</p>
+<p>{{action.description}}</p>
+<p>{{action.note}}</p>
+
+<p>We ask that you bring this above issue(s) into compliance by {{violation.deadline}}.</p>
+</div>
+
+<p>Thank you for your prompt attention to this matter. If the above-mentioned item has already been corrected, please be sure to let us know and accept our sincere thank you.</p>
+
+<p>If there are any questions with regard to this notice, do not hesitate to contact us.</p>
+
+<p>Inspections Team<br>
+PS Property Management, Inc.<br>
+Agent for {{association.name}}<br>
+<a href="mailto:compliance@psprop.net">compliance@psprop.net</a><br>
+{{company.primaryPhone}}</p>
+    `,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '7',
+    name: 'Friendly Reminder Notice',
+    description: 'Friendly first notice for minor compliance issues',
+    category: 'Compliance',
+    content: `
+<p>Dear {{resident.name}},</p>
+
+<p>We all have a vested interest in maintaining the appearance and value of the community. Periodic inspections are conducted to assist you in identifying conditions that need attention. No one likes sending or receiving official "violation letters", so we have implemented this "Friendly Reminder" format in the hope of gaining your cooperation.</p>
+
+<div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
+<p>An inspection performed on {{date.current}} showed the following issue(s):</p>
+<p><strong>{{violation.type}}</strong> - {{violation.description}}</p>
+
+<p>We appreciate your cooperation in correcting this matter as quickly as possible. To correct:</p>
+<p>{{action.description}}</p>
+<p>{{action.note}}</p>
+
+<p>We ask that you bring this above issue(s) into compliance by {{violation.deadline}}.</p>
+</div>
+
+<p>Thank you for your prompt attention to this matter. If the above-mentioned item has already been corrected, please be sure to let us know and accept our sincere thank you.</p>
+
+<p>If there are any questions with regard to this notice, do not hesitate to contact us.</p>
+
+<p>Inspections Team<br>
+PS Property Management, Inc.<br>
+Agent for {{association.name}}<br>
+<a href="mailto:compliance@psprop.net">compliance@psprop.net</a><br>
+{{company.primaryPhone}}</p>
+    `,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
