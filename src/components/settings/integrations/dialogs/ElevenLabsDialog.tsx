@@ -27,8 +27,14 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
   const [defaultModel, setDefaultModel] = useState(settings.defaultModel);
   const [isTesting, setIsTesting] = useState(false);
 
+  // Update local state when dialog opens or settings change
   useEffect(() => {
     if (open) {
+      console.log('ElevenLabs dialog opened, initializing with settings:', {
+        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
+        defaultVoiceId: settings.defaultVoiceId,
+        defaultModel: settings.defaultModel
+      });
       setApiKey(settings.apiKey);
       setDefaultVoiceId(settings.defaultVoiceId);
       setDefaultModel(settings.defaultModel);
@@ -56,6 +62,8 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
     if (success) {
       toast.success('ElevenLabs settings saved successfully');
       onOpenChange(false);
+    } else {
+      toast.error('Failed to save ElevenLabs settings');
     }
   };
 
@@ -66,13 +74,20 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
     }
     
     setIsTesting(true);
-    const success = await testElevenLabsAPI(apiKey);
-    setIsTesting(false);
-    
-    if (success) {
-      toast.success('ElevenLabs API connection test successful');
-    } else {
-      toast.error('ElevenLabs API connection test failed');
+    try {
+      console.log('Testing ElevenLabs API...');
+      const success = await testElevenLabsAPI(apiKey);
+      
+      if (success) {
+        toast.success('ElevenLabs API connection test successful');
+      } else {
+        toast.error('ElevenLabs API connection test failed');
+      }
+    } catch (error) {
+      console.error('Error during ElevenLabs API test:', error);
+      toast.error('ElevenLabs API test encountered an error');
+    } finally {
+      setIsTesting(false);
     }
   };
 

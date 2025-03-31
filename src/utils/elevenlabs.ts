@@ -1,159 +1,142 @@
-
-/**
- * ElevenLabs Text-to-Speech API integration
- */
-import { integrationService } from '@/services/integrationService';
-import { toast } from 'sonner';
-
-// Voice IDs for high-quality ElevenLabs voices
+// Define voice options
 export const VOICE_OPTIONS = {
-  ARIA: '9BWtsMINqrJLrRacOk9x',   // Female, warm and professional
-  ROGER: 'CwhRBWXzGAHq8TQ4Fs17',  // Male, deep and authoritative
-  SARAH: 'EXAVITQu4vr4xnSDxMaL',  // Female, friendly and approachable
-  DANIEL: 'onwK4e9ZLuTAKqWW03F9', // Male, friendly and conversational
+  ARIA: "9BWtsMINqrJLrRacOk9x",
+  ROGER: "CwhRBWXzGAHq8TQ4Fs17",
+  SARAH: "EXAVITQu4vr4xnSDxMaL",
+  DANIEL: "onwK4e9ZLuTAKqWW03F9"
 };
 
-interface SpeakOptions {
-  voice?: string;
-  model?: string;
-}
-
-/**
- * Tests the ElevenLabs API connection using the provided API key
- * @param apiKey ElevenLabs API key
- * @returns Promise resolving to a boolean indicating success or failure
- */
+// Test the ElevenLabs API connection
 export const testElevenLabsAPI = async (apiKey: string): Promise<boolean> => {
   if (!apiKey) {
-    toast.error('No API key provided');
+    console.error('No ElevenLabs API key provided for testing');
     return false;
   }
 
   try {
     console.log('Testing ElevenLabs API connection...');
-    // Test the ElevenLabs API by fetching voices
+    
+    // Use the voices endpoint to test the API key
     const response = await fetch('https://api.elevenlabs.io/v1/voices', {
       method: 'GET',
       headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json'
-      },
+        'Accept': 'application/json',
+        'xi-api-key': apiKey
+      }
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`ElevenLabs API error (${response.status}):`, errorText);
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      console.error('ElevenLabs API test failed:', response.status, errorText);
+      return false;
     }
 
     const data = await response.json();
-    if (data?.voices?.length > 0) {
-      console.log('ElevenLabs API connection successful');
-      return true;
-    } else {
-      console.error('Unexpected response from ElevenLabs API');
-      throw new Error('Unexpected response from ElevenLabs API');
-    }
+    console.log('ElevenLabs API test successful, found voices:', data.voices?.length || 0);
+    return true;
   } catch (error) {
     console.error('Error testing ElevenLabs API:', error);
     return false;
   }
 };
 
-/**
- * Speaks text using ElevenLabs high-quality voice API
- */
+// Speak using ElevenLabs TTS
 export const speakWithElevenLabs = async (
-  text: string, 
-  { voice, model }: SpeakOptions = {}
+  text: string,
+  options: {
+    voice?: string;
+    model?: string;
+    stability?: number;
+    similarity?: number;
+    style?: number;
+    speakerBoost?: boolean;
+  } = {}
 ): Promise<void> => {
   try {
-    console.log('ElevenLabs: Starting voice synthesis for:', text);
+    // Get the ElevenLabs API key from local storage or integration service
+    const integrationSettings = localStorage.getItem('integrationSettings');
+    let apiKey = '';
     
-    // Get the API key from integration settings
-    const elevenLabsIntegration = integrationService.getIntegration('current-user', 'ElevenLabs');
-    
-    let apiKey = elevenLabsIntegration?.apiKey || '';
-    
-    // Fallback to environment variable if available
-    if (!apiKey && import.meta.env.VITE_ELEVENLABS_API_KEY) {
-      apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+    if (integrationSettings) {
+      try {
+        const parsedSettings = JSON.parse(integrationSettings);
+        apiKey = parsedSettings['current-user']?.['ElevenLabs']?.apiKey || '';
+      } catch (e) {
+        console.error('Error parsing integration settings:', e);
+      }
     }
     
     if (!apiKey) {
-      console.warn('ElevenLabs API key not found. Falling back to Web Speech API.');
-      fallbackToWebSpeech(text);
-      return;
+      console.error('No ElevenLabs API key found');
+      throw new Error('No ElevenLabs API key found');
     }
-    
-    // Use settings from integration or defaults
-    const selectedVoice = voice || elevenLabsIntegration?.defaultVoiceId || VOICE_OPTIONS.SARAH;
-    const selectedModel = model || elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2';
-    
-    console.log(`ElevenLabs: Using voice ${selectedVoice} with model ${selectedModel}`);
-    
-    // Create request to ElevenLabs API
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}/stream`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'xi-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        text,
-        model_id: selectedModel,
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.8,
-        }
-      }),
+
+    const {
+      voice = "EXAVITQu4vr4xnSDxMaL", // Default to Sarah
+      model = "eleven_turbo_v2", // Default to faster model
+      stability = 0.5,
+      similarity = 0.8,
+      style = 0.0,
+      speakerBoost = true,
+    } = options;
+
+    console.log('Generating speech with ElevenLabs using settings:', {
+      voice,
+      model,
+      stability,
+      similarity,
+      style,
+      speakerBoost,
+      textLength: text.length
     });
+
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
+      {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          text,
+          model_id: model,
+          voice_settings: {
+            stability,
+            similarity_boost: similarity,
+            style,
+            use_speaker_boost: speakerBoost,
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`ElevenLabs API error (${response.status}):`, errorText);
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      console.error('ElevenLabs API error:', response.status, errorText);
+      throw new Error(`ElevenLabs API error: ${response.status} ${errorText}`);
     }
 
-    // Convert the response to audio and play it
+    // Get the audio blob from the response
     const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
     
-    console.log('ElevenLabs: Audio ready to play');
+    // Create an audio element and play the speech
+    const audio = new Audio();
+    audio.src = URL.createObjectURL(audioBlob);
     
-    // Clean up URL object after playing
-    audio.onended = () => {
-      console.log('ElevenLabs: Audio playback completed');
-      URL.revokeObjectURL(audioUrl);
-    };
-    
+    console.log('Playing ElevenLabs speech...');
     await audio.play();
-    console.log('ElevenLabs: Audio playback started');
+    
+    // Return a promise that resolves when the audio finishes playing
+    return new Promise((resolve) => {
+      audio.onended = () => {
+        console.log('ElevenLabs speech playback complete');
+        resolve();
+      };
+    });
   } catch (error) {
-    console.error('Error with ElevenLabs TTS:', error);
-    // Fall back to Web Speech API if ElevenLabs fails
-    fallbackToWebSpeech(text);
-  }
-};
-
-/**
- * Fallback to Web Speech API if ElevenLabs is unavailable
- */
-const fallbackToWebSpeech = (text: string): void => {
-  if ('speechSynthesis' in window) {
-    console.log('Falling back to Web Speech API');
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95; // Slightly slower for better clarity
-    
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => 
-      voice.name.includes('Google') || voice.name.includes('Natural'));
-    
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-    
-    window.speechSynthesis.speak(utterance);
+    console.error('Error speaking with ElevenLabs:', error);
+    throw error;
   }
 };
