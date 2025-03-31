@@ -1,22 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
-import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Widget } from '@/types/dashboard';
 import { useSettings } from '@/hooks/use-settings';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Settings2, LayoutDashboard } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useCardStyle } from '@/hooks/use-card-style';
-import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from '@/components/ui/tooltip';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import DashboardStats from '@/components/dashboard/DashboardStats';
+import DashboardActions from '@/components/dashboard/DashboardActions';
 
 const Dashboard = () => {
   useVoiceGreeting();
@@ -140,77 +135,26 @@ const Dashboard = () => {
 
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative mb-8"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-2xl" />
+      <div className="relative">
+        <DashboardHeader 
+          isCustomizing={isCustomizing}
+          setIsCustomizing={setIsCustomizing}
+        />
+        
         <div className="relative p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <LayoutDashboard className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                  Welcome Back
-                </h2>
-              </div>
-              <p className="text-muted-foreground mt-2">
-                Here's what's happening in your communities today
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {isCustomizing ? (
-                <DashboardCustomizer 
-                  widgets={dashboardWidgets} 
-                  onSave={handleSaveDashboard}
-                  columns={columns}
-                />
-              ) : (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={() => setIsCustomizing(true)}
-                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                      >
-                        <Settings2 className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Customize Dashboard</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
+            <DashboardActions 
+              isCustomizing={isCustomizing}
+              setIsCustomizing={setIsCustomizing}
+              dashboardWidgets={dashboardWidgets}
+              columns={columns}
+              handleSaveDashboard={handleSaveDashboard}
+            />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            {[
-              { title: 'Properties', value: '12', label: 'Total properties under management' },
-              { title: 'Units', value: '256', label: '24 new this month' },
-              { title: 'Residents', value: '418', label: '92% occupancy rate' },
-              { title: 'Open Requests', value: '15', label: '3 critical, 12 standard' }
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white/50 dark:bg-gray-800/20 backdrop-blur-sm rounded-xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm"
-              >
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</h3>
-                <p className="text-3xl font-bold mt-1">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
-              </motion.div>
-            ))}
-          </div>
+          
+          <DashboardStats />
         </div>
-      </motion.div>
+      </div>
       
       <motion.div
         variants={container}
