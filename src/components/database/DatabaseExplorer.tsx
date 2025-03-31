@@ -50,6 +50,25 @@ const DatabaseExplorer = () => {
             <TabsTrigger value="residents">Residents</TabsTrigger>
             <TabsTrigger value="vendors">Vendors</TabsTrigger>
           </TabsList>
+          
+          {/* Content Areas */}
+          <div className="mt-4">
+            <TabsContent value="associations">
+              <AssociationRecords />
+            </TabsContent>
+
+            <TabsContent value="properties">
+              <PropertyRecords />
+            </TabsContent>
+
+            <TabsContent value="residents">
+              <ResidentRecords />
+            </TabsContent>
+
+            <TabsContent value="vendors">
+              <VendorRecords />
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
 
@@ -148,25 +167,6 @@ const DatabaseExplorer = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Content Areas */}
-      <div className="mt-4">
-        <TabsContent value="associations" className="mt-0">
-          <AssociationRecords />
-        </TabsContent>
-
-        <TabsContent value="properties" className="mt-0">
-          <PropertyRecords />
-        </TabsContent>
-
-        <TabsContent value="residents" className="mt-0">
-          <ResidentRecords />
-        </TabsContent>
-
-        <TabsContent value="vendors" className="mt-0">
-          <VendorRecords />
-        </TabsContent>
-      </div>
     </div>
   );
 };
