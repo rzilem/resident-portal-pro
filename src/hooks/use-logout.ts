@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/hooks/use-auth';
 import { clearDemoAuthentication } from '@/utils/auth/demoAuth';
 
 export const useLogout = () => {
@@ -10,6 +10,8 @@ export const useLogout = () => {
 
   const handleLogout = async () => {
     try {
+      console.log('Logout function called');
+      
       // Clear demo authentication if active
       clearDemoAuthentication();
       
@@ -20,7 +22,7 @@ export const useLogout = () => {
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error('An unexpected error occurred during logout');
     }
   };
 

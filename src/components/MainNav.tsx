@@ -14,9 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCompanySettings } from '@/hooks/use-company-settings';
+import { useLogout } from '@/hooks/use-logout';
 
 const MainNav = () => {
   const { settings } = useCompanySettings();
+  const { handleLogout } = useLogout();
   
   return (
     <div className="flex items-center justify-between w-full">
@@ -41,14 +43,14 @@ const MainNav = () => {
                 </li>
                 <li className="row-span-1">
                   <NavigationMenuLink asChild>
-                    <Link
-                      to="/logout"
+                    <button
+                      onClick={handleLogout}
                       className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
                     >
                       <div className="mb-2 mt-2 text-base font-medium">
                         Logout
                       </div>
-                    </Link>
+                    </button>
                   </NavigationMenuLink>
                 </li>
               </ul>
