@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
@@ -21,6 +20,15 @@ export function useElevenLabs() {
     fetchIntegrations
   } = useIntegrations();
 
+  // Log additional details when integration changes
+  useEffect(() => {
+    const elevenLabsIntegration = getIntegration('ElevenLabs');
+    console.log('ElevenLabs Integration Details:', {
+      integration: elevenLabsIntegration,
+      isConnected: isConnected('ElevenLabs')
+    });
+  }, [getIntegration, isConnected]);
+
   // Get the current ElevenLabs integration configuration
   const elevenLabsIntegration = getIntegration('ElevenLabs');
   
@@ -37,6 +45,9 @@ export function useElevenLabs() {
         defaultModel: settings.defaultModel
       });
       
+      // Log connection status before attempting to save
+      console.log('Current ElevenLabs Connection Status:', isElevenLabsConnected);
+      
       // First ensure we're connected if not already connected
       if (!isElevenLabsConnected) {
         console.log('Connecting ElevenLabs integration...');
@@ -44,8 +55,6 @@ export function useElevenLabs() {
           ...settings,
           enabled: true
         });
-      } else {
-        console.log('ElevenLabs already connected, updating settings...');
       }
       
       // Then update the settings
@@ -59,6 +68,7 @@ export function useElevenLabs() {
       await fetchIntegrations();
       
       console.log('ElevenLabs settings saved successfully:', result);
+      toast.success('ElevenLabs settings saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving ElevenLabs settings:', error);
@@ -98,14 +108,18 @@ export function useElevenLabs() {
     
     return {
       apiKey: elevenLabsIntegration?.apiKey || '',
-      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId || 'EXAVITQu4vr4xnSDxMaL', // Sarah by default
-      defaultModel: elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2' // Default to faster model
+      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId || 'EXAVITQu4vr4xnSDxMaL',
+      defaultModel: elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2'
     };
   }, [elevenLabsIntegration]);
 
   return {
     isElevenLabsConnected,
-    settings: getSettings(),
+    settings: {
+      apiKey: elevenLabsIntegration?.apiKey || '',
+      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId || 'EXAVITQu4vr4xnSDxMaL',
+      defaultModel: elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2'
+    },
     saveElevenLabsSettings,
     testElevenLabsAPI,
     isLoading,

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,19 +26,15 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
   const [defaultModel, setDefaultModel] = useState(settings.defaultModel);
   const [isTesting, setIsTesting] = useState(false);
 
-  // Update local state when dialog opens or settings change
   useEffect(() => {
-    if (open) {
-      console.log('ElevenLabs dialog opened, initializing with settings:', {
-        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-        defaultVoiceId: settings.defaultVoiceId,
-        defaultModel: settings.defaultModel
-      });
-      setApiKey(settings.apiKey);
-      setDefaultVoiceId(settings.defaultVoiceId);
-      setDefaultModel(settings.defaultModel);
-    }
-  }, [open, settings]);
+    console.log('ElevenLabs Dialog State:', {
+      openStatus: open,
+      currentSettings: settings,
+      apiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
+      defaultVoiceId,
+      defaultModel
+    });
+  }, [open, settings, apiKey, defaultVoiceId, defaultModel]);
 
   const handleSave = async () => {
     if (!apiKey.trim()) {
@@ -47,8 +42,8 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
       return;
     }
     
-    console.log('Saving ElevenLabs settings with:', {
-      apiKey: apiKey.length > 0 ? `${apiKey.substring(0, 5)}...` : 'empty',
+    console.log('Attempting to save ElevenLabs settings:', {
+      apiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'empty',
       defaultVoiceId,
       defaultModel
     });
