@@ -25,12 +25,35 @@ export const isDemoAuthenticated = (): boolean => {
  * Set demo authentication mode
  * @param {boolean} isDemo Whether to enable demo authentication
  */
-export const setDemoAuthentication = (isDemo: boolean): void => {
+export const setDemoAuthentication = (isDemo: boolean = true): void => {
   if (isDemo) {
     localStorage.setItem('demo_auth', 'true');
   } else {
     localStorage.removeItem('demo_auth');
   }
+};
+
+/**
+ * Clear demo authentication
+ */
+export const clearDemoAuthentication = (): void => {
+  localStorage.removeItem('demo_auth');
+};
+
+/**
+ * Check if credentials are demo credentials
+ * @param {string} email Email address
+ * @param {string} password Password
+ * @returns {boolean} True if credentials are demo credentials
+ */
+export const isDemoCredentials = (email: string, password: string): boolean => {
+  const demoEmails = ['demo@example.com', 'demo@test.com', 'admin@demo.com'];
+  const demoPasswords = ['demo123', 'password', 'demopassword'];
+  
+  return (
+    (demoEmails.includes(email.toLowerCase()) && demoPasswords.includes(password)) ||
+    (email.includes('demo') && password.includes('demo'))
+  );
 };
 
 /**

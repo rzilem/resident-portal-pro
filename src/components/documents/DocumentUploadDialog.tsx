@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -23,6 +22,7 @@ interface DocumentUploadDialogProps {
   onSuccess?: () => void;
   refreshDocuments?: () => void;
   categoryId?: string;
+  associationId?: string;
 }
 
 // Form schema
@@ -109,7 +109,10 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       return;
     }
     
-    if (!activeAssociation) {
+    // Use provided associationId or fall back to the active association
+    const targetAssociationId = associationId || (activeAssociation ? activeAssociation.id : null);
+    
+    if (!targetAssociationId) {
       toast.error("Please select an association");
       return;
     }
@@ -127,7 +130,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         description: values.description || '',
         category: values.category,
         tags: tagArray,
-        associationId: activeAssociation.id
+        associationId: targetAssociationId
       });
       
       if (result) {

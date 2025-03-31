@@ -6,6 +6,20 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
+ * Check if the current user is authenticated
+ * @returns Promise<boolean> True if authenticated
+ */
+export const isUserAuthenticated = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session?.user;
+  } catch (error) {
+    console.error('Error checking authentication status:', error);
+    return false;
+  }
+};
+
+/**
  * Get the current user's ID
  * @returns Promise<string | null> The user ID or null if not authenticated
  */

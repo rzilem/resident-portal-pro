@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { DocumentFile } from '@/types/documents';
 import { Loader2 } from 'lucide-react';
-import { DocumentTableRow } from './DocumentTableRow';
+import DocumentTableRow from './DocumentTableRow';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import NoDocumentsPlaceholder from './NoDocumentsPlaceholder';

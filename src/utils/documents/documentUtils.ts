@@ -1,14 +1,13 @@
-
 /**
- * Utility functions for document operations
+ * Document utilities for fetching and manipulating document data
  */
-
-import { parse } from 'date-fns';
+import { DocumentCategory } from '@/types/documents';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Format a file size from bytes to a human-readable format
- * @param bytes File size in bytes
- * @returns Formatted file size string
+ * Format file size to human-readable format
+ * @param {number} bytes - Size in bytes
+ * @returns {string} Formatted file size
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
@@ -17,6 +16,36 @@ export const formatFileSize = (bytes: number): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   
   return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+/**
+ * Get document categories
+ * @returns {Promise<DocumentCategory[]>} List of document categories
+ */
+export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('document_categories')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching document categories:', error);
+      throw error;
+    }
+    
+    // Map database fields to our DocumentCategory interface
+    return (data || []).map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      description: cat.description || '',
+      accessLevel: cat.access_level || 'all',
+      sortOrder: cat.sort_order,
+    }));
+  } catch (error) {
+    console.error('Error in getDocumentCategories:', error);
+    return [];
+  }
 };
 
 /**

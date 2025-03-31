@@ -32,7 +32,7 @@ export const useLogin = () => {
         
         // Fallback to demo credentials for development
         if (isDemoCredentials(loginValues.email, loginValues.password)) {
-          setDemoAuthentication();
+          setDemoAuthentication(true);
           
           // Navigate to dashboard after successful login
           toast.success("Login successful with demo account! Welcome back.");
