@@ -1,44 +1,39 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 interface SecuritySettings {
   twoFactorEnabled: boolean;
   passwordLastChanged: string | null;
-  loginAttempts: number;
-  securityQuestions: boolean;
-  activeDevices: string[];
-  lastLogin: string | null;
+  activeSessions: {
+    id: string;
+    device: string;
+    lastActive: string;
+    current: boolean;
+  }[];
 }
 
-const defaultSecuritySettings: SecuritySettings = {
-  twoFactorEnabled: false,
-  passwordLastChanged: null,
-  loginAttempts: 0,
-  securityQuestions: false,
-  activeDevices: [],
-  lastLogin: null
-};
-
 export function useSecuritySettings() {
-  // In a real application, this would be fetched from a backend
-  const [settings, setSettings] = useState<SecuritySettings>(defaultSecuritySettings);
   const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState<SecuritySettings>({
+    twoFactorEnabled: false,
+    passwordLastChanged: null,
+    activeSessions: [
+      { id: 'session-1', device: 'Windows PC - Chrome', lastActive: '2 minutes ago', current: true },
+      { id: 'session-2', device: 'iPhone 13 - Safari', lastActive: '1 day ago', current: false },
+      { id: 'session-3', device: 'MacBook Pro - Firefox', lastActive: '3 days ago', current: false }
+    ]
+  });
 
   const enableTwoFactor = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Mock API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSettings(prev => ({
-        ...prev,
-        twoFactorEnabled: true
-      }));
-      
-      toast.success('Two-factor authentication enabled successfully');
+      setSettings(prev => ({ ...prev, twoFactorEnabled: true }));
+      toast.success('Two-factor authentication enabled');
       return true;
-    } catch (err) {
+    } catch (error) {
+      console.error('Error enabling 2FA:', error);
       toast.error('Failed to enable two-factor authentication');
       return false;
     } finally {
@@ -49,17 +44,13 @@ export function useSecuritySettings() {
   const disableTwoFactor = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Mock API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSettings(prev => ({
-        ...prev,
-        twoFactorEnabled: false
-      }));
-      
+      setSettings(prev => ({ ...prev, twoFactorEnabled: false }));
       toast.success('Two-factor authentication disabled');
       return true;
-    } catch (err) {
+    } catch (error) {
+      console.error('Error disabling 2FA:', error);
       toast.error('Failed to disable two-factor authentication');
       return false;
     } finally {
@@ -70,24 +61,23 @@ export function useSecuritySettings() {
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     setIsLoading(true);
     try {
-      // Mock password validation
-      if (currentPassword !== 'password') {
+      // Simulate API call and validation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real implementation, you would validate currentPassword against stored password
+      if (currentPassword === 'invalid') {
         toast.error('Current password is incorrect');
-        setIsLoading(false);
         return false;
       }
       
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSettings(prev => ({
-        ...prev,
-        passwordLastChanged: new Date().toISOString()
+      setSettings(prev => ({ 
+        ...prev, 
+        passwordLastChanged: new Date().toISOString() 
       }));
-      
       toast.success('Password changed successfully');
       return true;
-    } catch (err) {
+    } catch (error) {
+      console.error('Error changing password:', error);
       toast.error('Failed to change password');
       return false;
     } finally {
@@ -95,42 +85,21 @@ export function useSecuritySettings() {
     }
   }, []);
 
-  const setupSecurityQuestions = useCallback(async (questions: {question: string; answer: string}[]) => {
+  const logoutSession = useCallback(async (sessionId: string) => {
     setIsLoading(true);
     try {
-      // Mock API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setSettings(prev => ({
         ...prev,
-        securityQuestions: true
+        activeSessions: prev.activeSessions.filter(s => s.id !== sessionId)
       }));
-      
-      toast.success('Security questions set up successfully');
+      toast.success('Session logged out successfully');
       return true;
-    } catch (err) {
-      toast.error('Failed to set up security questions');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const logoutDevice = useCallback(async (deviceId: string) => {
-    setIsLoading(true);
-    try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSettings(prev => ({
-        ...prev,
-        activeDevices: prev.activeDevices.filter(id => id !== deviceId)
-      }));
-      
-      toast.success('Device logged out successfully');
-      return true;
-    } catch (err) {
-      toast.error('Failed to log out device');
+    } catch (error) {
+      console.error('Error logging out session:', error);
+      toast.error('Failed to log out session');
       return false;
     } finally {
       setIsLoading(false);
@@ -140,17 +109,18 @@ export function useSecuritySettings() {
   const logoutAllDevices = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Mock API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Keep only current session
       setSettings(prev => ({
         ...prev,
-        activeDevices: []
+        activeSessions: prev.activeSessions.filter(s => s.current)
       }));
-      
-      toast.success('All devices logged out successfully');
+      toast.success('All other devices logged out successfully');
       return true;
-    } catch (err) {
+    } catch (error) {
+      console.error('Error logging out all devices:', error);
       toast.error('Failed to log out all devices');
       return false;
     } finally {
@@ -164,8 +134,7 @@ export function useSecuritySettings() {
     enableTwoFactor,
     disableTwoFactor,
     changePassword,
-    setupSecurityQuestions,
-    logoutDevice,
+    logoutSession,
     logoutAllDevices
   };
 }

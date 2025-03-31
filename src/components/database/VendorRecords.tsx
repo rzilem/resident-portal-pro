@@ -1,181 +1,201 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, UserPlus, Eye } from 'lucide-react';
-import { TooltipButton } from '@/components/ui/tooltip-button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal, Mail, Phone, Edit, Trash2, Eye, FileText } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
 
-const mockVendorData = [
+// Mock data for vendors
+const mockVendors = [
   {
-    id: '1',
-    name: 'ABC Landscaping Services',
-    contactName: 'Michael Brown',
-    email: 'michael@abclandscaping.com',
-    phone: '(555) 123-4567',
-    category: 'Landscaping',
-    status: 'active',
-    lastInvoice: '2023-06-15',
-    rating: 4.8
+    id: "1",
+    name: "ABC Plumbing Services",
+    contactName: "Robert Johnson",
+    email: "info@abcplumbing.com",
+    phone: "(555) 123-7890",
+    category: "Plumbing",
+    status: "active",
+    contractExpiry: "2023-12-31",
   },
   {
-    id: '2',
-    name: 'QuickFix Plumbing',
-    contactName: 'Sarah Johnson',
-    email: 'sarah@quickfixplumbing.com',
-    phone: '(555) 987-6543',
-    category: 'Plumbing',
-    status: 'active',
-    lastInvoice: '2023-05-22',
-    rating: 4.5
+    id: "2",
+    name: "Elite Landscaping Co.",
+    contactName: "Maria Garcia",
+    email: "maria@elitelandscaping.com",
+    phone: "(555) 456-7890",
+    category: "Landscaping",
+    status: "active",
+    contractExpiry: "2024-05-15",
   },
   {
-    id: '3',
-    name: 'Elite Security Systems',
-    contactName: 'David Wilson',
-    email: 'david@elitesecurity.com',
-    phone: '(555) 456-7890',
-    category: 'Security',
-    status: 'inactive',
-    lastInvoice: '2022-11-05',
-    rating: 3.9
+    id: "3",
+    name: "Quick Fix Electricians",
+    contactName: "James Wilson",
+    email: "service@quickfixelec.com",
+    phone: "(555) 789-1234",
+    category: "Electrical",
+    status: "inactive",
+    contractExpiry: "2023-08-20",
+  },
+  {
+    id: "4",
+    name: "Secure Lock & Key",
+    contactName: "Diana Lee",
+    email: "diana@securelock.com",
+    phone: "(555) 321-6547",
+    category: "Security",
+    status: "active",
+    contractExpiry: "2024-02-28",
+  },
+  {
+    id: "5",
+    name: "Fresh Paint Pro",
+    contactName: "Thomas Brown",
+    email: "thomas@freshpaint.com",
+    phone: "(555) 987-3214",
+    category: "Painting",
+    status: "pending",
+    contractExpiry: "2023-11-10",
   }
 ];
 
 const VendorRecords: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  
-  const filteredData = mockVendorData.filter(vendor => {
-    // Filter by search term
-    const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vendor.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vendor.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Filter by category
-    const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
-    
-    // Filter by status
-    const matchesStatus = statusFilter === 'all' || vendor.status === statusFilter;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  const [vendors] = useState(mockVendors);
 
-  const handleAddVendor = () => {
-    toast.info("Add vendor functionality would open a form");
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge variant="success">Active</Badge>;
+      case 'inactive':
+        return <Badge variant="secondary">Inactive</Badge>;
+      case 'pending':
+        return <Badge variant="warning">Pending</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
   };
 
-  const handleViewDetails = (id: string) => {
-    toast.info(`Viewing details for vendor ${id}`);
+  const handleViewDetails = (vendorId: string) => {
+    toast.info(`Viewing details for vendor ${vendorId}`);
   };
 
-  const handleEdit = (id: string) => {
-    toast.info(`Editing vendor ${id}`);
+  const handleViewContract = (vendorId: string) => {
+    toast.info(`Viewing contract for vendor ${vendorId}`);
   };
 
-  const handleDelete = (id: string) => {
-    toast.info(`Deleting vendor ${id}`);
+  const handleSendEmail = (email: string) => {
+    toast.info(`Sending email to ${email}`);
+  };
+
+  const handleCall = (phone: string) => {
+    toast.info(`Calling ${phone}`);
+  };
+
+  const handleEdit = (vendorId: string) => {
+    toast.info(`Editing vendor ${vendorId}`);
+  };
+
+  const handleDelete = (vendorId: string) => {
+    toast.info(`Deleting vendor ${vendorId}`);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div className="flex-1 flex gap-2">
-          <Input 
-            placeholder="Search vendors..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Landscaping">Landscaping</SelectItem>
-              <SelectItem value="Plumbing">Plumbing</SelectItem>
-              <SelectItem value="Security">Security</SelectItem>
-              <SelectItem value="Maintenance">Maintenance</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button onClick={handleAddVendor} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Add Vendor
-        </Button>
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-medium">Vendors</h2>
+        <Button size="sm">Add Vendor</Button>
       </div>
-
-      <Card>
-        <CardHeader className="py-4">
-          <CardTitle>Vendor Records</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px]">
-                  <Checkbox />
-                </TableHead>
-                <TableHead>Vendor Name</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.map((vendor) => (
-                <TableRow key={vendor.id}>
-                  <TableCell>
-                    <Checkbox />
-                  </TableCell>
-                  <TableCell className="font-medium">{vendor.name}</TableCell>
-                  <TableCell>{vendor.contactName}</TableCell>
-                  <TableCell>{vendor.category}</TableCell>
-                  <TableCell>{vendor.email}</TableCell>
-                  <TableCell>
-                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      vendor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {vendor.status}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vendor Name</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Contract Expiry</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[70px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {vendors.map((vendor) => (
+              <TableRow key={vendor.id}>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">{vendor.name}</div>
+                    <div className="text-sm text-muted-foreground">{vendor.contactName}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center">
+                      <Mail className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      <span className="text-sm">{vendor.email}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>{vendor.rating} / 5</TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <TooltipButton tooltipText="View Details" variant="ghost" size="icon" onClick={() => handleViewDetails(vendor.id)}>
-                      <Eye className="h-4 w-4" />
-                    </TooltipButton>
-                    <TooltipButton tooltipText="Edit" variant="ghost" size="icon" onClick={() => handleEdit(vendor.id)}>
-                      <Edit className="h-4 w-4" />
-                    </TooltipButton>
-                    <TooltipButton tooltipText="Delete" variant="ghost" size="icon" onClick={() => handleDelete(vendor.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </TooltipButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    <div className="flex items-center">
+                      <Phone className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      <span className="text-sm">{vendor.phone}</span>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>{vendor.category}</TableCell>
+                <TableCell>{new Date(vendor.contractExpiry).toLocaleDateString()}</TableCell>
+                <TableCell>{getStatusBadge(vendor.status)}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleViewDetails(vendor.id)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewContract(vendor.id)}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        View Contract
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSendEmail(vendor.email)}>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Send Email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleCall(vendor.phone)}>
+                        <Phone className="mr-2 h-4 w-4" />
+                        Call
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleEdit(vendor.id)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDelete(vendor.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

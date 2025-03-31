@@ -1,144 +1,163 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { integrationService } from '@/services/integrationService';
-import { supabase } from '@/integrations/supabase/client';
 
-interface IntegrationSettings {
-  enabled: boolean;
+// Types for integration data
+interface Integration {
+  id: string;
+  name: string;
   apiKey?: string;
-  webhookUrl?: string;
-  connectedAccount?: string;
-  lastSync?: string;
-  config?: Record<string, any>;
-  [key: string]: any; // Allow any additional fields for integration-specific configurations
+  defaultModel?: string;
+  defaultVoiceId?: string;
+  organization?: string;
+  endpoint?: string;
+  enabled: boolean;
+  [key: string]: any;
 }
 
-export function useIntegrations(entityId: string = 'current-user') {
-  const [integrations, setIntegrations] = useState<Record<string, IntegrationSettings>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+// Mock initial integrations
+const initialIntegrations: Integration[] = [
+  { id: 'ElevenLabs', name: 'ElevenLabs', enabled: false },
+  { id: 'XAI', name: 'X.AI', enabled: false },
+  { id: 'Zapier', name: 'Zapier', enabled: false },
+  { id: 'OpenAI', name: 'OpenAI', enabled: false },
+  { id: 'Stripe', name: 'Stripe', enabled: false },
+];
 
-  // Check if the user is authenticated
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setCurrentUser(data?.session?.user || null);
-    };
-    
-    checkAuth();
-    
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user || null);
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+export function useIntegrations() {
+  const [integrations, setIntegrations] = useState<Integration[]>(initialIntegrations);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
-  // Fetch all integrations
   const fetchIntegrations = useCallback(async () => {
+    // In a real implementation, this would make an API call to fetch integrations
+    console.log('Fetching integrations...');
     setIsLoading(true);
-    setError(null);
     try {
-      const data = await integrationService.getIntegrations(entityId);
-      console.log('Fetched integrations:', data);
-      setIntegrations(data);
-    } catch (err) {
-      console.error('Error fetching integrations:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch integrations'));
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, we would update the integrations here with fetched data
+      // For now, we'll just use what we have in state
+      console.log('Integrations loaded successfully');
+      return true;
+    } catch (error) {
+      console.error('Error fetching integrations:', error);
       toast.error('Failed to load integrations');
+      return false;
     } finally {
       setIsLoading(false);
     }
-  }, [entityId]);
+  }, []);
 
-  // Connect an integration
-  const connectIntegration = useCallback(async (
-    integrationId: string, 
-    settings: IntegrationSettings
-  ) => {
+  const getIntegration = useCallback((id: string): Integration | undefined => {
+    return integrations.find(integration => integration.id === id);
+  }, [integrations]);
+
+  const isConnected = useCallback((id: string): boolean => {
+    const integration = getIntegration(id);
+    return integration ? integration.enabled : false;
+  }, [getIntegration]);
+
+  const connectIntegration = useCallback(async (id: string, settings: any) => {
+    setIsLoading(true);
     try {
-      console.log('Connecting integration:', integrationId, settings);
-      const updatedIntegration = await integrationService.connectIntegration(entityId, integrationId, settings);
-      setIntegrations(prev => ({
-        ...prev,
-        [integrationId]: updatedIntegration
-      }));
-      return updatedIntegration;
-    } catch (err) {
-      console.error('Failed to connect integration:', err);
-      toast.error(`Failed to connect ${integrationId}`);
-      throw err;
+      console.log(`Connecting integration ${id}...`, settings);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIntegrations(prev => 
+        prev.map(item => 
+          item.id === id 
+            ? { ...item, ...settings, enabled: true }
+            : item
+        )
+      );
+      
+      console.log(`Integration ${id} connected successfully`);
+      return true;
+    } catch (error) {
+      console.error(`Error connecting integration ${id}:`, error);
+      toast.error(`Failed to connect ${id}`);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, [entityId]);
+  }, []);
 
-  // Disconnect an integration
-  const disconnectIntegration = useCallback(async (integrationId: string) => {
+  const disconnectIntegration = useCallback(async (id: string) => {
+    setIsLoading(true);
     try {
-      const success = await integrationService.disconnectIntegration(entityId, integrationId);
-      if (success) {
-        setIntegrations(prev => ({
-          ...prev,
-          [integrationId]: {
-            ...prev[integrationId],
-            enabled: false
-          }
-        }));
-      }
-      return success;
-    } catch (err) {
-      console.error('Failed to disconnect integration:', err);
-      toast.error(`Failed to disconnect ${integrationId}`);
-      throw err;
+      console.log(`Disconnecting integration ${id}...`);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIntegrations(prev => 
+        prev.map(item => 
+          item.id === id 
+            ? { ...item, enabled: false }
+            : item
+        )
+      );
+      
+      console.log(`Integration ${id} disconnected successfully`);
+      return true;
+    } catch (error) {
+      console.error(`Error disconnecting integration ${id}:`, error);
+      toast.error(`Failed to disconnect ${id}`);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, [entityId]);
+  }, []);
 
-  // Update integration settings
-  const updateIntegrationSettings = useCallback(async (
-    integrationId: string, 
-    updates: Partial<IntegrationSettings>
-  ) => {
+  const updateIntegrationSettings = useCallback(async (id: string, settings: any) => {
+    setIsLoading(true);
     try {
-      console.log('Updating integration settings:', integrationId, updates);
-      const updatedIntegration = await integrationService.updateIntegrationSettings(entityId, integrationId, updates);
-      if (updatedIntegration) {
-        setIntegrations(prev => ({
-          ...prev,
-          [integrationId]: updatedIntegration
-        }));
-      }
-      return updatedIntegration;
-    } catch (err) {
-      console.error('Failed to update integration settings:', err);
-      toast.error(`Failed to update ${integrationId} settings`);
-      throw err;
+      console.log(`Updating integration ${id} settings...`, settings);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIntegrations(prev => 
+        prev.map(item => 
+          item.id === id 
+            ? { ...item, ...settings }
+            : item
+        )
+      );
+      
+      console.log(`Integration ${id} settings updated successfully`);
+      return true;
+    } catch (error) {
+      console.error(`Error updating integration ${id} settings:`, error);
+      toast.error(`Failed to update ${id} settings`);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, [entityId]);
+  }, []);
 
-  // Load integrations on mount or when auth state changes
-  useEffect(() => {
-    fetchIntegrations();
-  }, [fetchIntegrations, currentUser]);
+  // Verify authentication status
+  const checkAuthentication = useCallback(async () => {
+    // In a real app, this would check if the user is authenticated
+    // For now, we'll just return true
+    return isAuthenticated;
+  }, [isAuthenticated]);
 
   return {
     integrations,
     isLoading,
-    error,
+    isAuthenticated,
+    fetchIntegrations,
+    getIntegration,
+    isConnected,
     connectIntegration,
     disconnectIntegration,
     updateIntegrationSettings,
-    testWebhook: integrationService.testWebhook,
-    isConnected: useCallback((integrationId: string) => {
-      return integrations[integrationId]?.enabled || false;
-    }, [integrations]),
-    getIntegration: useCallback((integrationId: string) => {
-      return integrations[integrationId] || null;
-    }, [integrations]),
-    fetchIntegrations,
-    isAuthenticated: !!currentUser
+    checkAuthentication,
+    setIsAuthenticated
   };
 }

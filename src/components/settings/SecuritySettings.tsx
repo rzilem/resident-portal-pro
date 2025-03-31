@@ -7,11 +7,24 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, Smartphone, LogOut } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSecuritySettings } from '@/hooks/use-security-settings';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import SecuritySettingsFooter from './permissions/components/SecuritySettingsFooter';
+
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string()
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
+});
+
+type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const SecuritySettings: React.FC = () => {
   const {
@@ -20,12 +33,15 @@ const SecuritySettings: React.FC = () => {
     enableTwoFactor,
     disableTwoFactor,
     changePassword,
+    logoutSession,
     logoutAllDevices
   } = useSecuritySettings();
 
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   
-  const passwordForm = useForm({
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -34,19 +50,16 @@ const SecuritySettings: React.FC = () => {
   });
 
   const handleToggleTwoFactor = async (checked: boolean) => {
+    setHasChanges(true);
     if (checked) {
       await enableTwoFactor();
     } else {
       await disableTwoFactor();
     }
+    setHasChanges(false);
   };
 
   const handlePasswordSubmit = passwordForm.handleSubmit(async (data) => {
-    if (data.newPassword !== data.confirmPassword) {
-      toast.error("New passwords don't match");
-      return;
-    }
-    
     const success = await changePassword(data.currentPassword, data.newPassword);
     if (success) {
       setPasswordDialogOpen(false);
@@ -54,11 +67,20 @@ const SecuritySettings: React.FC = () => {
     }
   });
 
-  const mockDevices = [
-    { id: 'device-1', name: 'Windows PC - Chrome', lastActive: '2 minutes ago' },
-    { id: 'device-2', name: 'iPhone 13 - Safari', lastActive: '1 day ago' },
-    { id: 'device-3', name: 'MacBook Pro - Firefox', lastActive: '3 days ago' }
-  ];
+  const handleLogoutSession = async (sessionId: string) => {
+    await logoutSession(sessionId);
+  };
+
+  const handleSaveSettings = async () => {
+    // This would save all security settings at once
+    // Currently, changes are saved immediately when toggles are changed
+    setHasChanges(false);
+  };
+
+  const handleResetChanges = () => {
+    // Reset any pending changes
+    setHasChanges(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -174,16 +196,25 @@ const SecuritySettings: React.FC = () => {
           </Alert>
           
           <div className="space-y-4">
-            {mockDevices.map((device) => (
-              <div key={device.id} className="flex items-center justify-between">
+            {settings.activeSessions.map((session) => (
+              <div key={session.id} className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Smartphone className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <h4 className="text-sm font-medium">{device.name}</h4>
-                    <p className="text-xs text-muted-foreground">Last active: {device.lastActive}</p>
+                    <h4 className="text-sm font-medium">{session.device}</h4>
+                    <p className="text-xs text-muted-foreground">Last active: {session.lastActive}</p>
+                    {session.current && (
+                      <p className="text-xs text-primary mt-1">Current session</p>
+                    )}
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-destructive">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-destructive"
+                  onClick={() => handleLogoutSession(session.id)}
+                  disabled={session.current || isLoading}
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   <span>Logout</span>
                 </Button>
@@ -191,12 +222,24 @@ const SecuritySettings: React.FC = () => {
             ))}
           </div>
           
-          <Button variant="outline" className="w-full" onClick={logoutAllDevices} disabled={isLoading}>
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={logoutAllDevices} 
+            disabled={isLoading || settings.activeSessions.length <= 1}
+          >
             <LogOut className="h-4 w-4 mr-2" />
             {isLoading ? 'Logging out...' : 'Logout from all devices'}
           </Button>
         </CardContent>
       </Card>
+
+      <SecuritySettingsFooter 
+        hasChanges={hasChanges}
+        isSaving={isLoading}
+        onReset={handleResetChanges}
+        onSave={handleSaveSettings}
+      />
     </div>
   );
 };
