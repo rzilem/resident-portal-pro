@@ -29,6 +29,7 @@ class ReportDataService {
         return sampleReportDataService.getFinancialData(reportType, associationId);
       }
       
+      // Using a raw query approach to work around type issues
       const { data, error } = await supabase
         .from('report_data')
         .select('*')
@@ -36,7 +37,7 @@ class ReportDataService {
         .eq('association_id', associationId)
         .eq('time_range', timeRange)
         .eq('report_category', reportCategory)
-        .single();
+        .maybeSingle();
       
       if (error) {
         // If no data found, generate sample data
@@ -64,7 +65,8 @@ class ReportDataService {
         return null;
       }
       
-      return data.data;
+      // Return the data property from the result (workaround for type issues)
+      return data?.data;
     } catch (error) {
       console.error('Unexpected error fetching report data:', error);
       return sampleReportDataService.getFinancialData(reportType, associationId);
@@ -95,7 +97,10 @@ class ReportDataService {
         // Update existing record
         const { error: updateError } = await supabase
           .from('report_data')
-          .update({ data: payload.data })
+          .update({ 
+            data: payload.data,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', existingData.id);
         
         if (updateError) {
@@ -108,7 +113,13 @@ class ReportDataService {
         // Insert new record
         const { error: insertError } = await supabase
           .from('report_data')
-          .insert([payload]);
+          .insert([{
+            association_id: payload.association_id,
+            report_type: payload.report_type,
+            report_category: payload.report_category,
+            time_range: payload.time_range,
+            data: payload.data
+          }]);
         
         if (insertError) {
           console.error('Error storing report data:', insertError);

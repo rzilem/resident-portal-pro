@@ -61,10 +61,10 @@ const CreateAssociationForm = () => {
         values.units = Number(values.units);
       }
 
-      // Insert into database
+      // Insert into database - FIX: Pass values directly not as an array
       const { data, error } = await supabase
         .from('associations')
-        .insert([values])
+        .insert(values) // Fixed: removed the square brackets
         .select('id')
         .single();
 
