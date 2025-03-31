@@ -21,11 +21,19 @@ export function useElevenLabs() {
     fetchIntegrations
   } = useIntegrations();
 
+  // Debug when the hook is initialized
+  useEffect(() => {
+    console.log('ElevenLabs hook initialized');
+  }, []);
+
   // Log additional details when integration changes
   useEffect(() => {
     const elevenLabsIntegration = getIntegration('ElevenLabs');
     console.log('ElevenLabs Integration Details:', {
       integration: elevenLabsIntegration,
+      apiKey: elevenLabsIntegration?.apiKey ? `${elevenLabsIntegration.apiKey.substring(0, 5)}...` : 'none',
+      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId,
+      defaultModel: elevenLabsIntegration?.defaultModel,
       isConnected: isConnected('ElevenLabs')
     });
   }, [getIntegration, isConnected]);
@@ -35,6 +43,13 @@ export function useElevenLabs() {
   
   // Check if ElevenLabs is connected
   const isElevenLabsConnected = isConnected('ElevenLabs');
+
+  // Force a refresh of integrations to ensure we have the latest data
+  useEffect(() => {
+    fetchIntegrations().catch(err => 
+      console.error('Error fetching integrations in useElevenLabs:', err)
+    );
+  }, [fetchIntegrations]);
 
   // Improved saveElevenLabsSettings to ensure settings are properly saved
   const saveElevenLabsSettings = useCallback(async (settings: ElevenLabsSettings) => {

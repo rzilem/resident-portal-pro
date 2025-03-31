@@ -30,7 +30,11 @@ export function useElevenLabsDialog(open: boolean, onOpenChange: (open: boolean)
   useEffect(() => {
     console.log('ElevenLabs Dialog State:', {
       openStatus: open,
-      currentSettings: settings,
+      currentSettings: {
+        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
+        defaultVoiceId: settings.defaultVoiceId,
+        defaultModel: settings.defaultModel
+      },
       localApiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
       localDefaultVoiceId: defaultVoiceId,
       localDefaultModel: defaultModel

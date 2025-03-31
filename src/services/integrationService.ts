@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserIntegration } from "@/types/supabase";
 
@@ -19,6 +18,7 @@ let integrationsCache: Record<string, Record<string, IntegrationSettings>> = {};
 const persistToLocalStorage = () => {
   try {
     localStorage.setItem('integrationSettings', JSON.stringify(integrationsCache));
+    console.log('Integration settings saved to localStorage');
   } catch (e) {
     console.error('Error saving integration settings to localStorage:', e);
   }
@@ -27,7 +27,13 @@ const persistToLocalStorage = () => {
 // Load initial cache from localStorage
 try {
   const saved = localStorage.getItem('integrationSettings');
-  integrationsCache = saved ? JSON.parse(saved) : {};
+  if (saved) {
+    integrationsCache = JSON.parse(saved);
+    console.log('Loaded integration settings from localStorage:', integrationsCache);
+  } else {
+    console.log('No integration settings found in localStorage');
+    integrationsCache = {};
+  }
 } catch (e) {
   console.error('Error loading integration settings from localStorage:', e);
   integrationsCache = {};
@@ -39,6 +45,8 @@ const integrationSchemas: Record<string, { fields: string[] }> = {
   PayPal: { fields: ['clientId', 'clientSecret', 'environment'] },
   Twilio: { fields: ['accountSid', 'authToken', 'phoneNumber'] },
   SendGrid: { fields: ['apiKey', 'fromEmail'] },
+  ElevenLabs: { fields: ['apiKey', 'defaultVoiceId', 'defaultModel'] },
+  XAI: { fields: ['apiKey', 'defaultModel', 'organization'] },
   // Add more integrations as needed
 };
 
@@ -49,6 +57,7 @@ export const integrationService = {
   getIntegrations: async (entityId: string): Promise<Record<string, IntegrationSettings>> => {
     // First check cache
     if (integrationsCache[entityId]) {
+      console.log(`Using cached integrations for ${entityId}:`, Object.keys(integrationsCache[entityId]));
       return integrationsCache[entityId];
     }
 
@@ -81,6 +90,11 @@ export const integrationService = {
           
           // Update our cache
           integrationsCache[entityId] = formattedIntegrations;
+          console.log(`Loaded integrations from Supabase for ${entityId}:`, Object.keys(formattedIntegrations));
+          
+          // Also update localStorage as backup
+          persistToLocalStorage();
+          
           return formattedIntegrations;
         }
       }
@@ -125,6 +139,12 @@ export const integrationService = {
       lastSync: new Date().toISOString()
     };
     
+    // Log the settings being saved
+    console.log(`Connecting ${integrationId} with settings:`, {
+      ...updatedSettings,
+      apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
+    });
+    
     integrationsCache[entityId][integrationId] = updatedSettings;
     
     try {
@@ -146,7 +166,7 @@ export const integrationService = {
         if (error) {
           console.error('Error saving integration to Supabase:', error);
         } else {
-          console.log(`Integration ${integrationId} saved to Supabase`);
+          console.log(`Integration ${integrationId} saved to Supabase successfully`);
         }
       }
     } catch (error) {
@@ -156,7 +176,10 @@ export const integrationService = {
     // Always persist to localStorage as fallback
     persistToLocalStorage();
     
-    console.log(`Connected integration ${integrationId} for ${entityId}`, updatedSettings);
+    console.log(`Connected integration ${integrationId} for ${entityId}`, {
+      ...updatedSettings,
+      apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
+    });
     
     return updatedSettings;
   },
@@ -221,6 +244,12 @@ export const integrationService = {
       ...updates
     };
     
+    // Log the settings being updated
+    console.log(`Updating ${integrationId} settings:`, {
+      ...updatedSettings,
+      apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
+    });
+    
     integrationsCache[entityId][integrationId] = updatedSettings;
     
     try {
@@ -242,8 +271,10 @@ export const integrationService = {
         if (error) {
           console.error('Error updating integration in Supabase:', error);
         } else {
-          console.log(`Integration ${integrationId} updated in Supabase`);
+          console.log(`Integration ${integrationId} updated in Supabase successfully`);
         }
+      } else {
+        console.log('Not authenticated, saving to localStorage only');
       }
     } catch (error) {
       console.error('Error updating integration settings:', error);
