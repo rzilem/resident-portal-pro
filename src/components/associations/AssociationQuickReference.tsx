@@ -14,7 +14,7 @@ const AssociationQuickReference: React.FC<AssociationQuickReferenceProps> = ({
   association,
   className = ''
 }) => {
-  // Format the established_date if it exists
+  // Format the founded_date if it exists
   const formattedEstablishedDate = association.founded_date 
     ? formatDate(association.founded_date, 'medium')
     : 'Not specified';
