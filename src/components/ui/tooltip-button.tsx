@@ -13,15 +13,16 @@ interface TooltipButtonProps extends ButtonProps {
   tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
   tooltipAlign?: 'start' | 'center' | 'end';
   tooltipDelayDuration?: number;
+  disabled?: boolean;
 }
 
 export const TooltipButton = React.forwardRef<HTMLButtonElement, TooltipButtonProps>(
-  ({ tooltipText, tooltipSide = 'top', tooltipAlign = 'center', tooltipDelayDuration = 300, children, ...props }, ref) => {
+  ({ tooltipText, tooltipSide = 'top', tooltipAlign = 'center', tooltipDelayDuration = 300, children, disabled = false, ...props }, ref) => {
     return (
       <TooltipProvider delayDuration={tooltipDelayDuration}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button ref={ref} {...props}>
+            <Button ref={ref} {...props} disabled={disabled}>
               {children}
             </Button>
           </TooltipTrigger>
