@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
@@ -153,7 +154,7 @@ const Dashboard = () => {
                 <div className="bg-primary/10 p-2 rounded-lg">
                   <LayoutDashboard className="h-6 w-6 text-primary" />
                 </div>
-                <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                   Welcome Back
                 </h2>
               </div>
@@ -174,7 +175,7 @@ const Dashboard = () => {
                     <TooltipTrigger asChild>
                       <Button 
                         onClick={() => setIsCustomizing(true)}
-                        className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
                       >
                         <Settings2 className="h-4 w-4" />
                       </Button>
