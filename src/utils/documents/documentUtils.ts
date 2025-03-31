@@ -75,6 +75,34 @@ export const getFileTypeInfo = (fileType: string): { icon: string; color: string
 };
 
 /**
+ * Format date for display
+ * @param dateString The date string to format
+ * @returns Formatted date string
+ */
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+/**
+ * Format file size for display
+ * @param bytes The file size in bytes
+ * @returns Formatted file size string
+ */
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+/**
  * Get document metadata from Supabase from the document ID
  * @param documentId The document ID
  * @returns Promise resolving to document data
@@ -96,7 +124,30 @@ export const getDocumentById = async (documentId: string): Promise<DocumentFile 
       return null;
     }
     
-    return data as DocumentFile;
+    if (!data) return null;
+    
+    // Convert database response to DocumentFile type
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      fileSize: data.file_size,
+      fileType: data.file_type,
+      url: data.url,
+      category: data.category,
+      tags: data.tags,
+      uploadedBy: data.uploaded_by,
+      uploadedDate: data.uploaded_date,
+      lastModified: data.last_modified,
+      version: data.version,
+      previousVersions: data.previous_versions,
+      expirationDate: data.expiration_date,
+      isPublic: data.is_public,
+      isArchived: data.is_archived,
+      properties: data.properties,
+      associations: data.associations,
+      metadata: data.metadata
+    } as DocumentFile;
   } catch (error) {
     console.error('Exception fetching document:', error);
     return null;
@@ -119,4 +170,35 @@ export const isPreviewable = (fileType: string): boolean => {
     type.includes('text') ||
     type.includes('html')
   );
+};
+
+/**
+ * Get document categories from the database
+ * @returns Promise resolving to array of document categories
+ */
+export const getDocumentCategories = async () => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const { data, error } = await supabase
+      .from('document_categories')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching document categories:', error);
+      return [];
+    }
+    
+    return data.map(category => ({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      accessLevel: category.access_level,
+      sortOrder: category.sort_order
+    }));
+  } catch (error) {
+    console.error('Exception fetching document categories:', error);
+    return [];
+  }
 };

@@ -1,13 +1,13 @@
-
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useImperativeHandle, forwardRef, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import EditorToolbar from './editor/EditorToolbar';
-import VisualEditor from './editor/VisualEditor';
-import HtmlSourceEditor from './editor/HtmlSourceEditor';
+import VisualEditor, { VisualEditorRef } from './editor/VisualEditor';
+import HtmlSourceEditor, { HtmlSourceEditorRef } from './editor/HtmlSourceEditor';
 
 export interface HtmlEditorRef {
   insertAtCursor: (text: string) => void;
+  getContent: () => string;
 }
 
 export interface HtmlEditorProps {
@@ -23,6 +23,8 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
   ({ value, onChange, readOnly = false, onSave, onPreview, isTemplate }, ref) => {
     const [activeTab, setActiveTab] = useState<string>('visual');
     const [htmlContent, setHtmlContent] = useState<string>(value);
+    const visualEditorRef = useRef<VisualEditorRef>(null);
+    const htmlEditorRef = useRef<HtmlSourceEditorRef>(null);
     
     // Update local state when prop value changes
     React.useEffect(() => {
@@ -43,26 +45,49 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
       }
     };
     
+    // Execute editor commands
+    const executeCommand = (command: string, value: string | null = null) => {
+      if (readOnly || activeTab !== "visual") return;
+      
+      visualEditorRef.current?.executeCommand(command, value);
+    };
+
+    const handleToolbarAction = (action: string) => {
+      if (readOnly || activeTab !== "visual") return;
+      
+      switch (action) {
+        case 'bold':
+          executeCommand('bold', null);
+          break;
+        case 'italic':
+          executeCommand('italic', null);
+          break;
+        case 'underline':
+          executeCommand('underline', null);
+          break;
+        case 'bulletList':
+          executeCommand('insertUnorderedList', null);
+          break;
+        case 'orderedList':
+          executeCommand('insertOrderedList', null);
+          break;
+        default:
+          console.log('Toolbar action:', action);
+      }
+    };
+    
     // Expose methods to parent components
     useImperativeHandle(ref, () => ({
       insertAtCursor: (text: string) => {
-        if (activeTab === 'visual') {
-          // Handle insertion in visual editor (implementation depends on editor library)
-          console.log('Insert into visual editor:', text);
-          
-          // This is a simple implementation that appends to the end
-          // In a real implementation, you would want to insert at cursor position
-          handleChange(htmlContent + text);
+        if (activeTab === 'visual' && visualEditorRef.current) {
+          visualEditorRef.current.insertAtCursor(text);
+        } else if (activeTab === 'html' && htmlEditorRef.current) {
+          htmlEditorRef.current.insertAtCursor(text);
         } else {
-          // Handle insertion in HTML source editor
-          // This is handled in the HtmlSourceEditor component
-          console.log('Insert into HTML editor:', text);
-          
-          // This is a simple implementation that appends to the end
-          // In a real implementation, you would want to insert at cursor position
           handleChange(htmlContent + text);
         }
-      }
+      },
+      getContent: () => activeTab === 'visual' ? value : htmlContent
     }));
     
     return (
@@ -89,14 +114,15 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
           </div>
           
           <TabsContent value="visual" className="m-0 p-0">
-            <EditorToolbar disabled={readOnly} onAction={(action) => {
-              console.log('Editor action:', action);
-              // Implement toolbar actions
-            }} />
+            <EditorToolbar 
+              disabled={readOnly} 
+              onAction={handleToolbarAction}
+            />
             <VisualEditor 
               value={htmlContent} 
               onUpdate={handleChange} 
               readOnly={readOnly}
+              ref={visualEditorRef}
             />
           </TabsContent>
           
@@ -105,6 +131,7 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
               value={htmlContent} 
               onChange={handleChange} 
               readOnly={readOnly}
+              ref={htmlEditorRef}
             />
           </TabsContent>
         </Tabs>
