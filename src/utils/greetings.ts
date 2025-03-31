@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for generating time-based greetings
  */

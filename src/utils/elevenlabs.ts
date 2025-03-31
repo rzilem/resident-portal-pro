@@ -1,3 +1,4 @@
+
 // Mock implementation for ElevenLabs TTS functionality
 
 export interface SpeakOptions {
