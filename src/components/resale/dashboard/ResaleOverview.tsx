@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileCheck, FileQuestion, FileSearch, FileText, FileBadge, TrendingUp, AlertTriangle, 
-  ChartBarIcon, DollarSign, Calendar, Clock, Users, Home, Package } from 'lucide-react';
+  ChartBarIcon, DollarSign, Calendar, Clock, Users, Home, Package, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Grid } from '@/components/ui/grid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
