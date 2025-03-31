@@ -1,171 +1,132 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { 
   Bold, 
   Italic, 
   Underline, 
-  Strikethrough, 
-  AlignLeft, 
-  AlignCenter, 
-  AlignRight, 
   List, 
   ListOrdered, 
-  Link2, 
+  Link, 
   Image, 
-  Redo2, 
-  Undo2
+  AlignLeft, 
+  AlignCenter, 
+  AlignRight
 } from 'lucide-react';
 
 interface EditorToolbarProps {
-  executeCommand: (command: string, value?: string | null) => void;
-  createLink: () => void;
-  insertImage: () => void;
+  onAction: (action: string) => void;
+  disabled?: boolean;
 }
 
-const EditorToolbar: React.FC<EditorToolbarProps> = ({
-  executeCommand,
-  createLink,
-  insertImage
-}) => {
+const EditorToolbar: React.FC<EditorToolbarProps> = ({ onAction, disabled = false }) => {
+  const handleAction = (action: string) => {
+    if (!disabled) {
+      onAction(action);
+    }
+  };
+  
   return (
-    <div className="flex flex-wrap gap-1 p-2 bg-muted/30 border-b">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('bold')}
-        title="Bold"
+    <div className="flex items-center gap-1 p-1 border-b overflow-x-auto">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('bold')}
+        disabled={disabled}
       >
         <Bold className="h-4 w-4" />
       </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('italic')}
-        title="Italic"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('italic')}
+        disabled={disabled}
       >
         <Italic className="h-4 w-4" />
       </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('underline')}
-        title="Underline"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('underline')}
+        disabled={disabled}
       >
         <Underline className="h-4 w-4" />
       </Button>
       
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('strikeThrough')}
-        title="Strikethrough"
-      >
-        <Strikethrough className="h-4 w-4" />
-      </Button>
+      <Separator orientation="vertical" className="mx-1 h-6" />
       
-      <div className="h-6 w-px bg-border mx-1"></div>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('justifyLeft')}
-        title="Align Left"
-      >
-        <AlignLeft className="h-4 w-4" />
-      </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('justifyCenter')}
-        title="Align Center"
-      >
-        <AlignCenter className="h-4 w-4" />
-      </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('justifyRight')}
-        title="Align Right"
-      >
-        <AlignRight className="h-4 w-4" />
-      </Button>
-      
-      <div className="h-6 w-px bg-border mx-1"></div>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('insertUnorderedList')}
-        title="Bullet List"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('bulletList')}
+        disabled={disabled}
       >
         <List className="h-4 w-4" />
       </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('insertOrderedList')}
-        title="Numbered List"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('orderedList')}
+        disabled={disabled}
       >
         <ListOrdered className="h-4 w-4" />
       </Button>
       
-      <div className="h-6 w-px bg-border mx-1"></div>
+      <Separator orientation="vertical" className="mx-1 h-6" />
       
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={createLink}
-        title="Insert Link"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('link')}
+        disabled={disabled}
       >
-        <Link2 className="h-4 w-4" />
+        <Link className="h-4 w-4" />
       </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={insertImage}
-        title="Insert Image"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('image')}
+        disabled={disabled}
       >
         <Image className="h-4 w-4" />
       </Button>
       
-      <div className="h-6 w-px bg-border mx-1"></div>
+      <Separator orientation="vertical" className="mx-1 h-6" />
       
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('undo')}
-        title="Undo"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('alignLeft')}
+        disabled={disabled}
       >
-        <Undo2 className="h-4 w-4" />
+        <AlignLeft className="h-4 w-4" />
       </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-8 w-8" 
-        onClick={() => executeCommand('redo')}
-        title="Redo"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('alignCenter')}
+        disabled={disabled}
       >
-        <Redo2 className="h-4 w-4" />
+        <AlignCenter className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => handleAction('alignRight')}
+        disabled={disabled}
+      >
+        <AlignRight className="h-4 w-4" />
       </Button>
     </div>
   );
