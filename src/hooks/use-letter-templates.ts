@@ -1,158 +1,113 @@
 
 import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { LetterTemplate } from '@/types/letter-templates';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { LetterTemplate } from '@/types/letter-templates';
 import { useAuth } from '@/hooks/use-auth';
+import { v4 as uuidv4 } from 'uuid';
+
+// Sample templates for fallback
+const sampleTemplates: LetterTemplate[] = [
+  {
+    id: '1',
+    name: 'Welcome Letter',
+    description: 'A warm welcome to new residents',
+    category: 'Welcome',
+    content: '<p>Dear {{resident_name}},</p><p>Welcome to our community! We are delighted to have you as a new resident...</p>',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '2',
+    name: 'Late Payment Notice',
+    description: 'First notice for late assessment payment',
+    category: 'Delinquency',
+    content: '<p>Dear {{resident_name}},</p><p>Our records indicate that your account has an outstanding balance of {{amount_due}}...</p>',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '3',
+    name: 'Violation Notice',
+    description: 'Notice of CC&R violation',
+    category: 'Compliance',
+    content: '<p>Dear {{resident_name}},</p><p>During a recent inspection, it was noted that the property at {{property_address}} is in violation of community guidelines...</p>',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 
 export const useLetterTemplates = () => {
   const [templates, setTemplates] = useState<LetterTemplate[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { user } = useAuth();
-  
-  // Sample data to start with
-  const sampleTemplates: LetterTemplate[] = [
-    {
-      id: 'sample-1',
-      name: 'First Violation Notice',
-      description: 'Initial notice for community violations',
-      category: 'Compliance',
-      content: '<p>Dear {{resident.first_name}} {{resident.last_name}},</p><p>This letter serves as notification that a violation of the community rules has been observed at your property located at {{property.address}}.</p><p><strong>Violation: {{violation.description}}</strong></p><p>Please take the necessary steps to correct this issue by {{violation.due_date}}. If you believe this notice was sent in error or have questions, please contact the management office.</p><p>Thank you for your prompt attention to this matter.</p><p>Sincerely,<br>{{association.name}} Management</p>',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'sample-2',
-      name: 'Past Due Assessment Notice',
-      description: 'Notice for homeowners with past due assessments',
-      category: 'Delinquency',
-      content: '<p>Dear {{resident.first_name}} {{resident.last_name}},</p><p>Our records indicate that your account has a past due balance of <strong>${{account.past_due_amount}}</strong> for your property located at {{property.address}}.</p><p>Please remit payment promptly to avoid additional late fees or legal action. If you have already sent your payment, please disregard this notice.</p><p>If you have any questions or concerns, please contact our accounting department.</p><p>Sincerely,<br>{{association.name}} Management</p>',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'sample-3',
-      name: 'ARC Request Approval',
-      description: 'Notification of approval for architectural review requests',
-      category: 'Architectural',
-      content: '<p>Dear {{resident.first_name}} {{resident.last_name}},</p><p>We are pleased to inform you that your Architectural Review Committee request for <strong>{{arc.request_description}}</strong> at your property located at {{property.address}} has been <strong>approved</strong>.</p><p>Please note that all work must be completed within 90 days and in accordance with the submitted plans and specifications.</p><p>Thank you for your cooperation in maintaining the standards of our community.</p><p>Sincerely,<br>{{association.name}} Architectural Review Committee</p>',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ];
-  
-  // Fetch letter templates
-  useEffect(() => {
-    const fetchLetterTemplates = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch from Supabase
-        const { data, error } = await supabase
-          .from('letter_templates')
-          .select('*')
-          .order('created_at', { ascending: false });
-            
-        if (error) {
-          console.error('Error fetching letter templates:', error);
-          // Fallback to sample data
-          setTemplates(sampleTemplates);
-          toast.error('Failed to load templates from database. Using sample data instead.');
-        } else if (data.length === 0) {
-          // If no templates exist yet, insert the sample data
-          const samplePromises = sampleTemplates.map(template => 
-            createTemplate({
-              ...template,
-              id: '', // Will be generated by Supabase
-            })
-          );
-          
-          try {
-            await Promise.all(samplePromises);
-            toast.success('Sample templates added to your database');
-            // Fetch again after inserting samples
-            const { data: newData, error: newError } = await supabase
-              .from('letter_templates')
-              .select('*')
-              .order('created_at', { ascending: false });
-              
-            if (newError) {
-              console.error('Error fetching after inserting samples:', newError);
-              setTemplates(sampleTemplates);
-            } else {
-              // Map Supabase data to our LetterTemplate type
-              const mappedData: LetterTemplate[] = mapSupabaseData(newData);
-              setTemplates(mappedData);
-            }
-          } catch (insertError) {
-            console.error('Error inserting sample templates:', insertError);
-            setTemplates(sampleTemplates);
-          }
-        } else {
-          // Map Supabase data to our LetterTemplate type
-          const mappedData: LetterTemplate[] = mapSupabaseData(data);
-          setTemplates(mappedData);
-        }
-      } catch (error) {
-        console.error('Error in fetchLetterTemplates:', error);
-        // Fallback to sample data
-        setTemplates(sampleTemplates);
-        toast.error('Failed to connect to database. Using sample data instead.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+
+  // Fetch templates from Supabase
+  const fetchTemplates = async () => {
+    setIsLoading(true);
     
-    fetchLetterTemplates();
-  }, []);
-  
-  // Helper function to map Supabase data to our LetterTemplate type
-  const mapSupabaseData = (data: any[]): LetterTemplate[] => {
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      description: item.description || '',
-      category: item.category,
-      content: item.content,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at
-    }));
-  };
-  
-  // Create a new template
-  const createTemplate = async (template: LetterTemplate): Promise<LetterTemplate> => {
     try {
-      // Insert to Supabase
       const { data, error } = await supabase
         .from('letter_templates')
-        .insert({
-          name: template.name,
-          description: template.description,
-          category: template.category,
-          content: template.content,
-          created_by: user?.id
-        })
-        .select()
-        .single();
-          
+        .select('*');
+        
       if (error) {
-        console.error('Error creating letter template in Supabase:', error);
-        toast.error('Failed to save template to database');
-        
-        // Fallback to local state for demo purposes
-        const newTemplate = {
-          ...template,
-          id: uuidv4(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        
-        setTemplates(prev => [newTemplate, ...prev]);
-        return newTemplate;
+        throw error;
       }
       
-      // Map the returned data to our LetterTemplate type
-      const newTemplate: LetterTemplate = {
+      if (data) {
+        const formattedTemplates: LetterTemplate[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || '',
+          category: item.category,
+          content: item.content,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at
+        }));
+        
+        setTemplates(formattedTemplates);
+      } else {
+        // Fallback to sample templates if no data
+        setTemplates(sampleTemplates);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      toast.error('Failed to load templates');
+      // Fallback to sample templates on error
+      setTemplates(sampleTemplates);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Create a new template
+  const createTemplate = async (template: Omit<LetterTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) {
+      toast.error('You must be logged in to create templates');
+      return null;
+    }
+    
+    try {
+      const newTemplate = {
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        content: template.content,
+        created_by: user.id
+      };
+      
+      const { data, error } = await supabase
+        .from('letter_templates')
+        .insert(newTemplate)
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      const createdTemplate: LetterTemplate = {
         id: data.id,
         name: data.name,
         description: data.description || '',
@@ -162,50 +117,42 @@ export const useLetterTemplates = () => {
         updatedAt: data.updated_at
       };
       
-      // Update local state
-      setTemplates(prev => [newTemplate, ...prev]);
+      setTemplates(prev => [...prev, createdTemplate]);
       toast.success('Template created successfully');
-      return newTemplate;
+      return createdTemplate;
     } catch (error) {
-      console.error('Error in createTemplate:', error);
+      console.error('Error creating template:', error);
       toast.error('Failed to create template');
-      throw error;
+      return null;
     }
   };
-  
+
   // Update an existing template
-  const updateTemplate = async (template: LetterTemplate): Promise<LetterTemplate> => {
+  const updateTemplate = async (id: string, updates: Partial<Omit<LetterTemplate, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    if (!user) {
+      toast.error('You must be logged in to update templates');
+      return null;
+    }
+    
     try {
-      // Update in Supabase
+      // Convert to snake_case for database
+      const dbUpdates: any = {};
+      if (updates.name) dbUpdates.name = updates.name;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.category) dbUpdates.category = updates.category;
+      if (updates.content) dbUpdates.content = updates.content;
+      
       const { data, error } = await supabase
         .from('letter_templates')
-        .update({
-          name: template.name,
-          description: template.description,
-          category: template.category,
-          content: template.content,
-        })
-        .eq('id', template.id)
+        .update(dbUpdates)
+        .eq('id', id)
         .select()
         .single();
-          
+        
       if (error) {
-        console.error('Error updating letter template in Supabase:', error);
-        toast.error('Failed to update template in database');
-        
-        // Fallback to local state for demo purposes
-        const updatedTemplate = {
-          ...template,
-          updatedAt: new Date().toISOString()
-        };
-        
-        setTemplates(prev => 
-          prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t)
-        );
-        return updatedTemplate;
+        throw error;
       }
       
-      // Map the returned data to our LetterTemplate type
       const updatedTemplate: LetterTemplate = {
         id: data.id,
         name: data.name,
@@ -216,60 +163,54 @@ export const useLetterTemplates = () => {
         updatedAt: data.updated_at
       };
       
-      // Update local state
-      setTemplates(prev => 
-        prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t)
-      );
+      setTemplates(prev => prev.map(t => t.id === id ? updatedTemplate : t));
       toast.success('Template updated successfully');
       return updatedTemplate;
     } catch (error) {
-      console.error('Error in updateTemplate:', error);
+      console.error('Error updating template:', error);
       toast.error('Failed to update template');
-      throw error;
+      return null;
     }
   };
-  
+
   // Delete a template
-  const deleteTemplate = async (id: string): Promise<void> => {
+  const deleteTemplate = async (id: string) => {
+    if (!user) {
+      toast.error('You must be logged in to delete templates');
+      return false;
+    }
+    
     try {
-      // Delete from Supabase
       const { error } = await supabase
         .from('letter_templates')
         .delete()
         .eq('id', id);
-          
+        
       if (error) {
-        console.error('Error deleting letter template from Supabase:', error);
-        toast.error('Failed to delete template from database');
+        throw error;
       }
       
-      // Update local state regardless of database result to maintain UI responsiveness
       setTemplates(prev => prev.filter(t => t.id !== id));
       toast.success('Template deleted successfully');
+      return true;
     } catch (error) {
-      console.error('Error in deleteTemplate:', error);
+      console.error('Error deleting template:', error);
       toast.error('Failed to delete template');
-      throw error;
+      return false;
     }
   };
-  
-  // Get a template by ID
-  const getTemplateById = (id: string): LetterTemplate | undefined => {
-    return templates.find(t => t.id === id);
-  };
-  
-  // Get templates by category
-  const getTemplatesByCategory = (category: string): LetterTemplate[] => {
-    return templates.filter(t => t.category === category);
-  };
-  
+
+  // Load templates on initial render
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
   return {
     templates,
     isLoading,
     createTemplate,
     updateTemplate,
     deleteTemplate,
-    getTemplateById,
-    getTemplatesByCategory
+    refreshTemplates: fetchTemplates
   };
 };

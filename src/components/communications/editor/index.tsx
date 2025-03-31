@@ -9,9 +9,10 @@ import { TabsContent } from '@/components/ui/tabs';
 interface HtmlEditorProps {
   value: string;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }
 
-const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
+const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange, readOnly = false }) => {
   const [activeTab, setActiveTab] = useState<string>("visual");
   const [htmlCode, setHtmlCode] = useState<string>(value);
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -28,15 +29,21 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
   };
 
   const handleVisualUpdate = (content: string) => {
-    onChange(content);
-    setHtmlCode(content);
+    if (!readOnly) {
+      onChange(content);
+      setHtmlCode(content);
+    }
   };
 
   const handleHtmlUpdate = (content: string) => {
-    setHtmlCode(content);
+    if (!readOnly) {
+      setHtmlCode(content);
+    }
   };
 
   const executeCommand = (command: string, value: string | null = null) => {
+    if (readOnly) return;
+    
     document.execCommand(command, false, value);
     // After the command is executed, we need to get the updated content
     if (editorRef.current) {
@@ -45,6 +52,8 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
   };
 
   const createLink = () => {
+    if (readOnly) return;
+    
     const url = prompt('Enter link URL:');
     if (url) {
       executeCommand('createLink', url);
@@ -52,6 +61,8 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
   };
 
   const insertImage = () => {
+    if (readOnly) return;
+    
     const url = prompt('Enter image URL:');
     if (url) {
       executeCommand('insertImage', url);
@@ -66,7 +77,7 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
   return (
     <div className="border rounded-md overflow-hidden">
       <EditorTabs activeTab={activeTab} onTabChange={handleTabChange}>
-        {activeTab === "visual" && (
+        {activeTab === "visual" && !readOnly && (
           <EditorToolbar 
             executeCommand={executeCommand}
             createLink={createLink}
@@ -78,6 +89,7 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
           <VisualEditor 
             value={value} 
             onUpdate={handleVisualUpdate} 
+            readOnly={readOnly}
           />
         </TabsContent>
 
@@ -85,6 +97,7 @@ const HtmlEditor: React.FC<HtmlEditorProps> = ({ value, onChange }) => {
           <HtmlSourceEditor 
             value={htmlCode} 
             onChange={handleHtmlUpdate} 
+            readOnly={readOnly}
           />
         </TabsContent>
       </EditorTabs>
