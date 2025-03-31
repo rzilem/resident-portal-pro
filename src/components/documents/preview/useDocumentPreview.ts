@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { DocumentFile } from '@/types/documents';
 import { canUseOfficeViewer, sanitizeDocumentUrl } from '@/utils/documents/documentUtils';
@@ -55,12 +56,14 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
       const cleanUrl = sanitizeDocumentUrl(doc.url);
       documentPreviewLog('Using sanitized URL', { cleanUrl });
       
+      // Fix: Only pass the cleanUrl as a single argument
       setPreviewUrl(cleanUrl);
       setIsLoading(false);
     } catch (error) {
       errorLog('Error processing document URL:', error);
       setPreviewError("Failed to process document URL");
       
+      // Fix: Only pass the sanitized URL as a single argument 
       setPreviewUrl(sanitizeDocumentUrl(doc.url));
       setIsLoading(false);
     }
