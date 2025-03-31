@@ -22,6 +22,15 @@ const LetterTemplates = () => {
     ? templates.find(t => t.id === selectedTemplateId) 
     : null;
   
+  // Wrapper function to handle the different function signatures
+  const handleSaveTemplate = async (template: any) => {
+    if (selectedTemplateId) {
+      return await updateTemplate(selectedTemplateId, template);
+    } else {
+      return await createTemplate(template);
+    }
+  };
+  
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
@@ -101,7 +110,7 @@ const LetterTemplates = () => {
               <div className="md:col-span-2">
                 <LetterTemplateEditor
                   selectedTemplate={selectedTemplate}
-                  onSave={selectedTemplateId ? updateTemplate : createTemplate}
+                  onSave={handleSaveTemplate}
                   onCancel={() => setSelectedTemplateId(null)}
                 />
               </div>

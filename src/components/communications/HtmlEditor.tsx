@@ -3,8 +3,8 @@ import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } f
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import EditorToolbar from './editor/EditorToolbar';
-import VisualEditor from './editor/VisualEditor';
-import HtmlSourceEditor from './editor/HtmlSourceEditor';
+import VisualEditor, { VisualEditorRef } from './editor/VisualEditor';
+import HtmlSourceEditor, { HtmlSourceEditorRef } from './editor/HtmlSourceEditor';
 import EditorTabs from './editor/EditorTabs';
 import { TabsContent } from '@/components/ui/tabs';
 import { MergeTag } from '@/types/mergeTags';
@@ -32,8 +32,8 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(({
   const [currentContent, setCurrentContent] = useState<string>(value);
   const lastSavedContent = useRef<string>(value);
   const hasUnsavedChanges = currentContent !== lastSavedContent.current;
-  const visualEditorRef = useRef<any>(null);
-  const htmlEditorRef = useRef<any>(null);
+  const visualEditorRef = useRef<VisualEditorRef>(null);
+  const htmlEditorRef = useRef<HtmlSourceEditorRef>(null);
 
   // Update content when value prop changes (from parent)
   useEffect(() => {
@@ -92,26 +92,6 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(({
     if (url) {
       executeCommand('insertImage', url);
     }
-  };
-
-  // Function to insert merge tag
-  const insertMergeTag = (tag: MergeTag) => {
-    if (activeTab === 'visual') {
-      // If we have a reference to the visual editor, use it to insert at cursor
-      if (visualEditorRef.current) {
-        visualEditorRef.current.insertAtCursor(tag.tag);
-        return;
-      }
-    } else {
-      // If we have a reference to the HTML editor, use it to insert at cursor
-      if (htmlEditorRef.current) {
-        htmlEditorRef.current.insertAtCursor(tag.tag);
-        return;
-      }
-    }
-    
-    // Fallback: just append to the end if we can't determine cursor position
-    handleContentChange(currentContent + ' ' + tag.tag + ' ');
   };
 
   // Expose the insertAtCursor method to parent components

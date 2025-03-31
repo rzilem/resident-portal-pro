@@ -12,7 +12,17 @@ import { useAuth } from '@/hooks/use-auth';
 const LetterTemplates = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user } = useAuth();
+  const [authLoading, setAuthLoading] = useState(true);
+  
+  // Set auth loading state to false after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAuthLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const { 
     templates, 
@@ -31,7 +41,16 @@ const LetterTemplates = () => {
     setSelectedTemplateId(null);
   }, [activeTab]);
   
-  const isUserAuthenticated = !!user && !isAuthLoading;
+  const isUserAuthenticated = !!user;
+  
+  // Wrapper function to handle the different function signatures
+  const handleSaveTemplate = async (template: any) => {
+    if (selectedTemplateId) {
+      return await updateTemplate(selectedTemplateId, template);
+    } else {
+      return await createTemplate(template);
+    }
+  };
   
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
@@ -42,7 +61,7 @@ const LetterTemplates = () => {
         </p>
       </div>
       
-      {!isUserAuthenticated && !isAuthLoading && (
+      {!isUserAuthenticated && !authLoading && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Authentication Required</AlertTitle>
@@ -126,7 +145,7 @@ const LetterTemplates = () => {
               <div className="md:col-span-2">
                 <LetterTemplateEditor
                   selectedTemplate={selectedTemplate}
-                  onSave={selectedTemplateId ? updateTemplate : createTemplate}
+                  onSave={handleSaveTemplate}
                   onCancel={() => setSelectedTemplateId(null)}
                   isReadOnly={!isUserAuthenticated}
                 />

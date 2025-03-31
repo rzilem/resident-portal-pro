@@ -118,7 +118,7 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
       </CardHeader>
       <CardContent>
         {isReadOnly && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               You are in read-only mode. Sign in to create or edit templates.
