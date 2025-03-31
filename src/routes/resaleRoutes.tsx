@@ -7,6 +7,7 @@ import BidRequestWizard from '../pages/resale/wizard/BidRequestWizard';
 import BidRequests from '../pages/resale/BidRequests';
 import BidRequestDetail from '../pages/resale/BidRequestDetail';
 import ProjectImagesPage from '../pages/resale/admin/ProjectImages';
+import Reports from '../pages/Reports';
 
 export const resaleRoutes = [
   {
@@ -62,6 +63,22 @@ export const resaleRoutes = [
     element: (
       <ProtectedRoute>
         <ResaleDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/resale/queue',
+    element: (
+      <ProtectedRoute>
+        <ResaleDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/resale/reports',
+    element: (
+      <ProtectedRoute>
+        <Reports />
       </ProtectedRoute>
     ),
   },

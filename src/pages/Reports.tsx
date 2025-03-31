@@ -1,459 +1,369 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  FileText, FileCheck, FileQuestion, FileSearch, BarChart2, PieChart, Download, Calendar, Plus 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Download, FileCog, Filter, PieChart as PieChartIcon, BarChart2, Calendar, Building } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateReport } from '@/utils/pdfGenerator';
 
-// Mock data types
-interface PropertyColumn {
-  id: string;
-  name: string;
-  checked: boolean;
-}
+const Reports = () => {
+  const [reportType, setReportType] = useState('resale-summary');
+  const [dateRange, setDateRange] = useState('monthly');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-// Financial Report Data
-const financialData = [
-  { month: 'Jan', income: 42500, expenses: 38700, balance: 3800 },
-  { month: 'Feb', income: 43200, expenses: 39100, balance: 4100 },
-  { month: 'Mar', income: 43800, expenses: 40200, balance: 3600 },
-  { month: 'Apr', income: 44100, expenses: 39800, balance: 4300 },
-  { month: 'May', income: 42900, expenses: 41100, balance: 1800 },
-  { month: 'Jun', income: 43500, expenses: 40500, balance: 3000 },
-];
+  const handleGenerateReport = () => {
+    let title, subtitle, columns, data, summary;
 
-// Property Report Data
-const propertyData = [
-  { name: 'Oakwood Heights', units: 120, occupancy: 95, violations: 12 },
-  { name: 'Willow Creek', units: 85, occupancy: 88, violations: 8 },
-  { name: 'Riverfront Towers', units: 210, occupancy: 92, violations: 23 },
-  { name: 'Pine Valley', units: 65, occupancy: 100, violations: 5 },
-  { name: 'Meadow Vista', units: 95, occupancy: 91, violations: 10 },
-];
+    // Based on report type, set appropriate data
+    switch (reportType) {
+      case 'resale-summary':
+        title = 'Resale Certificate Summary Report';
+        subtitle = `${dateRange === 'custom' ? `${startDate} to ${endDate}` : 'Monthly Summary - March 2025'}`;
+        columns = ['Association', 'Total Certificates', 'In Progress', 'Completed', 'Revenue'];
+        data = [
+          ['Stonehaven Condos', 14, 3, 11, '$4,200'],
+          ['La Ventana Ranch', 8, 1, 7, '$2,450'],
+          ['Enclave at Alta Vista', 12, 4, 8, '$3,600'],
+          ['Chandler Creek HOA', 6, 0, 6, '$1,800'],
+          ['Towne Court', 9, 2, 7, '$2,700'],
+        ];
+        summary = {
+          'Total Certificates': '49',
+          'Average Completion Time': '3.2 days',
+          'Total Revenue': '$14,750',
+          'Period': 'March 1-31, 2025'
+        };
+        break;
 
-// Resident Report Data
-const residentData = [
-  { month: 'Jan', moveIns: 12, moveOuts: 8 },
-  { month: 'Feb', moveIns: 9, moveOuts: 7 },
-  { month: 'Mar', moveIns: 15, moveOuts: 10 },
-  { month: 'Apr', moveIns: 10, moveOuts: 9 },
-  { month: 'May', moveIns: 8, moveOuts: 12 },
-  { month: 'Jun', moveIns: 14, moveOuts: 6 },
-];
+      case 'questionnaire-summary':
+        title = 'Questionnaire Summary Report';
+        subtitle = `${dateRange === 'custom' ? `${startDate} to ${endDate}` : 'Monthly Summary - March 2025'}`;
+        columns = ['Association', 'Total Questionnaires', 'In Progress', 'Completed', 'Revenue'];
+        data = [
+          ['Stonehaven Condos', 8, 2, 6, '$2,400'],
+          ['La Ventana Ranch', 5, 1, 4, '$1,600'],
+          ['Enclave at Alta Vista', 7, 3, 4, '$2,100'],
+          ['Chandler Creek HOA', 4, 0, 4, '$1,200'],
+          ['Towne Court', 6, 1, 5, '$1,800'],
+        ];
+        summary = {
+          'Total Questionnaires': '30',
+          'Average Completion Time': '2.8 days',
+          'Total Revenue': '$9,100',
+          'Period': 'March 1-31, 2025'
+        };
+        break;
 
-// Expense breakdown data
-const expenseData = [
-  { name: 'Maintenance', value: 35 },
-  { name: 'Utilities', value: 25 },
-  { name: 'Admin', value: 15 },
-  { name: 'Landscaping', value: 10 },
-  { name: 'Insurance', value: 10 },
-  { name: 'Other', value: 5 },
-];
+      case 'transaction-log':
+        title = 'Transaction Log Report';
+        subtitle = `${dateRange === 'custom' ? `${startDate} to ${endDate}` : 'Monthly Log - March 2025'}`;
+        columns = ['Transaction ID', 'Date', 'Property', 'Type', 'Status', 'Amount'];
+        data = [
+          ['TRX-2025-001', '03/05/2025', '123 Main St #101', 'Resale Certificate', 'Completed', '$300'],
+          ['TRX-2025-002', '03/07/2025', '456 Oak Ave #202', 'Questionnaire', 'Completed', '$250'],
+          ['TRX-2025-003', '03/10/2025', '789 Pine Rd #303', 'Resale Certificate', 'Completed', '$300'],
+          ['TRX-2025-004', '03/15/2025', '321 Elm St #404', 'TREC Form', 'Completed', '$200'],
+          ['TRX-2025-005', '03/20/2025', '654 Birch Ln #505', 'Inspection', 'In Progress', '$350'],
+        ];
+        summary = {
+          'Total Transactions': '35',
+          'Completed Transactions': '28',
+          'Total Revenue': '$9,750',
+          'Period': 'March 1-31, 2025'
+        };
+        break;
 
-// Colors for pie chart
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-const Reports: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('financial');
-  const [timeRange, setTimeRange] = useState('month');
-  const [property, setProperty] = useState('all');
-  
-  const handleExportFinancialData = (format: string) => {
-    toast.success(`Exporting financial report as ${format.toUpperCase()}`);
-    
-    if (format === 'pdf') {
-      const doc = generateReport({
-        title: 'Financial Report',
-        subtitle: 'Income vs Expenses',
-        date: new Date().toLocaleDateString(),
-        columns: ['Month', 'Income', 'Expenses', 'Balance'],
-        data: financialData.map(d => [
-          d.month,
-          `$${d.income.toLocaleString()}`,
-          `$${d.expenses.toLocaleString()}`,
-          `$${d.balance.toLocaleString()}`
-        ]),
-        summary: {
-          'Total Income': `$${financialData.reduce((sum, d) => sum + d.income, 0).toLocaleString()}`,
-          'Total Expenses': `$${financialData.reduce((sum, d) => sum + d.expenses, 0).toLocaleString()}`,
-          'Net Balance': `$${financialData.reduce((sum, d) => sum + d.balance, 0).toLocaleString()}`
-        }
-      });
-      
-      doc.save('financial-report.pdf');
+      default:
+        title = 'Custom Report';
+        subtitle = 'Generated on ' + new Date().toLocaleDateString();
+        columns = ['Item', 'Value'];
+        data = [['No data available', '']];
+        break;
     }
-  };
-  
-  const handleExportPropertyData = (format: string) => {
-    toast.success(`Exporting property report as ${format.toUpperCase()}`);
-    
-    if (format === 'pdf') {
-      const doc = generateReport({
-        title: 'Property Report',
-        subtitle: 'Property Overview',
-        date: new Date().toLocaleDateString(),
-        columns: ['Property', 'Units', 'Occupancy Rate', 'Violations'],
-        data: propertyData.map(d => [
-          d.name,
-          d.units.toString(),
-          `${d.occupancy}%`,
-          d.violations.toString()
-        ]),
-        summary: {
-          'Total Properties': propertyData.length.toString(),
-          'Total Units': propertyData.reduce((sum, d) => sum + d.units, 0).toString(),
-          'Average Occupancy': `${(propertyData.reduce((sum, d) => sum + d.occupancy, 0) / propertyData.length).toFixed(1)}%`
-        }
-      });
-      
-      doc.save('property-report.pdf');
-    }
-  };
-  
-  const handleExportResidentData = (format: string) => {
-    toast.success(`Exporting resident report as ${format.toUpperCase()}`);
-    
-    if (format === 'pdf') {
-      const doc = generateReport({
-        title: 'Resident Report',
-        subtitle: 'Move-Ins and Move-Outs',
-        date: new Date().toLocaleDateString(),
-        columns: ['Month', 'Move-Ins', 'Move-Outs', 'Net Change'],
-        data: residentData.map(d => [
-          d.month,
-          d.moveIns.toString(),
-          d.moveOuts.toString(),
-          (d.moveIns - d.moveOuts).toString()
-        ]),
-        summary: {
-          'Total Move-Ins': residentData.reduce((sum, d) => sum + d.moveIns, 0).toString(),
-          'Total Move-Outs': residentData.reduce((sum, d) => sum + d.moveOuts, 0).toString(),
-          'Net Change': residentData.reduce((sum, d) => sum + (d.moveIns - d.moveOuts), 0).toString()
-        }
-      });
-      
-      doc.save('resident-report.pdf');
-    }
+
+    // Generate the report
+    const doc = generateReport({
+      title,
+      subtitle,
+      date: new Date().toLocaleDateString(),
+      columns,
+      data,
+      summary
+    });
+
+    // Download the PDF
+    doc.save(`${reportType}_${dateRange}_report.pdf`);
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <FileCog className="h-5 w-5 text-blue-600" />
-            Reports
-          </h2>
-          <p className="text-muted-foreground">
-            Generate and view reports for your properties
-          </p>
+          <h1 className="text-3xl font-bold">Reports</h1>
+          <p className="text-muted-foreground">Generate and analyze reports for your resale management operations</p>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Select defaultValue={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[150px]">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select defaultValue={property} onValueChange={setProperty}>
-            <SelectTrigger className="w-[180px]">
-              <Building className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Select Property" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Properties</SelectItem>
-              <SelectItem value="oakwood">Oakwood Heights</SelectItem>
-              <SelectItem value="willow">Willow Creek</SelectItem>
-              <SelectItem value="riverfront">Riverfront Towers</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Button className="gap-2" onClick={handleGenerateReport}>
+          <FileText className="h-4 w-4" />
+          Generate Report
+        </Button>
       </div>
-      
-      <Tabs defaultValue="financial" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="financial">Financial</TabsTrigger>
-          <TabsTrigger value="property">Property</TabsTrigger>
-          <TabsTrigger value="resident">Resident</TabsTrigger>
+
+      <Tabs defaultValue="standard-reports" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="standard-reports" className="flex items-center gap-2">
+            <FileCheck className="h-4 w-4" />
+            Standard Reports
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart2 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="custom-reports" className="flex items-center gap-2">
+            <FileSearch className="h-4 w-4" />
+            Custom Reports
+          </TabsTrigger>
         </TabsList>
-        
-        {/* Financial Reports */}
-        {activeTab === 'financial' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <Card className="col-span-1 lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Income vs Expenses</CardTitle>
-                  <CardDescription>Financial overview by month</CardDescription>
+
+        <TabsContent value="standard-reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Report Configuration</CardTitle>
+              <CardDescription>Select report type and parameters</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Report Type</label>
+                    <Select value={reportType} onValueChange={setReportType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="resale-summary">Resale Certificate Summary</SelectItem>
+                        <SelectItem value="questionnaire-summary">Questionnaire Summary</SelectItem>
+                        <SelectItem value="transaction-log">Transaction Log</SelectItem>
+                        <SelectItem value="revenue-report">Revenue Report</SelectItem>
+                        <SelectItem value="performance-metrics">Performance Metrics</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Date Range</label>
+                    <Select value={dateRange} onValueChange={setDateRange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select date range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {dateRange === 'custom' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Start Date</label>
+                        <Input 
+                          type="date" 
+                          value={startDate} 
+                          onChange={(e) => setStartDate(e.target.value)} 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">End Date</label>
+                        <Input 
+                          type="date" 
+                          value={endDate} 
+                          onChange={(e) => setEndDate(e.target.value)} 
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <Button variant="outline" size="sm" onClick={() => handleExportFinancialData('pdf')}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Include Data For</label>
+                    <Select defaultValue="all">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select data scope" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Associations</SelectItem>
+                        <SelectItem value="selected">Selected Associations</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Output Format</label>
+                    <Select defaultValue="pdf">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select output format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="excel">Excel</SelectItem>
+                        <SelectItem value="csv">CSV</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button className="w-full gap-2" onClick={handleGenerateReport}>
+                      <FileText className="h-4 w-4" />
+                      Generate Report
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setReportType('resale-summary')}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <FileCheck className="h-8 w-8 text-blue-500" />
+                  <Badge>Popular</Badge>
+                </div>
+                <CardTitle className="text-xl">Resale Certificate Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>Summarizes resale certificate activity for a given period</CardDescription>
+                <Button variant="link" className="mt-2 p-0" onClick={() => setReportType('resale-summary')}>
+                  Select Report
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={financialData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, undefined]} />
-                      <Area type="monotone" dataKey="income" stackId="1" stroke="#8884d8" fill="#8884d8" name="Income" />
-                      <Area type="monotone" dataKey="expenses" stackId="2" stroke="#82ca9d" fill="#82ca9d" name="Expenses" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Expense Breakdown</CardTitle>
-                  <CardDescription>Expenses by category</CardDescription>
+
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setReportType('questionnaire-summary')}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <FileQuestion className="h-8 w-8 text-purple-500" />
                 </div>
+                <CardTitle className="text-xl">Questionnaire Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={expenseData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        nameKey="name"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {expenseData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value}%`, undefined]} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <CardDescription>Provides details on questionnaire processing and completion</CardDescription>
+                <Button variant="link" className="mt-2 p-0" onClick={() => setReportType('questionnaire-summary')}>
+                  Select Report
+                </Button>
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Monthly Net Balance</CardTitle>
-                  <CardDescription>Income minus expenses</CardDescription>
+
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setReportType('transaction-log')}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <FileText className="h-8 w-8 text-green-500" />
                 </div>
+                <CardTitle className="text-xl">Transaction Log</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={financialData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, undefined]} />
-                      <Bar dataKey="balance" fill="#8884d8" name="Net Balance" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <CardDescription>Detailed log of all resale management transactions</CardDescription>
+                <Button variant="link" className="mt-2 p-0" onClick={() => setReportType('transaction-log')}>
+                  Select Report
+                </Button>
               </CardContent>
             </Card>
           </div>
-        )}
-        
-        {/* Property Reports */}
-        {activeTab === 'property' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <Card className="col-span-1 lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Property Overview</CardTitle>
-                  <CardDescription>Units and occupancy by property</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => handleExportPropertyData('pdf')}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={propertyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis yAxisId="left" orientation="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip />
-                      <Bar yAxisId="left" dataKey="units" fill="#8884d8" name="Units" />
-                      <Bar yAxisId="right" dataKey="occupancy" fill="#82ca9d" name="Occupancy %" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Violations by Property</CardTitle>
-                  <CardDescription>Number of violations reported</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={propertyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="violations" fill="#ff7300" name="Violations" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Occupancy Rates</CardTitle>
-                  <CardDescription>Percentage of occupied units</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={propertyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis domain={[80, 100]} />
-                      <Tooltip formatter={(value) => [`${value}%`, 'Occupancy']} />
-                      <Line type="monotone" dataKey="occupancy" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {/* Resident Reports */}
-        {activeTab === 'resident' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <Card className="col-span-1 lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Resident Movement</CardTitle>
-                  <CardDescription>Move-ins and move-outs by month</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => handleExportResidentData('pdf')}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={residentData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="moveIns" fill="#8884d8" name="Move-Ins" />
-                      <Bar dataKey="moveOuts" fill="#82ca9d" name="Move-Outs" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Net Resident Change</CardTitle>
-                  <CardDescription>Monthly resident net change</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={residentData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line 
-                        type="monotone" 
-                        data={residentData.map(d => ({
-                          month: d.month,
-                          netChange: d.moveIns - d.moveOuts
-                        }))}
-                        dataKey="netChange" 
-                        stroke="#8884d8" 
-                        name="Net Change"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Cumulative Change</CardTitle>
-                  <CardDescription>Running total of resident changes</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={residentData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Area 
-                        type="monotone" 
-                        data={residentData.reduce((acc, curr) => {
-                          const netChange = curr.moveIns - curr.moveOuts;
-                          const lastValue = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
-                          acc.push({
-                            month: curr.month,
-                            cumulative: lastValue + netChange
-                          });
-                          return acc;
-                        }, [] as Array<{month: string, cumulative: number}>)}
-                        dataKey="cumulative" 
-                        stroke="#8884d8" 
-                        fill="#8884d8"
-                        name="Cumulative Change"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics Dashboard</CardTitle>
+              <CardDescription>Visual reports and key performance indicators</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[400px] flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <PieChart className="h-16 w-16 mx-auto text-muted-foreground" />
+                <h3 className="text-lg font-medium">Analytics Dashboard Coming Soon</h3>
+                <p className="text-muted-foreground">Advanced analytics features are under development.</p>
+                <Button variant="outline">Request Early Access</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="custom-reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Custom Report Builder</CardTitle>
+              <CardDescription>Design your own custom reports</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[400px] flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <FileSearch className="h-16 w-16 mx-auto text-muted-foreground" />
+                <h3 className="text-lg font-medium">Custom Report Builder Coming Soon</h3>
+                <p className="text-muted-foreground">Build tailored reports with our advanced reporting tool.</p>
+                <Button variant="outline">Request Early Access</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Reports</CardTitle>
+          <CardDescription>Quick access to your recently generated reports</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 hover:bg-muted rounded-md transition-colors">
+              <div className="flex items-center gap-3">
+                <FileText className="h-6 w-6 text-blue-500" />
+                <div>
+                  <p className="font-medium">Resale Certificate Summary - March 2025</p>
+                  <p className="text-xs text-muted-foreground">Generated on March 31, 2025</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm">
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 hover:bg-muted rounded-md transition-colors">
+              <div className="flex items-center gap-3">
+                <FileText className="h-6 w-6 text-purple-500" />
+                <div>
+                  <p className="font-medium">Questionnaire Summary - March 2025</p>
+                  <p className="text-xs text-muted-foreground">Generated on March 31, 2025</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm">
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 hover:bg-muted rounded-md transition-colors">
+              <div className="flex items-center gap-3">
+                <FileText className="h-6 w-6 text-green-500" />
+                <div>
+                  <p className="font-medium">Transaction Log - Q1 2025</p>
+                  <p className="text-xs text-muted-foreground">Generated on March 30, 2025</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm">
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

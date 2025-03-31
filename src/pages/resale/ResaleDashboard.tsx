@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +11,8 @@ import PropertyInspection from '@/components/resale/PropertyInspection';
 import AccountStatement from '@/components/resale/AccountStatement';
 import TrecForms from '@/components/resale/TrecForms';
 import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
+import ResaleOverview from '@/components/resale/dashboard/ResaleOverview';
+import ResaleOrderQueue from '@/components/resale/dashboard/ResaleOrderQueue';
 
 const ResaleDashboard = () => {
   const location = useLocation();
@@ -22,6 +25,7 @@ const ResaleDashboard = () => {
     if (path.includes('/inspection')) return 'inspection';
     if (path.includes('/statements')) return 'statements';
     if (path.includes('/trec-forms')) return 'trec-forms';
+    if (path.includes('/queue')) return 'queue';
     return 'overview';
   };
   
@@ -49,10 +53,12 @@ const ResaleDashboard = () => {
           <p className="text-muted-foreground">Process and manage property resale documentation</p>
         </div>
         
-        <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
-          <Plus className="h-4 w-4" />
-          New Resale Request
-        </Button>
+        <div className="flex gap-2">
+          <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
+            <Plus className="h-4 w-4" />
+            New Resale Request
+          </Button>
+        </div>
       </div>
       
       <Card>
@@ -64,7 +70,7 @@ const ResaleDashboard = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid grid-cols-2 md:grid-cols-6 mb-4">
+            <TabsList className="grid grid-cols-3 md:grid-cols-7 mb-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="certificate" className="flex items-center gap-1">
                 <FileCheck className="h-4 w-4" />
@@ -86,10 +92,16 @@ const ResaleDashboard = () => {
                 <FileBadge className="h-4 w-4" />
                 <span className="hidden md:inline">TREC Forms</span>
               </TabsTrigger>
+              <TabsTrigger value="queue" className="flex items-center gap-1">
+                <FileCheck className="h-4 w-4" />
+                <span className="hidden md:inline">Order Queue</span>
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="pt-4">
-              <ResaleOverview onNavigate={handleTabChange} />
+              <ResaleRbacWrapper requiredPermission="resale.overview.view">
+                <ResaleOverview onNavigate={handleTabChange} />
+              </ResaleRbacWrapper>
             </TabsContent>
             
             <TabsContent value="certificate" className="pt-4">
@@ -121,71 +133,15 @@ const ResaleDashboard = () => {
                 <TrecForms />
               </ResaleRbacWrapper>
             </TabsContent>
+            
+            <TabsContent value="queue" className="pt-4">
+              <ResaleRbacWrapper requiredPermission="resale.queue.view">
+                <ResaleOrderQueue />
+              </ResaleRbacWrapper>
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
-};
-
-const ResaleOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }) => {
-  const resaleModules = [
-    {
-      id: 'certificate',
-      title: 'Resale Certificates',
-      description: 'Generate and manage property resale certificates',
-      icon: <FileCheck className="h-8 w-8 text-blue-500" />,
-      count: 12
-    },
-    {
-      id: 'questionnaire',
-      title: 'Condo Questionnaires',
-      description: 'Complete and track lender questionnaires',
-      icon: <FileQuestion className="h-8 w-8 text-purple-500" />,
-      count: 8
-    },
-    {
-      id: 'inspection',
-      title: 'Property Inspections',
-      description: 'Schedule and document property inspections',
-      icon: <FileSearch className="h-8 w-8 text-green-500" />,
-      count: 6
-    },
-    {
-      id: 'statements',
-      title: 'Account Statements',
-      description: 'Generate account statements for closing',
-      icon: <FileText className="h-8 w-8 text-amber-500" />,
-      count: 15
-    },
-    {
-      id: 'trec-forms',
-      title: 'TREC Forms',
-      description: 'Standard Texas Real Estate Commission forms',
-      icon: <FileBadge className="h-8 w-8 text-red-500" />,
-      count: 4
-    }
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {resaleModules.map(module => (
-        <Card key={module.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate(module.id)}>
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
-              {module.icon}
-              <span className="bg-gray-100 px-2 py-1 rounded-md text-sm font-medium">{module.count}</span>
-            </div>
-            <CardTitle className="text-xl mt-2">{module.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription>{module.description}</CardDescription>
-            <Button variant="link" className="mt-2 p-0" onClick={() => onNavigate(module.id)}>
-              View {module.title}
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
     </div>
   );
 };

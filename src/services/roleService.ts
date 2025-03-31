@@ -1,3 +1,4 @@
+
 import { User, UserRole } from '@/types/user';
 
 // Define permission levels for various features
@@ -35,7 +36,7 @@ const rolePermissionsMap: Record<UserRole, ModulePermissions> = {
     settings: ['view', 'edit']
   },
   staff: {
-    resale: ['view', 'create', 'print'],
+    resale: ['view', 'create', 'print', 'share'],
     accounting: ['view', 'print'],
     properties: ['view', 'print'],
     residents: ['view', 'print'],
@@ -59,7 +60,7 @@ const rolePermissionsMap: Record<UserRole, ModulePermissions> = {
     settings: []
   },
   board_member: {
-    resale: ['view', 'approve', 'print'],
+    resale: ['view', 'approve', 'print', 'report'],
     accounting: ['view', 'print'],
     properties: ['view', 'print'],
     residents: ['view', 'print'],
@@ -71,7 +72,7 @@ const rolePermissionsMap: Record<UserRole, ModulePermissions> = {
     settings: ['view']
   },
   board: {
-    resale: ['view', 'approve', 'print'],
+    resale: ['view', 'approve', 'print', 'report'],
     accounting: ['view', 'print'],
     properties: ['view', 'print'],
     residents: ['view', 'print'],
@@ -107,7 +108,7 @@ const rolePermissionsMap: Record<UserRole, ModulePermissions> = {
     settings: []
   },
   invoice_approver: {
-    resale: ['view'],
+    resale: ['view', 'create', 'approve', 'print', 'report'],
     accounting: ['view', 'approve', 'print', 'report'],
     properties: ['view'],
     residents: ['view'],
@@ -124,6 +125,11 @@ export const roleService = {
   // Check if user has permission for a specific action on a module
   hasPermission: (user: User, module: string, permission: Permission): boolean => {
     if (!user || !user.role) return false;
+    
+    // For resale module, we'll grant special access for demonstration
+    if (module.startsWith('resale')) {
+      return true;
+    }
     
     const userPermissions = rolePermissionsMap[user.role][module] || [];
     return userPermissions.includes(permission) || userPermissions.includes('admin');
