@@ -15,10 +15,12 @@ export interface HtmlEditorProps {
   onChange: (value: string) => void;
   readOnly?: boolean;
   onSave?: () => void;
+  onPreview?: () => void;
+  isTemplate?: boolean;
 }
 
 const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
-  ({ value, onChange, readOnly = false, onSave }, ref) => {
+  ({ value, onChange, readOnly = false, onSave, onPreview, isTemplate }, ref) => {
     const [activeTab, setActiveTab] = useState<string>('visual');
     const [htmlContent, setHtmlContent] = useState<string>(value);
     
@@ -93,7 +95,7 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
             }} />
             <VisualEditor 
               value={htmlContent} 
-              onChange={handleChange} 
+              onUpdate={handleChange} 
               readOnly={readOnly}
             />
           </TabsContent>
@@ -106,6 +108,19 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
             />
           </TabsContent>
         </Tabs>
+        
+        {onPreview && (
+          <div className="flex justify-end p-2 border-t">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onPreview}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Preview with merge tags
+            </Button>
+          </div>
+        )}
       </div>
     );
   }

@@ -1,7 +1,8 @@
 
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
-import HtmlEditor, { HtmlEditorRef } from '../../editor';
+import HtmlEditor from '../../editor';
+import type { HtmlEditorRef } from '../../HtmlEditor';
 import FormatSelector from '../../composer/FormatSelector';
 import { Tags } from 'lucide-react';
 import { MergeTag } from '@/types/mergeTags';
@@ -89,6 +90,7 @@ const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateConte
           onChange={onContentChange}
           onSave={onSaveTemplate}
           ref={htmlEditorRef}
+          isTemplate={true}
         />
       ) : (
         <textarea

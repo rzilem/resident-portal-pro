@@ -5,6 +5,7 @@ import VisualEditor, { VisualEditorRef } from './VisualEditor';
 import HtmlSourceEditor, { HtmlSourceEditorRef } from './HtmlSourceEditor';
 import EditorToolbar from './EditorToolbar';
 import { TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
 export interface HtmlEditorRef {
   insertAtCursor: (text: string) => void;
@@ -100,7 +101,7 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
     return (
       <div className="border rounded-md overflow-hidden">
         <EditorTabs 
-          activeTab={activeTab} 
+          activeTab={activeTab as 'visual' | 'html'} 
           onTabChange={handleTabChange}
           onSave={onSave}
           hasUnsavedChanges={true}
@@ -134,12 +135,14 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
         
         {onPreview && (
           <div className="flex justify-end p-2 border-t">
-            <button 
-              className="text-sm text-blue-600 hover:underline" 
+            <Button 
+              variant="ghost"
+              size="sm"
               onClick={onPreview}
+              className="text-sm text-blue-600 hover:underline"
             >
               Preview with merge tags
-            </button>
+            </Button>
           </div>
         )}
       </div>

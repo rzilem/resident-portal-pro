@@ -16,14 +16,60 @@ import {
 } from 'lucide-react';
 
 interface EditorToolbarProps {
-  onAction: (action: string) => void;
+  executeCommand?: (command: string, value: string | null) => void;
+  createLink?: () => void;
+  insertImage?: () => void;
   disabled?: boolean;
+  onAction?: (action: string) => void;
 }
 
-const EditorToolbar: React.FC<EditorToolbarProps> = ({ onAction, disabled = false }) => {
+const EditorToolbar: React.FC<EditorToolbarProps> = ({ 
+  onAction, 
+  executeCommand, 
+  createLink, 
+  insertImage, 
+  disabled = false 
+}) => {
   const handleAction = (action: string) => {
-    if (!disabled) {
+    if (disabled) return;
+    
+    if (onAction) {
       onAction(action);
+    } else if (executeCommand) {
+      switch (action) {
+        case 'bold':
+          executeCommand('bold', null);
+          break;
+        case 'italic':
+          executeCommand('italic', null);
+          break;
+        case 'underline':
+          executeCommand('underline', null);
+          break;
+        case 'bulletList':
+          executeCommand('insertUnorderedList', null);
+          break;
+        case 'orderedList':
+          executeCommand('insertOrderedList', null);
+          break;
+        case 'link':
+          if (createLink) createLink();
+          break;
+        case 'image':
+          if (insertImage) insertImage();
+          break;
+        case 'alignLeft':
+          executeCommand('justifyLeft', null);
+          break;
+        case 'alignCenter':
+          executeCommand('justifyCenter', null);
+          break;
+        case 'alignRight':
+          executeCommand('justifyRight', null);
+          break;
+        default:
+          console.log('Unhandled action:', action);
+      }
     }
   };
   
