@@ -1,6 +1,7 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
+import { integrationService } from '@/services/integrationService';
 
 // Types for integration data
 interface Integration {
@@ -15,31 +16,40 @@ interface Integration {
   [key: string]: any;
 }
 
-// Mock initial integrations
-const initialIntegrations: Integration[] = [
-  { id: 'ElevenLabs', name: 'ElevenLabs', enabled: false },
-  { id: 'XAI', name: 'X.AI', enabled: false },
-  { id: 'Zapier', name: 'Zapier', enabled: false },
-  { id: 'OpenAI', name: 'OpenAI', enabled: false },
-  { id: 'Stripe', name: 'Stripe', enabled: false },
-];
-
 export function useIntegrations() {
-  const [integrations, setIntegrations] = useState<Integration[]>(initialIntegrations);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load integrations on initialization
+  useEffect(() => {
+    if (!isInitialized) {
+      fetchIntegrations();
+    }
+  }, [isInitialized]);
 
   const fetchIntegrations = useCallback(async () => {
-    // In a real implementation, this would make an API call to fetch integrations
     console.log('Fetching integrations...');
     setIsLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use entity ID 'current-user' as a placeholder - in a real implementation, 
+      // this would be the user ID from authentication
+      const entityId = 'current-user';
+      const fetchedIntegrations = await integrationService.getIntegrations(entityId);
       
-      // In a real app, we would update the integrations here with fetched data
-      // For now, we'll just use what we have in state
-      console.log('Integrations loaded successfully');
+      // Convert to our interface format
+      const formattedIntegrations: Integration[] = Object.entries(fetchedIntegrations).map(
+        ([id, settings]) => ({
+          id,
+          name: id,
+          ...settings
+        })
+      );
+      
+      console.log('Loaded integrations:', formattedIntegrations);
+      setIntegrations(formattedIntegrations);
+      setIsInitialized(true);
       return true;
     } catch (error) {
       console.error('Error fetching integrations:', error);
@@ -51,7 +61,9 @@ export function useIntegrations() {
   }, []);
 
   const getIntegration = useCallback((id: string): Integration | undefined => {
-    return integrations.find(integration => integration.id === id);
+    const integration = integrations.find(integration => integration.id === id);
+    console.log(`Getting integration for ${id}:`, integration);
+    return integration;
   }, [integrations]);
 
   const isConnected = useCallback((id: string): boolean => {
@@ -64,8 +76,9 @@ export function useIntegrations() {
     try {
       console.log(`Connecting integration ${id}...`, settings);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use entity ID 'current-user' as a placeholder
+      const entityId = 'current-user';
+      await integrationService.connectIntegration(entityId, id, settings);
       
       setIntegrations(prev => 
         prev.map(item => 
@@ -74,6 +87,14 @@ export function useIntegrations() {
             : item
         )
       );
+      
+      // If the integration doesn't exist yet, add it
+      if (!getIntegration(id)) {
+        setIntegrations(prev => [
+          ...prev, 
+          { id, name: id, ...settings, enabled: true }
+        ]);
+      }
       
       console.log(`Integration ${id} connected successfully`);
       return true;
@@ -84,15 +105,16 @@ export function useIntegrations() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getIntegration]);
 
   const disconnectIntegration = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
       console.log(`Disconnecting integration ${id}...`);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use entity ID 'current-user' as a placeholder
+      const entityId = 'current-user';
+      await integrationService.disconnectIntegration(entityId, id);
       
       setIntegrations(prev => 
         prev.map(item => 
@@ -118,16 +140,25 @@ export function useIntegrations() {
     try {
       console.log(`Updating integration ${id} settings...`, settings);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use entity ID 'current-user' as a placeholder
+      const entityId = 'current-user';
+      await integrationService.updateIntegrationSettings(entityId, id, settings);
       
-      setIntegrations(prev => 
-        prev.map(item => 
-          item.id === id 
-            ? { ...item, ...settings }
-            : item
-        )
-      );
+      setIntegrations(prev => {
+        const existing = prev.find(item => item.id === id);
+        
+        if (existing) {
+          // Update existing integration
+          return prev.map(item => 
+            item.id === id 
+              ? { ...item, ...settings }
+              : item
+          );
+        } else {
+          // Add new integration if it doesn't exist
+          return [...prev, { id, name: id, ...settings }];
+        }
+      });
       
       console.log(`Integration ${id} settings updated successfully`);
       return true;
@@ -145,20 +176,15 @@ export function useIntegrations() {
     try {
       console.log(`Testing webhook at ${webhookUrl}...`, payload);
       
-      // Simulate API call to test webhook
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await integrationService.testWebhook(webhookUrl, payload);
       
-      // In a real implementation, this would make an actual HTTP request to the webhook URL
-      // and return the result based on the response
-      const success = webhookUrl.includes('http');
-      
-      if (success) {
+      if (result) {
         toast.success('Webhook test successful');
       } else {
         toast.error('Webhook test failed');
       }
       
-      return success;
+      return result;
     } catch (error) {
       console.error('Error testing webhook:', error);
       toast.error('Failed to test webhook connection');
@@ -171,7 +197,6 @@ export function useIntegrations() {
   // Verify authentication status
   const checkAuthentication = useCallback(async () => {
     // In a real app, this would check if the user is authenticated
-    // For now, we'll just return true
     return isAuthenticated;
   }, [isAuthenticated]);
 

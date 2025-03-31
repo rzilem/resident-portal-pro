@@ -53,17 +53,22 @@ export function useElevenLabsDialog(open: boolean, onOpenChange: (open: boolean)
       defaultModel
     });
     
-    const success = await saveElevenLabsSettings({
-      apiKey,
-      defaultVoiceId,
-      defaultModel
-    });
-    
-    if (success) {
-      toast.success('ElevenLabs settings saved successfully');
-      onOpenChange(false);
-    } else {
-      toast.error('Failed to save ElevenLabs settings');
+    try {
+      const success = await saveElevenLabsSettings({
+        apiKey,
+        defaultVoiceId,
+        defaultModel
+      });
+      
+      if (success) {
+        toast.success('ElevenLabs settings saved successfully');
+        onOpenChange(false);
+      } else {
+        toast.error('Failed to save ElevenLabs settings');
+      }
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+      toast.error('An error occurred while saving settings');
     }
   };
 

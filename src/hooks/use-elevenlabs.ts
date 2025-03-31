@@ -69,18 +69,16 @@ export function useElevenLabs() {
       await fetchIntegrations();
       
       console.log('ElevenLabs settings saved successfully:', result);
-      toast.success('ElevenLabs settings saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving ElevenLabs settings:', error);
-      toast.error('Failed to save ElevenLabs settings: ' + (error instanceof Error ? error.message : 'Unknown error'));
       return false;
     } finally {
       setIsLoading(false);
     }
   }, [updateIntegrationSettings, connectIntegration, isElevenLabsConnected, fetchIntegrations]);
 
-  // Use the real API test function instead of mock
+  // Use the real API test function
   const testElevenLabsAPICall = useCallback(async (apiKey: string = elevenlabsIntegration?.apiKey) => {
     setIsLoading(true);
     try {
