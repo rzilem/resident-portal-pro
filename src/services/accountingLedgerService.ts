@@ -309,8 +309,8 @@ class AccountingLedgerService {
       }
       
       // Then create all the ledger entries
-      const user = await supabase.auth.getUser();
-      const userId = user.data.user?.id;
+      const userResponse = await supabase.auth.getUser();
+      const userId = userResponse.data.user?.id;
       
       const ledgerEntries = entry.lines.map(line => {
         const isDebit = !!line.debit && line.debit > 0;
@@ -358,12 +358,15 @@ class AccountingLedgerService {
    */
   async postJournalEntry(id: string): Promise<boolean> {
     try {
+      const userResponse = await supabase.auth.getUser();
+      const userId = userResponse.data.user?.id;
+
       const { error } = await supabase
         .from('journal_entries')
         .update({
           status: 'posted',
           posted_date: new Date().toISOString(),
-          posted_by: (await supabase.auth.getUser()).data.user?.id
+          posted_by: userId
         })
         .eq('id', id);
       

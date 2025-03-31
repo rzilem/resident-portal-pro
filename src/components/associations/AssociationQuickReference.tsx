@@ -15,15 +15,15 @@ const AssociationQuickReference: React.FC<AssociationQuickReferenceProps> = ({
   className = ''
 }) => {
   // Format the established_date if it exists
-  const formattedEstablishedDate = association.established_date 
-    ? formatDate(association.established_date, 'medium')
+  const formattedEstablishedDate = association.founded_date 
+    ? formatDate(association.founded_date, 'medium')
     : 'Not specified';
 
   // Calculate the number of years since establishment
   const getYearsSinceEstablishment = () => {
-    if (!association.established_date) return null;
+    if (!association.founded_date) return null;
     
-    const establishedDate = new Date(association.established_date);
+    const establishedDate = new Date(association.founded_date);
     const currentDate = new Date();
     const yearDiff = currentDate.getFullYear() - establishedDate.getFullYear();
     
@@ -53,7 +53,7 @@ const AssociationQuickReference: React.FC<AssociationQuickReferenceProps> = ({
           <div>
             <p className="font-medium">Number of Units</p>
             <p className="text-sm text-muted-foreground">
-              {association.total_units || 'Not specified'}
+              {association.units || 'Not specified'}
             </p>
           </div>
         </div>
