@@ -10,7 +10,6 @@ import { useCardStyle } from '@/hooks/use-card-style';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 
 const Dashboard = () => {
   useVoiceGreeting();
@@ -138,17 +137,10 @@ const Dashboard = () => {
         <DashboardHeader 
           isCustomizing={isCustomizing}
           setIsCustomizing={setIsCustomizing}
+          dashboardWidgets={dashboardWidgets}
+          columns={columns}
+          handleSaveDashboard={handleSaveDashboard}
         />
-        
-        {isCustomizing && (
-          <div className="relative p-4 md:p-6">
-            <DashboardCustomizer 
-              widgets={dashboardWidgets}
-              columns={columns}
-              onSave={handleSaveDashboard}
-            />
-          </div>
-        )}
       </div>
       
       <motion.div

@@ -20,12 +20,16 @@ interface DashboardCustomizerProps {
   widgets: Widget[];
   columns?: number;
   onSave: (widgets: Widget[], columns?: number) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const DashboardCustomizer = ({
   widgets,
   columns = 2,
-  onSave
+  onSave,
+  open,
+  onOpenChange
 }: DashboardCustomizerProps) => {
   const {
     cardClass
@@ -48,14 +52,20 @@ const DashboardCustomizer = ({
     initialColumns: columns,
     onSave: (updatedWidgets, updatedColumns) => {
       onSave(updatedWidgets, updatedColumns);
-      setDialogOpen(false);
+      if (onOpenChange) {
+        onOpenChange(false);
+      } else {
+        setDialogOpen(false);
+      }
     }
   });
   
-  return <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>
-        
-      </DialogTrigger>
+  // Use controlled or uncontrolled open state
+  const isOpen = open !== undefined ? open : dialogOpen;
+  const handleOpenChange = onOpenChange || setDialogOpen;
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className={`max-w-4xl max-h-[80vh] overflow-auto ${cardClass}`}>
         <DialogHeader>
           <DialogTitle>Customize Your Dashboard</DialogTitle>
@@ -76,7 +86,7 @@ const DashboardCustomizer = ({
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button variant="outline" onClick={() => handleOpenChange(false)}>
                   Cancel
                 </Button>
               </TooltipTrigger>
@@ -100,7 +110,8 @@ const DashboardCustomizer = ({
           </TooltipProvider>
         </DialogFooter>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };
 
 export default DashboardCustomizer;
