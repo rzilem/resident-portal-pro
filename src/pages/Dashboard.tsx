@@ -6,7 +6,7 @@ import { Widget } from '@/types/dashboard';
 import { useSettings } from '@/hooks/use-settings';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Settings2 } from 'lucide-react';
+import { Loader2, Settings2, LayoutDashboard } from 'lucide-react';
 import { useCardStyle } from '@/hooks/use-card-style';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -212,15 +212,7 @@ const Dashboard = () => {
       </motion.div>
       
       <motion.div
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: {
-              staggerChildren: 0.1
-            }
-          }
-        }}
+        variants={container}
         initial="hidden"
         animate="show"
       >
