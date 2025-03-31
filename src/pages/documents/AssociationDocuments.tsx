@@ -16,6 +16,7 @@ import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { debugLog, errorLog, infoLog } from '@/utils/debug';
 
 const AssociationDocuments = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -85,6 +86,13 @@ const AssociationDocuments = () => {
   };
   
   const handleDocumentView = (document: DocumentFile) => {
+    infoLog('Opening document preview', {
+      documentId: document.id,
+      documentName: document.name,
+      documentType: document.fileType,
+      documentUrl: document.url?.substring(0, 50) + '...'
+    });
+    
     setSelectedDocument(document);
     setShowPreview(true);
   };
@@ -102,6 +110,10 @@ const AssociationDocuments = () => {
     const category = categories.find(c => c.id === activeCategory);
     return category ? category.name : 'Documents';
   };
+  
+  useEffect(() => {
+    infoLog('Preview dialog state changed', { showPreview, documentName: selectedDocument?.name });
+  }, [showPreview, selectedDocument]);
   
   return (
     <>
@@ -248,7 +260,10 @@ const AssociationDocuments = () => {
       <DocumentPreview
         document={selectedDocument}
         isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
+        onClose={() => {
+          infoLog('Closing document preview');
+          setShowPreview(false);
+        }}
       />
     </>
   );

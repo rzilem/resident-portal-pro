@@ -11,6 +11,7 @@ import DocumentActions from './DocumentActions';
 import { getDocumentIcon, formatDate } from './utils/documentIconUtils';
 import { formatFileSize } from '@/utils/documents/documentUtils';
 import { toast } from "sonner";
+import { debugLog, infoLog } from '@/utils/debug';
 
 interface DocumentTableRowProps {
   doc: DocumentFile;
@@ -48,11 +49,20 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
   };
 
   const handleView = () => {
-    onView({
-      ...doc,
-      // Ensure we have a fileType property
-      fileType: doc.fileType || doc.name.split('.').pop() || ''
+    infoLog(`Viewing document: ${doc.name}`, {
+      docId: doc.id,
+      docUrl: doc.url,
+      docType: doc.fileType
     });
+    
+    // Ensure we have a fileType property
+    const documentToView = {
+      ...doc,
+      fileType: doc.fileType || doc.name.split('.').pop() || ''
+    };
+    
+    // Call the view handler
+    onView(documentToView);
   };
 
   return (

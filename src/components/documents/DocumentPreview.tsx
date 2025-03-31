@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getFileUrl } from '@/utils/supabase/storage/getUrl';
+import { debugLog, errorLog, warnLog, infoLog, documentPreviewLog } from '@/utils/debug';
 
 interface DocumentPreviewProps {
   document: DocumentFile | null;
@@ -41,70 +41,73 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   useEffect(() => {
-    if (document) {
+    documentPreviewLog('Component mounted', { isOpen });
+  }, []);
+
+  useEffect(() => {
+    documentPreviewLog('isOpen or document changed', { 
+      isOpen, 
+      documentName: document?.name, 
+      documentId: document?.id 
+    });
+  }, [isOpen, document]);
+  
+  useEffect(() => {
+    documentPreviewLog('Dialog open state', { isOpen });
+    
+    if (document && isOpen) {
       setIsLoading(true);
       setPreviewError(null);
       
+      documentPreviewLog('Processing document', {
+        name: document.name,
+        id: document.id,
+        fileType: document.fileType,
+        url: document.url
+      });
+      
       const shouldUseOfficeViewer = document.fileType && canUseOfficeViewer(document.fileType);
       setUseOfficeViewer(shouldUseOfficeViewer);
+      documentPreviewLog('Office viewer decision', { useOfficeViewer: shouldUseOfficeViewer });
       
       updatePreviewUrl(document);
     }
-  }, [document]);
+  }, [document, isOpen]);
   
   const updatePreviewUrl = async (doc: DocumentFile) => {
     if (!doc.url) {
       setPreviewError("Document URL is not available");
       setIsLoading(false);
+      errorLog("Document URL is not available", { docId: doc.id, docName: doc.name });
       return;
     }
     
+    documentPreviewLog('Processing URL', { originalUrl: doc.url });
+    
     try {
-      // Handle Supabase URLs - with more robust pattern matching
-      if (doc.url.includes('supabase') || doc.url.includes('storage.googleapis.com')) {
-        // Try to extract the bucket and path from the URL
-        // This regex matches both formats:
-        // - /storage/v1/object/public/bucket/path
-        // - /storage/v1/object/sign/bucket/path
-        const bucketPathMatch = doc.url.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/(.+?)(?:\?.*)?$/);
-        
-        if (bucketPathMatch) {
-          const bucket = bucketPathMatch[1];
-          const path = bucketPathMatch[2];
-          
-          console.log(`Extracted storage details - Bucket: ${bucket}, Path: ${path}`);
-          
-          // Get a fresh URL using the storage utility
-          const freshUrl = getFileUrl(bucket, path);
-          
-          if (freshUrl) {
-            console.log('Generated fresh Supabase URL:', freshUrl);
-            setPreviewUrl(freshUrl);
-          } else {
-            console.log('Failed to generate fresh URL, using sanitized original');
-            setPreviewUrl(sanitizeDocumentUrl(doc.url));
-          }
-        } else {
-          // If we couldn't extract the bucket and path, use the original URL
-          console.log('Could not parse storage URL format, using sanitized original:', doc.url);
-          setPreviewUrl(sanitizeDocumentUrl(doc.url));
-        }
-      } else {
-        // For non-Supabase URLs, just sanitize and use directly
-        console.log('Using non-Supabase URL:', doc.url);
-        setPreviewUrl(sanitizeDocumentUrl(doc.url));
-      }
+      const cleanUrl = sanitizeDocumentUrl(doc.url);
+      documentPreviewLog('Using sanitized URL', { cleanUrl });
+      setPreviewUrl(cleanUrl);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error processing document URL:', error);
+      errorLog('Error processing document URL:', error);
       setPreviewError("Failed to process document URL");
       // Fallback to original URL
       setPreviewUrl(sanitizeDocumentUrl(doc.url));
-    } finally {
       setIsLoading(false);
     }
   };
   
+  documentPreviewLog('Rendering component', {
+    hasDocument: !!document,
+    isOpen,
+    isLoading,
+    hasError: !!previewError,
+    previewUrl: previewUrl?.substring(0, 50) + '...'
+  });
+  
   if (!document) {
+    documentPreviewLog('No document provided, not rendering');
     return null;
   }
   
@@ -131,12 +134,13 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const handleLoadError = () => {
     setIsLoading(false);
     setPreviewError("Failed to load document preview");
-    console.error("Failed to load document preview for:", document.name, document.url);
+    errorLog("Failed to load document preview for:", document.name, document.url);
   };
   
   const handleLoadSuccess = () => {
     setIsLoading(false);
     setPreviewError(null);
+    documentPreviewLog('Preview loaded successfully');
   };
   
   const getFileIcon = (fileType: string) => {
@@ -297,7 +301,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      documentPreviewLog('Dialog onOpenChange triggered', { newOpenState: open });
+      if (!open) onClose();
+    }}>
       <DialogContent className="max-w-4xl max-h-[80vh] h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
