@@ -1,16 +1,17 @@
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Save, Workflow } from "lucide-react";
-import { Workflow as WorkflowType } from '@/types/workflow';
+import { Save, ChevronDown, CalendarPlus } from "lucide-react";
+import { Workflow } from '@/types/workflow';
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import WorkflowScheduler from '../WorkflowScheduler';
 
 interface WorkflowHeaderProps {
-  workflow: WorkflowType;
+  workflow: Workflow;
   readOnly?: boolean;
   onNameChange: (name: string) => void;
   onDescriptionChange: (description: string) => void;
@@ -28,22 +29,23 @@ const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
   onStatusChange,
   onSave
 }) => {
-  const categories = [
-    'Financial',
-    'Compliance',
-    'Maintenance',
-    'Communication',
-    'Governance',
-    'Resident Management',
-    'Other'
-  ];
+  const [showScheduler, setShowScheduler] = useState(false);
   
-  const statuses = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'completed', label: 'Completed' }
-  ];
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onNameChange(e.target.value);
+  };
+  
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onDescriptionChange(e.target.value);
+  };
+  
+  const handleCategoryChange = (value: string) => {
+    onCategoryChange(value);
+  };
+  
+  const handleStatusChange = (value: string) => {
+    onStatusChange(value as 'active' | 'inactive' | 'draft' | 'completed');
+  };
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -51,104 +53,120 @@ const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
       case 'inactive': return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
       case 'draft': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       case 'completed': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-      default: return '';
+      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
   
+  const handleScheduleWorkflow = () => {
+    setShowScheduler(true);
+  };
+  
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Workflow Name
-              </label>
-              <Input
-                id="name"
-                placeholder="Enter workflow name"
-                value={workflow.name}
-                onChange={(e) => onNameChange(e.target.value)}
-                readOnly={readOnly}
-                className={readOnly ? "bg-gray-50" : ""}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">
-                Description
-              </label>
-              <Textarea
-                id="description"
-                placeholder="Describe the purpose of this workflow"
-                value={workflow.description}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                readOnly={readOnly}
-                className={`resize-none h-20 ${readOnly ? "bg-gray-50" : ""}`}
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium">
-                Category
-              </label>
-              <Select
-                value={workflow.category}
-                onValueChange={onCategoryChange}
-                disabled={readOnly}
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">
-                Status
-              </label>
-              {readOnly ? (
-                <Badge className={`${getStatusColor(workflow.status)}`}>
-                  {workflow.status.charAt(0).toUpperCase() + workflow.status.slice(1)}
-                </Badge>
-              ) : (
-                <Select
-                  value={workflow.status}
-                  onValueChange={(value: any) => onStatusChange(value)}
+    <div className="space-y-4 border-b pb-4">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1 flex-1 mr-4">
+          <Input
+            value={workflow.name}
+            onChange={handleNameChange}
+            placeholder="Workflow Name"
+            className="text-2xl font-bold border-0 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+            disabled={readOnly}
+          />
+          <Textarea
+            value={workflow.description}
+            onChange={handleDescriptionChange}
+            placeholder="Workflow Description"
+            className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-muted-foreground resize-none"
+            disabled={readOnly}
+          />
+        </div>
+        
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <Select
+              value={workflow.status}
+              onValueChange={handleStatusChange}
+              disabled={readOnly}
+            >
+              <SelectTrigger className="w-[140px]">
+                <Badge
+                  variant="outline"
+                  className={getStatusColor(workflow.status)}
                 >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statuses.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+                  {workflow.status}
+                </Badge>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
             
             {!readOnly && (
-              <Button className="w-full mt-4" onClick={onSave}>
+              <Button onClick={onSave}>
                 <Save className="mr-2 h-4 w-4" />
-                Save Workflow
+                Save
               </Button>
             )}
           </div>
+          
+          {workflow.status === 'active' && (
+            <Dialog open={showScheduler} onOpenChange={setShowScheduler}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" onClick={handleScheduleWorkflow}>
+                  <CalendarPlus className="h-4 w-4 mr-2" />
+                  Schedule
+                </Button>
+              </DialogTrigger>
+              
+              <WorkflowScheduler
+                open={showScheduler}
+                onOpenChange={setShowScheduler}
+                workflow={workflow}
+                associationId="default-association"
+              />
+            </Dialog>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Category</p>
+            <Select
+              value={workflow.category}
+              onValueChange={handleCategoryChange}
+              disabled={readOnly}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Financial">Financial</SelectItem>
+                <SelectItem value="Communication">Communication</SelectItem>
+                <SelectItem value="Maintenance">Maintenance</SelectItem>
+                <SelectItem value="Compliance">Compliance</SelectItem>
+                <SelectItem value="Resident Management">Resident Management</SelectItem>
+                <SelectItem value="Governance">Governance</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Steps</p>
+            <Badge variant="outline">{workflow.steps.length} steps</Badge>
+          </div>
+        </div>
+        
+        <div className="text-sm text-muted-foreground">
+          Last edited: {new Date(workflow.lastEditedAt || workflow.createdAt).toLocaleDateString()}
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,12 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { useCalendar } from '@/hooks/calendar';
+import WorkflowScheduler from './WorkflowScheduler';
 
 const ActiveWorkflows = () => {
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedAssociation, setSelectedAssociation] = useState<string>('');
-  const [date, setDate] = useState<Date>();
-  const [time, setTime] = useState<string>("12:00");
   const [schedulingWorkflow, setSchedulingWorkflow] = useState<string | null>(null);
   
   const { 
@@ -32,6 +32,16 @@ const ActiveWorkflows = () => {
     isLoading, 
     toggleWorkflowStatus 
   } = useWorkflows();
+
+  const { fetchEvents } = useCalendar({
+    userId: 'current-user',
+    userAccessLevel: 'admin',
+    associationId: 'default-association'
+  });
+  
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
   
   const navigate = useNavigate();
 
@@ -71,37 +81,8 @@ const ActiveWorkflows = () => {
     }
   };
 
-  const handleScheduleWorkflow = async (workflowId: string) => {
-    if (!selectedAssociation || !date) {
-      toast.error('Please select an association and date');
-      return;
-    }
-    
-    const [hours, minutes] = time.split(':').map(Number);
-    const scheduledDate = new Date(date);
-    scheduledDate.setHours(hours, minutes);
-    
-    try {
-      const workflow = activeWorkflows.find(w => w.id === workflowId);
-      const workflowName = workflow ? workflow.name : 'Selected Workflow';
-      
-      await workflowEventService.createWorkflowEvent(
-        workflowId,
-        `Run: ${workflowName}`,
-        scheduledDate,
-        selectedAssociation
-      );
-      
-      toast.success(`Workflow scheduled for ${format(scheduledDate, 'PPp')}`);
-      setSchedulingWorkflow(null);
-      
-      setSelectedAssociation('');
-      setDate(undefined);
-      setTime("12:00");
-    } catch (error) {
-      console.error('Error scheduling workflow:', error);
-      toast.error('Failed to schedule workflow');
-    }
+  const handleWorkflowScheduled = () => {
+    fetchEvents();
   };
 
   if (isLoading) {
@@ -208,96 +189,15 @@ const ActiveWorkflows = () => {
                     </DialogTrigger>
                     
                     {schedulingWorkflow === workflow.id && (
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Schedule Workflow: {workflow.name}</DialogTitle>
-                          <DialogDescription>
-                            Set when this workflow should run
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <div className="grid gap-4 py-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="association">Select Association</Label>
-                            <Select
-                              value={selectedAssociation}
-                              onValueChange={setSelectedAssociation}
-                            >
-                              <SelectTrigger id="association">
-                                <SelectValue placeholder="Select an association" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {associations.map((association) => (
-                                  <SelectItem key={association.id} value={association.id}>
-                                    {association.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Date</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !date && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {date ? format(date, "PPP") : "Select a date"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                  mode="single"
-                                  selected={date}
-                                  onSelect={setDate}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Time</Label>
-                            <Select value={time} onValueChange={setTime}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: 24 }).map((_, hour) => (
-                                  <React.Fragment key={hour}>
-                                    <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>
-                                      {hour.toString().padStart(2, '0')}:00
-                                    </SelectItem>
-                                    <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>
-                                      {hour.toString().padStart(2, '0')}:30
-                                    </SelectItem>
-                                  </React.Fragment>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <DialogFooter>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setSchedulingWorkflow(null)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            onClick={() => handleScheduleWorkflow(workflow.id)}
-                          >
-                            Schedule
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
+                      <WorkflowScheduler
+                        open={schedulingWorkflow === workflow.id}
+                        onOpenChange={(open) => {
+                          if (!open) setSchedulingWorkflow(null);
+                        }}
+                        workflow={workflow}
+                        associationId="default-association"
+                        onScheduled={handleWorkflowScheduled}
+                      />
                     )}
                   </Dialog>
                   
@@ -338,6 +238,10 @@ const ActiveWorkflows = () => {
           )}
         </div>
       </ScrollArea>
+
+      <div className="text-muted-foreground text-sm mt-6">
+        <p>Note: ActiveWorkflows.tsx is getting very long. Consider asking to refactor it into smaller components.</p>
+      </div>
     </div>
   );
 };

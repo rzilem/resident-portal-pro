@@ -4,17 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Save, ArrowLeft } from "lucide-react";
 import WorkflowHeader from './builder/WorkflowHeader';
 import WorkflowStepsList from './builder/WorkflowStepsList';
+import WorkflowExecutionPanel from './WorkflowExecutionPanel';
 import { WorkflowStep, Workflow } from '@/types/workflow';
 import { toast } from "sonner";
 import { useWorkflowSteps } from '@/hooks/use-workflow-steps';
 import { useWorkflows } from '@/hooks/use-workflows';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const WorkflowBuilder = () => {
   const [searchParams] = useSearchParams();
   const workflowId = searchParams.get('id');
   const readOnly = searchParams.get('readonly') === 'true';
+  const [activeTab, setActiveTab] = useState('design');
   
   const { workflows, updateWorkflow, createWorkflow } = useWorkflows();
   const navigate = useNavigate();
@@ -160,34 +163,47 @@ const WorkflowBuilder = () => {
         onSave={saveWorkflow}
       />
       
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Workflow Steps</h2>
-        {!readOnly && (
-          <Button variant="outline" onClick={saveWorkflow}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Workflow
-          </Button>
-        )}
-      </div>
-      
-      <WorkflowStepsList
-        workflowSteps={workflowSteps}
-        updateStep={updateStep}
-        removeStep={removeStep}
-        moveStep={moveStep}
-        addStep={handleAddStep}
-        addCondition={handleAddCondition}
-        readOnly={readOnly}
-      />
-      
-      {!readOnly && (
-        <div className="flex justify-end mt-6">
-          <Button variant="default" onClick={saveWorkflow}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Workflow
-          </Button>
-        </div>
-      )}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="design">Design</TabsTrigger>
+          <TabsTrigger value="execution">Execution</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="design" className="space-y-6 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Workflow Steps</h2>
+            {!readOnly && (
+              <Button variant="outline" onClick={saveWorkflow}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Workflow
+              </Button>
+            )}
+          </div>
+          
+          <WorkflowStepsList
+            workflowSteps={workflowSteps}
+            updateStep={updateStep}
+            removeStep={removeStep}
+            moveStep={moveStep}
+            addStep={handleAddStep}
+            addCondition={handleAddCondition}
+            readOnly={readOnly}
+          />
+          
+          {!readOnly && (
+            <div className="flex justify-end mt-6">
+              <Button variant="default" onClick={saveWorkflow}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Workflow
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="execution" className="py-4">
+          <WorkflowExecutionPanel workflow={workflow} readOnly={readOnly} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
