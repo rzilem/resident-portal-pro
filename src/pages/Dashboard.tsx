@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
 import { Widget } from '@/types/dashboard';
@@ -11,7 +10,6 @@ import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardStats from '@/components/dashboard/DashboardStats';
-import DashboardActions from '@/components/dashboard/DashboardActions';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 
 const Dashboard = () => {
@@ -142,26 +140,17 @@ const Dashboard = () => {
           setIsCustomizing={setIsCustomizing}
         />
         
-        <div className="relative p-6 md:p-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {!isCustomizing && (
-              <DashboardCustomizer 
-                widgets={dashboardWidgets}
-                columns={columns}
-                onSave={handleSaveDashboard}
-              />
-            )}
-            <DashboardActions 
-              isCustomizing={isCustomizing}
-              setIsCustomizing={setIsCustomizing}
-              dashboardWidgets={dashboardWidgets}
+        {isCustomizing && (
+          <div className="relative p-6 md:p-8">
+            <DashboardCustomizer 
+              widgets={dashboardWidgets}
               columns={columns}
-              handleSaveDashboard={handleSaveDashboard}
+              onSave={handleSaveDashboard}
             />
           </div>
-          
-          <DashboardStats />
-        </div>
+        )}
+        
+        <DashboardStats />
       </div>
       
       <motion.div
