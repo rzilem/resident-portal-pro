@@ -52,7 +52,7 @@ export const useViolations = (associationId?: string): UseViolationsResult => {
         // Transform data for the table
         const formattedViolations = data?.map(item => ({
           id: item.id,
-          property: item.properties?.address || 'Unknown Property',
+          property: item.properties?.address || 'Unknown Property', // Fix: access address directly from properties object
           violation_type: item.violation_type || 'Unspecified',
           reported_date: item.reported_date,
           status: item.status || 'open'
