@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -140,6 +139,34 @@ export function useIntegrations() {
     }
   }, []);
 
+  const testWebhook = useCallback(async (webhookUrl: string, payload: any): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      console.log(`Testing webhook at ${webhookUrl}...`, payload);
+      
+      // Simulate API call to test webhook
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In a real implementation, this would make an actual HTTP request to the webhook URL
+      // and return the result based on the response
+      const success = webhookUrl.includes('http');
+      
+      if (success) {
+        toast.success('Webhook test successful');
+      } else {
+        toast.error('Webhook test failed');
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error testing webhook:', error);
+      toast.error('Failed to test webhook connection');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Verify authentication status
   const checkAuthentication = useCallback(async () => {
     // In a real app, this would check if the user is authenticated
@@ -158,6 +185,7 @@ export function useIntegrations() {
     disconnectIntegration,
     updateIntegrationSettings,
     checkAuthentication,
-    setIsAuthenticated
+    setIsAuthenticated,
+    testWebhook
   };
 }

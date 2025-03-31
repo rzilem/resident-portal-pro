@@ -1,4 +1,3 @@
-
 // Mock implementation for ElevenLabs TTS functionality
 
 export interface SpeakOptions {
@@ -7,6 +6,14 @@ export interface SpeakOptions {
   stability?: number;
   similarityBoost?: number;
 }
+
+// Voice IDs for the most popular voices in the ElevenLabs platform
+export const VOICE_OPTIONS = {
+  ARIA: '9BWtsMINqrJLrRacOk9x',
+  ROGER: 'CwhRBWXzGAHq8TQ4Fs17',
+  SARAH: 'EXAVITQu4vr4xnSDxMaL',
+  DANIEL: 'onwK4e9ZLuTAKqWW03F9'
+};
 
 // Mock implementation of the speak function (client-side only)
 export const speakWithElevenLabs = async (
