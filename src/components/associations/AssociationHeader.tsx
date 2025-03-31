@@ -9,11 +9,13 @@ import { Association } from '@/types/association';
 interface AssociationHeaderProps {
   association: Association;
   fullAddress?: string;
+  hideIdentification?: boolean; // New optional prop
 }
 
 const AssociationHeader: React.FC<AssociationHeaderProps> = ({ 
   association,
-  fullAddress
+  fullAddress,
+  hideIdentification = false // Default to false to maintain existing behavior
 }) => {
   const navigate = useNavigate();
   const associationCode = association.settings?.code || association.id;
@@ -26,7 +28,9 @@ const AssociationHeader: React.FC<AssociationHeaderProps> = ({
           {association.name}
         </h1>
         <div className="flex items-center text-sm text-muted-foreground">
-          <span>Code: {associationCode}</span>
+          {!hideIdentification && (
+            <span>Code: {associationCode}</span>
+          )}
           {fullAddress && (
             <div className="flex items-center ml-3">
               <MapPin className="h-3.5 w-3.5 mr-1.5" />
