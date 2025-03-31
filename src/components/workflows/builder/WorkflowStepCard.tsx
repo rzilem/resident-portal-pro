@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -446,8 +445,6 @@ const WorkflowStepCard: React.FC<WorkflowStepCardProps> = ({
       );
     }
     
-    // Similar patterns for other action types...
-    
     return (
       <div className="p-4 bg-muted/20 rounded-md text-center text-muted-foreground">
         Select an action type to configure
@@ -524,6 +521,36 @@ const WorkflowStepCard: React.FC<WorkflowStepCardProps> = ({
                 : "No steps configured yet"}
             </p>
           </div>
+        </div>
+      </div>
+    );
+  };
+  
+  const AdvancedTabContent = ({ step, handleConfigChange, readOnly }: { 
+    step: WorkflowStep; 
+    handleConfigChange: (key: string, value: any) => void; 
+    readOnly: boolean 
+  }) => {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label>Step ID</Label>
+          <Input value={step.id} disabled />
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Step Type</Label>
+          <Input value={step.type} disabled />
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Notes (Optional)</Label>
+          <Textarea 
+            placeholder="Add notes about this step..."
+            value={'notes' in step.config ? step.config.notes || '' : ''}
+            onChange={(e) => handleConfigChange('notes', e.target.value)}
+            disabled={readOnly}
+          />
         </div>
       </div>
     );
@@ -622,27 +649,11 @@ const WorkflowStepCard: React.FC<WorkflowStepCardProps> = ({
             </TabsContent>
             
             <TabsContent value="advanced" className="p-4 border rounded-md mt-2">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Step ID</Label>
-                  <Input value={step.id} disabled />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Step Type</Label>
-                  <Input value={step.type} disabled />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Notes (Optional)</Label>
-                  <Textarea 
-                    placeholder="Add notes about this step..."
-                    value={step.config.notes || ''}
-                    onChange={(e) => handleConfigChange('notes', e.target.value)}
-                    disabled={readOnly}
-                  />
-                </div>
-              </div>
+              <AdvancedTabContent 
+                step={step} 
+                handleConfigChange={handleConfigChange} 
+                readOnly={readOnly}
+              />
             </TabsContent>
           </Tabs>
         </div>

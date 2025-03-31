@@ -18,6 +18,7 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [activeEventType, setActiveEventType] = useState<CalendarEventType | 'all'>('all');
   
+  // Use the full hook with all required properties
   const { 
     events, 
     selectedEvent, 
@@ -26,7 +27,9 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     createEvent, 
     updateEvent, 
     deleteEvent,
-    createWorkflowEvent
+    createWorkflowEvent,
+    fetchEvents,
+    fetchEventsByDateRange
   } = useCalendar({
     userId,
     userAccessLevel,
