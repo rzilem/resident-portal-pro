@@ -149,66 +149,50 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
-
-                {selectedSolution && (
-                  <div className="rounded-md border p-3 space-y-3">
-                    <p className="text-sm font-medium">{selectedSolution.description}</p>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Steps:</p>
-                      <ul className="space-y-1">
-                        {selectedSolution.steps.map((step, index) => (
-                          <li key={index} className="text-xs flex items-start gap-2">
-                            <ChevronRight className="h-3 w-3 text-muted-foreground mt-0.5" />
-                            <span>{step}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
               </div>
-
+              
               <DialogFooter>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button 
-                  onClick={handleApplySolution}
+                  onClick={handleApplySolution} 
                   disabled={!selectedSolutionId || isApplying}
                 >
-                  Apply Solution
+                  {isApplying ? "Applying..." : "Apply Solution"}
                 </Button>
               </DialogFooter>
             </>
           ) : (
-            <>
-              <div className="py-6 flex flex-col items-center justify-center">
-                <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
-                <h3 className="text-xl font-medium text-center">Solution is being applied</h3>
-                <p className="text-center text-muted-foreground mt-2">
-                  Selected solution: {selectedSolution?.title}
-                </p>
+            <div className="space-y-6 py-4">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="h-5 w-5" />
+                <p className="font-medium">Solution is being applied</p>
               </div>
-
+              
+              <p className="text-sm text-muted-foreground">
+                The selected solution is now being applied to this alert. This may take a few moments.
+              </p>
+              
+              {selectedSolution && (
+                <div className="rounded-md border p-3 bg-muted/30">
+                  <p className="font-medium">{selectedSolution.title}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedSolution.description}</p>
+                </div>
+              )}
+              
               <DialogFooter>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Close
                 </Button>
                 <Button 
-                  variant="default"
-                  onClick={handleMarkResolved}
+                  onClick={handleMarkResolved} 
                   disabled={isApplying}
                 >
-                  Mark as Resolved
+                  {isApplying ? "Processing..." : "Mark as Resolved"}
                 </Button>
               </DialogFooter>
-            </>
+            </div>
           )}
         </DialogContent>
       </Dialog>
