@@ -55,7 +55,7 @@ export const useViolations = (associationId?: string): UseViolationsResult => {
           const propertyAddress = item.properties && 
             typeof item.properties === 'object' && 
             'address' in item.properties ? 
-              item.properties.address : 'Unknown Property';
+              String(item.properties.address) : 'Unknown Property';
           
           return {
             id: item.id,
