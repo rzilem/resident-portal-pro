@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { LetterTemplate } from '@/types/letter-templates';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useLetterTemplates = () => {
   const [templates, setTemplates] = useState<LetterTemplate[]>([]);
@@ -45,7 +44,10 @@ export const useLetterTemplates = () => {
     const fetchLetterTemplates = async () => {
       setIsLoading(true);
       try {
-        // Check if we have a Supabase client
+        // For now, we'll just use the sample data
+        // In the future, when the Supabase table is created, we can uncomment this code
+        
+        /*
         if (supabase) {
           // Try to fetch from Supabase
           const { data, error } = await supabase
@@ -77,6 +79,10 @@ export const useLetterTemplates = () => {
           // Use sample data if no Supabase
           setTemplates(sampleTemplates);
         }
+        */
+        
+        // For now, just use sample data
+        setTemplates(sampleTemplates);
       } catch (error) {
         console.error('Error in fetchLetterTemplates:', error);
         // Fallback to sample data
@@ -99,6 +105,10 @@ export const useLetterTemplates = () => {
     };
     
     try {
+      // For now, we'll just update the local state
+      // In the future, when the Supabase table is created, we can uncomment this code
+      
+      /*
       if (supabase) {
         // Insert to Supabase
         const { error } = await supabase
@@ -118,9 +128,11 @@ export const useLetterTemplates = () => {
           toast.error('Failed to save template to database');
         }
       }
+      */
       
       // Update local state
       setTemplates(prev => [newTemplate, ...prev]);
+      toast.success('Template created successfully');
       return newTemplate;
     } catch (error) {
       console.error('Error in createTemplate:', error);
@@ -137,6 +149,10 @@ export const useLetterTemplates = () => {
     };
     
     try {
+      // For now, we'll just update the local state
+      // In the future, when the Supabase table is created, we can uncomment this code
+      
+      /*
       if (supabase) {
         // Update in Supabase
         const { error } = await supabase
@@ -155,11 +171,13 @@ export const useLetterTemplates = () => {
           toast.error('Failed to update template in database');
         }
       }
+      */
       
       // Update local state
       setTemplates(prev => 
         prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t)
       );
+      toast.success('Template updated successfully');
       return updatedTemplate;
     } catch (error) {
       console.error('Error in updateTemplate:', error);
@@ -171,6 +189,10 @@ export const useLetterTemplates = () => {
   // Delete a template
   const deleteTemplate = async (id: string): Promise<void> => {
     try {
+      // For now, we'll just update the local state
+      // In the future, when the Supabase table is created, we can uncomment this code
+      
+      /*
       if (supabase) {
         // Delete from Supabase
         const { error } = await supabase
@@ -183,6 +205,7 @@ export const useLetterTemplates = () => {
           toast.error('Failed to delete template from database');
         }
       }
+      */
       
       // Update local state
       setTemplates(prev => prev.filter(t => t.id !== id));
