@@ -251,7 +251,7 @@ export const aiDataService = {
     let severity = 'medium';
     
     // Try to determine category based on keywords
-    if (lowerMessage.includes('maintenance')) {
+    if (lowerMessage.includes('maintenance') || lowerMessage.includes('repair') || lowerMessage.includes('broken')) {
       category = 'maintenance';
     } else if (lowerMessage.includes('security') || lowerMessage.includes('safety')) {
       category = 'security';
@@ -263,21 +263,37 @@ export const aiDataService = {
       severity = 'critical';
     }
     
-    // Extract title - use first sentence or partial message
-    const firstSentence = message.split('.')[0].trim();
-    if (firstSentence.length > 10 && firstSentence.length < 100) {
-      title = firstSentence;
+    // Extract title - use the specific item or issue mentioned
+    const brokenMatch = message.match(/broken\s+(\w+)/i);
+    const alertForMatch = message.match(/alert\s+for\s+(.+?)(?:\.|\n|$)/i);
+    const aboutMatch = message.match(/about\s+(.+?)(?:\.|\n|$)/i);
+    
+    if (brokenMatch) {
+      title = `Broken ${brokenMatch[1]}`;
+      
+      // Extract location information
+      const locationMatch = message.match(/in\s+the\s+(.+?)(?:\.|\n|area|$)/i);
+      if (locationMatch) {
+        title += ` in the ${locationMatch[1]} area`;
+      }
+    } else if (alertForMatch) {
+      title = alertForMatch[1].trim();
+    } else if (aboutMatch) {
+      title = aboutMatch[1].trim();
     } else {
       // Just use first X characters
       title = message.substring(0, Math.min(60, message.length));
     }
     
-    // Use remainder as description
-    if (message.length > title.length + 5) {
-      description = message.substring(title.length).trim();
-      if (description.startsWith('.')) {
-        description = description.substring(1).trim();
+    // Use remainder as description or generate a description
+    if (title && message.length > title.length + 10) {
+      description = message.replace(title, '').trim();
+      if (description.startsWith('for') || description.startsWith('about')) {
+        description = description.substring(4).trim();
       }
+    } else {
+      // Generate a description based on title
+      description = `Please address the issue: ${title}`;
     }
     
     return {
