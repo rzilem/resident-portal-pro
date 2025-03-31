@@ -17,7 +17,11 @@ import {
   generatePropertyTemplate,
   generateAssociationPropertiesTemplate
 } from '@/utils/templates/propertyTemplates';
-import { generateDocumentCategoriesTemplate } from '@/utils/templates/documentTemplates';
+import { 
+  generateDocumentCategoriesTemplate, 
+  generateDocumentMetadataTemplate,
+  generateDocumentPermissionsTemplate
+} from '@/utils/templates/documentTemplates';
 
 // Placeholder functions for templates that haven't been implemented yet
 const generateViolationTemplate = () => {
@@ -67,6 +71,12 @@ const DocumentTemplates = () => {
           break;
         case 'documents':
           generateDocumentCategoriesTemplate();
+          break;
+        case 'document-metadata':
+          generateDocumentMetadataTemplate();
+          break;
+        case 'document-permissions':
+          generateDocumentPermissionsTemplate();
           break;
         case 'violations':
           generateViolationTemplate();
@@ -148,6 +158,20 @@ const DocumentTemplates = () => {
                     Document Categories
                   </Button>
                   <Button 
+                    variant={activeTab === 'document-metadata' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('document-metadata')}
+                  >
+                    Document Metadata
+                  </Button>
+                  <Button 
+                    variant={activeTab === 'document-permissions' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('document-permissions')}
+                  >
+                    Document Permissions
+                  </Button>
+                  <Button 
                     variant={activeTab === 'violations' ? 'default' : 'ghost'}
                     className="w-full justify-start"
                     onClick={() => setActiveTab('violations')}
@@ -184,6 +208,8 @@ const DocumentTemplates = () => {
                     {activeTab === 'owner-property' && 'Owner-Property Mapping Template'}
                     {activeTab === 'association-properties' && 'Association Properties Template'}
                     {activeTab === 'documents' && 'Document Categories Template'}
+                    {activeTab === 'document-metadata' && 'Document Metadata Template'}
+                    {activeTab === 'document-permissions' && 'Document Permissions Template'}
                     {activeTab === 'violations' && 'Violation Types Template'}
                     {activeTab === 'financial' && 'Financial Accounts Template'}
                     {activeTab === 'vendors' && 'Vendors Template'}
@@ -203,7 +229,9 @@ const DocumentTemplates = () => {
                   {activeTab === 'properties' && 'Template with 50 rows for importing property and unit information'}
                   {activeTab === 'owner-property' && 'Template with 50 rows for mapping owners to properties and associations'}
                   {activeTab === 'association-properties' && 'Template with 50 rows linking properties to their associations'}
-                  {activeTab === 'documents' && 'Standard document categories for organization'}
+                  {activeTab === 'documents' && 'Standard document categories for organization (50 rows)'}
+                  {activeTab === 'document-metadata' && 'Template with 50 rows for document metadata and properties'}
+                  {activeTab === 'document-permissions' && 'Template with 50 rows for document access control'}
                   {activeTab === 'violations' && 'Template for violation types and categories'}
                   {activeTab === 'financial' && 'Template for financial accounts and GL codes'}
                   {activeTab === 'vendors' && 'Template for vendor contact information'}
@@ -372,17 +400,121 @@ const DocumentTemplates = () => {
                 
                 {activeTab === 'documents' && (
                   <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Document Categories Template</h3>
+                    <h3 className="text-lg font-medium mb-4">Document Categories Template (50 rows)</h3>
                     <p className="text-muted-foreground mb-4">
                       This template helps you organize your document categories for better file management.
                     </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Category Structure</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• category_name - Name of the document category</li>
+                          <li>• parent_category - Optional parent category name</li>
+                          <li>• description - Brief description of the category</li>
+                          <li>• is_restricted - Whether access is limited (Yes/No)</li>
+                          <li>• required_permission - Permission needed to access</li>
+                          <li>• sort_order - Display order of categories</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Suggested Categories</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• Board Documents</li>
+                          <li>• Meeting Minutes</li>
+                          <li>• Financial Statements</li>
+                          <li>• Governing Documents</li>
+                          <li>• Architectural Guidelines</li>
+                          <li>• Community Newsletters</li>
+                          <li>• Vendor Contracts</li>
+                          <li>• Insurance Policies</li>
+                        </ul>
+                      </div>
+                    </div>
                     <Button 
                       variant="outline" 
                       onClick={() => generateDocumentCategoriesTemplate()}
-                      className="mb-4"
+                      className="mt-4"
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Download Document Categories Template
+                    </Button>
+                  </div>
+                )}
+                
+                {activeTab === 'document-metadata' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Document Metadata Template (50 rows)</h3>
+                    <p className="text-muted-foreground mb-4">
+                      This template provides fields for detailed document metadata to better organize and search your files.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Basic Document Fields</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• document_name - Name of the document</li>
+                          <li>• file_path - Storage path (can be virtual)</li>
+                          <li>• document_type - Type of document</li>
+                          <li>• category - Document category</li>
+                          <li>• tags - Comma-separated tags</li>
+                          <li>• description - Brief document description</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Access and Governance</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• published_date - When document was published</li>
+                          <li>• expiration_date - When document expires</li>
+                          <li>• is_public - Whether document is public</li>
+                          <li>• access_level - Who can access the document</li>
+                          <li>• association_id - Associated association</li>
+                          <li>• property_id - Associated property (if any)</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => generateDocumentMetadataTemplate()}
+                      className="mt-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Document Metadata Template
+                    </Button>
+                  </div>
+                )}
+                
+                {activeTab === 'document-permissions' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Document Permissions Template (50 rows)</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Define who can access, view, download, edit, and delete your documents.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Document Reference</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• document_id - ID of the document</li>
+                          <li>• document_name - Name of the document</li>
+                          <li>• role - User role for this permission</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Permission Settings</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• can_view - Can view the document (Yes/No)</li>
+                          <li>• can_download - Can download (Yes/No)</li>
+                          <li>• can_edit - Can edit the document (Yes/No)</li>
+                          <li>• can_delete - Can delete the document (Yes/No)</li>
+                          <li>• notes - Additional notes on permissions</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => generateDocumentPermissionsTemplate()}
+                      className="mt-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Document Permissions Template
                     </Button>
                   </div>
                 )}

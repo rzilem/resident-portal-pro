@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { testBucketAccess, ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { isDemoMode } from '@/utils/auth/demoAuth';
 
 export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
@@ -18,6 +19,15 @@ export const useDocumentsBucket = () => {
   const checkBucket = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
+    
+    // If in demo mode, don't attempt to access storage
+    if (isDemoMode()) {
+      console.log('Demo mode detected, skipping bucket check');
+      setBucketReady(false);
+      setDemoMode(true);
+      setIsLoading(false);
+      return;
+    }
     
     try {
       // First ensure the bucket exists
@@ -66,20 +76,48 @@ export const useDocumentsBucket = () => {
   
   useEffect(() => {
     let isMounted = true;
+    
+    // Don't attempt bucket check if not authenticated
+    if (!user) {
+      console.log('No user, skipping bucket check');
+      setDemoMode(true);
+      setIsLoading(false);
+      return;
+    }
+    
     checkBucket();
     
     // Cleanup function
     return () => {
       isMounted = false;
     };
-  }, [checkBucket]);
+  }, [checkBucket, user]);
 
   const retryCheck = async () => {
     if (isLoading || isCreating) return; // Prevent multiple concurrent retries
     
-    console.log('Manually retrying bucket check...');
-    setRetryCount(prev => prev + 1);
-    checkBucket();
+    // Perform a direct ping to Supabase
+    try {
+      console.log('Manually retrying bucket check...');
+      // Clear demo mode flags before retry
+      setDemoMode(false);
+      
+      // Try a simple authentication check to see if Supabase is responsive
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Authentication check failed:', error.message);
+        toast.error('Connection to Supabase failed. Please check your network connection.');
+        setDemoMode(true);
+        return;
+      }
+      
+      setRetryCount(prev => prev + 1);
+      checkBucket();
+    } catch (error) {
+      console.error('Retry check failed:', error);
+      toast.error('Failed to connect to document storage service');
+      setDemoMode(true);
+    }
   };
   
   const checkStorageStatus = () => {

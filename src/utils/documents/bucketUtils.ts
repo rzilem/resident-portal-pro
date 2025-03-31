@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -7,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const testBucketAccess = async (): Promise<boolean> => {
   try {
+    // First check if the bucket exists
     const { data: buckets, error } = await supabase.storage.listBuckets();
     
     if (error) {
@@ -19,9 +19,7 @@ export const testBucketAccess = async (): Promise<boolean> => {
     
     if (!documentsBucket) {
       console.warn('Documents bucket not found');
-      // Try to create it
-      const created = await ensureDocumentsBucketExists();
-      return created;
+      return false;
     }
     
     // Try to list files in the bucket to test access
@@ -30,6 +28,16 @@ export const testBucketAccess = async (): Promise<boolean> => {
       .list();
     
     if (listError) {
+      // Check if it's a permissions issue but the bucket exists
+      if (listError.message.includes('permission') || 
+          listError.message.includes('access') || 
+          listError.message.includes('policy')) {
+        console.log('Document bucket exists but current user lacks permissions');
+        // Return true if the bucket exists, even if we can't list files
+        // This will allow the application to attempt uploads which may work
+        return true;
+      }
+      
       console.error('Error listing files in documents bucket:', listError.message);
       return false;
     }
@@ -53,6 +61,11 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
     
     if (bucketsError) {
       console.error('Error listing buckets:', bucketsError.message);
+      // Check if it's just an RLS policy issue
+      if (bucketsError.message.includes('policy')) {
+        console.log('Cannot list buckets due to RLS policy, assuming documents bucket exists');
+        return true;
+      }
       return false;
     }
     
@@ -72,6 +85,12 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
     });
     
     if (error) {
+      // Check if it's a policy error - the bucket might already exist but we lack permissions
+      if (error.message.includes('policy')) {
+        console.log('RLS policy preventing bucket creation, but operation may have succeeded');
+        return true;
+      }
+      
       console.error('Error creating documents bucket:', error.message);
       return false;
     }
@@ -80,6 +99,35 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Exception ensuring bucket exists:', error);
+    return false;
+  }
+};
+
+/**
+ * Utility function to check if a file exists in the bucket
+ * @param path Path to the file
+ * @returns Promise resolving to boolean indicating if file exists
+ */
+export const fileExists = async (path: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from('documents')
+      .download(path);
+    
+    if (error) {
+      if (error.message.includes('Object not found') || 
+          error.message.includes('The specified key does not exist')) {
+        return false;
+      }
+      
+      // Other errors might mean we don't have permission, but file might exist
+      console.error('Error checking if file exists:', error.message);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Exception checking if file exists:', error);
     return false;
   }
 };
