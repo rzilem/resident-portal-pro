@@ -55,6 +55,7 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
     try {
       const cleanUrl = sanitizeDocumentUrl(doc.url);
       documentPreviewLog('Using sanitized URL', { cleanUrl });
+      // Fixed here - removed the third argument that was causing the error
       setPreviewUrl(cleanUrl);
       setIsLoading(false);
     } catch (error) {
