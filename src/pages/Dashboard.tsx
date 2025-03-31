@@ -12,6 +12,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardStats from '@/components/dashboard/DashboardStats';
 import DashboardActions from '@/components/dashboard/DashboardActions';
+import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 
 const Dashboard = () => {
   useVoiceGreeting();
@@ -143,6 +144,13 @@ const Dashboard = () => {
         
         <div className="relative p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {!isCustomizing && (
+              <DashboardCustomizer 
+                widgets={dashboardWidgets}
+                columns={columns}
+                onSave={handleSaveDashboard}
+              />
+            )}
             <DashboardActions 
               isCustomizing={isCustomizing}
               setIsCustomizing={setIsCustomizing}
