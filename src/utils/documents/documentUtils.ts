@@ -1,4 +1,3 @@
-
 import { DocumentFile } from '@/types/documents';
 
 /**
@@ -140,12 +139,12 @@ export const getDocumentById = async (documentId: string): Promise<DocumentFile 
       uploadedDate: data.uploaded_date || new Date().toISOString(),
       lastModified: data.last_modified || new Date().toISOString(),
       version: data.version || 1,
-      previousVersions: data.previous_versions || [],
-      expirationDate: data.expiration_date || undefined,
+      previousVersions: [],
+      expirationDate: undefined,
       isPublic: data.is_public || false,
       isArchived: data.is_archived || false,
       properties: [],
-      associations: [data.association_id] || [],
+      associations: data.association_id ? [data.association_id] : [],
       metadata: {}
     } as DocumentFile;
   } catch (error) {
@@ -200,5 +199,49 @@ export const getDocumentCategories = async () => {
   } catch (error) {
     console.error('Exception fetching document categories:', error);
     return [];
+  }
+};
+
+/**
+ * Ensure that the documents bucket exists in Supabase storage
+ * @returns Promise resolving to boolean indicating success
+ */
+export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // First check if the bucket already exists
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error('Error listing buckets:', bucketsError.message);
+      return false;
+    }
+    
+    const documentsBucket = buckets.find(bucket => bucket.name === 'documents');
+    
+    if (documentsBucket) {
+      console.log('Documents bucket already exists');
+      return true;
+    }
+    
+    // If we reach here, we need to create the bucket
+    console.log('Creating documents bucket...');
+    
+    const { data, error } = await supabase.storage.createBucket('documents', {
+      public: true,
+      fileSizeLimit: 50 * 1024 * 1024 // 50MB limit
+    });
+    
+    if (error) {
+      console.error('Error creating documents bucket:', error.message);
+      return false;
+    }
+    
+    console.log('Documents bucket created successfully');
+    return true;
+  } catch (error) {
+    console.error('Exception ensuring bucket exists:', error);
+    return false;
   }
 };

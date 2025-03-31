@@ -2,12 +2,11 @@
 import React from 'react';
 import { 
   FileText, 
-  File as FilePdf, 
+  File,
   Image as FileImage, 
   Table as FileSpreadsheet, 
   Archive as FileArchive,
   Code as FileCode,
-  File,
   Calendar,
   Presentation
 } from 'lucide-react';
@@ -21,7 +20,7 @@ const FileIcon: React.FC<FileIconProps> = ({ fileType, className = "h-6 w-6" }) 
   const type = fileType.toLowerCase();
   
   if (type.includes('pdf')) {
-    return <FilePdf className={`${className} text-red-500`} />;
+    return <FileText className={`${className} text-red-500`} />;
   } else if (
     type.includes('image') || 
     type.includes('jpg') || 
