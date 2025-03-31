@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -56,6 +57,7 @@ import VendorProfile from '@/pages/vendors/VendorProfile';
 
 import { accountingRoutes } from './routes/accountingRoutes';
 import { communicationRoutes } from './routes/communicationRoutes';
+import { reportsRoutes } from './routes/reportsRoutes';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -128,7 +130,10 @@ const App = () => {
           
           <Route path="/database/records" element={<Records />} />
           
-          <Route path="/reports" element={<Reports />} />
+          {/* Reports Routes */}
+          {reportsRoutes.map((route, index) => (
+            <Route key={`report-route-${index}`} path={route.path} element={route.element} />
+          ))}
           
           <Route path="/resale" element={<ResaleDashboard />} />
           <Route path="/resale/certificate" element={<ResaleDashboard />} />

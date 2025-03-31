@@ -1,182 +1,230 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileSpreadsheet, Download, Filter, BarChart, PieChart, LineChart } from 'lucide-react';
+import { FileSpreadsheet, Download, Filter, BarChart, PieChart, LineChart, RefreshCw, Clipboard, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart as RePieChart, Pie, Cell, LineChart as ReLineChart, Line, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+
+import ReportFilters from '@/components/reports/ReportFilters';
+import ReportsList from '@/components/reports/ReportsList';
+import ReportViewer from '@/components/reports/ReportViewer';
+import ReportDashboard from '@/components/reports/ReportDashboard';
+import { useAssociations } from '@/hooks/use-associations';
+import { Association } from '@/types/association';
+import { exportToExcel } from '@/utils/exportToExcel';
 
 const Reports = () => {
-  // Sample data for charts
-  const monthlyData = [
-    { name: 'Jan', income: 42000, expenses: 30000 },
-    { name: 'Feb', income: 44000, expenses: 32000 },
-    { name: 'Mar', income: 43500, expenses: 31000 },
-    { name: 'Apr', income: 45000, expenses: 33000 },
-    { name: 'May', income: 47000, expenses: 31500 },
-    { name: 'Jun', income: 48000, expenses: 32000 },
-  ];
-
-  const expenseData = [
-    { name: 'Maintenance', value: 32000 },
-    { name: 'Utilities', value: 18000 },
-    { name: 'Administration', value: 12000 },
-    { name: 'Insurance', value: 8000 },
-    { name: 'Reserves', value: 10000 },
-  ];
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { associations } = useAssociations();
+  
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [timeRange, setTimeRange] = useState<string>('month');
+  const [association, setAssociation] = useState<string>('all');
+  const [selectedReport, setSelectedReport] = useState<string>('');
+  const [reportType, setReportType] = useState<'financial' | 'property' | 'resident'>('financial');
+  const [selectedAssociation, setSelectedAssociation] = useState<Association | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  
+  // Update selected association whenever the association ID changes
+  useEffect(() => {
+    if (association === 'all') {
+      setSelectedAssociation(null);
+    } else {
+      const found = associations.find(a => a.id === association);
+      setSelectedAssociation(found || null);
+    }
+    
+    console.log("Selected association changed to:", association);
+  }, [association, associations]);
+  
+  // Reset selected report when changing report type
+  useEffect(() => {
+    setSelectedReport('');
+  }, [reportType]);
+  
+  const handleRunReport = (report: string) => {
+    setIsGeneratingReport(true);
+    setSelectedReport(report);
+    
+    // Simulate report generation with a delay
+    setTimeout(() => {
+      setIsGeneratingReport(false);
+      toast({
+        title: "Report Generated",
+        description: `${report} has been generated successfully.`,
+      });
+    }, 1500);
+  };
+  
+  const handleExportReport = (format: 'pdf' | 'excel') => {
+    toast({
+      title: `Exporting as ${format.toUpperCase()}`,
+      description: "Your report is being prepared for download."
+    });
+    
+    setTimeout(() => {
+      if (format === 'excel') {
+        // Example data
+        const data = [
+          { 
+            'Date': '2023-01-01', 
+            'Amount': '$1,000.00', 
+            'Category': 'Income',
+            'Association': selectedAssociation?.name || 'All Associations'
+          },
+          // Add more rows...
+        ];
+        
+        exportToExcel(data, `${selectedReport || 'report'}-${new Date().toISOString().slice(0, 10)}`);
+      }
+      
+      toast({
+        title: "Export Complete",
+        description: `Your report has been exported as ${format.toUpperCase()}.`
+      });
+    }, 2000);
+  };
+  
   return (
-    <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
-      <div className="grid gap-4 md:gap-6 mb-6">
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">Financial Reports</h2>
-              <p className="text-muted-foreground">Analyze financial data across all properties</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" />
-                Filter
-              </Button>
-              <Button className="gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-            </div>
-          </div>
-        </section>
+    <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold">Reports</h1>
+          <p className="text-muted-foreground">Generate, view, and manage association reports</p>
+        </div>
         
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { title: 'Income Statement', desc: 'Monthly revenue & expenses', icon: BarChart, color: 'bg-blue-50 text-blue-600' },
-            { title: 'Balance Sheet', desc: 'Assets & liabilities', icon: PieChart, color: 'bg-purple-50 text-purple-600' },
-            { title: 'Cash Flow', desc: 'Monthly cash movement', icon: LineChart, color: 'bg-green-50 text-green-600' },
-          ].map((item, i) => (
-            <Card key={i} className="animate-scale-in" style={{ animationDelay: `${i * 100}ms` }}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                <div className={`${item.color} p-2 rounded-full`}>
-                  <item.icon className="h-4 w-4" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-base font-medium">{item.desc}</div>
-                <Button variant="link" className="p-0 h-auto text-xs">
-                  View Report
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-        
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>Financial Overview</CardTitle>
-            <CardDescription>
-              Key financial metrics and trends
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="income-expense">
-              <TabsList className="mb-4">
-                <TabsTrigger value="income-expense">Income vs Expenses</TabsTrigger>
-                <TabsTrigger value="expense-breakdown">Expense Breakdown</TabsTrigger>
-                <TabsTrigger value="cash-flow">Cash Flow Trend</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="income-expense" className="pt-4">
-                <ResponsiveContainer width="100%" height={350}>
-                  <ReBarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Bar dataKey="income" name="Income" fill="#4ade80" />
-                    <Bar dataKey="expenses" name="Expenses" fill="#f87171" />
-                  </ReBarChart>
-                </ResponsiveContainer>
-              </TabsContent>
-              
-              <TabsContent value="expense-breakdown" className="pt-4">
-                <ResponsiveContainer width="100%" height={350}>
-                  <RePieChart>
-                    <Pie
-                      data={expenseData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={120}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {expenseData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                  </RePieChart>
-                </ResponsiveContainer>
-              </TabsContent>
-              
-              <TabsContent value="cash-flow" className="pt-4">
-                <ResponsiveContainer width="100%" height={350}>
-                  <ReLineChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Line type="monotone" dataKey="income" name="Income" stroke="#4ade80" strokeWidth={2} />
-                    <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#f87171" strokeWidth={2} />
-                  </ReLineChart>
-                </ResponsiveContainer>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-        
-        <Card className="animate-fade-in animate-delay-200">
-          <CardHeader>
-            <CardTitle>Available Reports</CardTitle>
-            <CardDescription>
-              Access and download detailed financial reports
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { title: 'Monthly Income Statement', period: 'June 2023', format: 'Excel' },
-                { title: 'Annual Budget Report', period: 'FY 2023', format: 'PDF' },
-                { title: 'Expense Analysis by Category', period: 'Q2 2023', format: 'Excel' },
-                { title: 'Property Comparison Report', period: 'YTD 2023', format: 'PDF' },
-                { title: 'Accounts Receivable Aging', period: 'Current', format: 'Excel' },
-                { title: 'Reserve Fund Analysis', period: 'June 2023', format: 'PDF' },
-              ].map((report, i) => (
-                <div key={i} className="flex items-start p-4 border rounded-lg">
-                  <div className="mr-4 flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <FileSpreadsheet className="h-5 w-5 text-primary" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium">{report.title}</h4>
-                    <p className="text-xs text-muted-foreground">Period: {report.period}</p>
-                    <p className="text-xs text-muted-foreground">Format: {report.format}</p>
-                    <Button variant="link" className="p-0 h-auto text-xs mt-1 inline-flex items-center">
-                      Download <Download className="ml-1 h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+          <Button 
+            className="gap-2"
+            onClick={() => navigate('/workflows?tab=builder&report=true')}
+          >
+            <Clipboard className="h-4 w-4" />
+            Monthly Report Workflow
+          </Button>
+        </div>
       </div>
+      
+      <ReportFilters
+        timeRange={timeRange}
+        setTimeRange={setTimeRange}
+        association={association}
+        setAssociation={setAssociation}
+        associations={associations}
+        reportType={reportType}
+        selectedReport={selectedReport}
+        setSelectedReport={setSelectedReport}
+      />
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="financial" onClick={() => setReportType('financial')}>
+            Financial Reports
+          </TabsTrigger>
+          <TabsTrigger value="property" onClick={() => setReportType('property')}>
+            Property Reports
+          </TabsTrigger>
+          <TabsTrigger value="resident" onClick={() => setReportType('resident')}>
+            Resident Reports
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="dashboard" className="space-y-4">
+          <ReportDashboard 
+            association={association}
+            timeRange={timeRange}
+            onRunReport={handleRunReport}
+          />
+        </TabsContent>
+        
+        <TabsContent value="financial" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Financial Reports</CardTitle>
+              <CardDescription>View and generate financial reports for your associations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReportsList 
+                type="financial" 
+                onRunReport={handleRunReport}
+                selectedAssociation={selectedAssociation}
+              />
+            </CardContent>
+          </Card>
+          
+          {selectedReport && (
+            <ReportViewer 
+              reportType="financial"
+              reportName={selectedReport}
+              association={association}
+              timeRange={timeRange}
+              isLoading={isGeneratingReport}
+              onExport={handleExportReport}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="property" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Reports</CardTitle>
+              <CardDescription>View and generate property-related reports</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReportsList 
+                type="property" 
+                onRunReport={handleRunReport}
+                selectedAssociation={selectedAssociation}
+              />
+            </CardContent>
+          </Card>
+          
+          {selectedReport && (
+            <ReportViewer 
+              reportType="property"
+              reportName={selectedReport}
+              association={association}
+              timeRange={timeRange}
+              isLoading={isGeneratingReport}
+              onExport={handleExportReport}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="resident" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resident Reports</CardTitle>
+              <CardDescription>View and generate resident-related reports</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReportsList 
+                type="resident" 
+                onRunReport={handleRunReport}
+                selectedAssociation={selectedAssociation}
+              />
+            </CardContent>
+          </Card>
+          
+          {selectedReport && (
+            <ReportViewer 
+              reportType="resident"
+              reportName={selectedReport}
+              association={association}
+              timeRange={timeRange}
+              isLoading={isGeneratingReport}
+              onExport={handleExportReport}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
