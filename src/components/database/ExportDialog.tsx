@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Download, FileText, FileSpreadsheet, FilePdf } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, File } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ExportDialogProps {
@@ -114,7 +114,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
                   CSV
                 </TabsTrigger>
                 <TabsTrigger value="pdf" className="flex items-center">
-                  <FilePdf className="h-4 w-4 mr-2" />
+                  <File className="h-4 w-4 mr-2" />
                   PDF
                 </TabsTrigger>
               </TabsList>

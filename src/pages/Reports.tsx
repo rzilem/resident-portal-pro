@@ -1,453 +1,459 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  BarChart as BarChartIcon,
-  Building,
-  Download,
-  Filter,
-  FileText,
-  Users,
-  Search,
-  RefreshCw,
-  Calendar,
-  Printer
-} from 'lucide-react';
-import { useAssociations } from '@/hooks/use-associations';
-import { toast } from 'sonner';
-import { usePropertyExport } from '@/hooks/usePropertyExport';
-import { getPropertiesFromAssociations } from '@/components/properties/PropertyHelpers';
-import FinancialReports from '@/components/reports/FinancialReports';
-import PropertyReports from '@/components/reports/PropertyReports';
-import ResidentReports from '@/components/reports/ResidentReports';
-import ReportFilters from '@/components/reports/ReportFilters';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Download, FileCog, Filter, PieChart as PieChartIcon, BarChart2, Calendar, Building } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { generateReport } from '@/utils/pdfGenerator';
 
-const Reports = () => {
-  // State for reports
-  const [reports, setReports] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [reportType, setReportType] = useState<'financial' | 'property' | 'resident'>('financial');
-  const [timeRange, setTimeRange] = useState('year');
-  const [association, setAssociation] = useState('all');
-  const [selectedReport, setSelectedReport] = useState('income-expense');
-  const [isLoading, setIsLoading] = useState(false);
+// Mock data types
+interface PropertyColumn {
+  id: string;
+  name: string;
+  checked: boolean;
+}
+
+// Financial Report Data
+const financialData = [
+  { month: 'Jan', income: 42500, expenses: 38700, balance: 3800 },
+  { month: 'Feb', income: 43200, expenses: 39100, balance: 4100 },
+  { month: 'Mar', income: 43800, expenses: 40200, balance: 3600 },
+  { month: 'Apr', income: 44100, expenses: 39800, balance: 4300 },
+  { month: 'May', income: 42900, expenses: 41100, balance: 1800 },
+  { month: 'Jun', income: 43500, expenses: 40500, balance: 3000 },
+];
+
+// Property Report Data
+const propertyData = [
+  { name: 'Oakwood Heights', units: 120, occupancy: 95, violations: 12 },
+  { name: 'Willow Creek', units: 85, occupancy: 88, violations: 8 },
+  { name: 'Riverfront Towers', units: 210, occupancy: 92, violations: 23 },
+  { name: 'Pine Valley', units: 65, occupancy: 100, violations: 5 },
+  { name: 'Meadow Vista', units: 95, occupancy: 91, violations: 10 },
+];
+
+// Resident Report Data
+const residentData = [
+  { month: 'Jan', moveIns: 12, moveOuts: 8 },
+  { month: 'Feb', moveIns: 9, moveOuts: 7 },
+  { month: 'Mar', moveIns: 15, moveOuts: 10 },
+  { month: 'Apr', moveIns: 10, moveOuts: 9 },
+  { month: 'May', moveIns: 8, moveOuts: 12 },
+  { month: 'Jun', moveIns: 14, moveOuts: 6 },
+];
+
+// Expense breakdown data
+const expenseData = [
+  { name: 'Maintenance', value: 35 },
+  { name: 'Utilities', value: 25 },
+  { name: 'Admin', value: 15 },
+  { name: 'Landscaping', value: 10 },
+  { name: 'Insurance', value: 10 },
+  { name: 'Other', value: 5 },
+];
+
+// Colors for pie chart
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+const Reports: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('financial');
+  const [timeRange, setTimeRange] = useState('month');
+  const [property, setProperty] = useState('all');
   
-  const { associations } = useAssociations();
-  
-  // Get properties from associations
-  const properties = associations && associations.length > 0 
-    ? getPropertiesFromAssociations(associations) 
-    : [];
-  
-  const { handleVisibleColumnsExport, handleTemplateDownload } = usePropertyExport(properties);
-  
-  // Load reports on component mount
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
-    setIsLoading(true);
-    try {
-      // Mock data for reports
-      const mockReports = [
-        {
-          id: '1',
-          name: 'Monthly Income Statement',
-          description: 'Financial performance for the current month',
-          type: 'financial',
-          format: 'pdf',
-          createdAt: new Date()
-        },
-        {
-          id: '2',
-          name: 'Property Occupancy Report',
-          description: 'Current occupancy rates across all properties',
-          type: 'property',
-          format: 'excel',
-          createdAt: new Date()
-        },
-        {
-          id: '3',
-          name: 'Resident Demographics',
-          description: 'Analysis of resident demographics and trends',
-          type: 'resident',
-          format: 'pdf',
-          createdAt: new Date()
-        },
-        {
-          id: '4',
-          name: 'Annual Budget Report',
-          description: 'Budget vs actual for the current year',
-          type: 'financial',
-          format: 'excel',
-          createdAt: new Date()
-        },
-        {
-          id: '5',
-          name: 'Maintenance Request Summary',
-          description: 'Overview of maintenance requests by property',
-          type: 'property',
-          format: 'pdf',
-          createdAt: new Date()
-        }
-      ];
-      
-      setReports(mockReports);
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-      toast.error("Failed to load reports");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle the association change
-  const handleAssociationChange = useCallback((newAssociation: string) => {
-    console.log("Reports page: Changing association to", newAssociation);
-    setAssociation(newAssociation);
-  }, []);
-  
-  // Track association changes for debugging
-  useEffect(() => {
-    console.log("Reports page: association is now", association);
-  }, [association]);
-  
-  const handleExport = () => {
-    setIsLoading(true);
-    try {
-      // In a real app, this would call an API to generate the export
-      setTimeout(() => {
-        toast.success(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported successfully`);
-        setIsLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error exporting data:", error);
-      toast.error("Export failed");
-      setIsLoading(false);
-    }
-  };
-
-  const handleGenerateReport = () => {
-    setIsLoading(true);
-    try {
-      // This would open a modal with report parameters in a real app
-      setTimeout(() => {
-        toast.success("Report generated successfully");
-        fetchReports(); // Refresh the reports list
-        setIsLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error generating report:", error);
-      toast.error("Failed to generate report");
-      setIsLoading(false);
-    }
-  };
-
-  const handleDownloadReport = (report: any) => {
-    toast.success(`${report.name} downloaded`);
-  };
-
-  const handlePrintReport = (report: any) => {
-    toast.success("Preparing report for printing...");
-  };
-
-  const handleRefreshData = () => {
-    fetchReports();
-    toast.success("Reports data refreshed");
-  };
-
-  // Reset selected report when report type changes
-  const handleReportTypeChange = (type: 'financial' | 'property' | 'resident') => {
-    setReportType(type);
+  const handleExportFinancialData = (format: string) => {
+    toast.success(`Exporting financial report as ${format.toUpperCase()}`);
     
-    // Set default report for each type
-    if (type === 'financial') setSelectedReport('income-expense');
-    if (type === 'property') setSelectedReport('overview');
-    if (type === 'resident') setSelectedReport('resident-overview');
+    if (format === 'pdf') {
+      const doc = generateReport({
+        title: 'Financial Report',
+        subtitle: 'Income vs Expenses',
+        date: new Date().toLocaleDateString(),
+        columns: ['Month', 'Income', 'Expenses', 'Balance'],
+        data: financialData.map(d => [
+          d.month,
+          `$${d.income.toLocaleString()}`,
+          `$${d.expenses.toLocaleString()}`,
+          `$${d.balance.toLocaleString()}`
+        ]),
+        summary: {
+          'Total Income': `$${financialData.reduce((sum, d) => sum + d.income, 0).toLocaleString()}`,
+          'Total Expenses': `$${financialData.reduce((sum, d) => sum + d.expenses, 0).toLocaleString()}`,
+          'Net Balance': `$${financialData.reduce((sum, d) => sum + d.balance, 0).toLocaleString()}`
+        }
+      });
+      
+      doc.save('financial-report.pdf');
+    }
   };
-
-  // Filter reports by search query
-  const filteredReports = reports.filter(report => 
-    report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    report.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  
+  const handleExportPropertyData = (format: string) => {
+    toast.success(`Exporting property report as ${format.toUpperCase()}`);
+    
+    if (format === 'pdf') {
+      const doc = generateReport({
+        title: 'Property Report',
+        subtitle: 'Property Overview',
+        date: new Date().toLocaleDateString(),
+        columns: ['Property', 'Units', 'Occupancy Rate', 'Violations'],
+        data: propertyData.map(d => [
+          d.name,
+          d.units.toString(),
+          `${d.occupancy}%`,
+          d.violations.toString()
+        ]),
+        summary: {
+          'Total Properties': propertyData.length.toString(),
+          'Total Units': propertyData.reduce((sum, d) => sum + d.units, 0).toString(),
+          'Average Occupancy': `${(propertyData.reduce((sum, d) => sum + d.occupancy, 0) / propertyData.length).toFixed(1)}%`
+        }
+      });
+      
+      doc.save('property-report.pdf');
+    }
+  };
+  
+  const handleExportResidentData = (format: string) => {
+    toast.success(`Exporting resident report as ${format.toUpperCase()}`);
+    
+    if (format === 'pdf') {
+      const doc = generateReport({
+        title: 'Resident Report',
+        subtitle: 'Move-Ins and Move-Outs',
+        date: new Date().toLocaleDateString(),
+        columns: ['Month', 'Move-Ins', 'Move-Outs', 'Net Change'],
+        data: residentData.map(d => [
+          d.month,
+          d.moveIns.toString(),
+          d.moveOuts.toString(),
+          (d.moveIns - d.moveOuts).toString()
+        ]),
+        summary: {
+          'Total Move-Ins': residentData.reduce((sum, d) => sum + d.moveIns, 0).toString(),
+          'Total Move-Outs': residentData.reduce((sum, d) => sum + d.moveOuts, 0).toString(),
+          'Net Change': residentData.reduce((sum, d) => sum + (d.moveIns - d.moveOuts), 0).toString()
+        }
+      });
+      
+      doc.save('resident-report.pdf');
+    }
+  };
 
   return (
-    <div className="grid gap-4 md:gap-6 animate-fade-in">
+    <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Reports</h2>
-          <p className="text-muted-foreground">Generate and analyze reports across your properties</p>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <FileCog className="h-5 w-5 text-blue-600" />
+            Reports
+          </h2>
+          <p className="text-muted-foreground">
+            Generate and view reports for your properties
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleRefreshData} disabled={isLoading}>
-            <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            <span className="hidden sm:inline">Filter</span>
-          </Button>
-          <Button className="gap-2" onClick={handleExport} disabled={isLoading}>
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
+        
+        <div className="flex flex-wrap gap-2">
+          <Select defaultValue={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[150px]">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Time Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+              <SelectItem value="year">This Year</SelectItem>
+              <SelectItem value="custom">Custom Range</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select defaultValue={property} onValueChange={setProperty}>
+            <SelectTrigger className="w-[180px]">
+              <Building className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Select Property" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Properties</SelectItem>
+              <SelectItem value="oakwood">Oakwood Heights</SelectItem>
+              <SelectItem value="willow">Willow Creek</SelectItem>
+              <SelectItem value="riverfront">Riverfront Towers</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
-      {/* Report Type Selection Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card 
-          className={`cursor-pointer hover:border-primary/50 transition-colors ${reportType === 'financial' ? 'border-primary' : ''}`}
-          onClick={() => handleReportTypeChange('financial')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Financial Reports</CardTitle>
-            <div className="bg-blue-50 text-blue-600 p-2 rounded-full">
-              <BarChartIcon className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-base font-medium">Income & expense reports</div>
-            <p className="text-xs text-muted-foreground">View financial performance over time</p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="financial" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="financial">Financial</TabsTrigger>
+          <TabsTrigger value="property">Property</TabsTrigger>
+          <TabsTrigger value="resident">Resident</TabsTrigger>
+        </TabsList>
         
-        <Card 
-          className={`cursor-pointer hover:border-primary/50 transition-colors ${reportType === 'property' ? 'border-primary' : ''}`}
-          onClick={() => handleReportTypeChange('property')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Property Reports</CardTitle>
-            <div className="bg-green-50 text-green-600 p-2 rounded-full">
-              <Building className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-base font-medium">Property statistics</div>
-            <p className="text-xs text-muted-foreground">Track property metrics and occupancy</p>
-          </CardContent>
-        </Card>
+        {/* Financial Reports */}
+        {activeTab === 'financial' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <Card className="col-span-1 lg:col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Income vs Expenses</CardTitle>
+                  <CardDescription>Financial overview by month</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => handleExportFinancialData('pdf')}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={financialData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, undefined]} />
+                      <Area type="monotone" dataKey="income" stackId="1" stroke="#8884d8" fill="#8884d8" name="Income" />
+                      <Area type="monotone" dataKey="expenses" stackId="2" stroke="#82ca9d" fill="#82ca9d" name="Expenses" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Expense Breakdown</CardTitle>
+                  <CardDescription>Expenses by category</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={expenseData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {expenseData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value}%`, undefined]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Monthly Net Balance</CardTitle>
+                  <CardDescription>Income minus expenses</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={financialData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, undefined]} />
+                      <Bar dataKey="balance" fill="#8884d8" name="Net Balance" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         
-        <Card 
-          className={`cursor-pointer hover:border-primary/50 transition-colors ${reportType === 'resident' ? 'border-primary' : ''}`}
-          onClick={() => handleReportTypeChange('resident')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Resident Reports</CardTitle>
-            <div className="bg-purple-50 text-purple-600 p-2 rounded-full">
-              <Users className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-base font-medium">Resident analytics</div>
-            <p className="text-xs text-muted-foreground">Monitor resident data and trends</p>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Report Settings */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Report Settings</CardTitle>
-          <CardDescription>Configure report parameters</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="w-full sm:w-1/3">
-              <label className="text-sm font-medium">Time Range</label>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select time range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="quarter">This Quarter</SelectItem>
-                  <SelectItem value="year">This Year</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Property Reports */}
+        {activeTab === 'property' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <Card className="col-span-1 lg:col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Property Overview</CardTitle>
+                  <CardDescription>Units and occupancy by property</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => handleExportPropertyData('pdf')}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={propertyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis yAxisId="left" orientation="left" />
+                      <YAxis yAxisId="right" orientation="right" />
+                      <Tooltip />
+                      <Bar yAxisId="left" dataKey="units" fill="#8884d8" name="Units" />
+                      <Bar yAxisId="right" dataKey="occupancy" fill="#82ca9d" name="Occupancy %" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="w-full sm:w-1/3">
-              <label className="text-sm font-medium">Association</label>
-              <Select value={association} onValueChange={handleAssociationChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select association" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Associations</SelectItem>
-                  <SelectItem value="oakwood">Oakwood HOA</SelectItem>
-                  <SelectItem value="pinecrest">Pinecrest Condos</SelectItem>
-                  <SelectItem value="riverdale">Riverdale Community</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Violations by Property</CardTitle>
+                  <CardDescription>Number of violations reported</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={propertyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="violations" fill="#ff7300" name="Violations" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="w-full sm:w-1/3">
-              <label className="text-sm font-medium">Report Type</label>
-              <Select value={selectedReport} onValueChange={setSelectedReport}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select report type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {reportType === 'financial' && (
-                    <>
-                      <SelectItem value="income-expense">Income & Expense</SelectItem>
-                      <SelectItem value="balance">Balance Sheet</SelectItem>
-                      <SelectItem value="cash-flow">Cash Flow</SelectItem>
-                      <SelectItem value="accounts-receivable">Accounts Receivable</SelectItem>
-                      <SelectItem value="accounts-payable">Accounts Payable</SelectItem>
-                    </>
-                  )}
-                  
-                  {reportType === 'property' && (
-                    <>
-                      <SelectItem value="overview">Property Overview</SelectItem>
-                      <SelectItem value="occupancy">Occupancy</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="amenities">Amenities Usage</SelectItem>
-                    </>
-                  )}
-                  
-                  {reportType === 'resident' && (
-                    <>
-                      <SelectItem value="resident-overview">Resident Overview</SelectItem>
-                      <SelectItem value="demographics">Demographics</SelectItem>
-                      <SelectItem value="compliance">Compliance</SelectItem>
-                      <SelectItem value="communications">Communications</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Occupancy Rates</CardTitle>
+                  <CardDescription>Percentage of occupied units</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={propertyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis domain={[80, 100]} />
+                      <Tooltip formatter={(value) => [`${value}%`, 'Occupancy']} />
+                      <Line type="monotone" dataKey="occupancy" stroke="#8884d8" activeDot={{ r: 8 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          
-          <div className="mt-4 flex justify-end">
-            <Button onClick={handleGenerateReport} disabled={isLoading}>
-              {isLoading ? "Generating..." : "Generate Report"}
-            </Button>
+        )}
+        
+        {/* Resident Reports */}
+        {activeTab === 'resident' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <Card className="col-span-1 lg:col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Resident Movement</CardTitle>
+                  <CardDescription>Move-ins and move-outs by month</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => handleExportResidentData('pdf')}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={residentData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="moveIns" fill="#8884d8" name="Move-Ins" />
+                      <Bar dataKey="moveOuts" fill="#82ca9d" name="Move-Outs" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Net Resident Change</CardTitle>
+                  <CardDescription>Monthly resident net change</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={residentData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        data={residentData.map(d => ({
+                          month: d.month,
+                          netChange: d.moveIns - d.moveOuts
+                        }))}
+                        dataKey="netChange" 
+                        stroke="#8884d8" 
+                        name="Net Change"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Cumulative Change</CardTitle>
+                  <CardDescription>Running total of resident changes</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={residentData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area 
+                        type="monotone" 
+                        data={residentData.reduce((acc, curr) => {
+                          const netChange = curr.moveIns - curr.moveOuts;
+                          const lastValue = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
+                          acc.push({
+                            month: curr.month,
+                            cumulative: lastValue + netChange
+                          });
+                          return acc;
+                        }, [] as Array<{month: string, cumulative: number}>)}
+                        dataKey="cumulative" 
+                        stroke="#8884d8" 
+                        fill="#8884d8"
+                        name="Cumulative Change"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
-      
-      {/* Report Content */}
-      <Card className="animate-fade-in">
-        <CardHeader>
-          <CardTitle>
-            {reportType === 'financial' && 'Financial Reports'}
-            {reportType === 'property' && 'Property Reports'}
-            {reportType === 'resident' && 'Resident Reports'}
-          </CardTitle>
-          <CardDescription>
-            {reportType === 'financial' && 'View and analyze financial data across properties'}
-            {reportType === 'property' && 'Analyze property metrics and performance'}
-            {reportType === 'resident' && 'Explore resident statistics and trends'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {reportType === 'financial' && (
-            <FinancialReports 
-              timeRange={timeRange} 
-              association={association}
-              selectedReport={selectedReport}
-            />
-          )}
-          
-          {reportType === 'property' && (
-            <PropertyReports 
-              properties={properties}
-              timeRange={timeRange} 
-              association={association} 
-              onExport={handleVisibleColumnsExport}
-              onTemplateDownload={handleTemplateDownload}
-              selectedReport={selectedReport}
-            />
-          )}
-          
-          {reportType === 'resident' && (
-            <ResidentReports 
-              timeRange={timeRange} 
-              association={association}
-              selectedReport={selectedReport}
-            />
-          )}
-        </CardContent>
-      </Card>
-      
-      {/* Recent and Saved Reports */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Reports</CardTitle>
-          <CardDescription>
-            Access your recently generated reports
-          </CardDescription>
-          <div className="mt-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search reports..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredReports.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredReports.map((report) => (
-                <Card key={report.id} className="overflow-hidden">
-                  <CardHeader className="p-4 pb-0">
-                    <CardTitle className="text-base">{report.name}</CardTitle>
-                    <CardDescription className="text-xs">
-                      {report.description || 'No description'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>{report.type}</span>
-                      <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div className="mt-4 flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePrintReport(report)}
-                      >
-                        <Printer className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handleDownloadReport(report)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No reports found</p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={handleGenerateReport}
-              >
-                Generate New Report
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </Tabs>
     </div>
   );
 };
