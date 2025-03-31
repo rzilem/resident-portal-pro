@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -9,17 +8,20 @@ import { useDashboardWidgets } from '@/hooks/use-dashboard-widgets';
 import WidgetList from './WidgetList';
 import AvailableWidgets from './AvailableWidgets';
 import ColumnLayoutSelector from './ColumnLayoutSelector';
-
 interface DashboardCustomizerProps {
   widgets: Widget[];
   columns?: number;
   onSave: (widgets: Widget[], columns?: number) => void;
 }
-
-const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomizerProps) => {
-  const { cardClass } = useCardStyle();
+const DashboardCustomizer = ({
+  widgets,
+  columns = 2,
+  onSave
+}: DashboardCustomizerProps) => {
+  const {
+    cardClass
+  } = useCardStyle();
   const [dialogOpen, setDialogOpen] = useState(false);
-  
   const {
     widgets: currentWidgets,
     columnCount,
@@ -40,13 +42,9 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
       setDialogOpen(false);
     }
   });
-
-  return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+  return <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="mb-4">
-          <Settings className="h-4 w-4 mr-2" /> Customize Dashboard
-        </Button>
+        
       </DialogTrigger>
       <DialogContent className={`max-w-4xl max-h-[80vh] overflow-auto ${cardClass}`}>
         <DialogHeader>
@@ -57,20 +55,9 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
         </DialogHeader>
 
         <div className="py-4">
-          <ColumnLayoutSelector 
-            columnCount={columnCount} 
-            onColumnChange={setColumnLayout} 
-          />
+          <ColumnLayoutSelector columnCount={columnCount} onColumnChange={setColumnLayout} />
 
-          <WidgetList 
-            widgets={currentWidgets}
-            onDragEnd={handleDragEnd}
-            onRemove={removeWidget}
-            onToggleSize={toggleWidgetSize}
-            onToggleVisibility={toggleWidgetVisibility}
-            onMoveUp={moveWidgetUp}
-            onMoveDown={moveWidgetDown}
-          />
+          <WidgetList widgets={currentWidgets} onDragEnd={handleDragEnd} onRemove={removeWidget} onToggleSize={toggleWidgetSize} onToggleVisibility={toggleWidgetVisibility} onMoveUp={moveWidgetUp} onMoveDown={moveWidgetDown} />
 
           <AvailableWidgets onAddWidget={addWidget} />
         </div>
@@ -84,8 +71,6 @@ const DashboardCustomizer = ({ widgets, columns = 2, onSave }: DashboardCustomiz
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default DashboardCustomizer;
