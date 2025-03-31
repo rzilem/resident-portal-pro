@@ -1,133 +1,159 @@
-import React, { useEffect } from 'react';
-import { useComposer } from './ComposerContext';
-import { Card, CardContent } from '@/components/ui/card';
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon, ClockIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { Input } from '@/components/ui/input';
+import { CalendarIcon, Clock } from 'lucide-react';
+import { format, addDays, isToday } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { useComposer } from './ComposerContext';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+interface Time {
+  value: string;
+  label: string;
+}
 
 const ScheduleOptions: React.FC = () => {
-  const {
-    scheduledSend,
-    setScheduledSend,
-    scheduledDate,
-    setScheduledDate,
-    scheduledTime,
-    setScheduledTime,
-    setIsScheduled
+  const times = generateTimes();
+  const { 
+    isScheduled, 
+    setIsScheduled, 
+    scheduledDate, 
+    setScheduledDate, 
+    scheduledTime, 
+    setScheduledTime 
   } = useComposer();
+  
+  const [date, setDate] = useState<Date | undefined>(undefined);
 
-  useEffect(() => {
-    if (scheduledSend && !scheduledTime) {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes() >= 30 ? 0 : 30;
-      const nextHour = minutes === 0 ? hours + 1 : hours;
-      
-      const formattedHours = nextHour.toString().padStart(2, '0');
-      const formattedMinutes = minutes.toString().padStart(2, '0');
-      
-      setScheduledTime(`${formattedHours}:${formattedMinutes}`);
+  // Handle date selection
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      setScheduledDate(format(selectedDate, 'yyyy-MM-dd'));
     }
-  }, [scheduledSend, scheduledTime, setScheduledTime]);
-
-  useEffect(() => {
-    if (!scheduledSend) {
-      setIsScheduled(false);
+  };
+  
+  // Handle time selection
+  const handleTimeSelect = (value: string) => {
+    setScheduledTime(value);
+  };
+  
+  // Handle toggle for scheduling
+  const handleScheduleToggle = (checked: boolean) => {
+    setIsScheduled(checked);
+    
+    // If turning on scheduling and no date is set, set a default date (tomorrow)
+    if (checked && !date) {
+      const tomorrow = addDays(new Date(), 1);
+      setDate(tomorrow);
+      setScheduledDate(format(tomorrow, 'yyyy-MM-dd'));
     }
-  }, [scheduledSend, setIsScheduled]);
+  };
+  
+  // Format the selected date for display
+  const formattedDate = date 
+    ? isToday(date) 
+      ? 'Today' 
+      : format(date, 'PPP')
+    : 'Select a date';
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="schedule-send"
-              checked={scheduledSend}
-              onCheckedChange={setScheduledSend}
-            />
-            <Label htmlFor="schedule-send">Schedule for later</Label>
+    <div className="flex flex-col space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="schedule" 
+            checked={isScheduled}
+            onCheckedChange={handleScheduleToggle}
+          />
+          <Label htmlFor="schedule">Schedule for later</Label>
+        </div>
+      </div>
+      
+      {isScheduled && (
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <Label htmlFor="date-picker" className="mb-2 block">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date-picker"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formattedDate}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                  disabled={[{ before: new Date() }]}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="flex-1">
+            <Label htmlFor="time-select" className="mb-2 block">Time</Label>
+            <Select value={scheduledTime} onValueChange={handleTimeSelect}>
+              <SelectTrigger id="time-select" className="w-full">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {times.map((time) => (
+                  <SelectItem key={time.value} value={time.value}>
+                    {time.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-
-        {scheduledSend && (
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Label htmlFor="scheduled-date" className="mb-2 block">
-                Date
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left"
-                    id="scheduled-date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {scheduledDate ? (
-                      format(scheduledDate, 'PPP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={scheduledDate || undefined}
-                    onSelect={(date) => date && setScheduledDate(date)}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      return date < today;
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex-1">
-              <Label htmlFor="scheduled-time" className="mb-2 block">
-                Time
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left"
-                    id="scheduled-time"
-                  >
-                    <ClockIcon className="mr-2 h-4 w-4" />
-                    {scheduledTime ? scheduledTime : 'Pick a time'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-auto p-0" 
-                  align="start" 
-                  side="top"
-                  alignOffset={-10}
-                  sideOffset={5}
-                >
-                  <Input
-                    type="time"
-                    value={scheduledTime}
-                    onChange={(e) => setScheduledTime(e.target.value)}
-                    className="w-full p-2"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+      
+      {isScheduled && (
+        <div className="text-sm text-muted-foreground flex items-center">
+          <Clock className="h-4 w-4 mr-2" />
+          Your message will be sent on {formattedDate} at {
+            times.find(t => t.value === scheduledTime)?.label || scheduledTime
+          }
+        </div>
+      )}
+    </div>
   );
 };
+
+// Generate time options in 30-minute intervals
+function generateTimes(): Time[] {
+  const times: Time[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const h = hour % 12 || 12; // Convert 0 to 12 for 12-hour format
+      const period = hour < 12 ? 'AM' : 'PM';
+      const value = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const label = `${h}:${minute.toString().padStart(2, '0')} ${period}`;
+      times.push({ value, label });
+    }
+  }
+  return times;
+}
 
 export default ScheduleOptions;

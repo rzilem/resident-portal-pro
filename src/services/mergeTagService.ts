@@ -1,5 +1,5 @@
 
-import { MergeTagGroup, MergeTag, CustomMergeTagDefinition, MergeTagCategory } from "@/types/mergeTags";
+import { MergeTag, MergeTagGroup, CustomMergeTagDefinition, MergeTagCategory } from "@/types/mergeTags";
 
 // Define sample merge tags for letter templates
 const MERGE_TAG_GROUPS: MergeTagGroup[] = [

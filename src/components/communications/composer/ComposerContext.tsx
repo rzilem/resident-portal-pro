@@ -9,6 +9,7 @@ interface ComposerContextType {
   format: 'plain' | 'html';
   setFormat: (format: 'plain' | 'html') => void;
   previewContent: string;
+  setPreviewContent: (content: string) => void;
   selectedRecipients: string[];
   setSelectedRecipients: (recipients: string[]) => void;
   selectedCommunity: string;
@@ -25,6 +26,7 @@ interface ComposerContextType {
   setIsScheduled: (scheduled: boolean) => void;
   messageType: 'email' | 'sms';
   setMessageType: (type: 'email' | 'sms') => void;
+  previewProcessedContent: (content: string) => Promise<string>;
 }
 
 const ComposerContext = createContext<ComposerContextType | undefined>(undefined);
@@ -72,6 +74,21 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
     setPreviewContent(processedContent);
   }, [content]);
 
+  // Add a function to process content for preview
+  const previewProcessedContent = async (contentToProcess: string): Promise<string> => {
+    // For the prototype, we'll just do a simple merge tag replacement
+    let processedContent = contentToProcess;
+    processedContent = processedContent.replace(/{{resident\.first_name}}/g, 'John');
+    processedContent = processedContent.replace(/{{resident\.name}}/g, 'John Smith');
+    processedContent = processedContent.replace(/{{association\.name}}/g, 'Sunset Heights HOA');
+    processedContent = processedContent.replace(/{{association\.email}}/g, 'info@sunsetheights.org');
+    processedContent = processedContent.replace(/{{association\.phone}}/g, '555-123-4567');
+    processedContent = processedContent.replace(/{{board\.president}}/g, 'Sarah Johnson');
+    processedContent = processedContent.replace(/{{property\.address}}/g, '123 Main St');
+    
+    return processedContent;
+  };
+
   return (
     <ComposerContext.Provider
       value={{
@@ -82,6 +99,7 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
         format,
         setFormat,
         previewContent,
+        setPreviewContent,
         selectedRecipients,
         setSelectedRecipients,
         selectedCommunity,
@@ -98,6 +116,7 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
         setIsScheduled,
         messageType,
         setMessageType,
+        previewProcessedContent,
       }}
     >
       {children}

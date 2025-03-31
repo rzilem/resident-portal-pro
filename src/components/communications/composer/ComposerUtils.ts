@@ -74,7 +74,7 @@ export const getRecipientSummary = (recipients: string[]): string => {
   return `${recipients[0]} and ${recipients.length - 1} more`;
 };
 
-// Add the missing filterTemplatesByCommunity function
+// Function to filter templates by community
 export const filterTemplatesByCommunity = (templates: any[], communityId?: string) => {
   if (!communityId) return templates;
   

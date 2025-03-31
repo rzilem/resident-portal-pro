@@ -20,7 +20,7 @@ import {
   Trash2,
   Bell,
   MessageSquare,
-  Tool,
+  Wrench,
   Clock
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -58,7 +58,7 @@ const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
       case 'event':
         return <Calendar className="h-4 w-4 text-blue-500" />;
       case 'maintenance':
-        return <Tool className="h-4 w-4 text-orange-500" />;
+        return <Wrench className="h-4 w-4 text-orange-500" />;
       case 'meeting':
         return <MessageSquare className="h-4 w-4 text-purple-500" />;
       default:

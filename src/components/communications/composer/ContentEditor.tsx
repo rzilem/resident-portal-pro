@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -24,8 +23,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     format, 
     setFormat,
     messageType,
-    previewProcessedContent,
-    setPreviewContent,
     setShowMergeTagPreview
   } = useComposer();
 
@@ -42,8 +39,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
 
   const handlePreviewClick = async () => {
     try {
-      const processed = await previewProcessedContent(content);
-      setPreviewContent(processed);
+      // We'll just show the merge tag preview for now
       setShowMergeTagPreview(true);
     } catch (error) {
       console.error('Error generating preview:', error);
