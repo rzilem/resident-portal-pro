@@ -31,6 +31,7 @@ import Payments from '@/pages/accounting/Payments';
 import JournalEntries from '@/pages/accounting/JournalEntries';
 import GlAccounts from '@/pages/accounting/GlAccounts';
 import AccountingReports from '@/pages/accounting/AccountingReports';
+import BudgetPlanning from '@/pages/accounting/BudgetPlanning';
 
 import Workflows from '@/pages/Workflows';
 import PrintQueue from '@/pages/PrintQueue';
@@ -53,6 +54,10 @@ import BidRequestDetail from '@/pages/resale/BidRequestDetail';
 import CommunityHub from '@/pages/CommunityHub';
 import Vendors from '@/pages/vendors/Vendors';
 import VendorProfile from '@/pages/vendors/VendorProfile';
+
+// Import route configurations
+import { accountingRoutes } from './routes/accountingRoutes';
+import { communicationRoutes } from './routes/communicationRoutes';
 
 const LogoutRedirect = () => {
   const { handleLogout } = useLogout();
@@ -106,18 +111,18 @@ const App = () => {
           
           <Route path="/documents/association" element={<AssociationDocuments />} />
           
-          <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
-          <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} />
-          <Route path="/accounting/invoice-coding" element={<InvoiceCoding />} />
-          <Route path="/accounting/transactions" element={<Transactions />} />
-          <Route path="/accounting/payments" element={<Payments />} />
-          <Route path="/accounting/journal-entries" element={<JournalEntries />} />
-          <Route path="/accounting/gl-accounts" element={<GlAccounts />} />
-          <Route path="/accounting/reports" element={<AccountingReports />} />
+          {/* Include accounting routes */}
+          {accountingRoutes.map((route, index) => (
+            <Route key={`accounting-route-${index}`} path={route.path} element={route.element} />
+          ))}
           
           <Route path="/calendar" element={<Calendar />} />
-          <Route path="/communications/messaging" element={<CommunityMessaging />} />
-          <Route path="/communications/announcements" element={<Announcements />} />
+          
+          {/* Include communication routes */}
+          {communicationRoutes.map((route, index) => (
+            <Route key={`communication-route-${index}`} path={route.path} element={route.element} />
+          ))}
+          
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
           <Route path="/community-hub" element={<CommunityHub />} />

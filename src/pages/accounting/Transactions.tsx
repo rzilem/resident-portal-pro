@@ -1,216 +1,162 @@
 
-import React, { useState } from 'react';
-import { 
-  Table, TableBody, TableCaption, TableCell, 
-  TableHead, TableHeader, TableRow 
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { TooltipButton } from "@/components/ui/tooltip-button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, RefreshCw, Download, PlusCircle, Search, Calendar } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Transaction, TransactionType } from '@/components/settings/associations/types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Filter, Search, Download, FileText } from "lucide-react";
+import { getTransactions, Transaction } from '@/services/accountingService';
 
 const Transactions = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "TRX-001",
-      date: "2023-06-15",
-      amount: 250.00,
-      type: "assessment",
-      description: "Monthly HOA dues",
-      category: "Dues",
-      account: "Operating Fund",
-      propertyId: "PROP-123",
-      residentId: "RES-456",
-      status: "completed",
-      referenceNumber: "REF123456",
-      createdAt: "2023-06-15T10:30:00Z",
-      updatedAt: "2023-06-15T10:30:00Z",
-    },
-    {
-      id: "TRX-002",
-      date: "2023-06-20",
-      amount: 100.00,
-      type: "fine",
-      description: "Late payment fee",
-      category: "Penalties",
-      account: "Operating Fund",
-      propertyId: "PROP-124",
-      residentId: "RES-789",
-      status: "pending",
-      referenceNumber: "REF789012",
-      createdAt: "2023-06-20T14:15:00Z",
-      updatedAt: "2023-06-20T14:15:00Z",
-    },
-    {
-      id: "TRX-003",
-      date: "2023-06-25",
-      amount: 450.00,
-      type: "payment",
-      description: "Payment received",
-      category: "Income",
-      account: "Operating Fund",
-      propertyId: "PROP-125",
-      residentId: "RES-101",
-      status: "completed",
-      referenceNumber: "REF101112",
-      createdAt: "2023-06-25T09:45:00Z",
-      updatedAt: "2023-06-25T09:45:00Z",
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const data = await getTransactions();
+        setTransactions(data);
+        setFilteredTransactions(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        setIsLoading(false);
+      }
+    };
+    
+    fetchTransactions();
+  }, []);
+  
+  useEffect(() => {
+    // Filter transactions based on search term and type filter
+    let filtered = [...transactions];
+    
+    if (searchTerm) {
+      filtered = filtered.filter(transaction => 
+        transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.account.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (transaction.reference && transaction.reference.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
     }
-  ]);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-500">Completed</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      case 'failed':
-        return <Badge className="bg-red-500">Failed</Badge>;
-      case 'void':
-        return <Badge variant="outline">Void</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
+    
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(transaction => transaction.type === typeFilter);
     }
-  };
-
-  const getTypeBadge = (type: TransactionType) => {
+    
+    setFilteredTransactions(filtered);
+  }, [searchTerm, typeFilter, transactions]);
+  
+  const renderTypeBadge = (type: string) => {
     switch (type) {
-      case 'payment':
-        return <Badge className="bg-blue-500">Payment</Badge>;
-      case 'assessment':
-        return <Badge className="bg-purple-500">Assessment</Badge>;
-      case 'fine':
-        return <Badge className="bg-red-500">Fine</Badge>;
-      case 'fee':
-        return <Badge className="bg-orange-500">Fee</Badge>;
+      case 'debit':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Debit</Badge>;
       case 'credit':
-        return <Badge className="bg-green-500">Credit</Badge>;
-      case 'refund':
-        return <Badge className="bg-teal-500">Refund</Badge>;
-      case 'adjustment':
-        return <Badge className="bg-gray-500">Adjustment</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Credit</Badge>;
       default:
-        return <Badge>{type}</Badge>;
+        return <Badge variant="outline">{type}</Badge>;
     }
   };
-
+  
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 p-4 md:p-6">
-        <div className="grid gap-4 md:gap-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Transactions</h1>
-              <p className="text-muted-foreground">
-                Manage all financial transactions for your properties
-              </p>
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-3xl font-semibold">Transactions</h1>
+        
+        <div className="flex gap-2">
+          <TooltipButton
+            variant="outline"
+            tooltipText="Export transactions to spreadsheet"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </TooltipButton>
+          
+          <TooltipButton
+            tooltipText="View transaction report"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Generate Report
+          </TooltipButton>
+        </div>
+      </div>
+      
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Transaction History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+            <div className="flex-1 flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search transactions..." 
+                  className="pl-8" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0">
+                <Filter size={16} />
+              </Button>
             </div>
-            <div className="flex gap-2 mt-4 md:mt-0">
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <RefreshCw size={16} /> Refresh
-              </Button>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <Download size={16} /> Export
-              </Button>
-              <Button size="sm" className="flex items-center gap-1">
-                <PlusCircle size={16} /> New Transaction
-              </Button>
+            <div className="flex gap-2">
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                <option value="all">All Types</option>
+                <option value="debit">Debits</option>
+                <option value="credit">Credits</option>
+              </select>
             </div>
           </div>
-        </div>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Transaction List</CardTitle>
-            <CardDescription>
-              View and manage all financial transactions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-              <div className="flex-1 flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search transactions..." className="pl-8" />
-                </div>
-                <Button variant="outline" size="icon" className="shrink-0">
-                  <Calendar size={16} />
-                </Button>
-                <Button variant="outline" size="icon" className="shrink-0">
-                  <Filter size={16} />
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="payment">Payment</SelectItem>
-                    <SelectItem value="assessment">Assessment</SelectItem>
-                    <SelectItem value="fine">Fine</SelectItem>
-                    <SelectItem value="fee">Fee</SelectItem>
-                    <SelectItem value="credit">Credit</SelectItem>
-                    <SelectItem value="refund">Refund</SelectItem>
-                    <SelectItem value="adjustment">Adjustment</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                    <SelectItem value="void">Void</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-48">
+              <p className="text-muted-foreground">Loading transactions...</p>
             </div>
-            
-            <div className="rounded-md border">
+          ) : filteredTransactions.length === 0 ? (
+            <div className="flex justify-center items-center h-48">
+              <p className="text-muted-foreground">No transactions found</p>
+            </div>
+          ) : (
+            <div className="border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Type</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reference #</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="hidden md:table-cell">Account</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead className="hidden md:table-cell">Category</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map(transaction => (
+                  {filteredTransactions.map((transaction) => (
                     <TableRow key={transaction.id}>
-                      <TableCell className="font-medium">{transaction.id}</TableCell>
-                      <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{getTypeBadge(transaction.type)}</TableCell>
+                      <TableCell>{transaction.date}</TableCell>
                       <TableCell>{transaction.description}</TableCell>
-                      <TableCell className="text-right">${transaction.amount.toFixed(2)}</TableCell>
-                      <TableCell>{getStatusBadge(transaction.status)}</TableCell>
-                      <TableCell>{transaction.referenceNumber}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">View</Button>
-                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{transaction.account}</TableCell>
+                      <TableCell>${transaction.amount.toFixed(2)}</TableCell>
+                      <TableCell>{renderTypeBadge(transaction.type)}</TableCell>
+                      <TableCell className="hidden md:table-cell">{transaction.category}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

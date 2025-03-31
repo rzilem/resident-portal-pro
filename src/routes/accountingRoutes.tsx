@@ -9,6 +9,7 @@ import Payments from '../pages/accounting/Payments';
 import JournalEntries from '../pages/accounting/JournalEntries';
 import GlAccounts from '../pages/accounting/GlAccounts';
 import AccountingReports from '../pages/accounting/AccountingReports';
+import BudgetPlanning from '../pages/accounting/BudgetPlanning';
 
 export const accountingRoutes = [
   {
@@ -72,6 +73,14 @@ export const accountingRoutes = [
     element: (
       <ProtectedRoute>
         <AccountingReports />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/accounting/budget',
+    element: (
+      <ProtectedRoute>
+        <BudgetPlanning />
       </ProtectedRoute>
     ),
   },

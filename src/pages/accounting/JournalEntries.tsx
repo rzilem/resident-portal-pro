@@ -1,72 +1,64 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { TooltipButton } from "@/components/ui/tooltip-button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus } from "lucide-react";
 import JournalEntryList from '@/components/accounting/journal/JournalEntryList';
 import JournalEntryForm from '@/components/accounting/journal/JournalEntryForm';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PlusCircle } from 'lucide-react';
 
 const JournalEntries = () => {
-  const [activeTab, setActiveTab] = useState('list');
-  const [editingEntry, setEditingEntry] = useState(null);
-
+  const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const handleEditEntry = (entry: any) => {
+    setSelectedEntry(entry);
+    setIsCreating(true);
+  };
+  
   const handleCreateNew = () => {
-    setEditingEntry(null);
-    setActiveTab('create');
+    setSelectedEntry(null);
+    setIsCreating(true);
   };
-
-  const handleEditEntry = (entry) => {
-    setEditingEntry(entry);
-    setActiveTab('create');
+  
+  const handleFormComplete = () => {
+    setIsCreating(false);
+    setSelectedEntry(null);
   };
-
+  
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Journal Entries</h1>
-        {activeTab === 'list' && (
-          <Button 
-            onClick={handleCreateNew}
-            className="mt-4 md:mt-0 flex items-center gap-2"
-          >
-            <PlusCircle size={16} />
-            New Journal Entry
-          </Button>
-        )}
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-3xl font-semibold">Journal Entries</h1>
+        
+        <TooltipButton
+          onClick={handleCreateNew}
+          tooltipText="Create new journal entry"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Journal Entry
+        </TooltipButton>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="list">Journal Entries</TabsTrigger>
-          <TabsTrigger value="create">{editingEntry ? 'Edit' : 'Create'} Journal Entry</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="list">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Journal Entries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <JournalEntryList onEditEntry={handleEditEntry} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="create">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>{editingEntry ? 'Edit' : 'Create'} Journal Entry</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <JournalEntryForm 
-                entry={editingEntry} 
-                onComplete={() => setActiveTab('list')} 
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>
+            {isCreating ? (selectedEntry ? 'Edit Journal Entry' : 'Create Journal Entry') : 'Journal Entry List'}
+          </CardTitle>
+          <CardDescription>
+            {isCreating
+              ? 'Fill in the form to create a new journal entry'
+              : 'View and manage general ledger journal entries'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isCreating ? (
+            <JournalEntryForm entry={selectedEntry} onComplete={handleFormComplete} />
+          ) : (
+            <JournalEntryList onEditEntry={handleEditEntry} />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
