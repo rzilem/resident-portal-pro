@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { DocumentFile } from '@/types/documents';
 import { canUseOfficeViewer, sanitizeDocumentUrl } from '@/utils/documents/documentUtils';
@@ -85,16 +86,25 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
       return;
     }
     
-    const link = window.document.createElement('a');
-    link.href = previewUrl || sanitizeDocumentUrl(document.url);
-    link.download = document.name;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
-    
-    toast.success(`Downloading ${document.name}`);
+    try {
+      // Create a direct download via anchor tag
+      const downloadUrl = previewUrl || sanitizeDocumentUrl(document.url);
+      documentPreviewLog('Downloading document', { url: downloadUrl });
+      
+      const link = window.document.createElement('a');
+      link.href = downloadUrl;
+      link.download = document.name;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+      
+      toast.success(`Downloading ${document.name}`);
+    } catch (error) {
+      errorLog('Download error:', error);
+      toast.error(`Failed to download document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
   
   return {

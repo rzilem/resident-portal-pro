@@ -3,6 +3,7 @@ import React from 'react';
 import { Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FileIcon from './FileIcon';
+import { toast } from 'sonner';
 
 interface NoPreviewAvailableProps {
   fileType: string;
@@ -35,6 +36,19 @@ const NoPreviewAvailable: React.FC<NoPreviewAvailableProps> = ({
     }
   };
 
+  const handleOpenInNewTab = () => {
+    try {
+      if (!documentUrl) {
+        toast.error("Document URL is not available");
+        return;
+      }
+      const url = previewUrl || sanitizeDocumentUrl(documentUrl);
+      window.open(url, '_blank');
+    } catch (error) {
+      toast.error("Failed to open document in new tab");
+    }
+  };
+
   return (
     <div className="w-full h-full flex items-center justify-center p-8 text-center">
       <div>
@@ -51,7 +65,7 @@ const NoPreviewAvailable: React.FC<NoPreviewAvailableProps> = ({
           {documentUrl && (
             <Button 
               variant="outline" 
-              onClick={() => window.open(previewUrl || sanitizeDocumentUrl(documentUrl), '_blank')}
+              onClick={handleOpenInNewTab}
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               Open in New Tab
