@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
@@ -48,7 +49,7 @@ export function useElevenLabs() {
       // Log connection status before attempting to save
       console.log('Current ElevenLabs Connection Status:', isElevenLabsConnected);
       
-      // First ensure we're connected if not already connected
+      // First connect the integration if not already connected
       if (!isElevenLabsConnected) {
         console.log('Connecting ElevenLabs integration...');
         await connectIntegration('ElevenLabs', {
@@ -64,7 +65,7 @@ export function useElevenLabs() {
         enabled: true
       });
       
-      // Refresh integrations to ensure we have the latest data
+      // Force refresh integrations to ensure we have the latest data
       await fetchIntegrations();
       
       console.log('ElevenLabs settings saved successfully:', result);
@@ -93,25 +94,6 @@ export function useElevenLabs() {
       setIsLoading(false);
     }
   }, [elevenLabsIntegration?.apiKey]);
-
-  // Get settings or default values
-  const getSettings = useCallback(() => {
-    if (elevenLabsIntegration) {
-      console.log('Retrieved ElevenLabs settings:', {
-        apiKey: elevenLabsIntegration.apiKey ? `${elevenLabsIntegration.apiKey.substring(0, 5)}...` : 'none',
-        defaultVoiceId: elevenLabsIntegration.defaultVoiceId,
-        defaultModel: elevenLabsIntegration.defaultModel
-      });
-    } else {
-      console.log('No ElevenLabs integration found, using defaults');
-    }
-    
-    return {
-      apiKey: elevenLabsIntegration?.apiKey || '',
-      defaultVoiceId: elevenLabsIntegration?.defaultVoiceId || 'EXAVITQu4vr4xnSDxMaL',
-      defaultModel: elevenLabsIntegration?.defaultModel || 'eleven_turbo_v2'
-    };
-  }, [elevenLabsIntegration]);
 
   return {
     isElevenLabsConnected,
