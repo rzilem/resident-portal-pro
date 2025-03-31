@@ -57,7 +57,7 @@ export function DatePicker({
                 {buttonContent}
               </PopoverTrigger>
             </TooltipTrigger>
-            <TooltipContent side="top">
+            <TooltipContent side="top" className="z-50">
               <p>{tooltipText}</p>
             </TooltipContent>
           </Tooltip>
