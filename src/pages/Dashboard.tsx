@@ -23,8 +23,9 @@ const Dashboard = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
 
-  // Scroll to top when component mounts
+  // Modify scrolling behavior to prevent auto-scrolling
   useEffect(() => {
+    // Only scroll to top, don't do anything else that might cause unwanted scrolling
     window.scrollTo(0, 0);
   }, []);
 
@@ -81,9 +82,9 @@ const Dashboard = () => {
           },
           {
             id: 'widget-6',
-            type: 'notifications',
-            title: 'Notifications',
-            size: 'small',
+            type: 'ci-insights',
+            title: 'CI Insights',
+            size: 'medium',
             position: 5,
           },
         ]);
@@ -184,11 +185,12 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
             {[
               { title: 'Properties', value: '12', label: 'Total properties under management' },
               { title: 'Units', value: '256', label: '24 new this month' },
-              { title: 'Residents', value: '418', label: '92% occupancy rate' }
+              { title: 'Residents', value: '418', label: '92% occupancy rate' },
+              { title: 'Open Requests', value: '15', label: '3 critical, 12 standard' }
             ].map((stat, index) => (
               <motion.div
                 key={index}

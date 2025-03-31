@@ -33,7 +33,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
   const getSeverityBadgeStyle = (severity: Alert['severity']) => {
     switch (severity) {
       case 'critical': return 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
-      case 'high': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
+      case 'high': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
@@ -51,7 +51,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
           {totalAlerts} Alerts
         </Badge>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="pt-3 px-3">
         {totalAlerts === 0 ? (
           <div className="text-center py-6">
             <AlertTriangle className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
@@ -59,7 +59,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-3">
               {criticalCount > 0 && (
                 <Badge className={`${getSeverityBadgeStyle('critical')} inline-flex items-center py-1 px-2`}>
                   <BellRing className="h-3 w-3 mr-1.5 animate-pulse text-indigo-600" />
@@ -72,16 +72,30 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
                 </Badge>
               )}
             </div>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {displayedAlerts.map(alert => (
-                <li key={alert.id} className="relative border rounded-lg p-3 hover:shadow-md transition-shadow bg-white dark:bg-gray-950">
-                  <AnalysisAlert alert={alert} />
-                  <div className="mt-2 flex justify-end">
-                    <FixThisButton 
-                      alert={alert} 
-                      variant="default" 
-                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
-                    />
+                <li key={alert.id} className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950">
+                  <div className="flex flex-col">
+                    <div className="flex items-start justify-between">
+                      <h4 className="text-sm font-medium flex items-center gap-1">
+                        {alert.severity === 'critical' && (
+                          <BellRing className="h-3 w-3 text-blue-600 animate-pulse" />
+                        )}
+                        <span>{alert.title}</span>
+                      </h4>
+                      <Badge className={getSeverityBadgeStyle(alert.severity)} variant="secondary">
+                        {alert.severity}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 mb-2">{alert.description}</p>
+                    <div className="flex justify-end">
+                      <FixThisButton 
+                        alert={alert} 
+                        variant="default" 
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-1 h-7"
+                      />
+                    </div>
                   </div>
                 </li>
               ))}
@@ -90,15 +104,15 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
         )}
       </CardContent>
       {totalAlerts > 3 && (
-        <CardFooter className="flex justify-center pt-0 pb-4">
+        <CardFooter className="flex justify-center pt-0 pb-3">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => setExpanded(!expanded)}
-            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 text-xs h-7"
           >
             {expanded ? 'Show Less' : 'Show All'} 
-            <ChevronRight className={`h-4 w-4 ml-2 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+            <ChevronRight className={`h-3 w-3 ml-1 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </Button>
         </CardFooter>
       )}
