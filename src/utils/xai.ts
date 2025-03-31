@@ -1,96 +1,28 @@
 
-export const X_AI_MODELS = {
-  GROK_1: 'grok-1',
-  GROK_VISION: 'grok-vision-preview'
-};
-
-/**
- * Test the X.AI API connection
- * @param apiKey X.AI API key
- * @returns Promise resolving to true if connection successful, false otherwise
- */
-export const testXAIAPI = async (apiKey: string): Promise<boolean> => {
+// Test API call to validate X.AI credentials
+export const testXAIAPI = async (apiKey: string) => {
   if (!apiKey) {
-    console.error('X.AI API key is missing');
+    console.error('No API key provided for X.AI test');
     return false;
   }
-
-  // In a real application, we would make an actual API call to X.AI
-  // For demo purposes, we'll simulate an API call
-  console.log('Testing X.AI API connection with key:', apiKey.substring(0, 4) + '...');
   
   try {
-    // Simulate API call
-    // In a real implementation, you would use:
-    // const response = await fetch('https://api.x.ai/v1/models', {
-    //   headers: {
-    //     'Authorization': `Bearer ${apiKey}`,
-    //     'Content-Type': 'application/json'
-    //   }
-    // });
+    console.log('Testing X.AI API with key:', apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
     
-    // return response.ok;
+    // Since we can't make actual API calls in this demo, we'll simulate a test
+    // In a real implementation, you would make a lightweight API call to X.AI
     
-    // For demo, we'll simulate a successful response
+    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // 90% success rate for testing
-    const success = Math.random() < 0.9;
+    // Simulate an API response based on the API key format
+    // Just for demo purposes - always returns true if the key starts with "sk-"
+    const success = apiKey.startsWith('sk-');
     
-    if (success) {
-      console.log('X.AI API connection test successful');
-    } else {
-      console.error('X.AI API connection test failed');
-    }
-    
+    console.log('X.AI test result:', success ? 'success' : 'failed');
     return success;
   } catch (error) {
-    console.error('Error testing X.AI API connection:', error);
+    console.error('Error testing X.AI API:', error);
     return false;
-  }
-};
-
-/**
- * Generate text using X.AI API
- * @param apiKey X.AI API key
- * @param prompt Prompt text
- * @param model Model to use
- * @returns Generated text
- */
-export const generateWithXAI = async (
-  apiKey: string, 
-  prompt: string, 
-  model: string = X_AI_MODELS.GROK_1
-): Promise<string> => {
-  if (!apiKey) {
-    throw new Error('X.AI API key is missing');
-  }
-
-  try {
-    // In a real implementation, you would use:
-    // const response = await fetch('https://api.x.ai/v1/chat/completions', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${apiKey}`,
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     model,
-    //     messages: [{ role: 'user', content: prompt }],
-    //     temperature: 0.7,
-    //     max_tokens: 500
-    //   })
-    // });
-    
-    // const data = await response.json();
-    // return data.choices[0].message.content;
-    
-    // For demo, we'll return a simulated response
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    return `This is a simulated response from X.AI's ${model} model based on your prompt: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"`;
-  } catch (error) {
-    console.error('Error generating text with X.AI:', error);
-    throw new Error('Failed to generate text with X.AI');
   }
 };
