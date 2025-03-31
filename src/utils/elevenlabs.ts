@@ -1,5 +1,5 @@
 
-// Mock implementation for ElevenLabs TTS functionality
+// Implementation for ElevenLabs TTS functionality
 
 export interface SpeakOptions {
   voice?: string;
@@ -16,7 +16,7 @@ export const VOICE_OPTIONS = {
   DANIEL: 'onwK4e9ZLuTAKqWW03F9'
 };
 
-// Mock implementation of the speak function (client-side only)
+// Implementation of the speak function (client-side only)
 export const speakWithElevenLabs = async (
   text: string,
   options: SpeakOptions = {}
@@ -27,45 +27,90 @@ export const speakWithElevenLabs = async (
     model: options.model || 'default',
   });
 
-  // In a real implementation, this would make an API call to ElevenLabs,
-  // get the audio data, and play it
-
-  // For now, we'll use the browser's built-in speech synthesis as a fallback
+  // Get integration settings from localStorage as a fallback
+  let elevenlabsSettings;
   try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      
-      // Use a female voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const femaleVoice = voices.find(voice => 
-        voice.name.includes('female') || 
-        voice.name.includes('woman') || 
-        voice.name.includes('girl')
-      );
-      
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
+    const integrationSettings = localStorage.getItem('integrationSettings');
+    if (integrationSettings) {
+      const parsedSettings = JSON.parse(integrationSettings);
+      // Find ElevenLabs settings if they exist
+      for (const userId in parsedSettings) {
+        if (parsedSettings[userId]?.ElevenLabs) {
+          elevenlabsSettings = parsedSettings[userId].ElevenLabs;
+          break;
+        }
       }
-      
-      window.speechSynthesis.speak(utterance);
-      
-      // Return a promise that resolves when the speech is done
-      return new Promise((resolve, reject) => {
-        utterance.onend = () => resolve();
-        utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`));
-      });
-    } else {
-      console.warn('Speech synthesis not supported in this browser');
-      return Promise.resolve();
     }
   } catch (error) {
-    console.error('Error with speech synthesis:', error);
-    return Promise.resolve();
+    console.error('Error getting ElevenLabs settings:', error);
+  }
+
+  // Check if we have valid settings to use
+  const apiKey = elevenlabsSettings?.apiKey;
+  const hasValidSettings = apiKey && apiKey.length >= 20;
+  
+  if (!hasValidSettings) {
+    console.warn('No valid ElevenLabs API key found, falling back to browser TTS');
+    throw new Error('No valid ElevenLabs API key found');
+  }
+
+  try {
+    // Create audio element for playing the response
+    const audioElement = new Audio();
+    
+    // Use the provided voice or default to SARAH
+    const voiceId = options.voice || elevenlabsSettings?.defaultVoiceId || VOICE_OPTIONS.SARAH;
+    // Use the provided model or default to eleven_turbo_v2
+    const model = options.model || elevenlabsSettings?.defaultModel || 'eleven_turbo_v2';
+    
+    // Make the API request to ElevenLabs
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'audio/mpeg',
+        'Content-Type': 'application/json',
+        'xi-api-key': apiKey
+      },
+      body: JSON.stringify({
+        text: text,
+        model_id: model,
+        voice_settings: {
+          stability: options.stability || 0.5,
+          similarity_boost: options.similarityBoost || 0.75
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('ElevenLabs API error:', errorText);
+      throw new Error(`ElevenLabs API returned ${response.status}: ${errorText}`);
+    }
+
+    // Get the audio blob and create an object URL
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    // Set up and play the audio
+    audioElement.src = audioUrl;
+    audioElement.play();
+    
+    // Return a promise that resolves when the audio is done playing
+    return new Promise((resolve) => {
+      audioElement.onended = () => {
+        URL.revokeObjectURL(audioUrl); // Clean up
+        resolve();
+      };
+      
+      audioElement.onerror = (error) => {
+        console.error('Error playing audio:', error);
+        URL.revokeObjectURL(audioUrl); // Clean up
+        resolve(); // Still resolve to continue the flow
+      };
+    });
+  } catch (error) {
+    console.error('Error with ElevenLabs TTS:', error);
+    throw error; // Re-throw so we can fall back to browser TTS
   }
 };
 
@@ -75,11 +120,24 @@ export const testElevenLabsAPI = async (apiKey: string): Promise<boolean> => {
     return false;
   }
 
-  // Simulate API request
-  console.log('Testing ElevenLabs API connection...');
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Simple validation to simulate a real API check
-  // In reality, this would make a request to ElevenLabs' API
-  return apiKey.length >= 20;
+  // Attempt a real API test instead of simulation
+  try {
+    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+      method: 'GET',
+      headers: {
+        'xi-api-key': apiKey
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('ElevenLabs API test failed:', await response.text());
+      return false;
+    }
+    
+    const data = await response.json();
+    return Array.isArray(data.voices); // True if we got a valid response
+  } catch (error) {
+    console.error('Error testing ElevenLabs API:', error);
+    return false;
+  }
 };

@@ -60,9 +60,37 @@ export const speakGreeting = async (
   // Log the final message for debugging
   console.log('Final greeting message:', message);
   
-  // Use ElevenLabs for high-quality natural voice
-  await speakWithElevenLabs(message, {
-    voice: VOICE_OPTIONS.SARAH, // Choose the voice that sounds best
-    model: 'eleven_turbo_v2',   // Faster model with good quality
-  });
+  try {
+    // Try to use ElevenLabs first (with explicit error handling)
+    await speakWithElevenLabs(message, {
+      voice: VOICE_OPTIONS.SARAH, // Choose the voice that sounds best
+      model: 'eleven_turbo_v2',   // Faster model with good quality
+    });
+    console.log('Successfully used ElevenLabs for greeting');
+  } catch (error) {
+    console.error('ElevenLabs TTS failed, falling back to Web Speech API:', error);
+    
+    // Only fall back to Web Speech API if ElevenLabs fails
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      
+      // Use a female voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const femaleVoice = voices.find(voice => 
+        voice.name.includes('female') || 
+        voice.name.includes('woman') || 
+        voice.name.includes('girl')
+      );
+      
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn('Speech synthesis not supported in this browser');
+    }
+  }
 };

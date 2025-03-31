@@ -6,16 +6,20 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { useSettings } from '@/hooks/use-settings';
-import { Loader2, Volume2, VolumeX } from 'lucide-react';
+import { Loader2, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import ThemePresets from './display/ThemePresets';
 import ColorCustomizer from './display/ColorCustomizer';
 import CustomBackground from './display/CustomBackground';
 import LogoUploader from './display/LogoUploader';
 import { PRESET_GREETINGS } from '@/utils/presetGreetings';
+import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
+import { toast } from 'sonner';
 
 const DisplaySettings = () => {
   const { preferences, updatePreference, isLoading } = useSettings();
+  const { resetGreeting } = useVoiceGreeting();
 
   const handleToggleAnimations = (checked: boolean) => {
     updatePreference('animations', checked);
@@ -43,6 +47,11 @@ const DisplaySettings = () => {
   
   const handleSelectPresetGreeting = (presetId: string) => {
     updatePreference('selectedPresetGreeting', presetId);
+  };
+
+  const handleTestGreeting = () => {
+    resetGreeting();
+    toast.success('Greeting reset! Navigate to dashboard to hear it');
   };
 
   if (isLoading) {
@@ -111,7 +120,18 @@ const DisplaySettings = () => {
                 {preferences.voiceGreetingEnabled !== false && (
                   <div className="pl-4 border-l-2 border-muted space-y-4">
                     <div className="space-y-2">
-                      <Label>Greeting Type</Label>
+                      <div className="flex justify-between items-center">
+                        <Label>Greeting Type</Label>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleTestGreeting}
+                          className="flex items-center gap-1"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Test Greeting
+                        </Button>
+                      </div>
                       <RadioGroup 
                         value={preferences.voiceGreetingType || 'default'} 
                         onValueChange={handleChangeGreetingType}

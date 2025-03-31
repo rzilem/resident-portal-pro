@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
+import { testElevenLabsAPI } from '@/utils/elevenlabs';
 
 interface ElevenLabsSettings {
   apiKey: string;
@@ -79,22 +80,16 @@ export function useElevenLabs() {
     }
   }, [updateIntegrationSettings, connectIntegration, isElevenLabsConnected, fetchIntegrations]);
 
-  const testElevenLabsAPI = useCallback(async (apiKey: string = elevenlabsIntegration?.apiKey) => {
+  // Use the real API test function instead of mock
+  const testElevenLabsAPICall = useCallback(async (apiKey: string = elevenlabsIntegration?.apiKey) => {
     setIsLoading(true);
     try {
       console.log('Testing ElevenLabs API with key:', apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
       
-      // Mock API test for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await testElevenLabsAPI(apiKey);
       
-      // Simple validation that the key is present and looks like an API key
-      if (!apiKey || apiKey.length < 20) {
-        console.log('Invalid ElevenLabs API key');
-        return false;
-      }
-      
-      console.log('ElevenLabs API test successful');
-      return true;
+      console.log('ElevenLabs API test result:', result);
+      return result;
     } catch (error) {
       console.error('Error testing ElevenLabs API:', error);
       return false;
@@ -111,7 +106,7 @@ export function useElevenLabs() {
       defaultModel: elevenlabsIntegration?.defaultModel || 'eleven_multilingual_v2'
     },
     saveElevenLabsSettings,
-    testElevenLabsAPI,
+    testElevenLabsAPI: testElevenLabsAPICall,
     isLoading,
     isAuthenticated
   };

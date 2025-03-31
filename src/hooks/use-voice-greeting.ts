@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { speakGreeting } from '@/utils/greetings';
 import { toast } from 'sonner';
 import { useSettings } from '@/hooks/use-settings';
+import { useElevenLabs } from '@/hooks/use-elevenlabs';
 
 // Create a global flag to track if the greeting has played in this session
 // This will ensure it only plays once even if the hook mounts multiple times
@@ -12,6 +13,7 @@ let hasGreetedGlobally = false;
 export const useVoiceGreeting = () => {
   const { user, profile } = useAuth();
   const { preferences } = useSettings();
+  const { isElevenLabsConnected } = useElevenLabs();
   const [hasGreeted, setHasGreeted] = useState(false);
   const [isGreeting, setIsGreeting] = useState(false);
   
@@ -38,6 +40,7 @@ export const useVoiceGreeting = () => {
       setTimeout(async () => {
         try {
           console.log('Speaking greeting to:', name);
+          console.log('ElevenLabs connected:', isElevenLabsConnected);
           
           // Get greeting options from preferences
           const greetingOptions = {
@@ -45,6 +48,9 @@ export const useVoiceGreeting = () => {
             customGreeting: preferences.customGreeting,
             presetGreetingId: preferences.selectedPresetGreeting
           };
+          
+          // Log the greeting options for debugging
+          console.log('Using greeting options:', greetingOptions);
           
           await speakGreeting(name, greetingOptions);
           setHasGreeted(true);
@@ -59,7 +65,13 @@ export const useVoiceGreeting = () => {
         }
       }, 1000);
     }
-  }, [user, profile, hasGreeted, isGreeting, preferences]);
+  }, [user, profile, hasGreeted, isGreeting, preferences, isElevenLabsConnected]);
   
-  return { hasGreeted, isGreeting };
+  // Add a function to reset greeting (for testing purposes)
+  const resetGreeting = () => {
+    hasGreetedGlobally = false;
+    setHasGreeted(false);
+  };
+  
+  return { hasGreeted, isGreeting, resetGreeting };
 };
