@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
@@ -7,13 +6,18 @@ import { Widget } from '@/types/dashboard';
 import { useSettings } from '@/hooks/use-settings';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, LayoutDashboard, Settings2 } from 'lucide-react';
+import { Loader2, Settings2 } from 'lucide-react';
 import { useCardStyle } from '@/hooks/use-card-style';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 const Dashboard = () => {
-  // Initialize the voice greeting
   useVoiceGreeting();
   
   const { preferences, updatePreference, isLoading } = useSettings();
@@ -23,27 +27,21 @@ const Dashboard = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
 
-  // Modify scrolling behavior to prevent auto-scrolling
   useEffect(() => {
-    // Only scroll to top, don't do anything else that might cause unwanted scrolling
     window.scrollTo(0, 0);
   }, []);
 
-  // Initialize dashboard from preferences
   useEffect(() => {
     if (preferences) {
       console.log("Initializing dashboard from preferences:", preferences.dashboardLayout);
       
-      // Set columns
       if (preferences.dashboardLayout?.columns) {
         setColumns(preferences.dashboardLayout.columns);
       }
       
-      // Set widgets
       if (preferences.dashboardLayout?.widgets && preferences.dashboardLayout.widgets.length > 0) {
         setDashboardWidgets(preferences.dashboardLayout.widgets);
       } else {
-        // Fallback to default widgets if none are set
         setDashboardWidgets([
           {
             id: 'widget-1',
@@ -93,7 +91,6 @@ const Dashboard = () => {
     }
   }, [preferences]);
 
-  // Save dashboard layout when it changes
   const handleSaveDashboard = async (widgets: Widget[], columnCount: number = columns) => {
     console.log("Saving dashboard with widgets:", widgets);
     console.log("Column count:", columnCount);
@@ -103,13 +100,11 @@ const Dashboard = () => {
     setIsCustomizing(false);
     
     try {
-      // Important - ensure we're using the correct structure that matches the UserPreferences type
       await updatePreference("dashboardLayout", {
         columns: columnCount,
         widgets: widgets
       });
       
-      // Log the updated preferences to verify the change
       console.log("Dashboard layout saved successfully");
       toast.success("Dashboard layout saved!");
     } catch (error) {
@@ -174,13 +169,21 @@ const Dashboard = () => {
                   columns={columns}
                 />
               ) : (
-                <Button 
-                  onClick={() => setIsCustomizing(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  <Settings2 className="h-4 w-4" />
-                  Customize Dashboard
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={() => setIsCustomizing(true)}
+                        className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                      >
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Customize Dashboard</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           </div>
