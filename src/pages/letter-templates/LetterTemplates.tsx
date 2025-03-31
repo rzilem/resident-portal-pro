@@ -1,14 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import LetterTemplatesList from '@/components/letter-templates/LetterTemplatesList';
 import LetterTemplateEditor from '@/components/letter-templates/LetterTemplateEditor';
 import { useLetterTemplates } from '@/hooks/use-letter-templates';
+import { useAuth } from '@/hooks/use-auth';
 
 const LetterTemplates = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const { user, isLoading: isAuthLoading } = useAuth();
   
   const { 
     templates, 
@@ -22,6 +26,13 @@ const LetterTemplates = () => {
     ? templates.find(t => t.id === selectedTemplateId) 
     : null;
   
+  // Clear selected template when changing tabs
+  useEffect(() => {
+    setSelectedTemplateId(null);
+  }, [activeTab]);
+  
+  const isUserAuthenticated = !!user && !isAuthLoading;
+  
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
@@ -30,6 +41,16 @@ const LetterTemplates = () => {
           Create and manage letter templates for communications, compliance, delinquency notices and more
         </p>
       </div>
+      
+      {!isUserAuthenticated && !isAuthLoading && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Authentication Required</AlertTitle>
+          <AlertDescription>
+            Please log in to create or modify letter templates. You can view existing templates in read-only mode.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <Card>
         <CardHeader>
@@ -61,6 +82,7 @@ const LetterTemplates = () => {
                     selectedId={selectedTemplateId}
                     category="all"
                     onDelete={deleteTemplate}
+                    isReadOnly={!isUserAuthenticated}
                   />
                 </TabsContent>
                 
@@ -72,6 +94,7 @@ const LetterTemplates = () => {
                     selectedId={selectedTemplateId}
                     category="Compliance"
                     onDelete={deleteTemplate}
+                    isReadOnly={!isUserAuthenticated}
                   />
                 </TabsContent>
                 
@@ -83,6 +106,7 @@ const LetterTemplates = () => {
                     selectedId={selectedTemplateId}
                     category="Delinquency"
                     onDelete={deleteTemplate}
+                    isReadOnly={!isUserAuthenticated}
                   />
                 </TabsContent>
                 
@@ -94,6 +118,7 @@ const LetterTemplates = () => {
                     selectedId={selectedTemplateId}
                     category="Architectural"
                     onDelete={deleteTemplate}
+                    isReadOnly={!isUserAuthenticated}
                   />
                 </TabsContent>
               </div>
@@ -103,6 +128,7 @@ const LetterTemplates = () => {
                   selectedTemplate={selectedTemplate}
                   onSave={selectedTemplateId ? updateTemplate : createTemplate}
                   onCancel={() => setSelectedTemplateId(null)}
+                  isReadOnly={!isUserAuthenticated}
                 />
               </div>
             </div>

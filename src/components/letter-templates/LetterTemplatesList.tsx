@@ -15,6 +15,7 @@ interface LetterTemplatesListProps {
   selectedId: string | null;
   category: string;
   onDelete: (id: string) => void;
+  isReadOnly?: boolean;
 }
 
 const LetterTemplatesList: React.FC<LetterTemplatesListProps> = ({ 
@@ -23,7 +24,8 @@ const LetterTemplatesList: React.FC<LetterTemplatesListProps> = ({
   onSelect,
   selectedId,
   category,
-  onDelete
+  onDelete,
+  isReadOnly = false
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   
@@ -43,7 +45,6 @@ const LetterTemplatesList: React.FC<LetterTemplatesListProps> = ({
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this template?')) {
       onDelete(id);
-      toast.success('Template deleted successfully');
       
       // If the deleted template was selected, deselect it
       if (selectedId === id) {
@@ -56,10 +57,12 @@ const LetterTemplatesList: React.FC<LetterTemplatesListProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Templates</h3>
-        <Button size="sm" onClick={handleCreateNew}>
-          <Plus className="h-4 w-4 mr-1" />
-          New Template
-        </Button>
+        {!isReadOnly && (
+          <Button size="sm" onClick={handleCreateNew}>
+            <Plus className="h-4 w-4 mr-1" />
+            New Template
+          </Button>
+        )}
       </div>
       
       <div className="relative">
@@ -103,14 +106,16 @@ const LetterTemplatesList: React.FC<LetterTemplatesListProps> = ({
                       <p className="text-xs text-muted-foreground line-clamp-1">{template.description}</p>
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={(e) => handleDelete(template.id, e)}
-                    className="opacity-0 group-hover:opacity-100 hover:opacity-100"
-                  >
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
+                  {!isReadOnly && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={(e) => handleDelete(template.id, e)}
+                      className="opacity-0 group-hover:opacity-100 hover:opacity-100"
+                    >
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  )}
                 </div>
                 <Separator />
               </div>

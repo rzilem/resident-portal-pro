@@ -18,12 +18,14 @@ interface LetterTemplateEditorProps {
   selectedTemplate: LetterTemplate | null;
   onSave: (template: LetterTemplate) => void;
   onCancel: () => void;
+  isReadOnly?: boolean;
 }
 
 const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({ 
   selectedTemplate, 
   onSave,
-  onCancel
+  onCancel,
+  isReadOnly = false
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -73,7 +75,6 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
     };
     
     onSave(templateData);
-    toast.success(`Template ${selectedTemplate ? 'updated' : 'created'} successfully`);
   };
   
   const handleMergeTagSelect = (tag: MergeTag) => {
@@ -81,17 +82,122 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
     setIsMergeTagsDialogOpen(false);
   };
   
+  // If no template is selected and in read-only mode, show an empty state
+  if (!selectedTemplate && isReadOnly) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex flex-col items-center justify-center h-[600px] text-center">
+          <h3 className="text-lg font-medium mb-2">No Template Selected</h3>
+          <p className="text-muted-foreground">
+            Select a template from the list to view its details.
+          </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            In read-only mode, you can view templates but not edit them.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // If no template is selected and not in read-only mode, show the create new template form
+  if (!selectedTemplate && !isReadOnly) {
+    return (
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">Create New Template</h3>
+            <p className="text-sm text-muted-foreground">
+              Create a new letter template for your community communications
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Template Name</Label>
+                <Input 
+                  id="name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  placeholder="e.g., First Violation Notice"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LetterCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea 
+                id="description" 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                placeholder="Briefly describe the purpose of this template"
+                rows={2}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="content">Template Content</Label>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setIsMergeTagsDialogOpen(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Tags className="h-4 w-4" />
+                  Insert Merge Tags
+                </Button>
+              </div>
+              <HtmlEditor 
+                value={content} 
+                onChange={setContent} 
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={onCancel}>Cancel</Button>
+              <Button onClick={handleSave}>Create Template</Button>
+            </div>
+          </div>
+        </CardContent>
+        
+        <MergeTagsDialog
+          open={isMergeTagsDialogOpen}
+          onOpenChange={setIsMergeTagsDialogOpen}
+          onSelectTag={handleMergeTagSelect}
+        />
+      </Card>
+    );
+  }
+  
   return (
     <Card>
       <CardContent className="p-6 space-y-4">
         <div className="space-y-2">
           <h3 className="text-lg font-medium">
-            {selectedTemplate ? 'Edit Template' : 'Create New Template'}
+            {isReadOnly ? 'View Template' : 'Edit Template'}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {selectedTemplate 
-              ? 'Edit your letter template details and content' 
-              : 'Create a new letter template for your community communications'
+            {isReadOnly
+              ? 'View letter template details and content'
+              : 'Edit your letter template details and content'
             }
           </p>
         </div>
@@ -105,23 +211,34 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
                 placeholder="e.g., First Violation Notice"
+                readOnly={isReadOnly}
+                disabled={isReadOnly}
               />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LetterCategoryOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isReadOnly ? (
+                <Input 
+                  id="category-readonly" 
+                  value={category} 
+                  readOnly 
+                  disabled 
+                />
+              ) : (
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LetterCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
           
@@ -133,43 +250,54 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
               onChange={(e) => setDescription(e.target.value)} 
               placeholder="Briefly describe the purpose of this template"
               rows={2}
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
             />
           </div>
           
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="content">Template Content</Label>
-              <Button 
-                type="button" 
-                size="sm" 
-                variant="outline" 
-                onClick={() => setIsMergeTagsDialogOpen(true)}
-                className="flex items-center gap-1"
-              >
-                <Tags className="h-4 w-4" />
-                Insert Merge Tags
-              </Button>
+              {!isReadOnly && (
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setIsMergeTagsDialogOpen(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Tags className="h-4 w-4" />
+                  Insert Merge Tags
+                </Button>
+              )}
             </div>
             <HtmlEditor 
               value={content} 
               onChange={setContent} 
+              readOnly={isReadOnly}
             />
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onCancel}>Cancel</Button>
-            <Button onClick={handleSave}>
-              {selectedTemplate ? 'Update Template' : 'Create Template'}
+            <Button variant="outline" onClick={onCancel}>
+              {isReadOnly ? 'Close' : 'Cancel'}
             </Button>
+            {!isReadOnly && (
+              <Button onClick={handleSave}>
+                Update Template
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
       
-      <MergeTagsDialog
-        open={isMergeTagsDialogOpen}
-        onOpenChange={setIsMergeTagsDialogOpen}
-        onSelectTag={handleMergeTagSelect}
-      />
+      {!isReadOnly && (
+        <MergeTagsDialog
+          open={isMergeTagsDialogOpen}
+          onOpenChange={setIsMergeTagsDialogOpen}
+          onSelectTag={handleMergeTagSelect}
+        />
+      )}
     </Card>
   );
 };
