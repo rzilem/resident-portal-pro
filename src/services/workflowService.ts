@@ -187,6 +187,16 @@ function generateStepsFromTemplate(templateId: string): WorkflowStep[] {
   return baseSteps;
 }
 
+// Add letter template support to workflow actions
+export const actionTypes = [
+  { value: 'email', label: 'Send Email' },
+  { value: 'notification', label: 'Send Notification' },
+  { value: 'task', label: 'Create Task' },
+  { value: 'letter', label: 'Generate Letter' },
+  { value: 'update_status', label: 'Update Status' },
+  { value: 'custom', label: 'Custom Action' },
+];
+
 // Initialize with some sample workflows
 export function initializeWorkflows() {
   if (workflows.length === 0) {

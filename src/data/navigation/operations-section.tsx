@@ -6,7 +6,8 @@ import {
   Printer, 
   ClipboardCheck, 
   Home, 
-  Building
+  Building,
+  Mail
 } from "lucide-react";
 import { NavItem } from "./types";
 
@@ -18,7 +19,8 @@ export const getOperationsSection = (currentPath: string): NavItem => {
             currentPath.startsWith("/communications") || 
             currentPath === "/workflows" || 
             currentPath === "/print-queue" ||
-            currentPath.startsWith("/vendors"),
+            currentPath.startsWith("/vendors") ||
+            currentPath === "/letter-templates",
     href: "/calendar", // Default href for the section
     items: [
       {
@@ -38,6 +40,12 @@ export const getOperationsSection = (currentPath: string): NavItem => {
         icon: Building,
         href: "/vendors",
         active: currentPath.startsWith("/vendors"),
+      },
+      {
+        label: "Letter Templates",
+        icon: Mail,
+        href: "/letter-templates",
+        active: currentPath === "/letter-templates",
       },
       {
         label: "Workflows",

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -21,6 +20,7 @@ import Compliance from '@/pages/compliance/Compliance';
 import AssociationDocuments from '@/pages/documents/AssociationDocuments';
 import AssociationProfile from '@/pages/AssociationProfile';
 import Calendar from '@/pages/Calendar';
+import LetterTemplates from '@/pages/letter-templates/LetterTemplates';
 
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
@@ -131,6 +131,8 @@ const App = () => {
           <Route path="/resale/bid-requests" element={<BidRequests />} />
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
           <Route path="/resale/admin/project-images" element={<div>Project Images Page</div>} />
+          
+          <Route path="/letter-templates" element={<LetterTemplates />} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
