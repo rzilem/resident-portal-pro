@@ -1,46 +1,48 @@
 
 /**
- * Demo authentication utilities
- * These functions provide fallback authentication for the demo user
+ * Utility functions for demo authentication
  */
 
-import { toast } from "sonner";
-
-// Predefined credentials for internal employee (kept for demo purposes)
-export const INTERNAL_CREDENTIALS = {
-  email: "admin@residentpro.com",
-  password: "admin123"
+/**
+ * Check if the current user is using the demo authentication
+ * @returns {boolean} True if using demo authentication
+ */
+export const isDemoAuthenticated = (): boolean => {
+  // Check if there's a demo flag in localStorage
+  const isDemoFlag = localStorage.getItem('demo_auth') === 'true';
+  
+  // Check if we're in demo/development mode based on URL or environment
+  const isDemoEnvironment = 
+    window.location.hostname.includes('demo') || 
+    window.location.hostname.includes('localhost') ||
+    window.location.hostname.includes('127.0.0.1') ||
+    window.location.search.includes('demo=true');
+  
+  return isDemoFlag || isDemoEnvironment;
 };
 
 /**
- * Check if credentials match the demo user credentials
+ * Set demo authentication mode
+ * @param {boolean} isDemo Whether to enable demo authentication
  */
-export const isDemoCredentials = (email: string, password: string): boolean => {
-  return email === INTERNAL_CREDENTIALS.email && password === INTERNAL_CREDENTIALS.password;
-}
+export const setDemoAuthentication = (isDemo: boolean): void => {
+  if (isDemo) {
+    localStorage.setItem('demo_auth', 'true');
+  } else {
+    localStorage.removeItem('demo_auth');
+  }
+};
 
 /**
- * Set demo user authentication in localStorage
+ * Get demo user data
+ * @returns {object} Demo user data
  */
-export const setDemoAuthentication = () => {
-  localStorage.setItem('isAuthenticated', 'true');
-  localStorage.setItem('userEmail', INTERNAL_CREDENTIALS.email);
-  toast.success("Login successful with demo account! Welcome back.");
-}
-
-/**
- * Check if the current user is authenticated as the demo user
- */
-export const isDemoAuthenticated = (): boolean => {
-  const isAuth = localStorage.getItem('isAuthenticated') === 'true';
-  const email = localStorage.getItem('userEmail');
-  return isAuth && email === INTERNAL_CREDENTIALS.email;
-}
-
-/**
- * Clear demo authentication from localStorage
- */
-export const clearDemoAuthentication = () => {
-  localStorage.removeItem('isAuthenticated');
-  localStorage.removeItem('userEmail');
-}
+export const getDemoUser = () => {
+  return {
+    id: 'demo-user-id',
+    email: 'demo@example.com',
+    name: 'Demo User',
+    role: 'demo',
+    isDemo: true
+  };
+};

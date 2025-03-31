@@ -49,23 +49,6 @@ export const ensureDocumentsBucketExists = async (forceCreate: boolean = false):
         return true;
       }
       
-      if (error.message.includes('permission denied') || 
-          error.message.includes('insufficient privileges') ||
-          error.message.includes('violates row-level security policy')) {
-        console.log('Storage bucket creation failed due to RLS, but this may be expected. Will proceed in demo mode.');
-        
-        // Check if we can still access the bucket despite not being able to create it
-        const testResult = await testBucketAccess();
-        if (testResult) {
-          console.log('Document storage is still accessible');
-          return true;
-        }
-        
-        // In case of RLS restriction, we'll return true and handle gracefully
-        // This lets the app still function in a "demo mode"
-        return false;
-      }
-      
       console.error('Error creating documents bucket:', error.message);
       return false;
     }
@@ -87,15 +70,13 @@ export const testBucketAccess = async (): Promise<boolean> => {
     // Try to list files in the bucket as a test
     const { data, error } = await supabase.storage
       .from('documents')
-      .list('test', {
+      .list('', {
         limit: 1,
       });
     
-    // If we get an error related to "not found", the bucket might still exist
-    // but the path doesn't - this actually indicates successful access
     if (error) {
-      if (error.message.includes('not found')) {
-        // This is a good sign - bucket exists but folder doesn't
+      if (error.message.includes('The resource was not found')) {
+        // This could mean the bucket exists but there are no files
         return true;
       }
       console.error('Error testing bucket access:', error.message);

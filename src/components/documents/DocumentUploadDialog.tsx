@@ -1,322 +1,316 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import { Loader2, FileUp, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { uploadDocument } from '@/services/document-upload';
-import { ensureDocumentsBucketExists, testBucketAccess } from '@/utils/documents/bucketUtils';
 import { useAssociations } from '@/hooks/use-associations';
-import { FileUploader } from '../ui/file-uploader';
-import { Badge } from '@/components/ui/badge';
-import { X, Plus, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useDocumentsBucket } from '@/hooks/use-documents-bucket';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentUploadDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSuccess?: () => void;
   refreshDocuments?: () => void;
-  associationId?: string;
+  categoryId?: string;
 }
 
+// Form schema
+const formSchema = z.object({
+  file: z.instanceof(File, { message: "Please select a file" }),
+  name: z.string().min(1, "File name is required"),
+  description: z.string().optional(),
+  category: z.string().min(1, "Category is required"),
+  tags: z.string().optional(),
+});
+
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
-  open,
+  open, 
   setOpen,
   onSuccess,
   refreshDocuments,
-  associationId: propAssociationId
+  categoryId
 }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [storageReady, setStorageReady] = useState(false);
-  const [preparing, setPreparing] = useState(false);
-  const [storageError, setStorageError] = useState<string | null>(null);
-  
-  const { toast } = useToast();
+  const [categories, setCategories] = useState<Array<{id: string, name: string}>>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const { activeAssociation } = useAssociations();
+  const { user } = useAuth();
+  const { bucketReady, demoMode } = useDocumentsBucket();
   
-  // Combine possible association IDs with a fallback
-  const effectiveAssociationId = propAssociationId || activeAssociation?.id || 'default';
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      category: categoryId || "",
+      tags: "",
+    },
+  });
   
-  // Document categories
-  const categories = [
-    { id: 'governing', name: 'Governing Documents' },
-    { id: 'financial', name: 'Financial Documents' },
-    { id: 'meetings', name: 'Meeting Minutes' },
-    { id: 'legal', name: 'Legal Documents' },
-    { id: 'rules', name: 'Rules & Regulations' },
-    { id: 'contracts', name: 'Contracts' },
-    { id: 'maintenance', name: 'Maintenance' },
-    { id: 'correspondence', name: 'Correspondence' },
-    { id: 'other', name: 'Other' }
-  ];
-  
+  // Load categories
   useEffect(() => {
-    if (open) {
-      prepareStorage();
-    }
-  }, [open]);
-  
-  const prepareStorage = async () => {
-    if (!open) return;
+    const fetchCategories = async () => {
+      try {
+        // Fetch categories from Supabase
+        const { data, error } = await supabase
+          .from('document_categories')
+          .select('id, name')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching document categories:', error);
+          toast.error('Failed to load document categories');
+          return;
+        }
+        
+        setCategories(data || []);
+        
+        // Set default category if provided and exists
+        if (categoryId) {
+          form.setValue('category', categoryId);
+        }
+      } catch (error) {
+        console.error('Error in fetchCategories:', error);
+        toast.error('Failed to load categories');
+      }
+    };
     
-    setPreparing(true);
-    setStorageError(null);
+    fetchCategories();
+  }, [categoryId]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      form.setValue('file', file);
+      
+      // Auto-fill name from file name if empty
+      if (!form.getValues('name')) {
+        // Remove extension from filename
+        const fileName = file.name.split('.').slice(0, -1).join('.');
+        form.setValue('name', fileName);
+      }
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast.error("You must be logged in to upload documents");
+      return;
+    }
+    
+    if (!activeAssociation) {
+      toast.error("Please select an association");
+      return;
+    }
+    
+    setIsUploading(true);
     
     try {
-      console.log('Checking if documents bucket exists...');
-      const exists = await ensureDocumentsBucketExists();
+      // Parse tags
+      const tagArray = values.tags 
+        ? values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        : [];
       
-      if (exists) {
-        // Double-check access with a separate call
-        const canAccess = await testBucketAccess();
-        if (canAccess) {
-          setStorageReady(true);
-        } else {
-          setStorageError('Document storage exists but cannot be accessed');
+      const result = await uploadDocument({
+        file: values.file,
+        description: values.description || '',
+        category: values.category,
+        tags: tagArray,
+        associationId: activeAssociation.id
+      });
+      
+      if (result) {
+        toast.success("Document uploaded successfully");
+        setOpen(false);
+        form.reset();
+        
+        // Call success callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
+        
+        // Refresh documents list if provided
+        if (refreshDocuments) {
+          refreshDocuments();
         }
       } else {
-        setStorageError('Document storage is not available');
+        toast.error("Failed to upload document");
       }
     } catch (error) {
-      console.error('Storage initialization failed', error);
-      setStorageError('Failed to initialize document storage');
+      console.error('Document upload error:', error);
+      toast.error("Error uploading document");
     } finally {
-      setPreparing(false);
+      setIsUploading(false);
     }
   };
-  
-  const handleAddTag = () => {
-    if (tagInput && !tags.includes(tagInput)) {
-      setTags([...tags, tagInput]);
-      setTagInput('');
-    }
-  };
-  
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!file) {
-      toast({
-        variant: "destructive",
-        title: "No file selected",
-        description: "Please select a file to upload."
-      });
-      return;
-    }
-    
-    if (!category) {
-      toast({
-        variant: "destructive",
-        title: "Category required",
-        description: "Please select a document category."
-      });
-      return;
-    }
-    
-    setUploading(true);
-    
-    try {
-      const success = await uploadDocument({
-        file,
-        description,
-        category,
-        tags,
-        associationId: effectiveAssociationId
-      });
-      
-      if (success) {
-        toast({
-          title: "Upload successful",
-          description: `${file.name} has been uploaded successfully.`
-        });
-        
-        // Reset form
-        setFile(null);
-        setDescription('');
-        setCategory('');
-        setTags([]);
-        
-        // Close dialog
-        setOpen(false);
-        
-        // Trigger success callback
-        if (onSuccess) onSuccess();
-        if (refreshDocuments) refreshDocuments();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Upload failed",
-          description: "There was an error uploading your document. Please try again."
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      toast({
-        variant: "destructive",
-        title: "Upload error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-  
-  const handleRetryStorage = () => {
-    prepareStorage();
-  };
-  
-  // Content to show based on storage status
-  const renderContent = () => {
-    if (preparing) {
+
+  const renderDemoWarning = () => {
+    if (demoMode) {
       return (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <h3 className="text-lg font-medium">Preparing document storage...</h3>
-          <p className="text-sm text-muted-foreground mt-2">
-            Almost ready! Checking storage accessibility...
-          </p>
-        </div>
-      );
-    }
-    
-    if (storageError) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="rounded-full bg-red-100 p-3 mb-4">
-            <X className="h-8 w-8 text-red-600" />
-          </div>
-          <h3 className="text-lg font-medium">Storage Not Available</h3>
-          <p className="text-sm text-muted-foreground mt-2 mb-6 text-center max-w-md">
-            {storageError}. This may be due to network issues or permissions.
-          </p>
-          <Button onClick={handleRetryStorage}>Retry</Button>
-        </div>
-      );
-    }
-    
-    // If storage is ready, show the upload form
-    return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="file">File</Label>
-          <FileUploader file={file} setFile={setFile} disabled={uploading} />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map(cat => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter a description for this document"
-            className="min-h-[80px]"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="tags">Tags</Label>
-          <div className="flex gap-2">
-            <Input
-              id="tags"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              placeholder="Add tags..."
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddTag();
-                }
-              }}
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleAddTag}
-              disabled={!tagInput}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center bg-muted-foreground/20 hover:bg-muted-foreground/30 transition-colors"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded">
+          <div className="flex">
+            <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
+            <div>
+              <h3 className="text-sm font-medium text-amber-800">Demo Mode</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                Document upload will be simulated but not stored permanently.
+              </p>
             </div>
-          )}
+          </div>
         </div>
-        
-        <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => setOpen(false)}
-            disabled={uploading}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={!file || uploading}>
-            {uploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>Upload</>
-            )}
-          </Button>
-        </DialogFooter>
-      </form>
-    );
+      );
+    }
+    return null;
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
-          <DialogDescription>
-            Upload documents to the system. Supported file types include PDF, Word, Excel, and common image formats.
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <FileUp className="h-5 w-5" />
+            Upload Document
+          </DialogTitle>
         </DialogHeader>
-        {renderContent()}
+        
+        {renderDemoWarning()}
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="file"
+              render={({ field: { onChange, ...field } }) => (
+                <FormItem>
+                  <FormLabel>File</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="file" 
+                      onChange={handleFileChange}
+                      disabled={isUploading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Document Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter document name" {...field} disabled={isUploading} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter a description (optional)"
+                      className="resize-none" 
+                      {...field}
+                      disabled={isUploading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={isUploading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags (comma-separated)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g. important, financial, meeting"
+                      {...field}
+                      disabled={isUploading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+                disabled={isUploading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <FileUp className="mr-2 h-4 w-4" />
+                    Upload
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for storage operations in document management
  */
@@ -38,7 +37,7 @@ export const uploadFile = async (
     const filePath = path ? `${path}/${fileName}` : fileName;
     
     // Upload file
-    const { error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from(bucketName)
       .upload(filePath, file);
     
@@ -78,6 +77,7 @@ export const getPublicUrl = async (
       .from(bucketName)
       .getPublicUrl(filePath);
     
+    console.log('Generated public URL:', data.publicUrl);
     return data.publicUrl;
   } catch (error) {
     console.error('Exception in getPublicUrl:', error);

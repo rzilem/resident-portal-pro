@@ -105,6 +105,7 @@ export const uploadDocument = async ({
       .getPublicUrl(filePath);
     
     const fileUrl = urlData?.publicUrl || '';
+    console.log('Generated public URL:', fileUrl);
     
     // Save document metadata to the documents table
     try {
@@ -114,7 +115,7 @@ export const uploadDocument = async ({
           name: file.name,
           description: description,
           file_size: file.size,
-          file_type: file.type,
+          file_type: file.type || `application/${fileExtension}`,
           url: fileUrl,
           category: category,
           tags: tags.length > 0 ? tags : null,

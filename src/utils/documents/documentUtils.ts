@@ -1,162 +1,164 @@
 
 /**
- * Format file size from bytes to human-readable format
+ * Utility functions for document operations
+ */
+
+import { parse } from 'date-fns';
+
+/**
+ * Format a file size from bytes to a human-readable format
  * @param bytes File size in bytes
  * @returns Formatted file size string
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
   
-  const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 /**
- * Check if a file is previewable in browser
- * @param fileType The file's MIME type or extension
- * @returns Boolean indicating if file can be previewed
+ * Check if a file type can be previewed directly in the browser
+ * @param fileType MIME type or file extension
+ * @returns Boolean indicating if the file can be previewed
  */
 export const isFilePreviewable = (fileType: string): boolean => {
-  if (!fileType) return false;
+  const type = fileType.toLowerCase();
   
-  const lowerType = fileType.toLowerCase();
-  
-  // Expanded list of previewable file types
-  return lowerType.includes('pdf') || 
-         lowerType.includes('image') || 
-         lowerType.includes('jpg') || 
-         lowerType.includes('jpeg') || 
-         lowerType.includes('png') || 
-         lowerType.includes('gif') ||
-         lowerType.includes('svg') ||
-         lowerType.includes('webp');
+  // Common previewable file types
+  return (
+    type.includes('pdf') ||
+    type.includes('image/') ||
+    type.includes('jpg') ||
+    type.includes('jpeg') ||
+    type.includes('png') ||
+    type.includes('gif') ||
+    type.includes('svg') ||
+    type.includes('webp') ||
+    type.includes('text/') ||
+    type.includes('html') ||
+    type.includes('xml') ||
+    type.includes('json')
+  );
 };
 
 /**
- * Get the MIME type from a file name or extension
- * @param fileName The file name or extension
- * @returns The corresponding MIME type
+ * Get MIME type from a filename based on its extension
+ * @param fileName Filename with extension
+ * @returns MIME type string
  */
 export const getMimeTypeFromFileName = (fileName: string): string => {
-  if (!fileName) return 'application/octet-stream';
-  
   const extension = fileName.split('.').pop()?.toLowerCase() || '';
   
-  const mimeTypes: Record<string, string> = {
+  const mimeTypeMap: Record<string, string> = {
     'pdf': 'application/pdf',
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'png': 'image/png',
-    'gif': 'image/gif',
-    'svg': 'image/svg+xml',
-    'webp': 'image/webp',
     'doc': 'application/msword',
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'xls': 'application/vnd.ms-excel',
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'ppt': 'application/vnd.ms-powerpoint',
     'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'svg': 'image/svg+xml',
+    'webp': 'image/webp',
     'txt': 'text/plain',
-    'csv': 'text/csv',
     'html': 'text/html',
     'htm': 'text/html',
+    'xml': 'text/xml',
     'json': 'application/json',
-    'xml': 'application/xml',
-    'zip': 'application/zip',
-    'rar': 'application/x-rar-compressed',
     'mp4': 'video/mp4',
     'mp3': 'audio/mpeg',
-    'wav': 'audio/wav'
+    'wav': 'audio/wav',
+    'zip': 'application/zip',
+    'rar': 'application/vnd.rar',
+    '7z': 'application/x-7z-compressed',
+    'csv': 'text/csv'
   };
   
-  return mimeTypes[extension] || 'application/octet-stream';
+  return mimeTypeMap[extension] || 'application/octet-stream';
 };
 
 /**
- * Sanitize the URL to ensure it's valid and safe
- * @param url The URL to sanitize
+ * Check if a document can be previewed with Office Online Viewer
+ * @param fileType Document file type or extension
+ * @returns Boolean indicating if Office Viewer can be used
+ */
+export const canUseOfficeViewer = (fileType: string): boolean => {
+  const type = fileType.toLowerCase();
+  
+  return (
+    type.includes('word') ||
+    type.includes('doc') ||
+    type.includes('excel') ||
+    type.includes('xls') ||
+    type.includes('powerpoint') ||
+    type.includes('ppt') ||
+    type.includes('ms-office') ||
+    type.includes('officedocument')
+  );
+};
+
+/**
+ * Get Office Online Viewer URL for a document
+ * @param url Original document URL
+ * @returns Office Viewer URL
+ */
+export const getOfficeViewerUrl = (url: string): string => {
+  // Microsoft Office Online Viewer
+  return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
+};
+
+/**
+ * Sanitize a document URL to ensure it's safe
+ * @param url Document URL to sanitize
  * @returns Sanitized URL
  */
 export const sanitizeDocumentUrl = (url: string): string => {
   if (!url) return '';
   
-  // Special case for lovable uploads
-  if (url.startsWith('/lovable-uploads/')) {
+  // Ensure URL is properly encoded
+  try {
+    // Replace spaces with %20
+    url = url.replace(/ /g, '%20');
+    
+    // Check if the URL is already encoded and avoid double encoding
+    const decoded = decodeURIComponent(url);
+    if (decoded !== url) {
+      // URL is already encoded
+      return url;
+    }
+    
+    // Parse the URL to make sure it's valid
+    new URL(url);
+    
     return url;
+  } catch (error) {
+    console.error('Invalid URL:', url, error);
+    return '';
   }
-  
-  // Ensure protocol is specified
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
 };
 
 /**
- * Get available document categories
- * @returns Promise<{id: string, name: string, accessLevel?: DocumentAccessLevel}[]> Array of categories
+ * Format a date string to a human-readable format
+ * @param dateString Date string to format
+ * @returns Formatted date string
  */
-export const getDocumentCategories = async (): Promise<{id: string, name: string, parent?: string, description?: string, isRestricted?: boolean, requiredPermission?: string, sortOrder?: number, accessLevel?: import('@/types/documents').DocumentAccessLevel}[]> => {
+export const formatDate = (dateString: string): string => {
+  if (!dateString) return 'N/A';
+  
   try {
-    // First try to get categories from database
-    // For now, we'll use the imported function from uploadUtils
-    // In a real app, we would implement the DB query here
-    const { getDocumentCategories: fetchCategories } = await import('./uploadUtils');
-    const rawCategories = await fetchCategories();
-    
-    // The fetchCategories function returns an array of strings, 
-    // so we need to convert them to DocumentCategory objects
-    return rawCategories.map(categoryName => {
-      // Create a DocumentCategory object from the category name string
-      return {
-        id: categoryName.toLowerCase().replace(/\s+/g, '_'),
-        name: categoryName,
-        // Default values for other properties
-        accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel
-      };
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   } catch (error) {
-    console.error('Error fetching document categories:', error);
-    
-    // Return default categories on error
-    return [
-      { id: 'GENERAL', name: 'GENERAL', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'FINANCIAL', name: 'FINANCIAL', accessLevel: 'board' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'LEGAL', name: 'LEGAL', accessLevel: 'management' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'MAINTENANCE', name: 'MAINTENANCE', accessLevel: 'all' as import('@/types/documents').DocumentAccessLevel },
-      { id: 'MEETING', name: 'MEETING', accessLevel: 'homeowner' as import('@/types/documents').DocumentAccessLevel }
-    ];
+    console.error('Error formatting date:', error);
+    return dateString;
   }
-};
-
-/**
- * Detect if we can generate an Office Online preview URL
- * @param fileType The file's MIME type or extension
- * @returns Boolean indicating if file can use Office Online viewer
- */
-export const canUseOfficeViewer = (fileType: string): boolean => {
-  if (!fileType) return false;
-  
-  const lowerType = fileType.toLowerCase();
-  
-  return lowerType.includes('word') || 
-         lowerType.includes('doc') || 
-         lowerType.includes('xls') || 
-         lowerType.includes('xlsx') || 
-         lowerType.includes('ppt') || 
-         lowerType.includes('pptx');
-};
-
-/**
- * Generate an Office Online viewer URL
- * @param fileUrl The URL of the file
- * @returns Office Online viewer URL
- */
-export const getOfficeViewerUrl = (fileUrl: string): string => {
-  // Ensure the fileUrl is properly encoded
-  const encodedFileUrl = encodeURIComponent(fileUrl);
-  return `https://view.officeapps.live.com/op/view.aspx?src=${encodedFileUrl}`;
 };

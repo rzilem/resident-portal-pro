@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import {
   sanitizeDocumentUrl 
 } from '@/utils/documents/documentUtils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentPreviewProps {
   document: DocumentFile | null;
@@ -35,18 +35,57 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [useOfficeViewer, setUseOfficeViewer] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  // Reset loading state when document changes
   useEffect(() => {
     if (document) {
       setIsLoading(true);
       setPreviewError(null);
       
-      // Check if we should use Office viewer
       const shouldUseOfficeViewer = document.fileType && canUseOfficeViewer(document.fileType);
       setUseOfficeViewer(shouldUseOfficeViewer);
+      
+      updatePreviewUrl(document);
     }
   }, [document]);
+  
+  const updatePreviewUrl = async (doc: DocumentFile) => {
+    if (!doc.url) {
+      setPreviewError("Document URL is not available");
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      if (doc.url.includes('storage/v1/object') || doc.url.includes('storage.googleapis.com')) {
+        let path = '';
+        const match = doc.url.match(/public\/([^/]+)\/(.+)$/);
+        if (match) {
+          const bucket = match[1];
+          path = match[2];
+          console.log(`Extracted bucket: ${bucket}, path: ${path}`);
+          
+          const { data: urlData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(path);
+          
+          console.log('Fresh Supabase URL:', urlData.publicUrl);
+          setPreviewUrl(urlData.publicUrl);
+        } else {
+          console.log('Using original URL:', doc.url);
+          setPreviewUrl(sanitizeDocumentUrl(doc.url));
+        }
+      } else {
+        setPreviewUrl(sanitizeDocumentUrl(doc.url));
+      }
+    } catch (error) {
+      console.error('Error updating preview URL:', error);
+      setPreviewError("Failed to generate preview URL");
+      setPreviewUrl(sanitizeDocumentUrl(doc.url));
+    }
+    
+    setIsLoading(false);
+  };
   
   if (!document) {
     return null;
@@ -68,9 +107,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return;
     }
     
-    // Create a temporary anchor element to trigger download
     const link = window.document.createElement('a');
-    link.href = sanitizeDocumentUrl(document.url);
+    link.href = previewUrl || sanitizeDocumentUrl(document.url);
     link.download = document.name;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -117,12 +155,12 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
   
   const getPreviewUrl = () => {
-    if (!document.url) return '';
+    if (!previewUrl && !document.url) return '';
     
     if (useOfficeViewer) {
-      return getOfficeViewerUrl(document.url);
+      return getOfficeViewerUrl(previewUrl || document.url);
     }
-    return sanitizeDocumentUrl(document.url);
+    return previewUrl || sanitizeDocumentUrl(document.url);
   };
   
   const renderPreview = () => {
@@ -147,7 +185,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 Download Instead
               </Button>
               {document.url && (
-                <Button variant="outline" onClick={() => window.open(sanitizeDocumentUrl(document.url), '_blank')}>
+                <Button variant="outline" onClick={() => window.open(previewUrl || sanitizeDocumentUrl(document.url), '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in New Tab
                 </Button>
@@ -158,7 +196,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       );
     }
 
-    if (!document.url) {
+    if (!document.url && !previewUrl) {
       return (
         <div className="w-full h-full flex items-center justify-center p-8 text-center">
           <div>
@@ -170,18 +208,16 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       );
     }
     
-    // Determine file type from mime type or file extension
     const fileType = document.fileType.toLowerCase();
-    const previewUrl = getPreviewUrl();
+    const previewUrlToUse = getPreviewUrl();
     
-    console.log("Preview URL:", previewUrl);
+    console.log("Preview URL:", previewUrlToUse);
     console.log("File type:", fileType);
     
-    // PDF preview
     if (fileType.includes('pdf')) {
       return (
         <iframe 
-          src={previewUrl} 
+          src={previewUrlToUse} 
           className="w-full h-full" 
           title={document.name}
           onLoad={handleLoadSuccess}
@@ -190,7 +226,6 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         />
       );
     } 
-    // Image preview
     else if (
       fileType.includes('image') || 
       fileType.includes('jpg') || 
@@ -204,7 +239,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return (
         <div className="w-full h-full flex items-center justify-center bg-background/50">
           <img 
-            src={previewUrl} 
+            src={previewUrlToUse} 
             alt={document.name} 
             className="max-w-full max-h-full object-contain"
             onLoad={handleLoadSuccess}
@@ -213,11 +248,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </div>
       );
     }
-    // Office documents (Word, Excel, PowerPoint)
     else if (useOfficeViewer) {
       return (
         <iframe 
-          src={previewUrl} 
+          src={previewUrlToUse} 
           className="w-full h-full" 
           title={document.name}
           onLoad={handleLoadSuccess}
@@ -226,7 +260,6 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         />
       );
     }
-    // No preview available
     else {
       return (
         <div className="w-full h-full flex items-center justify-center p-8 text-center">
@@ -242,7 +275,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 Download
               </Button>
               {document.url && (
-                <Button variant="outline" onClick={() => window.open(sanitizeDocumentUrl(document.url), '_blank')}>
+                <Button variant="outline" onClick={() => window.open(previewUrl || sanitizeDocumentUrl(document.url), '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in New Tab
                 </Button>
