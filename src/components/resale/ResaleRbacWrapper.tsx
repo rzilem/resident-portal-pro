@@ -18,10 +18,15 @@ const ResaleRbacWrapper = ({
   module = 'resale',
   fallback
 }: ResaleRbacWrapperProps) => {
-  const { hasPermission, loading } = useAuthRole();
+  const { hasPermission, loading, isAdmin } = useAuthRole();
   
   if (loading) {
     return <div className="flex justify-center items-center h-32">Loading...</div>;
+  }
+  
+  // Always authorize admin users regardless of specific permissions
+  if (isAdmin) {
+    return <>{children}</>;
   }
   
   // Split the permission if it contains a dot notation (e.g., "resale.certificate.view")
