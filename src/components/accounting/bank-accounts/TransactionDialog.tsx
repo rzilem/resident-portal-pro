@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowDown, ArrowUp, BankIcon, CalendarIcon } from 'lucide-react';
+import { ArrowDown, ArrowUp, Building, CalendarIcon } from 'lucide-react';
 import { BankAccount } from '@/types/accounting';
 import { useBankTransactions } from '@/hooks/useBankTransactions';
 import { format } from 'date-fns';
@@ -125,7 +125,7 @@ const TransactionDialog: React.FC<TransactionDialogProps> = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
             <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-              <BankIcon className="h-5 w-5 text-muted-foreground" />
+              <Building className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium">{account.name}</span>
             </div>
             

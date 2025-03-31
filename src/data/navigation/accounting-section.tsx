@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DollarSign, FileText, CreditCard, PiggyBank, Book, Receipt, BarChart, Calculator, BankIcon, LineChart } from 'lucide-react';
+import { DollarSign, FileText, CreditCard, PiggyBank, Book, Receipt, BarChart, Calculator, Building, LineChart } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getAccountingSection = (currentPath: string): NavItem => ({
@@ -17,7 +17,7 @@ export const getAccountingSection = (currentPath: string): NavItem => ({
     },
     {
       label: "Bank Accounts",
-      icon: BankIcon,
+      icon: Building,
       href: "/accounting/bank-accounts",
       active: currentPath === "/accounting/bank-accounts"
     },

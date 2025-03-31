@@ -62,3 +62,25 @@ export const formatPercentage = (value: number, decimals: number = 1): string =>
     maximumFractionDigits: decimals
   }).format(value);
 };
+
+/**
+ * Get the suffix for a day of the month (st, nd, rd, th)
+ * @param day - The day of the month
+ * @returns The day with appropriate suffix
+ */
+export const getDaySuffix = (day: number): string => {
+  if (day >= 11 && day <= 13) {
+    return `${day}th`;
+  }
+  
+  switch (day % 10) {
+    case 1:
+      return `${day}st`;
+    case 2:
+      return `${day}nd`;
+    case 3:
+      return `${day}rd`;
+    default:
+      return `${day}th`;
+  }
+};
