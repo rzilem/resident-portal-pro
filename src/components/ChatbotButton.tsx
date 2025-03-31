@@ -12,18 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-// Define a type for our chat messages
-type ChatMessage = {
-  role: 'user' | 'assistant';
-  content: string;
-};
+import { useAIChat } from '@/hooks/use-ai-chat';
 
 const ChatbotButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: 'Hello! I\'m your AI assistant. How can I help you today?' }
-  ]);
+  const { messages, sendMessage, isLoading } = useAIChat();
   const [inputValue, setInputValue] = useState('');
   const [isRecording, setIsRecording] = useState(false);
 
@@ -32,21 +25,8 @@ const ChatbotButton = () => {
     
     if (!inputValue.trim()) return;
     
-    // Add user message - explicitly typed as 'user'
-    const newMessages = [...messages, { role: 'user' as const, content: inputValue }];
-    setMessages(newMessages);
+    sendMessage(inputValue);
     setInputValue('');
-    
-    // Simulate AI response (In a real application, this would call an API)
-    setTimeout(() => {
-      setMessages([
-        ...newMessages,
-        { 
-          role: 'assistant' as const, 
-          content: `I understand you're asking about "${inputValue}". This is a simulated response. In a production environment, this would connect to an AI backend service.`
-        }
-      ]);
-    }, 1000);
   };
 
   const toggleVoiceRecording = () => {
@@ -57,7 +37,7 @@ const ChatbotButton = () => {
     if (!isRecording) {
       // Simulating voice recognition
       setTimeout(() => {
-        setInputValue('Show me property reports');
+        setInputValue('Tell me about recent alerts');
         setIsRecording(false);
       }, 2000);
     }
@@ -75,9 +55,9 @@ const ChatbotButton = () => {
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[80vh]">
             <SheetHeader>
-              <SheetTitle>AI Assistant</SheetTitle>
+              <SheetTitle>Community Assistant</SheetTitle>
               <SheetDescription>
-                Ask me anything about your community management system
+                Ask me anything about your community and its data
               </SheetDescription>
             </SheetHeader>
             
@@ -99,6 +79,17 @@ const ChatbotButton = () => {
                     </div>
                   </div>
                 ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-lg px-4 py-2 bg-muted">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-current animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-75"></div>
+                        <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-150"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <form onSubmit={handleSendMessage} className="border-t pt-4">
@@ -116,8 +107,9 @@ const ChatbotButton = () => {
                     onChange={(e) => setInputValue(e.target.value)} 
                     placeholder="Type your question..." 
                     className="flex-1"
+                    disabled={isLoading}
                   />
-                  <Button type="submit">
+                  <Button type="submit" disabled={isLoading || !inputValue.trim()}>
                     <Send className="h-4 w-4 mr-2" />
                     Send
                   </Button>
@@ -138,9 +130,9 @@ const ChatbotButton = () => {
           </PopoverTrigger>
           <PopoverContent className="w-80 sm:w-96 p-0" side="top" align="end">
             <div className="p-4 border-b">
-              <h3 className="font-medium">AI Assistant</h3>
+              <h3 className="font-medium">Community Assistant</h3>
               <p className="text-sm text-muted-foreground">
-                Ask me anything about your community management system
+                Ask me anything about your community data
               </p>
             </div>
             
@@ -161,6 +153,17 @@ const ChatbotButton = () => {
                   </div>
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-lg px-4 py-2 bg-muted">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-current animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-75"></div>
+                      <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-150"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <form onSubmit={handleSendMessage} className="p-4 border-t">
@@ -178,8 +181,9 @@ const ChatbotButton = () => {
                   onChange={(e) => setInputValue(e.target.value)} 
                   placeholder="Type your question..." 
                   className="flex-1"
+                  disabled={isLoading}
                 />
-                <Button type="submit">
+                <Button type="submit" disabled={isLoading || !inputValue.trim()}>
                   <Send className="h-4 w-4 mr-2" />
                   Send
                 </Button>

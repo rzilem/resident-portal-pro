@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Bot, Send, ArrowDown, Mic } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -7,11 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/components/ui/use-toast';
-
-type ChatMessage = {
-  role: 'user' | 'assistant';
-  content: string;
-};
+import { useAIChat } from '@/hooks/use-ai-chat';
 
 interface ChatbotWidgetProps {
   cardClass?: string;
@@ -20,11 +16,8 @@ interface ChatbotWidgetProps {
 
 const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: 'Hello! I\'m your AI assistant. How can I help you with your community management system today?' }
-  ]);
+  const { messages, sendMessage, isLoading } = useAIChat();
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -43,39 +36,8 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
     
     if (!inputValue.trim()) return;
     
-    // Add user message with proper type annotation
-    const newMessages: ChatMessage[] = [...messages, { role: 'user', content: inputValue }];
-    setMessages(newMessages);
+    sendMessage(inputValue);
     setInputValue('');
-    setIsLoading(true);
-    
-    // Simulate AI response (In a real implementation, this would connect to an AI backend)
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Sample responses based on common queries
-      let responseText = '';
-      const userInput = inputValue.toLowerCase();
-      
-      if (userInput.includes('dashboard') || userInput.includes('widgets')) {
-        responseText = 'The dashboard is customizable! You can add, remove, and resize widgets based on your preferences. Click the "Customize Dashboard" button to get started.';
-      } else if (userInput.includes('resident') || userInput.includes('member') || userInput.includes('people')) {
-        responseText = 'You can manage all your community residents in the Residents section. View details, contact information, and account status from there.';
-      } else if (userInput.includes('payment') || userInput.includes('bill') || userInput.includes('due')) {
-        responseText = 'Payments can be managed in the Finances section. You can view payment history, outstanding balances, and set up automatic payments.';
-      } else if (userInput.includes('maintenance') || userInput.includes('repair')) {
-        responseText = 'Maintenance requests can be submitted and tracked in the Maintenance section. You can view status updates and communicate with service providers.';
-      } else if (userInput.includes('document') || userInput.includes('file')) {
-        responseText = 'You can find all community documents in the Documents section. Important files like bylaws, meeting minutes, and announcements are stored there.';
-      } else if (userInput.includes('settings') || userInput.includes('preference')) {
-        responseText = 'You can customize your account and system preferences in the Settings section. Adjust notifications, display options, and security settings there.';
-      } else {
-        responseText = 'I understand your question about "' + inputValue + '". In a production environment, I would connect to our knowledge base to provide a detailed answer. Is there something specific about the community management system you\'d like to know?';
-      }
-      
-      // Add AI response with proper type annotation
-      setMessages([...newMessages, { role: 'assistant', content: responseText }]);
-    }, 1000);
   };
 
   const toggleRecording = async () => {
@@ -117,13 +79,13 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
         description: "Voice input converted to text",
       });
       
-      // Simulate a voice message (in a real app, this would be the transcript)
+      // Simulate a voice message related to community data
       const simulatedMessages = [
-        "Show me recent maintenance requests",
-        "What's the status of my recent payment?",
-        "When is the next community meeting?",
-        "Where can I find the community guidelines?",
-        "How do I submit a maintenance request?"
+        "Show me recent alerts in my association",
+        "Tell me about my association",
+        "How many properties are in my association?",
+        "Where can I find the community documents?",
+        "What's the most recent alert in the system?"
       ];
       const randomMessage = simulatedMessages[Math.floor(Math.random() * simulatedMessages.length)];
       setInputValue(randomMessage);
@@ -211,7 +173,7 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
             <Input 
               value={inputValue} 
               onChange={(e) => setInputValue(e.target.value)} 
-              placeholder="Ask me anything..." 
+              placeholder="Ask about your community..." 
               className="flex-1"
               disabled={isLoading || isRecording}
             />
