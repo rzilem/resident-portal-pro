@@ -1,8 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Alert } from '@/types/alert';
 import { DocumentFile } from '@/types/documents';
+import { aiActionService } from './aiActionService';
 
 /**
  * Service to fetch data for the AI assistant
@@ -160,6 +160,71 @@ export const aiDataService = {
   },
   
   /**
+   * Check if the user message contains an action request
+   * @param message - User message
+   * @returns Object indicating if message contains an action request
+   */
+  detectActionRequest(message: string): {
+    isActionRequest: boolean;
+    actionType?: string;
+    actionParams?: Record<string, any>;
+  } {
+    const messageLower = message.toLowerCase();
+    
+    if (messageLower.includes('send email') || messageLower.includes('send message') || messageLower.includes('email')) {
+      const recipients = this.extractEmailRecipients(message);
+      const subject = this.extractSubject(message);
+      
+      return {
+        isActionRequest: true,
+        actionType: 'send_message',
+        actionParams: {
+          type: 'email',
+          recipients: recipients.length ? recipients : ['community@example.com'],
+          subject: subject || 'Message from Community Assistant',
+          content: `This is an email generated based on user request: "${message}"`
+        }
+      };
+    }
+    
+    if (messageLower.includes('create alert') || messageLower.includes('new alert')) {
+      return {
+        isActionRequest: true,
+        actionType: 'create_alert',
+        actionParams: {
+          title: this.extractAlertTitle(message) || 'New Alert',
+          description: message,
+          category: this.detectAlertCategory(message)
+        }
+      };
+    }
+    
+    if (messageLower.includes('start workflow') || messageLower.includes('run workflow')) {
+      return {
+        isActionRequest: true,
+        actionType: 'start_workflow',
+        actionParams: {
+          templateId: this.detectWorkflowType(message)
+        }
+      };
+    }
+    
+    if (messageLower.includes('schedule') && (messageLower.includes('event') || messageLower.includes('meeting'))) {
+      return {
+        isActionRequest: true,
+        actionType: 'schedule_event',
+        actionParams: {
+          title: this.extractEventTitle(message) || 'New Event',
+          start: this.extractDateTime(message) || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          description: message
+        }
+      };
+    }
+    
+    return { isActionRequest: false };
+  },
+  
+  /**
    * Generate AI response with context from the system data
    * @param message - User's message
    * @param associationId - Current association ID
@@ -169,10 +234,21 @@ export const aiDataService = {
     try {
       console.log('Generating AI response with context, association:', associationId);
       
-      // In a full implementation, this would make a call to an AI service
-      // with context from all the data we've gathered
+      const actionRequest = this.detectActionRequest(message);
       
-      // Gather context data
+      if (actionRequest.isActionRequest && actionRequest.actionType) {
+        const actionResult = await aiActionService.processAction(
+          actionRequest.actionType,
+          actionRequest.actionParams || {}
+        );
+        
+        if (actionResult.success) {
+          return `✅ ${actionResult.message}`;
+        } else {
+          return `❌ ${actionResult.message}. Please provide more information or try a different request.`;
+        }
+      }
+      
       const [alerts, associationDetails, documents, properties] = await Promise.all([
         this.getAssociationAlerts(associationId),
         this.getAssociationDetails(associationId),
@@ -180,11 +256,6 @@ export const aiDataService = {
         this.getAssociationProperties(associationId)
       ]);
       
-      // Simple keyword-based response for demo purposes
-      // In a real implementation, this would be replaced with an AI API call
-      const messageLower = message.toLowerCase();
-      
-      // Log the context data for debugging
       console.log('AI Context Data:', {
         alertsCount: alerts.length,
         hasAssociationDetails: !!associationDetails,
@@ -192,7 +263,8 @@ export const aiDataService = {
         propertiesCount: properties?.length || 0
       });
       
-      // Return response based on keywords and available data
+      const messageLower = message.toLowerCase();
+      
       if (messageLower.includes('alert') || messageLower.includes('violation')) {
         if (alerts.length > 0) {
           return `I found ${alerts.length} recent alerts for your association. The most recent is: "${alerts[0].title}" - ${alerts[0].description}`;
@@ -217,14 +289,106 @@ export const aiDataService = {
         } else {
           return "I don't have detailed information about your association.";
         }
+      } else if (messageLower.includes('help') || messageLower.includes('capabilities')) {
+        return `I can help you with various tasks in your community. You can ask me to:
+- Send emails and messages to community members
+- Create alerts for issues that need attention
+- Start workflows for common processes
+- Schedule events and meetings
+- Find information about properties, documents, and alerts
+
+Just tell me what you'd like to do!`;
       }
       
-      // Default response
-      return `I understand your question about "${message}". I've looked at your association data including ${alerts.length} alerts, ${documents.length} documents, and ${properties?.length || 0} properties. In a production environment, I would connect to our knowledge base and these data sources to provide a detailed answer.`;
+      return `I understand your question about "${message}". I've looked at your association data but don't have a specific answer for that query. You can ask me about alerts, documents, properties, or ask me to perform actions like sending emails or creating alerts.`;
     } catch (error) {
       console.error('Error generating AI response:', error);
-      toast.error('There was an error generating an AI response');
-      return "I'm sorry, I encountered an error while trying to access your data. Please try again later.";
+      return `I'm sorry, I encountered an error while processing your request. Please try again later.`;
     }
+  },
+  
+  private extractEmailRecipients(message: string): string[] {
+    const emailRegex = /[\w.-]+@[\w.-]+\.\w+/g;
+    const matches = message.match(emailRegex);
+    return matches || [];
+  },
+  
+  private extractSubject(message: string): string | null {
+    const subjectRegex = /subject[:\s]+([^\.]+)/i;
+    const match = message.match(subjectRegex);
+    return match ? match[1].trim() : null;
+  },
+  
+  private extractAlertTitle(message: string): string | null {
+    const titleRegex = /title[:\s]+([^\.]+)/i;
+    const match = message.match(titleRegex);
+    return match ? match[1].trim() : null;
+  },
+  
+  private detectAlertCategory(message: string): string {
+    const messageLower = message.toLowerCase();
+    
+    if (messageLower.includes('maintenance') || messageLower.includes('repair')) {
+      return 'maintenance';
+    } else if (messageLower.includes('noise') || messageLower.includes('disturbance')) {
+      return 'noise';
+    } else if (messageLower.includes('parking')) {
+      return 'parking';
+    } else if (messageLower.includes('landscape') || messageLower.includes('yard')) {
+      return 'landscaping';
+    } else {
+      return 'general';
+    }
+  },
+  
+  private detectWorkflowType(message: string): string {
+    const messageLower = message.toLowerCase();
+    
+    if (messageLower.includes('violation') || messageLower.includes('compliance')) {
+      return 'violation';
+    } else if (messageLower.includes('maintenance')) {
+      return 'maintenance';
+    } else if (messageLower.includes('onboarding') || messageLower.includes('new resident')) {
+      return 'residentonboarding';
+    } else if (messageLower.includes('delinquency') || messageLower.includes('payment')) {
+      return 'delinquency';
+    } else if (messageLower.includes('architectural') || messageLower.includes('review')) {
+      return 'architecturalreview';
+    } else {
+      return 'violation'; // Default to violation workflow
+    }
+  },
+  
+  private extractEventTitle(message: string): string | null {
+    const titleRegex = /called[:\s]+([^\.]+)|titled[:\s]+([^\.]+)|named[:\s]+([^\.]+)/i;
+    const match = message.match(titleRegex);
+    if (match) {
+      return (match[1] || match[2] || match[3]).trim();
+    }
+    return null;
+  },
+  
+  private extractDateTime(message: string): string | null {
+    const dateRegex = /on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/i;
+    const timeRegex = /at\s+(\d{1,2}:\d{2}\s*(?:am|pm)?)/i;
+    
+    const dateMatch = message.match(dateRegex);
+    const timeMatch = message.match(timeRegex);
+    
+    if (dateMatch) {
+      const dateStr = dateMatch[1];
+      const timeStr = timeMatch ? timeMatch[1] : '9:00 AM';
+      
+      try {
+        const date = new Date(`${dateStr} ${timeStr}`);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      } catch (e) {
+        console.error('Error parsing date/time:', e);
+      }
+    }
+    
+    return null;
   }
 };

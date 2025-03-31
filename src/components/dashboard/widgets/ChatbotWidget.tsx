@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bot, Send, ArrowDown, Mic } from 'lucide-react';
+import { Bot, Send, ArrowDown, Mic, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -19,9 +19,11 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
   const { messages, sendMessage, isLoading } = useAIChat();
   const [inputValue, setInputValue] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,6 +32,27 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
   React.useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Timer effect for recording duration
+  useEffect(() => {
+    if (isRecording) {
+      recordingTimerRef.current = window.setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      setRecordingTime(0);
+    }
+
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, [isRecording]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,21 +97,31 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
       // and use the transcript as input. For now, we'll simulate this behavior.
       setIsRecording(false);
       
+      // Show a toast to simulate processing
       toast({
-        title: "Speech processed",
-        description: "Voice input converted to text",
+        title: "Processing voice command",
+        description: "Converting your voice to text...",
       });
       
-      // Simulate a voice message related to community data
-      const simulatedMessages = [
-        "Show me recent alerts in my association",
-        "Tell me about my association",
-        "How many properties are in my association?",
-        "Where can I find the community documents?",
-        "What's the most recent alert in the system?"
-      ];
-      const randomMessage = simulatedMessages[Math.floor(Math.random() * simulatedMessages.length)];
-      setInputValue(randomMessage);
+      // Simulate a slight delay for "processing"
+      setTimeout(() => {
+        // Generate possible action commands rather than just random messages
+        const actionCommands = [
+          "Send an email to residents about the upcoming community event",
+          "Create an alert for the broken fence in the north area",
+          "Start a violation workflow for property 1234",
+          "Schedule a board meeting for next Tuesday at 7 PM",
+          "Send a maintenance notification to all residents"
+        ];
+        
+        const randomCommand = actionCommands[Math.floor(Math.random() * actionCommands.length)];
+        setInputValue(randomCommand);
+        
+        toast({
+          title: "Voice command recognized",
+          description: randomCommand,
+        });
+      }, 1500);
       
       // Clean up the stream tracks
       stream.getTracks().forEach(track => track.stop());
@@ -97,18 +130,26 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
     mediaRecorder.start();
     setIsRecording(true);
     
-    // Automatically stop recording after 5 seconds
+    // In a real implementation, we might want to automatically stop after some time
+    // or when silence is detected. For now, we'll use a fixed timeout of 8 seconds.
     setTimeout(() => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
       }
-    }, 5000);
+    }, 8000);
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
+  };
+
+  // Format recording time as MM:SS
+  const formatRecordingTime = () => {
+    const minutes = Math.floor(recordingTime / 60);
+    const seconds = recordingTime % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -119,6 +160,9 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
             <Bot className="h-4 w-4 text-primary" />
           </div>
           <h3 className="font-medium text-sm">Community AI Assistant</h3>
+          <div className="ml-auto text-xs text-muted-foreground">
+            Can perform actions & answer questions
+          </div>
         </div>
         
         <ScrollArea className="flex-1 pr-2">
@@ -128,19 +172,39 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
                 key={i} 
                 className={cn(
                   "flex",
-                  msg.role === 'user' ? "justify-end" : "justify-start"
+                  msg.role === 'user' ? "justify-end" : 
+                  msg.role === 'system' ? "justify-center" : "justify-start"
                 )}
               >
-                <div 
-                  className={cn(
-                    "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                    msg.role === 'user' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted"
-                  )}
-                >
-                  {msg.content}
-                </div>
+                {msg.role === 'system' ? (
+                  <div className="bg-amber-100 dark:bg-amber-900/30 max-w-[85%] rounded-lg px-3 py-1.5 text-xs flex items-center">
+                    <AlertTriangle className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                    {msg.content}
+                  </div>
+                ) : (
+                  <div 
+                    className={cn(
+                      "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                      msg.role === 'user' 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-muted"
+                    )}
+                  >
+                    {msg.content.startsWith('✅') ? (
+                      <div className="flex items-start">
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                        <span>{msg.content.substring(2)}</span>
+                      </div>
+                    ) : msg.content.startsWith('❌') ? (
+                      <div className="flex items-start">
+                        <AlertTriangle className="h-4 w-4 text-red-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                        <span>{msg.content.substring(2)}</span>
+                      </div>
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             {isLoading && (
@@ -160,20 +224,30 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
         
         <form onSubmit={handleSendMessage} className="mt-3">
           <div className="flex gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant={isRecording ? "destructive" : "outline"}
-              onClick={toggleRecording}
-              className="flex-shrink-0"
-              title={isRecording ? "Stop recording" : "Start voice input"}
-            >
-              <Mic className="h-4 w-4" />
-            </Button>
+            <div className="relative flex-shrink-0">
+              <Button
+                type="button"
+                size="icon"
+                variant={isRecording ? "destructive" : "outline"}
+                onClick={toggleRecording}
+                className={cn(
+                  "flex-shrink-0",
+                  isRecording && "animate-pulse"
+                )}
+                title={isRecording ? "Stop recording" : "Start voice input"}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+              {isRecording && (
+                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-destructive text-destructive-foreground text-xs py-1 px-2 rounded whitespace-nowrap">
+                  {formatRecordingTime()}
+                </span>
+              )}
+            </div>
             <Input 
               value={inputValue} 
               onChange={(e) => setInputValue(e.target.value)} 
-              placeholder="Ask about your community..." 
+              placeholder="Ask or command (e.g., 'send email to...')" 
               className="flex-1"
               disabled={isLoading || isRecording}
             />
@@ -185,6 +259,11 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
               {isLoading ? <ArrowDown className="h-4 w-4 animate-bounce" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
+          {!isRecording && (
+            <div className="mt-1.5 text-xs text-muted-foreground">
+              Try: "Send email to residents" or "Create an alert for..."
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>
