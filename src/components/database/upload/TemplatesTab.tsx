@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   FileDown, 
@@ -6,7 +7,8 @@ import {
   Building, 
   Home, 
   FileText, 
-  FileWarning 
+  FileWarning,
+  LinkIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +18,14 @@ import {
   generateAssociationTemplate, 
   generatePropertyTemplate 
 } from '@/utils/exportToExcel';
+import {
+  generateResidentTemplate,
+  generateOwnerPropertyAssociationTemplate
+} from '@/utils/templates/residentTemplates';
+import {
+  generatePropertyTemplate as generateDetailedPropertyTemplate,
+  generateAssociationPropertiesTemplate
+} from '@/utils/templates/propertyTemplates';
 
 interface TemplatesTabProps {
   onOpenChange: (open: boolean) => void;
@@ -26,11 +36,11 @@ const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
     {
       id: 'residents',
       title: 'Resident Onboarding',
-      description: 'Template for adding new residents to your associations',
+      description: 'Template for adding new residents to your associations (50 rows)',
       icon: <Users className="h-5 w-5 text-blue-500" />,
       fileIcon: <FileSpreadsheet className="h-4 w-4 text-blue-500" />,
       downloadHandler: () => {
-        generateOnboardingTemplate();
+        generateResidentTemplate();
         toast.success('Resident template downloaded successfully');
       }
     },
@@ -48,12 +58,34 @@ const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
     {
       id: 'properties',
       title: 'Property Upload',
-      description: 'Template for adding multiple properties to an association',
+      description: 'Template for adding multiple properties to an association (50 rows)',
       icon: <Home className="h-5 w-5 text-green-500" />,
       fileIcon: <FileSpreadsheet className="h-4 w-4 text-green-500" />,
       downloadHandler: () => {
-        generatePropertyTemplate();
+        generateDetailedPropertyTemplate();
         toast.success('Property template downloaded successfully');
+      }
+    },
+    {
+      id: 'owner-property',
+      title: 'Owner-Property Mapping',
+      description: 'Template for mapping owners to properties and associations (50 rows)',
+      icon: <LinkIcon className="h-5 w-5 text-indigo-500" />,
+      fileIcon: <FileSpreadsheet className="h-4 w-4 text-indigo-500" />,
+      downloadHandler: () => {
+        generateOwnerPropertyAssociationTemplate();
+        toast.success('Owner-Property mapping template downloaded successfully');
+      }
+    },
+    {
+      id: 'association-properties',
+      title: 'Association Properties',
+      description: 'Template for linking properties to associations (50 rows)',
+      icon: <Building className="h-5 w-5 text-teal-500" />,
+      fileIcon: <FileSpreadsheet className="h-4 w-4 text-teal-500" />,
+      downloadHandler: () => {
+        generateAssociationPropertiesTemplate();
+        toast.success('Association-Properties template downloaded successfully');
       }
     },
     {

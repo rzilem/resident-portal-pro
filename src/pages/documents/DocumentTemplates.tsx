@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, ArrowDownCircle, LinkIcon, Building, Home } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,12 +10,12 @@ import SampleTemplatePreview from '@/components/database/SampleTemplatePreview';
 import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 import { 
   generateResidentTemplate,
+  generateOwnerPropertyAssociationTemplate 
+} from '@/utils/templates/residentTemplates';
+import { 
   generatePropertyTemplate,
-  generateDocumentCategoriesTemplate,
-  generateViolationTemplate,
-  generateFinancialTemplate,
-  generateVendorTemplate
-} from '@/utils/templateExport';
+  generateAssociationPropertiesTemplate
+} from '@/utils/templates/propertyTemplates';
 
 const DocumentTemplates = () => {
   const [activeTab, setActiveTab] = useState('association');
@@ -32,6 +31,12 @@ const DocumentTemplates = () => {
           break;
         case 'properties':
           generatePropertyTemplate();
+          break;
+        case 'owner-property':
+          generateOwnerPropertyAssociationTemplate();
+          break;
+        case 'association-properties':
+          generateAssociationPropertiesTemplate();
           break;
         case 'documents':
           generateDocumentCategoriesTemplate();
@@ -95,6 +100,20 @@ const DocumentTemplates = () => {
                     Properties and Units
                   </Button>
                   <Button 
+                    variant={activeTab === 'owner-property' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('owner-property')}
+                  >
+                    Owner-Property Mapping
+                  </Button>
+                  <Button 
+                    variant={activeTab === 'association-properties' ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('association-properties')}
+                  >
+                    Association Properties
+                  </Button>
+                  <Button 
                     variant={activeTab === 'documents' ? 'default' : 'ghost'}
                     className="w-full justify-start"
                     onClick={() => setActiveTab('documents')}
@@ -135,6 +154,8 @@ const DocumentTemplates = () => {
                     {activeTab === 'association' && 'Association Data Template'}
                     {activeTab === 'homeowners' && 'Homeowners Data Template'}
                     {activeTab === 'properties' && 'Properties Data Template'}
+                    {activeTab === 'owner-property' && 'Owner-Property Mapping Template'}
+                    {activeTab === 'association-properties' && 'Association Properties Template'}
                     {activeTab === 'documents' && 'Document Categories Template'}
                     {activeTab === 'violations' && 'Violation Types Template'}
                     {activeTab === 'financial' && 'Financial Accounts Template'}
@@ -151,8 +172,10 @@ const DocumentTemplates = () => {
                 </div>
                 <CardDescription>
                   {activeTab === 'association' && 'Complete template with all association and homeowner data'}
-                  {activeTab === 'homeowners' && 'Template for importing only homeowner records'}
-                  {activeTab === 'properties' && 'Template for importing property and unit information'}
+                  {activeTab === 'homeowners' && 'Template with 50 rows for importing only homeowner records'}
+                  {activeTab === 'properties' && 'Template with 50 rows for importing property and unit information'}
+                  {activeTab === 'owner-property' && 'Template with 50 rows for mapping owners to properties and associations'}
+                  {activeTab === 'association-properties' && 'Template with 50 rows linking properties to their associations'}
                   {activeTab === 'documents' && 'Standard document categories for organization'}
                   {activeTab === 'violations' && 'Template for violation types and categories'}
                   {activeTab === 'financial' && 'Template for financial accounts and GL codes'}
@@ -161,202 +184,179 @@ const DocumentTemplates = () => {
               </CardHeader>
               <CardContent>
                 {activeTab === 'association' && <AssociationTemplateInfo />}
+                
                 {activeTab === 'homeowners' && (
                   <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Homeowners Template Structure</h3>
+                    <h3 className="text-lg font-medium mb-4">Homeowners Template Structure (50 rows)</h3>
                     <p className="text-muted-foreground mb-4">
-                      This template contains fields specifically for homeowner data import, without the association details.
+                      This template contains fields specifically for homeowner data import, including association and property links.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="border p-3 rounded-md">
                         <h4 className="font-medium">Required Fields</h4>
                         <ul className="mt-2 space-y-1 text-sm">
-                          <li>• homeowner_first_name</li>
-                          <li>• homeowner_last_name</li>
-                          <li>• homeowner_email</li>
-                          <li>• homeowner_phone</li>
+                          <li>• first_name</li>
+                          <li>• last_name</li>
+                          <li>• email</li>
+                          <li>• address</li>
                           <li>• unit_number</li>
+                          <li>• association_id</li>
+                          <li>• property_id</li>
+                          <li>• resident_type</li>
                         </ul>
                       </div>
                       <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Optional Fields</h4>
+                        <h4 className="font-medium">Linking Fields</h4>
                         <ul className="mt-2 space-y-1 text-sm">
-                          <li>• homeowner_alternate_phone</li>
-                          <li>• homeowner_mailing_address</li>
-                          <li>• homeowner_move_in_date</li>
-                          <li>• homeowner_notes</li>
+                          <li>• property_id - Links to specific property</li>
+                          <li>• association_id - Links to specific association</li>
+                          <li>• is_primary - Indicates primary resident</li>
+                          <li>• move_in_date - Start of residency</li>
+                          <li>• resident_type - owner/tenant/family</li>
                         </ul>
                       </div>
                     </div>
                   </div>
                 )}
+                
                 {activeTab === 'properties' && (
                   <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Properties Template Structure</h3>
+                    <h3 className="text-lg font-medium mb-4">Properties Template Structure (50 rows)</h3>
                     <p className="text-muted-foreground mb-4">
-                      This template contains fields for property and unit information.
+                      This template contains fields for property and unit information with association linkage.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="border p-3 rounded-md">
                         <h4 className="font-medium">Property Fields</h4>
                         <ul className="mt-2 space-y-1 text-sm">
                           <li>• property_name</li>
-                          <li>• property_type</li>
-                          <li>• property_address</li>
-                          <li>• property_city</li>
-                          <li>• property_state</li>
-                          <li>• property_zip</li>
-                          <li>• property_year_built</li>
-                          <li>• property_units_count</li>
-                        </ul>
-                      </div>
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Unit Fields</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• unit_number</li>
-                          <li>• unit_address</li>
-                          <li>• unit_bedrooms</li>
-                          <li>• unit_bathrooms</li>
-                          <li>• unit_square_feet</li>
-                          <li>• unit_floor</li>
-                          <li>• unit_status</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {activeTab === 'documents' && (
-                  <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Document Categories Structure</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Standard document categories for organizing association files.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Administrative Categories</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• Governing Documents</li>
-                          <li>• Board Meeting Minutes</li>
-                          <li>• Bylaws & CC&Rs</li>
-                          <li>• Policies & Procedures</li>
-                          <li>• Insurance Documents</li>
-                        </ul>
-                      </div>
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Financial Categories</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• Financial Statements</li>
-                          <li>• Budgets</li>
-                          <li>• Audits</li>
-                          <li>• Tax Returns</li>
-                          <li>• Reserve Studies</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {activeTab === 'violations' && (
-                  <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Violation Types Structure</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Template for setting up standard violation types and categories.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Violation Fields</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• violation_name</li>
-                          <li>• category</li>
-                          <li>• description</li>
-                          <li>• severity</li>
-                          <li>• default_fine</li>
-                          <li>• default_due_days</li>
-                        </ul>
-                      </div>
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Common Categories</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• Architectural</li>
-                          <li>• Landscaping</li>
-                          <li>• Maintenance</li>
-                          <li>• Noise</li>
-                          <li>• Parking</li>
-                          <li>• Pets</li>
-                          <li>• Trash</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {activeTab === 'financial' && (
-                  <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Financial Accounts Structure</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Template for setting up financial accounts and GL codes.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Account Fields</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• account_number</li>
-                          <li>• account_name</li>
-                          <li>• account_type</li>
-                          <li>• account_category</li>
-                          <li>• is_reserve</li>
-                          <li>• starting_balance</li>
-                        </ul>
-                      </div>
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Account Types</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• Assets</li>
-                          <li>• Liabilities</li>
-                          <li>• Equity</li>
-                          <li>• Income</li>
-                          <li>• Expenses</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {activeTab === 'vendors' && (
-                  <div className="p-4 border rounded-md">
-                    <h3 className="text-lg font-medium mb-4">Vendors Template Structure</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Template for importing vendor information and contacts.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Vendor Fields</h4>
-                        <ul className="mt-2 space-y-1 text-sm">
-                          <li>• vendor_name</li>
-                          <li>• contact_name</li>
-                          <li>• email</li>
-                          <li>• phone</li>
                           <li>• address</li>
+                          <li>• unit_number</li>
                           <li>• city</li>
                           <li>• state</li>
                           <li>• zip</li>
-                          <li>• services</li>
-                          <li>• tax_id</li>
+                          <li>• association_id</li>
+                          <li>• association_name</li>
                         </ul>
                       </div>
                       <div className="border p-3 rounded-md">
-                        <h4 className="font-medium">Service Categories</h4>
+                        <h4 className="font-medium">Additional Property Info</h4>
                         <ul className="mt-2 space-y-1 text-sm">
-                          <li>• Landscaping</li>
-                          <li>• Maintenance</li>
-                          <li>• Pool Service</li>
-                          <li>• Security</li>
-                          <li>• Plumbing</li>
-                          <li>• Electrical</li>
-                          <li>• HVAC</li>
-                          <li>• Legal</li>
-                          <li>• Accounting</li>
+                          <li>• property_type</li>
+                          <li>• bedrooms</li>
+                          <li>• bathrooms</li>
+                          <li>• square_feet</li>
+                          <li>• property_id (for existing properties)</li>
+                          <li>• unique_identifier (optional reference)</li>
                         </ul>
                       </div>
                     </div>
                   </div>
+                )}
+                
+                {activeTab === 'owner-property' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Owner-Property Mapping Template (50 rows)</h3>
+                    <p className="text-muted-foreground mb-4">
+                      This template maps owners to properties and associations, making it easy to change ownership.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Property and Association Fields</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• property_id</li>
+                          <li>• property_address</li>
+                          <li>• unit_number</li>
+                          <li>• association_id</li>
+                          <li>• association_name</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Owner Fields</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• owner_id</li>
+                          <li>• owner_first_name</li>
+                          <li>• owner_last_name</li>
+                          <li>• owner_email</li>
+                          <li>• owner_phone</li>
+                          <li>• ownership_start_date</li>
+                          <li>• ownership_end_date</li>
+                          <li>• is_current_owner</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-200">
+                      <h4 className="font-medium flex items-center text-blue-700">
+                        <ArrowDownCircle className="h-4 w-4 mr-2" />
+                        Changing Property Ownership
+                      </h4>
+                      <p className="text-sm text-blue-700 mt-2">
+                        When an owner changes, you can keep the property data intact and just update the owner information.
+                        Simply fill in a new row with the same property_id but new owner information, marking the old owner as
+                        not current and setting the ownership_end_date.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'association-properties' && (
+                  <div className="p-4 border rounded-md">
+                    <h3 className="text-lg font-medium mb-4">Association Properties Template (50 rows)</h3>
+                    <p className="text-muted-foreground mb-4">
+                      This template ensures all properties are properly linked to their associations.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Association Information</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• association_id</li>
+                          <li>• association_name</li>
+                        </ul>
+                      </div>
+                      <div className="border p-3 rounded-md">
+                        <h4 className="font-medium">Property Information</h4>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          <li>• property_id</li>
+                          <li>• property_address</li>
+                          <li>• unit_number</li>
+                          <li>• property_type</li>
+                          <li>• status</li>
+                          <li>• date_added</li>
+                          <li>• date_removed</li>
+                          <li>• notes</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 bg-green-50 p-4 rounded-md border border-green-200">
+                      <h4 className="font-medium flex items-center text-green-700">
+                        <LinkIcon className="h-4 w-4 mr-2" />
+                        Association and Property Relationships
+                      </h4>
+                      <p className="text-sm text-green-700 mt-2">
+                        This template helps maintain the relationship between associations and their properties over time,
+                        even as properties change ownership or status. The system uses these relationships to ensure
+                        that when you update a property, it remains correctly associated with its community.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'documents' && (
+                  generateDocumentCategoriesTemplate();
+                )}
+                
+                {activeTab === 'violations' && (
+                  generateViolationTemplate();
+                )}
+                
+                {activeTab === 'financial' && (
+                  generateFinancialTemplate();
+                )}
+                
+                {activeTab === 'vendors' && (
+                  generateVendorTemplate();
                 )}
               </CardContent>
             </Card>
