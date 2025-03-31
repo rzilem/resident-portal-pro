@@ -1,386 +1,315 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusCircle, Trash2 } from 'lucide-react';
-import { JournalEntry, JournalEntryLine } from '@/types/accounting';
-import { useToast } from '@/components/ui/use-toast';
-import { v4 as uuidv4 } from 'uuid';
-import { predefinedGlAccounts } from '../gl-accounts/predefined-accounts';
 
-interface JournalEntryFormProps {
-  entry?: JournalEntry | null;
-  onComplete: () => void;
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface JournalEntryLine {
+  id: string;
+  accountId: string;
+  description: string;
+  debit: number | '';
+  credit: number | '';
 }
 
-const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, onComplete }) => {
-  const { toast } = useToast();
+interface JournalEntry {
+  id?: string;
+  date: Date;
+  reference: string;
+  description: string;
+  lines: JournalEntryLine[];
+}
+
+// Sample GL accounts for the demo
+const sampleAccounts = [
+  { id: '1000', name: 'Cash', code: '1000' },
+  { id: '1200', name: 'Accounts Receivable', code: '1200' },
+  { id: '2000', name: 'Accounts Payable', code: '2000' },
+  { id: '3000', name: 'Capital', code: '3000' },
+  { id: '4000', name: 'Revenue', code: '4000' },
+  { id: '5000', name: 'Expenses', code: '5000' },
+];
+
+const JournalEntryForm = ({ entry, onComplete }) => {
   const [formData, setFormData] = useState<JournalEntry>({
-    id: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date(),
     reference: '',
     description: '',
-    status: 'draft',
     lines: [
       {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         accountId: '',
-        accountName: '',
-        debit: 0,
-        credit: 0,
-        description: ''
-      }
+        description: '',
+        debit: '',
+        credit: '',
+      },
     ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   });
-
-  const [isBalanced, setIsBalanced] = useState(false);
-  const [totalDebit, setTotalDebit] = useState(0);
-  const [totalCredit, setTotalCredit] = useState(0);
-
-  const accounts = predefinedGlAccounts;
 
   useEffect(() => {
     if (entry) {
-      setFormData({
-        ...entry,
-        date: new Date(entry.date).toISOString().split('T')[0]
-      });
+      setFormData(entry);
     }
   }, [entry]);
 
-  useEffect(() => {
-    const debitTotal = formData.lines.reduce((sum, line) => sum + line.debit, 0);
-    const creditTotal = formData.lines.reduce((sum, line) => sum + line.credit, 0);
-    
-    setTotalDebit(debitTotal);
-    setTotalCredit(creditTotal);
-    setIsBalanced(debitTotal === creditTotal && debitTotal > 0);
-  }, [formData.lines]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleStatusChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      status: value as 'draft' | 'posted' | 'void'
-    }));
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setFormData({ ...formData, date });
+    }
   };
 
-  const handleAddLine = () => {
-    setFormData(prev => ({
-      ...prev,
-      lines: [
-        ...prev.lines,
-        {
-          id: uuidv4(),
-          accountId: '',
-          accountName: '',
-          debit: 0,
-          credit: 0,
-          description: ''
+  const handleLineChange = (id: string, field: keyof JournalEntryLine, value: any) => {
+    setFormData({
+      ...formData,
+      lines: formData.lines.map((line) => {
+        if (line.id === id) {
+          return { ...line, [field]: value };
         }
-      ]
-    }));
-  };
-
-  const handleRemoveLine = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      lines: prev.lines.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleLineChange = (index: number, field: keyof JournalEntryLine, value: any) => {
-    setFormData(prev => {
-      const newLines = [...prev.lines];
-      newLines[index] = {
-        ...newLines[index],
-        [field]: value
-      };
-      
-      if (field === 'accountId') {
-        const account = accounts.find(a => a.id === value);
-        if (account) {
-          newLines[index].accountName = account.name;
-        }
-      }
-      
-      return {
-        ...prev,
-        lines: newLines
-      };
+        return line;
+      }),
     });
+  };
+
+  const addLine = () => {
+    setFormData({
+      ...formData,
+      lines: [
+        ...formData.lines,
+        {
+          id: crypto.randomUUID(),
+          accountId: '',
+          description: '',
+          debit: '',
+          credit: '',
+        },
+      ],
+    });
+  };
+
+  const removeLine = (id: string) => {
+    if (formData.lines.length <= 1) {
+      toast.error('Journal entry must have at least one line');
+      return;
+    }
+    
+    setFormData({
+      ...formData,
+      lines: formData.lines.filter((line) => line.id !== id),
+    });
+  };
+
+  const calculateTotals = () => {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    formData.lines.forEach((line) => {
+      if (line.debit !== '') totalDebit += Number(line.debit);
+      if (line.credit !== '') totalCredit += Number(line.credit);
+    });
+
+    return { totalDebit, totalCredit };
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isBalanced) {
-      toast({
-        title: "Journal entry not balanced",
-        description: "Total debits must equal total credits",
-        variant: "destructive"
-      });
+    // Validate entry
+    const { totalDebit, totalCredit } = calculateTotals();
+    
+    if (totalDebit !== totalCredit) {
+      toast.error('Journal entry must balance (debits must equal credits)');
       return;
     }
     
-    if (formData.lines.some(line => !line.accountId)) {
-      toast({
-        title: "Incomplete journal entry",
-        description: "All lines must have an account selected",
-        variant: "destructive"
-      });
+    if (totalDebit === 0 && totalCredit === 0) {
+      toast.error('Journal entry must have at least one value');
       return;
     }
-
-    const journalEntry: JournalEntry = {
-      ...formData,
-      id: formData.id || `JE-${new Date().getTime()}`,
-      updatedAt: new Date().toISOString()
-    };
-
-    console.log('Saving journal entry:', journalEntry);
     
-    toast({
-      title: `Journal entry ${entry ? 'updated' : 'created'}`,
-      description: `Journal entry ${journalEntry.reference} has been ${entry ? 'updated' : 'created'} successfully`
-    });
+    // Check for required fields
+    if (!formData.date || !formData.description) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
     
+    // Check for account selection
+    const hasEmptyAccount = formData.lines.some(line => !line.accountId);
+    if (hasEmptyAccount) {
+      toast.error('Please select an account for each line');
+      return;
+    }
+    
+    // Save entry
+    console.log('Saving journal entry:', formData);
+    toast.success(entry ? 'Journal entry updated' : 'Journal entry created');
     onComplete();
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
+  const { totalDebit, totalCredit } = calculateTotals();
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="reference">Reference #</Label>
-              <Input
-                id="reference"
-                name="reference"
-                value={formData.reference}
-                onChange={handleInputChange}
-                placeholder="JE-2023-001"
-                required
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter a description for this journal entry"
-              className="min-h-[80px]"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={handleStatusChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="posted">Posted</SelectItem>
-                <SelectItem value="void">Void</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <Card className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Journal Entry Lines</h3>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={handleAddLine}
-            className="flex items-center gap-1"
-          >
-            <PlusCircle size={16} />
-            Add Line
-          </Button>
+    <form onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="space-y-2">
+          <Label htmlFor="date">Date</Label>
+          <DatePicker 
+            date={formData.date} 
+            onDateChange={handleDateChange} 
+            className="w-full"
+          />
         </div>
         
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-1/3">Account</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Debit</TableHead>
-                <TableHead className="text-right">Credit</TableHead>
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {formData.lines.map((line, index) => (
-                <TableRow key={line.id}>
-                  <TableCell>
-                    <Select 
-                      value={line.accountId} 
-                      onValueChange={(value) => handleLineChange(index, 'accountId', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="" disabled>-- Assets --</SelectItem>
-                        {accounts.filter(a => a.type === 'Asset').map(account => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.code} - {account.name}
-                          </SelectItem>
-                        ))}
-                        
-                        <SelectItem value="" disabled>-- Liabilities --</SelectItem>
-                        {accounts.filter(a => a.type === 'Liability').map(account => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.code} - {account.name}
-                          </SelectItem>
-                        ))}
-                        
-                        <SelectItem value="" disabled>-- Equity --</SelectItem>
-                        {accounts.filter(a => a.type === 'Equity').map(account => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.code} - {account.name}
-                          </SelectItem>
-                        ))}
-                        
-                        <SelectItem value="" disabled>-- Income --</SelectItem>
-                        {accounts.filter(a => a.type === 'Income').map(account => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.code} - {account.name}
-                          </SelectItem>
-                        ))}
-                        
-                        <SelectItem value="" disabled>-- Expenses --</SelectItem>
-                        {accounts.filter(a => a.type === 'Expense').map(account => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.code} - {account.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      placeholder="Line description"
-                      value={line.description || ''}
-                      onChange={(e) => handleLineChange(index, 'description', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={line.debit || ''}
-                      onChange={(e) => handleLineChange(index, 'debit', parseFloat(e.target.value) || 0)}
-                      className="text-right"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={line.credit || ''}
-                      onChange={(e) => handleLineChange(index, 'credit', parseFloat(e.target.value) || 0)}
-                      className="text-right"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleRemoveLine(index)}
-                      disabled={formData.lines.length === 1}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              
-              <TableRow className="border-t-2">
-                <TableCell colSpan={2} className="text-right font-medium">
-                  Totals
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(totalDebit)}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(totalCredit)}
-                </TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-              
-              <TableRow className={!isBalanced ? "bg-red-50" : ""}>
-                <TableCell colSpan={2} className="text-right font-medium">
-                  Difference
-                </TableCell>
-                <TableCell colSpan={2} className={`text-right font-medium ${!isBalanced ? "text-red-500" : ""}`}>
-                  {formatCurrency(Math.abs(totalDebit - totalCredit))}
-                </TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+        <div className="space-y-2">
+          <Label htmlFor="reference">Reference / Number</Label>
+          <Input
+            id="reference"
+            name="reference"
+            value={formData.reference}
+            onChange={handleInputChange}
+            placeholder="Optional"
+          />
         </div>
-      </Card>
-
-      <div className="flex justify-end gap-4">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onComplete}
-        >
+      </div>
+      
+      <div className="space-y-2 mb-6">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          placeholder="Enter journal entry description"
+          rows={2}
+        />
+      </div>
+      
+      <div className="border rounded-md mb-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Account</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Debit</TableHead>
+              <TableHead>Credit</TableHead>
+              <TableHead className="w-10"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {formData.lines.map((line) => (
+              <TableRow key={line.id}>
+                <TableCell>
+                  <Select
+                    value={line.accountId || "select_account"}
+                    onValueChange={(value) => handleLineChange(line.id, 'accountId', value === "select_account" ? "" : value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="select_account" disabled>Select account</SelectItem>
+                      {sampleAccounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.code} - {account.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Input
+                    value={line.description}
+                    onChange={(e) => handleLineChange(line.id, 'description', e.target.value)}
+                    placeholder="Line description"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={line.debit}
+                    onChange={(e) => {
+                      const value = e.target.value ? parseFloat(e.target.value) : '';
+                      handleLineChange(line.id, 'debit', value);
+                      if (value !== '') handleLineChange(line.id, 'credit', '');
+                    }}
+                    placeholder="0.00"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={line.credit}
+                    onChange={(e) => {
+                      const value = e.target.value ? parseFloat(e.target.value) : '';
+                      handleLineChange(line.id, 'credit', value);
+                      if (value !== '') handleLineChange(line.id, 'debit', '');
+                    }}
+                    placeholder="0.00"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeLine(line.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            
+            <TableRow>
+              <TableCell colSpan={2} className="text-right font-medium">
+                Totals:
+              </TableCell>
+              <TableCell className="font-medium">
+                {totalDebit.toFixed(2)}
+              </TableCell>
+              <TableCell className="font-medium">
+                {totalCredit.toFixed(2)}
+              </TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+            
+            <TableRow>
+              <TableCell colSpan={5}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={addLine}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Line
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+      
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onComplete}>
           Cancel
         </Button>
-        <Button 
-          type="submit" 
-          disabled={!isBalanced}
-        >
+        <Button type="submit">
           {entry ? 'Update' : 'Create'} Journal Entry
         </Button>
       </div>

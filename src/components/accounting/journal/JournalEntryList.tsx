@@ -1,149 +1,186 @@
 
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, Calendar } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { JournalEntry } from '@/types/accounting';
+import { Badge } from '@/components/ui/badge';
+import { Pencil, Search, Filter, Check, X } from 'lucide-react';
+import { format } from 'date-fns';
+
+// Sample data for demonstration
+const sampleJournalEntries = [
+  {
+    id: '1',
+    date: new Date(2023, 5, 15),
+    reference: 'JE-001',
+    description: 'Paid office rent for June',
+    debit: 1500,
+    credit: 1500,
+    status: 'posted',
+  },
+  {
+    id: '2',
+    date: new Date(2023, 5, 18),
+    reference: 'JE-002',
+    description: 'Received payment from client ABC Corp',
+    debit: 3000,
+    credit: 3000,
+    status: 'posted',
+  },
+  {
+    id: '3',
+    date: new Date(2023, 5, 22),
+    reference: 'JE-003',
+    description: 'Purchased office supplies',
+    debit: 450.75,
+    credit: 450.75,
+    status: 'draft',
+  },
+  {
+    id: '4',
+    date: new Date(2023, 5, 25),
+    reference: 'JE-004',
+    description: 'Paid utility bills',
+    debit: 320.50,
+    credit: 320.50,
+    status: 'posted',
+  },
+  {
+    id: '5',
+    date: new Date(2023, 5, 28),
+    reference: 'JE-005',
+    description: 'Recorded monthly depreciation',
+    debit: 875,
+    credit: 875,
+    status: 'draft',
+  },
+];
 
 interface JournalEntryListProps {
-  onEditEntry: (entry: JournalEntry) => void;
+  onEditEntry: (entry: any) => void;
 }
 
 const JournalEntryList: React.FC<JournalEntryListProps> = ({ onEditEntry }) => {
-  // Mock data for demonstration
-  const [entries] = useState<JournalEntry[]>([
-    {
-      id: 'JE-001',
-      date: '2023-06-15',
-      reference: 'JE-2023-001',
-      description: 'Monthly rent accrual',
-      status: 'posted',
-      lines: [
-        {
-          id: 'JEL-001',
-          accountId: '1',
-          accountName: 'Accounts Receivable',
-          debit: 5000,
-          credit: 0
-        },
-        {
-          id: 'JEL-002',
-          accountId: '3',
-          accountName: 'Rental Income',
-          debit: 0,
-          credit: 5000
-        }
-      ],
-      createdAt: '2023-06-15T10:30:00Z',
-      updatedAt: '2023-06-15T10:30:00Z'
-    },
-    {
-      id: 'JE-002',
-      date: '2023-06-20',
-      reference: 'JE-2023-002',
-      description: 'Office supplies purchase',
-      status: 'draft',
-      lines: [
-        {
-          id: 'JEL-003',
-          accountId: '4',
-          accountName: 'Office Supplies Expense',
-          debit: 250,
-          credit: 0
-        },
-        {
-          id: 'JEL-004',
-          accountId: '1',
-          accountName: 'Cash',
-          debit: 0,
-          credit: 250
-        }
-      ],
-      createdAt: '2023-06-20T14:15:00Z',
-      updatedAt: '2023-06-20T14:15:00Z'
-    }
-  ]);
-
-  const getStatusBadge = (status: 'draft' | 'posted' | 'void') => {
-    switch(status) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  
+  const filteredEntries = sampleJournalEntries.filter(entry => {
+    const matchesSearch = 
+      entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.reference.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || entry.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+  
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
       case 'posted':
-        return <Badge className="bg-green-500">Posted</Badge>;
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <Check className="h-3 w-3 mr-1" />
+            Posted
+          </Badge>
+        );
       case 'draft':
-        return <Badge className="bg-yellow-500">Draft</Badge>;
-      case 'void':
-        return <Badge variant="outline">Void</Badge>;
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            Draft
+          </Badge>
+        );
+      case 'rejected':
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            <X className="h-3 w-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      default:
+        return null;
     }
   };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const calculateTotal = (entry: JournalEntry) => {
-    return entry.lines.reduce((sum, line) => sum + line.debit, 0);
-  };
-
+  
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
         <div className="flex-1 flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search journal entries..." className="pl-8" />
+            <Input 
+              placeholder="Search journal entries..." 
+              className="pl-8" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <Button variant="outline" size="icon" className="shrink-0">
-            <Calendar size={16} />
-          </Button>
           <Button variant="outline" size="icon" className="shrink-0">
             <Filter size={16} />
           </Button>
         </div>
         <div className="flex gap-2">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="posted">Posted</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="void">Void</SelectItem>
-            </SelectContent>
-          </Select>
+          <select
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="posted">Posted</option>
+            <option value="draft">Draft</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
       </div>
       
-      <div className="rounded-md border">
+      <div className="border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Reference</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Reference</TableHead>
+              <TableHead className="hidden md:table-cell">Description</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {entries.map(entry => (
-              <TableRow key={entry.id}>
-                <TableCell className="font-medium">{entry.reference}</TableCell>
-                <TableCell>{new Date(entry.date).toLocaleDateString()}</TableCell>
-                <TableCell>{entry.description}</TableCell>
-                <TableCell className="text-right">{formatCurrency(calculateTotal(entry))}</TableCell>
-                <TableCell>{getStatusBadge(entry.status)}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => onEditEntry(entry)}>View/Edit</Button>
+            {filteredEntries.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  No journal entries found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredEntries.map(entry => (
+                <TableRow key={entry.id}>
+                  <TableCell>
+                    {format(entry.date, 'MM/dd/yyyy')}
+                  </TableCell>
+                  <TableCell>
+                    {entry.reference}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell max-w-xs truncate">
+                    {entry.description}
+                  </TableCell>
+                  <TableCell>
+                    ${entry.debit.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    {renderStatusBadge(entry.status)}
+                  </TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => onEditEntry(entry)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
