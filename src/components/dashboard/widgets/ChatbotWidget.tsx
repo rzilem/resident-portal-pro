@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Bot, Send, ArrowDown, Mic } from 'lucide-react';
 import { Input } from '@/components/ui/input';
