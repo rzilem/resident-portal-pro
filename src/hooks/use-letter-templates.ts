@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { LetterTemplate } from '@/types/letter-templates';
 import { useAuth } from '@/hooks/use-auth';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,7 +13,7 @@ const sampleTemplates: LetterTemplate[] = [
     name: 'Welcome Letter',
     description: 'A warm welcome to new residents',
     category: 'Welcome',
-    content: '<p>Dear {{resident_name}},</p><p>Welcome to our community! We are delighted to have you as a new resident...</p>',
+    content: '<p>Dear {{resident.name}},</p><p>Welcome to our community! We are delighted to have you as a new resident...</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -22,7 +22,7 @@ const sampleTemplates: LetterTemplate[] = [
     name: 'Late Payment Notice',
     description: 'First notice for late assessment payment',
     category: 'Delinquency',
-    content: '<p>Dear {{resident_name}},</p><p>Our records indicate that your account has an outstanding balance of {{amount_due}}...</p>',
+    content: '<p>Dear {{resident.name}},</p><p>Our records indicate that your account has an outstanding balance of {{financial.balanceDue}}...</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -31,7 +31,25 @@ const sampleTemplates: LetterTemplate[] = [
     name: 'Violation Notice',
     description: 'Notice of CC&R violation',
     category: 'Compliance',
-    content: '<p>Dear {{resident_name}},</p><p>During a recent inspection, it was noted that the property at {{property_address}} is in violation of community guidelines...</p>',
+    content: '<p>Dear {{resident.name}},</p><p>During a recent inspection, it was noted that the property at {{property.address}} is in violation of community guidelines...</p>',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '4',
+    name: 'Architectural Review Approval',
+    description: 'Notification of approval for submitted architectural request',
+    category: 'Architectural',
+    content: '<p>Dear {{resident.name}},</p><p>We are pleased to inform you that your architectural review request for {{property.address}} has been approved by the committee...</p>',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '5',
+    name: 'Annual Meeting Notice',
+    description: 'Notification of upcoming annual meeting',
+    category: 'Meeting',
+    content: '<p>Dear {{resident.name}},</p><p>The Annual Meeting of the {{association.name}} will be held on {{date.meeting}} at 7:00 PM...</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
@@ -49,13 +67,14 @@ export const useLetterTemplates = () => {
     try {
       const { data, error } = await supabase
         .from('letter_templates')
-        .select('*');
+        .select('*')
+        .order('name');
         
       if (error) {
         throw error;
       }
       
-      if (data) {
+      if (data && data.length > 0) {
         const formattedTemplates: LetterTemplate[] = data.map(item => ({
           id: item.id,
           name: item.name,
@@ -69,6 +88,7 @@ export const useLetterTemplates = () => {
         setTemplates(formattedTemplates);
       } else {
         // Fallback to sample templates if no data
+        console.log('No letter templates found in database, using sample templates');
         setTemplates(sampleTemplates);
       }
     } catch (error) {
@@ -118,7 +138,6 @@ export const useLetterTemplates = () => {
       };
       
       setTemplates(prev => [...prev, createdTemplate]);
-      toast.success('Template created successfully');
       return createdTemplate;
     } catch (error) {
       console.error('Error creating template:', error);
@@ -164,7 +183,6 @@ export const useLetterTemplates = () => {
       };
       
       setTemplates(prev => prev.map(t => t.id === id ? updatedTemplate : t));
-      toast.success('Template updated successfully');
       return updatedTemplate;
     } catch (error) {
       console.error('Error updating template:', error);

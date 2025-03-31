@@ -1,56 +1,52 @@
 
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
-
-interface HtmlSourceEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  readOnly?: boolean;
-}
+import { Textarea } from '@/components/ui/textarea';
 
 export interface HtmlSourceEditorRef {
   insertAtCursor: (text: string) => void;
 }
 
-const HtmlSourceEditor = forwardRef<HtmlSourceEditorRef, HtmlSourceEditorProps>(
-  ({ value, onChange, readOnly = false }, ref) => {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+interface HtmlSourceEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
 
-    // Expose method to parent component
-    useImperativeHandle(ref, () => ({
-      insertAtCursor: (text: string) => {
-        if (!textareaRef.current || readOnly) return;
-        
+const HtmlSourceEditor = forwardRef<HtmlSourceEditorRef, HtmlSourceEditorProps>(({ 
+  value, 
+  onChange 
+}, ref) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    insertAtCursor: (text: string) => {
+      if (textareaRef.current) {
         const textarea = textareaRef.current;
         const startPos = textarea.selectionStart;
         const endPos = textarea.selectionEnd;
         
-        // Insert text at cursor position
+        // Insert the text at the cursor position
         const newValue = value.substring(0, startPos) + text + value.substring(endPos);
         onChange(newValue);
         
-        // Reset cursor position after the inserted text
+        // Set the cursor position after the inserted text
         setTimeout(() => {
-          textarea.focus();
           textarea.selectionStart = textarea.selectionEnd = startPos + text.length;
+          textarea.focus();
         }, 0);
       }
-    }));
+    }
+  }));
 
-    return (
-      <textarea
-        ref={textareaRef}
-        className="w-full min-h-[300px] p-4 font-mono text-sm focus:outline-none resize-none"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        readOnly={readOnly}
-        style={{ 
-          backgroundColor: readOnly ? '#f9fafb' : 'white',
-          cursor: readOnly ? 'default' : 'text'
-        }}
-      />
-    );
-  }
-);
+  return (
+    <Textarea
+      ref={textareaRef}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="min-h-[250px] font-mono text-sm px-4 py-2"
+      placeholder="Enter HTML source code here..."
+    />
+  );
+});
 
 HtmlSourceEditor.displayName = 'HtmlSourceEditor';
 

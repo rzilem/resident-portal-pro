@@ -1,68 +1,89 @@
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
-interface VisualEditorProps {
-  value: string;
-  onUpdate: (content: string) => void;
-  readOnly?: boolean;
-}
-
 export interface VisualEditorRef {
   insertAtCursor: (text: string) => void;
 }
 
-const VisualEditor = forwardRef<VisualEditorRef, VisualEditorProps>(({ value, onUpdate, readOnly = false }, ref) => {
-  const editorRef = useRef<HTMLDivElement>(null);
+interface VisualEditorProps {
+  value: string;
+  onUpdate: (content: string) => void;
+}
 
+const VisualEditor = forwardRef<VisualEditorRef, VisualEditorProps>(({ 
+  value, 
+  onUpdate 
+}, ref) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize editor with content
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = value;
     }
-  }, [value]);
+  }, []);
 
+  // Handle editor input changes
   const handleInput = () => {
-    if (editorRef.current && !readOnly) {
+    if (editorRef.current) {
       onUpdate(editorRef.current.innerHTML);
     }
   };
 
-  // Expose method to parent component
+  // Expose method to insert text at cursor
   useImperativeHandle(ref, () => ({
     insertAtCursor: (text: string) => {
-      if (!editorRef.current || readOnly) return;
+      if (!editorRef.current) return;
       
-      // Get current selection
+      // Get the current selection
       const selection = window.getSelection();
-      if (!selection?.rangeCount) {
-        // If no selection, append to the end
+      if (!selection || selection.rangeCount === 0) {
+        // No selection, append to the end
         editorRef.current.innerHTML += text;
         onUpdate(editorRef.current.innerHTML);
         return;
       }
       
-      // Insert at current selection
+      // Get the current range
       const range = selection.getRangeAt(0);
-      const fragment = range.createContextualFragment(text);
-      range.deleteContents();
-      range.insertNode(fragment);
       
-      // Move cursor to end of inserted text
-      range.collapse(false);
+      // Check if the selection is within our editor
+      if (!editorRef.current.contains(range.commonAncestorContainer)) {
+        // Selection is outside our editor, focus and append
+        editorRef.current.focus();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(editorRef.current);
+        newRange.collapse(false); // Collapse to end
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+      
+      // Insert the text
+      const textNode = document.createTextNode(text);
+      range.deleteContents();
+      range.insertNode(textNode);
+      
+      // Move the cursor to the end of inserted text
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
       selection.removeAllRanges();
       selection.addRange(range);
       
+      // Update the content
       onUpdate(editorRef.current.innerHTML);
+      
+      // Focus back on the editor
+      editorRef.current.focus();
     }
   }));
 
   return (
     <div
       ref={editorRef}
-      className={`p-4 min-h-[300px] focus:outline-none ${readOnly ? 'bg-gray-50' : ''}`}
-      contentEditable={!readOnly}
+      contentEditable={true}
+      className="min-h-[250px] px-4 py-3 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 overflow-y-auto"
       onInput={handleInput}
-      onBlur={handleInput}
-      dangerouslySetInnerHTML={{ __html: value }}
+      style={{ backgroundColor: 'white' }}
     />
   );
 });

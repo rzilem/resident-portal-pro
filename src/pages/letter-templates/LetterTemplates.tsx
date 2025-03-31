@@ -6,12 +6,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import LetterTemplatesList from '@/components/letter-templates/LetterTemplatesList';
 import LetterTemplateEditor from '@/components/letter-templates/LetterTemplateEditor';
+import LetterTemplatePreview from '@/components/letter-templates/LetterTemplatePreview';
 import { useLetterTemplates } from '@/hooks/use-letter-templates';
 import { useAuth } from '@/hooks/use-auth';
+import { LetterTemplate } from '@/types/letter-templates';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const LetterTemplates = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const { user } = useAuth();
   const [authLoading, setAuthLoading] = useState(true);
   
@@ -22,6 +26,11 @@ const LetterTemplates = () => {
     }, 500);
     
     return () => clearTimeout(timer);
+  }, []);
+  
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
   
   const { 
@@ -39,17 +48,32 @@ const LetterTemplates = () => {
   // Clear selected template when changing tabs
   useEffect(() => {
     setSelectedTemplateId(null);
+    setIsPreviewMode(false);
   }, [activeTab]);
   
   const isUserAuthenticated = !!user;
   
   // Wrapper function to handle the different function signatures
-  const handleSaveTemplate = async (template: any) => {
+  const handleSaveTemplate = async (template: Omit<LetterTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (selectedTemplateId) {
       return await updateTemplate(selectedTemplateId, template);
     } else {
       return await createTemplate(template);
     }
+  };
+
+  const handleSelectTemplate = (id: string) => {
+    setSelectedTemplateId(id);
+    setIsPreviewMode(false); // Exit preview mode when selecting a template
+  };
+
+  const handlePreviewToggle = () => {
+    setIsPreviewMode(!isPreviewMode);
+  };
+  
+  const filteredTemplates = (category: string) => {
+    if (category === 'all') return templates;
+    return templates.filter(t => t.category === category);
   };
   
   return (
@@ -86,69 +110,48 @@ const LetterTemplates = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 mb-6">
               <TabsTrigger value="all">All Templates</TabsTrigger>
-              <TabsTrigger value="compliance">Compliance</TabsTrigger>
-              <TabsTrigger value="delinquency">Delinquency</TabsTrigger>
-              <TabsTrigger value="arc">Architectural</TabsTrigger>
+              <TabsTrigger value="Compliance">Compliance</TabsTrigger>
+              <TabsTrigger value="Delinquency">Delinquency</TabsTrigger>
+              <TabsTrigger value="Architectural">Architectural</TabsTrigger>
             </TabsList>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-1">
-                <TabsContent value="all" className="m-0">
+                {isLoading ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-[500px] w-full" />
+                  </div>
+                ) : (
                   <LetterTemplatesList 
-                    templates={templates} 
+                    templates={filteredTemplates(activeTab)} 
                     isLoading={isLoading}
-                    onSelect={setSelectedTemplateId}
+                    onSelect={handleSelectTemplate}
                     selectedId={selectedTemplateId}
-                    category="all"
+                    category={activeTab}
                     onDelete={deleteTemplate}
                     isReadOnly={!isUserAuthenticated}
                   />
-                </TabsContent>
-                
-                <TabsContent value="compliance" className="m-0">
-                  <LetterTemplatesList 
-                    templates={templates.filter(t => t.category === 'Compliance')} 
-                    isLoading={isLoading}
-                    onSelect={setSelectedTemplateId}
-                    selectedId={selectedTemplateId}
-                    category="Compliance"
-                    onDelete={deleteTemplate}
-                    isReadOnly={!isUserAuthenticated}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="delinquency" className="m-0">
-                  <LetterTemplatesList 
-                    templates={templates.filter(t => t.category === 'Delinquency')} 
-                    isLoading={isLoading}
-                    onSelect={setSelectedTemplateId}
-                    selectedId={selectedTemplateId}
-                    category="Delinquency"
-                    onDelete={deleteTemplate}
-                    isReadOnly={!isUserAuthenticated}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="arc" className="m-0">
-                  <LetterTemplatesList 
-                    templates={templates.filter(t => t.category === 'Architectural')} 
-                    isLoading={isLoading}
-                    onSelect={setSelectedTemplateId}
-                    selectedId={selectedTemplateId}
-                    category="Architectural"
-                    onDelete={deleteTemplate}
-                    isReadOnly={!isUserAuthenticated}
-                  />
-                </TabsContent>
+                )}
               </div>
               
               <div className="md:col-span-2">
-                <LetterTemplateEditor
-                  selectedTemplate={selectedTemplate}
-                  onSave={handleSaveTemplate}
-                  onCancel={() => setSelectedTemplateId(null)}
-                  isReadOnly={!isUserAuthenticated}
-                />
+                {isPreviewMode && selectedTemplate ? (
+                  <LetterTemplatePreview 
+                    template={selectedTemplate} 
+                    onBack={handlePreviewToggle}
+                    onEdit={() => setIsPreviewMode(false)}
+                    isReadOnly={!isUserAuthenticated}
+                  />
+                ) : (
+                  <LetterTemplateEditor
+                    selectedTemplate={selectedTemplate}
+                    onSave={handleSaveTemplate}
+                    onCancel={() => setSelectedTemplateId(null)}
+                    onPreview={handlePreviewToggle}
+                    isReadOnly={!isUserAuthenticated}
+                  />
+                )}
               </div>
             </div>
           </Tabs>

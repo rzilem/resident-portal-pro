@@ -119,6 +119,9 @@ const App = () => {
           <Route path="/print-queue" element={<PrintQueue />} />
           <Route path="/community-hub" element={<CommunityHub />} />
           
+          {/* Letter Templates Route */}
+          <Route path="/letter-templates" element={<LetterTemplates />} />
+          
           {/* Vendor Management Routes */}
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/vendors/:id" element={<VendorProfile />} />
@@ -143,8 +146,6 @@ const App = () => {
           <Route path="/resale/bid-requests" element={<BidRequests />} />
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
           <Route path="/resale/admin/project-images" element={<div>Project Images Page</div>} />
-          
-          <Route path="/letter-templates" element={<LetterTemplates />} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
