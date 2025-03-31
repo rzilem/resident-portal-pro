@@ -1,3 +1,4 @@
+
 export interface MessageTemplate {
   id: string;
   name: string;
@@ -13,9 +14,9 @@ export interface MessageTemplate {
 export interface MessageTemplatesProps {
   onSelectTemplate: (template: MessageTemplate) => void;
   templates: MessageTemplate[];
-  onCreateTemplate: (template: MessageTemplate) => void;
-  onUpdateTemplate: (template: MessageTemplate) => void;
-  onDeleteTemplate: (templateId: string) => void;
+  onCreateTemplate: (template: MessageTemplate) => Promise<void>;
+  onUpdateTemplate: (template: MessageTemplate) => Promise<void>;
+  onDeleteTemplate: (templateId: string) => Promise<void>;
 }
 
 export interface Community {
@@ -39,6 +40,7 @@ export const CategoryOptions = [
   { value: 'Violations', label: 'Violations' },
   { value: 'Events', label: 'Events' },
   { value: 'General', label: 'General' },
+  { value: 'Amenities', label: 'Amenities' },
 ];
 
 export interface TemplateFormState {

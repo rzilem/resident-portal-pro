@@ -67,6 +67,14 @@ const TemplateManager: React.FC<TemplateManagerProps> = ({
     setDialogOpen(false);
   };
 
+  const handleSelect = (template: MessageTemplate) => {
+    onSelectTemplate(template);
+  };
+
+  const handleDelete = async (templateId: string) => {
+    await onDeleteTemplate(templateId);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -109,9 +117,10 @@ const TemplateManager: React.FC<TemplateManagerProps> = ({
             <TemplateCard
               key={template.id}
               template={template}
-              onSelect={onSelectTemplate}
-              onEdit={handleEdit}
-              onDelete={onDeleteTemplate}
+              onSelect={() => handleSelect(template)}
+              onEdit={() => handleEdit(template)}
+              onDelete={() => handleDelete(template.id)}
+              getCommunityName={(id) => id} // Simplified for this component
             />
           ))}
         </div>

@@ -71,6 +71,10 @@ const MessageTemplates: React.FC<MessageTemplatesProps> = ({
       
       <TemplatesList 
         templates={templates}
+        onSelectTemplate={onSelectTemplate}
+        onEditTemplate={openEditDialog}
+        onDeleteTemplate={onDeleteTemplate}
+        onCreateTemplate={handleCreateTemplateClick}
         onPreview={openPreviewDialog}
         onEdit={openEditDialog}
         onDelete={handleDeleteTemplate}
