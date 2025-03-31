@@ -30,7 +30,7 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
               New Template
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
+          <TooltipContent side="bottom" className="z-50">
             <p>Create a new template</p>
           </TooltipContent>
         </Tooltip>
@@ -45,7 +45,7 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
                 Export
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">
+            <TooltipContent side="top" className="z-50">
               <p>Export templates</p>
             </TooltipContent>
           </Tooltip>
@@ -59,7 +59,7 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
                 Cancel
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">
+            <TooltipContent side="top" className="z-50">
               <p>Discard changes</p>
             </TooltipContent>
           </Tooltip>
@@ -73,7 +73,7 @@ const TemplateToolbar: React.FC<TemplateToolbarProps> = ({
                 Save Changes
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">
+            <TooltipContent side="top" className="z-50">
               <p>Save template changes</p>
             </TooltipContent>
           </Tooltip>
