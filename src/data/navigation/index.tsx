@@ -7,6 +7,7 @@ import { getRecordsSection } from './records-section';
 import { getSystemSection } from './system-section';
 import { getAccountingSection } from './accounting-section';
 import { getResaleSection } from './resale-section';
+import { getCommunicationSection } from './communication-section';
 
 // Re-export the types
 export * from './types';
@@ -16,8 +17,10 @@ export const getNavItems = (currentPath: string): NavigationItem[] => [
   "separator",
   // Community Management Section
   getCommunitySection(currentPath),
-  // Accounting Section (new top-level section)
+  // Accounting Section
   getAccountingSection(currentPath),
+  // Communications Section
+  getCommunicationSection(currentPath),
   // Operations Section
   getOperationsSection(currentPath),
   // Records & Reports Section

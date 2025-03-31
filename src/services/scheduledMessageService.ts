@@ -1,146 +1,129 @@
 
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { communicationService, Communication } from './communicationService';
 import { emailService } from './emailService';
+import { toast } from 'sonner';
 
-interface ScheduledMessage {
-  id: string;
-  subject: string;
-  content: string;
-  recipients: string[];
-  messageType: 'email' | 'sms';
-  scheduledAt: string;
-}
+// Interval handle for the checker
+let checkInterval: number | null = null;
 
-export const scheduledMessageService = {
-  /**
-   * Execute a scheduled message
-   */
-  executeScheduledMessage: async (messageId: string): Promise<boolean> => {
-    try {
-      // Retrieve the scheduled message from Supabase
-      const { data: messageData, error: messageError } = await supabase
-        .from('communications')
-        .select('*')
-        .eq('id', messageId)
-        .single();
+// Check for messages that need to be sent every minute
+const SCHEDULED_MESSAGE_CHECK_INTERVAL = 60 * 1000; 
+
+// Checks and executes any messages that are scheduled to be sent now or in the past
+const checkAndExecuteDueMessages = async () => {
+  try {
+    // Get all scheduled messages
+    const scheduledMessages = await communicationService.getScheduledCommunications();
+    
+    // Current time
+    const now = new Date();
+    
+    // Find messages due to be sent
+    const dueMessages = scheduledMessages.filter(msg => {
+      if (!msg.scheduled_for) return false;
       
-      if (messageError) throw messageError;
-      
-      // Get recipients
-      const { data: recipients, error: recipientsError } = await supabase
-        .from('communication_recipients')
-        .select('*')
-        .eq('communication_id', messageId);
-      
-      if (recipientsError) throw recipientsError;
-      if (!recipients || recipients.length === 0) {
-        console.warn('No recipients found for message:', messageId);
-        return false;
-      }
-      
-      // Send the message to each recipient
-      for (const recipient of recipients) {
-        if (messageData.message_type === 'email') {
-          await emailService.sendEmail({
-            to: recipient.recipient_email,
-            subject: messageData.subject,
-            body: messageData.content,
-            isHtml: messageData.format === 'html'
-          });
-        } else {
-          // Handle SMS sending - using console.log for now
-          console.log(`Sending SMS to ${recipient.recipient_email}:`, messageData.content);
-        }
-        
-        // Update recipient status
-        await supabase
-          .from('communication_recipients')
-          .update({ 
-            status: 'sent',
-            sent_at: new Date().toISOString() 
-          })
-          .eq('id', recipient.id);
-      }
-      
-      // Update message status
-      await supabase
-        .from('communications')
-        .update({ 
-          status: 'sent',
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', messageId);
-      
-      toast.success(`Scheduled message sent to ${recipients.length} recipients`);
-      
-      return true;
-    } catch (error) {
-      console.error('Error executing scheduled message:', error);
-      toast.error(`Failed to send scheduled message: ${error.message}`);
+      const scheduledTime = new Date(msg.scheduled_for);
+      return scheduledTime <= now;
+    });
+    
+    console.log(`Found ${dueMessages.length} scheduled messages due for sending`);
+    
+    // Send each due message
+    for (const message of dueMessages) {
+      await sendScheduledMessage(message);
+    }
+  } catch (error) {
+    console.error('Error checking scheduled messages:', error);
+  }
+};
+
+// Sends a scheduled message
+const sendScheduledMessage = async (message: Communication): Promise<boolean> => {
+  try {
+    console.log(`Sending scheduled message: ${message.id}`);
+    
+    // Extract recipients
+    const recipients = message.recipients.map(r => r.recipient_email);
+    
+    if (recipients.length === 0) {
+      console.warn('No recipients for message', message.id);
       return false;
     }
-  },
-  
-  /**
-   * Check for any scheduled messages that are due and execute them
-   * This will be called by a client-side timer for demonstration purposes
-   * In production, this would be done by a server-side cron job
-   */
-  checkAndExecuteDueMessages: async (): Promise<{ executed: number, success: boolean, error?: any }> => {
-    try {
-      const now = new Date();
-      
-      // Get all scheduled messages that are due
-      const { data: dueMessages, error } = await supabase
-        .from('communications')
-        .select('*')
-        .eq('status', 'scheduled')
-        .lte('scheduled_for', now.toISOString());
-      
-      if (error) throw error;
-      
-      if (!dueMessages || dueMessages.length === 0) {
-        return { executed: 0, success: true };
-      }
-      
-      // Execute each due message
-      let executedCount = 0;
-      for (const message of dueMessages) {
-        await scheduledMessageService.executeScheduledMessage(message.id);
-        executedCount++;
-      }
-      
-      return { executed: executedCount, success: true };
-    } catch (error) {
-      console.error('Error checking for due messages:', error);
-      return { executed: 0, success: false, error };
+    
+    // Send depending on message type
+    let success = false;
+    
+    if (message.message_type === 'email') {
+      // Send via email service
+      success = await emailService.sendEmail({
+        to: recipients.join(','),
+        subject: message.subject,
+        body: message.content,
+        isHtml: message.format === 'html'
+      });
+    } else if (message.message_type === 'sms') {
+      // For SMS, we'd have a different service here
+      // This is just a placeholder
+      console.log('SMS sending not yet implemented');
+      success = true;
     }
-  }
-};
-
-// Set up an interval to check for due messages every minute
-// In a real app, this would be done server-side
-let messageCheckInterval: number | null = null;
-
-export const startScheduledMessageChecker = () => {
-  if (messageCheckInterval) {
+    
+    // If sent successfully, update the status
+    if (success) {
+      await communicationService.markAsSent(message.id);
+      
+      toast.success('Scheduled message sent', {
+        description: `Message "${message.subject || 'SMS message'}" has been sent to ${recipients.length} recipient(s).`
+      });
+    }
+    
+    return success;
+  } catch (error) {
+    console.error('Error sending scheduled message:', error);
     return false;
   }
-  
-  messageCheckInterval = window.setInterval(() => {
-    scheduledMessageService.checkAndExecuteDueMessages();
-  }, 60000); // Check every minute
-  
-  return true;
 };
 
-export const stopScheduledMessageChecker = () => {
-  if (messageCheckInterval) {
-    window.clearInterval(messageCheckInterval);
-    messageCheckInterval = null;
-    return true;
+// Start checking for scheduled messages periodically
+const startScheduledMessageChecker = () => {
+  if (checkInterval) {
+    clearInterval(checkInterval);
   }
   
-  return false;
+  // Run once immediately
+  checkAndExecuteDueMessages();
+  
+  // Then set up interval
+  checkInterval = window.setInterval(
+    checkAndExecuteDueMessages,
+    SCHEDULED_MESSAGE_CHECK_INTERVAL
+  );
+  
+  console.log('Started scheduled message checker');
+  
+  return () => {
+    if (checkInterval) {
+      clearInterval(checkInterval);
+      checkInterval = null;
+    }
+  };
+};
+
+// Stop checking for scheduled messages
+const stopScheduledMessageChecker = () => {
+  if (checkInterval) {
+    clearInterval(checkInterval);
+    checkInterval = null;
+    console.log('Stopped scheduled message checker');
+  }
+};
+
+export const scheduledMessageService = {
+  checkAndExecuteDueMessages,
+  sendScheduledMessage
+};
+
+export {
+  startScheduledMessageChecker,
+  stopScheduledMessageChecker
 };

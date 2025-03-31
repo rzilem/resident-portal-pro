@@ -35,6 +35,7 @@ import AccountingReports from '@/pages/accounting/AccountingReports';
 import Workflows from '@/pages/Workflows';
 import PrintQueue from '@/pages/PrintQueue';
 import CommunityMessaging from '@/pages/communications/CommunityMessaging';
+import Announcements from '@/pages/communications/Announcements';
 
 import Settings from '@/pages/Settings';
 import Integrations from '@/pages/Integrations';
@@ -116,7 +117,7 @@ const App = () => {
           
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/communications/messaging" element={<CommunityMessaging />} />
-          <Route path="/communications/announcements" element={<div>Announcements Page</div>} />
+          <Route path="/communications/announcements" element={<Announcements />} />
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
           <Route path="/community-hub" element={<CommunityHub />} />

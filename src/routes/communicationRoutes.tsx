@@ -2,6 +2,7 @@
 import React from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
 import CommunityMessaging from '../pages/communications/CommunityMessaging';
+import Announcements from '../pages/communications/Announcements';
 
 export const communicationRoutes = [
   {
@@ -16,7 +17,7 @@ export const communicationRoutes = [
     path: '/communications/announcements',
     element: (
       <ProtectedRoute>
-        <div>Announcements Page</div>
+        <Announcements />
       </ProtectedRoute>
     ),
   },
