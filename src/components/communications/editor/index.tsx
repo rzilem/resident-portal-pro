@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import EditorTabs from './EditorTabs';
 import VisualEditor, { VisualEditorRef } from './VisualEditor';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 
 export interface HtmlEditorRef {
   insertAtCursor: (text: string) => void;
+  getContent: () => string;
 }
 
 export interface HtmlEditorProps {
@@ -124,7 +126,8 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
             handleHtmlUpdate(htmlCode + text);
           }
         }
-      }
+      },
+      getContent: () => activeTab === "visual" ? value : htmlCode
     }));
 
     return (

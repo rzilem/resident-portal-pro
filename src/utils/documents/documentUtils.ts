@@ -1,171 +1,26 @@
 
-/**
- * Document utilities for fetching and manipulating document data
- */
-import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
-import { supabase } from '@/integrations/supabase/client';
+import { DocumentFile } from '@/types/documents';
 
 /**
- * Format file size to human-readable format
- * @param {number} bytes - Size in bytes
- * @returns {string} Formatted file size
- */
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  
-  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-/**
- * Get document categories
- * @returns {Promise<DocumentCategory[]>} List of document categories
- */
-export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('document_categories')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching document categories:', error);
-      throw error;
-    }
-    
-    // Map database fields to our DocumentCategory interface
-    return (data || []).map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      description: cat.description || '',
-      accessLevel: (cat.access_level || 'all') as DocumentAccessLevel,
-      sortOrder: cat.sort_order,
-    }));
-  } catch (error) {
-    console.error('Error in getDocumentCategories:', error);
-    return [];
-  }
-};
-
-/**
- * Check if a file type can be previewed directly in the browser
- * @param fileType MIME type or file extension
- * @returns Boolean indicating if the file can be previewed
- */
-export const isFilePreviewable = (fileType: string): boolean => {
-  const type = fileType.toLowerCase();
-  
-  // Common previewable file types
-  return (
-    type.includes('pdf') ||
-    type.includes('image/') ||
-    type.includes('jpg') ||
-    type.includes('jpeg') ||
-    type.includes('png') ||
-    type.includes('gif') ||
-    type.includes('svg') ||
-    type.includes('webp') ||
-    type.includes('text/') ||
-    type.includes('html') ||
-    type.includes('xml') ||
-    type.includes('json')
-  );
-};
-
-/**
- * Get MIME type from a filename based on its extension
- * @param fileName Filename with extension
- * @returns MIME type string
- */
-export const getMimeTypeFromFileName = (fileName: string): string => {
-  const extension = fileName.split('.').pop()?.toLowerCase() || '';
-  
-  const mimeTypeMap: Record<string, string> = {
-    'pdf': 'application/pdf',
-    'doc': 'application/msword',
-    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'xls': 'application/vnd.ms-excel',
-    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'ppt': 'application/vnd.ms-powerpoint',
-    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'png': 'image/png',
-    'gif': 'image/gif',
-    'svg': 'image/svg+xml',
-    'webp': 'image/webp',
-    'txt': 'text/plain',
-    'html': 'text/html',
-    'htm': 'text/html',
-    'xml': 'text/xml',
-    'json': 'application/json',
-    'mp4': 'video/mp4',
-    'mp3': 'audio/mpeg',
-    'wav': 'audio/wav',
-    'zip': 'application/zip',
-    'rar': 'application/vnd.rar',
-    '7z': 'application/x-7z-compressed',
-    'csv': 'text/csv'
-  };
-  
-  return mimeTypeMap[extension] || 'application/octet-stream';
-};
-
-/**
- * Check if a document can be previewed with Office Online Viewer
- * @param fileType Document file type or extension
- * @returns Boolean indicating if Office Viewer can be used
- */
-export const canUseOfficeViewer = (fileType: string): boolean => {
-  const type = fileType.toLowerCase();
-  
-  return (
-    type.includes('word') ||
-    type.includes('doc') ||
-    type.includes('excel') ||
-    type.includes('xls') ||
-    type.includes('powerpoint') ||
-    type.includes('ppt') ||
-    type.includes('ms-office') ||
-    type.includes('officedocument')
-  );
-};
-
-/**
- * Get Office Online Viewer URL for a document
- * @param url Original document URL
- * @returns Office Viewer URL
- */
-export const getOfficeViewerUrl = (url: string): string => {
-  // Microsoft Office Online Viewer
-  return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
-};
-
-/**
- * Sanitize a document URL to ensure it's safe
- * @param url Document URL to sanitize
- * @returns Sanitized URL
+ * Sanitize a document URL to ensure it's properly formatted
+ * @param url The URL to sanitize
+ * @returns A properly formatted URL
  */
 export const sanitizeDocumentUrl = (url: string): string => {
   if (!url) return '';
   
-  // Ensure URL is properly encoded
   try {
     // Replace spaces with %20
     url = url.replace(/ /g, '%20');
     
-    // Check if the URL is already encoded and avoid double encoding
+    // Check if the URL is already encoded
     const decoded = decodeURIComponent(url);
     if (decoded !== url) {
-      // URL is already encoded
       return url;
     }
     
-    // Parse the URL to make sure it's valid
+    // Validate URL
     new URL(url);
-    
     return url;
   } catch (error) {
     console.error('Invalid URL:', url, error);
@@ -174,21 +29,94 @@ export const sanitizeDocumentUrl = (url: string): string => {
 };
 
 /**
- * Format a date string to a human-readable format
- * @param dateString Date string to format
- * @returns Formatted date string
+ * Check if a file type should use Office Online Viewer
+ * @param fileType The file type/mime type
+ * @returns Boolean indicating if Office viewer should be used
  */
-export const formatDate = (dateString: string): string => {
-  if (!dateString) return 'N/A';
+export const canUseOfficeViewer = (fileType: string): boolean => {
+  const type = fileType.toLowerCase();
+  
+  return (
+    type.includes('word') ||
+    type.includes('excel') ||
+    type.includes('spreadsheet') ||
+    type.includes('powerpoint') ||
+    type.includes('presentation') ||
+    type.includes('msword') ||
+    type.includes('officedocument') ||
+    type.match(/\.(docx?|xlsx?|pptx?|csv)$/i) !== null
+  );
+};
+
+/**
+ * Get the appropriate icon and color for a file type
+ * @param fileType The file type/mime type
+ * @returns Object with icon name and color
+ */
+export const getFileTypeInfo = (fileType: string): { icon: string; color: string } => {
+  const type = fileType.toLowerCase();
+  
+  if (type.includes('pdf')) {
+    return { icon: 'file-pdf', color: 'text-red-500' };
+  } else if (type.includes('image') || type.match(/\.(jpe?g|png|gif|svg|webp)$/i)) {
+    return { icon: 'image', color: 'text-blue-500' };
+  } else if (canUseOfficeViewer(type)) {
+    if (type.includes('word') || type.includes('document')) {
+      return { icon: 'file-text', color: 'text-blue-700' };
+    } else if (type.includes('excel') || type.includes('sheet')) {
+      return { icon: 'table', color: 'text-green-600' };
+    } else if (type.includes('powerpoint') || type.includes('presentation')) {
+      return { icon: 'presentation', color: 'text-orange-500' };
+    }
+  }
+  
+  // Default
+  return { icon: 'file', color: 'text-gray-500' };
+};
+
+/**
+ * Get document metadata from Supabase from the document ID
+ * @param documentId The document ID
+ * @returns Promise resolving to document data
+ */
+export const getDocumentById = async (documentId: string): Promise<DocumentFile | null> => {
+  if (!documentId) return null;
   
   try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const { data, error } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('id', documentId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching document:', error);
+      return null;
+    }
+    
+    return data as DocumentFile;
   } catch (error) {
-    console.error('Error formatting date:', error);
-    return dateString;
+    console.error('Exception fetching document:', error);
+    return null;
   }
+};
+
+/**
+ * Check if a document is previewable
+ * @param fileType The file type/mime type
+ * @returns Boolean indicating if the file can be previewed
+ */
+export const isPreviewable = (fileType: string): boolean => {
+  const type = fileType.toLowerCase();
+  
+  return (
+    type.includes('pdf') ||
+    type.includes('image') ||
+    type.match(/\.(jpe?g|png|gif|svg|webp)$/i) !== null ||
+    canUseOfficeViewer(type) ||
+    type.includes('text') ||
+    type.includes('html')
+  );
 };
