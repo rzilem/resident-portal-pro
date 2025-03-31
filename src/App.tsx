@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -55,7 +54,6 @@ import CommunityHub from '@/pages/CommunityHub';
 import Vendors from '@/pages/vendors/Vendors';
 import VendorProfile from '@/pages/vendors/VendorProfile';
 
-// Import route configurations
 import { accountingRoutes } from './routes/accountingRoutes';
 import { communicationRoutes } from './routes/communicationRoutes';
 
@@ -69,7 +67,6 @@ const LogoutRedirect = () => {
   return <Navigate to="/login" />;
 };
 
-// Scroll to top when route changes
 function ScrollToTop() {
   const { pathname } = useLocation();
   
@@ -90,7 +87,6 @@ const App = () => {
 
     return (
       <Routes>
-        {/* Landing page as the root route */}
         <Route path="/" element={<Index />} />
         
         <Route path="/login" element={<Login />} />
@@ -111,14 +107,12 @@ const App = () => {
           
           <Route path="/documents/association" element={<AssociationDocuments />} />
           
-          {/* Include accounting routes */}
           {accountingRoutes.map((route, index) => (
             <Route key={`accounting-route-${index}`} path={route.path} element={route.element} />
           ))}
           
           <Route path="/calendar" element={<Calendar />} />
           
-          {/* Include communication routes */}
           {communicationRoutes.map((route, index) => (
             <Route key={`communication-route-${index}`} path={route.path} element={route.element} />
           ))}
@@ -127,29 +121,24 @@ const App = () => {
           <Route path="/print-queue" element={<PrintQueue />} />
           <Route path="/community-hub" element={<CommunityHub />} />
           
-          {/* Letter Templates Route */}
           <Route path="/letter-templates" element={<LetterTemplates />} />
           
-          {/* Vendor Management Routes */}
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/vendors/:id" element={<VendorProfile />} />
           
-          {/* Database Records Page */}
           <Route path="/database/records" element={<Records />} />
           
-          {/* Reports Page */}
           <Route path="/reports" element={<Reports />} />
           
-          {/* Resale Management Routes */}
           <Route path="/resale" element={<ResaleDashboard />} />
           <Route path="/resale/certificate" element={<ResaleDashboard />} />
           <Route path="/resale/questionnaire" element={<ResaleDashboard />} />
           <Route path="/resale/inspection" element={<ResaleDashboard />} />
           <Route path="/resale/statements" element={<ResaleDashboard />} />
           <Route path="/resale/trec-forms" element={<ResaleDashboard />} />
+          <Route path="/resale/queue" element={<ResaleDashboard />} />
           <Route path="/resale/wizard" element={<ResaleWizard />} />
           
-          {/* Bid Request Routes */}
           <Route path="/resale/bid-request" element={<BidRequestWizard />} />
           <Route path="/resale/bid-requests" element={<BidRequests />} />
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />

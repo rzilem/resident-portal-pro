@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, FileCheck, FileQuestion, FileSearch, FileText, FileBadge } from 'lucide-react';
+import { Plus, FileCheck, FileQuestion, FileSearch, FileText, FileBadge, ListOrdered } from 'lucide-react';
 import ResaleCertificate from '@/components/resale/ResaleCertificate';
 import CondoQuestionnaire from '@/components/resale/CondoQuestionnaire';
 import PropertyInspection from '@/components/resale/PropertyInspection';
@@ -93,7 +93,7 @@ const ResaleDashboard = () => {
                 <span className="hidden md:inline">TREC Forms</span>
               </TabsTrigger>
               <TabsTrigger value="queue" className="flex items-center gap-1">
-                <FileCheck className="h-4 w-4" />
+                <ListOrdered className="h-4 w-4" />
                 <span className="hidden md:inline">Order Queue</span>
               </TabsTrigger>
             </TabsList>

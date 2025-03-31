@@ -66,6 +66,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       '/resale/inspection': 'Resale Management',
       '/resale/statements': 'Resale Management',
       '/resale/trec-forms': 'Resale Management',
+      '/resale/queue': 'Resale Management',
       
       // System routes
       '/settings': 'System',
@@ -103,7 +104,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       console.log("Updating open groups:", newOpenGroups);
       setOpenGroups(newOpenGroups);
     }
-  }, [location.pathname]);
+  }, [location.pathname, openGroups]);
 
   // Function to toggle a specific group
   const toggleGroup = (group: string) => {
