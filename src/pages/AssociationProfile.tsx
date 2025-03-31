@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Building } from 'lucide-react';
@@ -13,6 +14,7 @@ import AssociationPhotos from '@/components/associations/AssociationPhotos';
 import AssociationAmenities from '@/components/associations/AssociationAmenities';
 import AssociationTabs from '@/components/associations/AssociationTabs';
 import CalendarView from '@/components/calendar/CalendarView';
+import AssociationWorkflows from '@/components/associations/AssociationWorkflows';
 import { getAssociationById } from '@/services/associationService';
 
 const AssociationProfile = () => {
@@ -121,10 +123,13 @@ const AssociationProfile = () => {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="space-y-6 lg:col-span-3">
+          <div className="space-y-6 lg:col-span-2">
             <AssociationStats association={association} />
             <AssociationPhotos associationName={association.name} propertyImages={propertyImages} />
             <AssociationAmenities association={association} />
+          </div>
+          <div className="space-y-6 lg:col-span-1">
+            <AssociationWorkflows associationId={association.id} />
           </div>
         </div>
 

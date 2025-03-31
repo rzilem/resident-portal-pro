@@ -1,32 +1,50 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, ExternalLink, Clock, Calendar, Zap, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowRight, ChevronUp, ChevronDown, BarChart3, Clock, Activity } from "lucide-react";
 import { useWorkflows } from '@/hooks/use-workflows';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Workflow } from '@/types/workflow';
 import { useNavigate } from 'react-router-dom';
-
-// Simulated execution metrics
-const getRandomMetrics = (workflow: Workflow) => {
-  return {
-    executions: Math.floor(Math.random() * 100) + 1,
-    success: Math.floor(Math.random() * 95) + 5,
-    lastRun: new Date(Date.now() - Math.floor(Math.random() * 7 * 86400000))
-  };
-};
+import { getTemplateIcon } from '@/data/workflowTemplates';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { workflowEventService } from '@/services/calendar/workflowEventService';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from "sonner";
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 const ActiveWorkflows = () => {
+  const [selectedTab, setSelectedTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const { activeWorkflows, isLoading } = useWorkflows();
-  const [activeTab, setActiveTab] = useState('all');
-  const navigate = useNavigate();
+  const [selectedAssociation, setSelectedAssociation] = useState<string>('');
+  const [date, setDate] = useState<Date>();
+  const [time, setTime] = useState<string>("12:00");
+  const [schedulingWorkflow, setSchedulingWorkflow] = useState<string | null>(null);
   
-  // Filter workflows by search and category
+  const { 
+    activeWorkflows, 
+    isLoading, 
+    toggleWorkflowStatus 
+  } = useWorkflows();
+  
+  const navigate = useNavigate();
+
+  // Mock associations for demo
+  const associations = [
+    { id: 'assoc1', name: 'Sunset Park Homeowners Association' },
+    { id: 'assoc2', name: 'Mountain View Condominiums' },
+    { id: 'assoc3', name: 'Lakeside Community HOA' },
+    { id: 'assoc4', name: 'Riverside Estates' }
+  ];
+
+  // Filter workflows based on selected tab and search term
   const filteredWorkflows = activeWorkflows.filter(workflow => {
     // Filter by search term
     if (searchTerm) {
@@ -38,20 +56,60 @@ const ActiveWorkflows = () => {
       );
     }
     
-    // Filter by category tab
-    if (activeTab !== 'all') {
-      return workflow.category.toLowerCase() === activeTab.toLowerCase();
-    }
-    
     return true;
   });
 
-  // Get unique categories
-  const categories = ['all', ...new Set(activeWorkflows.map(w => w.category.toLowerCase()))];
-
-  // Function to view workflow details
-  const viewWorkflowDetails = (id: string) => {
+  const handleViewWorkflow = (id: string) => {
     navigate(`/workflows?tab=builder&id=${id}&readonly=true`);
+  };
+
+  const handleEditWorkflow = (id: string) => {
+    navigate(`/workflows?tab=builder&id=${id}`);
+  };
+
+  const handleToggleStatus = async (id: string) => {
+    try {
+      await toggleWorkflowStatus(id);
+    } catch (error) {
+      console.error('Error toggling workflow status:', error);
+    }
+  };
+
+  const handleScheduleWorkflow = async (workflowId: string) => {
+    if (!selectedAssociation || !date) {
+      toast.error('Please select an association and date');
+      return;
+    }
+    
+    // Combine date and time
+    const [hours, minutes] = time.split(':').map(Number);
+    const scheduledDate = new Date(date);
+    scheduledDate.setHours(hours, minutes);
+    
+    try {
+      // Find the workflow name
+      const workflow = activeWorkflows.find(w => w.id === workflowId);
+      const workflowName = workflow ? workflow.name : 'Selected Workflow';
+      
+      // Create calendar event for the workflow
+      await workflowEventService.createWorkflowEvent(
+        workflowId,
+        `Run: ${workflowName}`,
+        scheduledDate,
+        selectedAssociation
+      );
+      
+      toast.success(`Workflow scheduled for ${format(scheduledDate, 'PPp')}`);
+      setSchedulingWorkflow(null);
+      
+      // Reset form
+      setSelectedAssociation('');
+      setDate(undefined);
+      setTime("12:00");
+    } catch (error) {
+      console.error('Error scheduling workflow:', error);
+      toast.error('Failed to schedule workflow');
+    }
   };
 
   if (isLoading) {
@@ -69,6 +127,18 @@ const ActiveWorkflows = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Active Workflows</h2>
+        <Button onClick={() => navigate('/workflows?tab=templates')}>Add New Workflow</Button>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-[400px]">
+          <TabsList>
+            <TabsTrigger value="all">All Active</TabsTrigger>
+            <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
+            <TabsTrigger value="running">Running</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
         <div className="relative w-[300px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
@@ -81,96 +151,200 @@ const ActiveWorkflows = () => {
         </div>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
-          {categories.map(category => (
-            <TabsTrigger key={category} value={category}>
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-      
       <ScrollArea className="h-[600px]">
-        {filteredWorkflows.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredWorkflows.map(workflow => {
-              const metrics = getRandomMetrics(workflow);
-              
-              return (
-                <Card key={workflow.id} className="overflow-hidden flex flex-col h-full">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between">
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                      <Badge variant="outline">{workflow.category}</Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredWorkflows.length > 0 ? (
+            filteredWorkflows.map((workflow) => (
+              <Card key={workflow.id} className="flex flex-col h-full">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div className="p-2 rounded-md bg-muted">
+                      {getTemplateIcon({
+                        id: workflow.id,
+                        title: workflow.name,
+                        description: workflow.description,
+                        category: workflow.category,
+                        steps: workflow.steps.length
+                      })}
                     </div>
-                    <CardTitle className="text-xl">{workflow.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-muted-foreground mb-4 line-clamp-2">{workflow.description}</p>
-                    
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="flex flex-col items-center p-2 border rounded-md">
-                        <Activity className="h-4 w-4 text-muted-foreground mb-1" />
-                        <span className="text-lg font-semibold">{metrics.executions}</span>
-                        <span className="text-xs text-muted-foreground">Executions</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 border rounded-md">
-                        <BarChart3 className="h-4 w-4 text-muted-foreground mb-1" />
-                        <span className="text-lg font-semibold">{metrics.success}%</span>
-                        <span className="text-xs text-muted-foreground">Success Rate</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 border rounded-md">
-                        <Clock className="h-4 w-4 text-muted-foreground mb-1" />
-                        <span className="text-lg font-semibold">{metrics.lastRun.toLocaleDateString()}</span>
-                        <span className="text-xs text-muted-foreground">Last Run</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium">Execution History</div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary" 
-                            style={{ width: `${metrics.success}%` }} 
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center">
-                          <ChevronUp className="h-3 w-3 text-green-500 mr-1" />
-                          <span>{Math.floor(metrics.executions * metrics.success / 100)} successful</span>
-                        </div>
-                        <div className="flex items-center">
-                          <ChevronDown className="h-3 w-3 text-red-500 mr-1" />
-                          <span>{metrics.executions - Math.floor(metrics.executions * metrics.success / 100)} failed</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                  
-                  <div className="p-4 border-t flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      {workflow.steps.length} steps
-                    </span>
-                    <Button variant="outline" size="sm" onClick={() => viewWorkflowDetails(workflow.id)}>
-                      View Details <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                    <Badge 
+                      variant="outline" 
+                      className="bg-green-100 text-green-800 hover:bg-green-200"
+                    >
+                      Active
+                    </Badge>
                   </div>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-10">
-            <p className="text-muted-foreground">No active workflows found.</p>
-            <Button className="mt-4" onClick={() => navigate('/workflows?tab=templates')}>
-              Create from Template
-            </Button>
-          </div>
-        )}
+                  <CardTitle className="mt-4">{workflow.name}</CardTitle>
+                </CardHeader>
+                
+                <CardContent className="py-2 flex-grow">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {workflow.description || 'No description provided'}
+                  </p>
+                  
+                  {workflow.category && (
+                    <Badge variant="outline" className="mt-2">
+                      {workflow.category}
+                    </Badge>
+                  )}
+                  
+                  <div className="mt-3 text-sm flex items-center text-muted-foreground">
+                    <Zap className="h-3.5 w-3.5 mr-1" />
+                    <span>{workflow.steps.length} steps</span>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-2 grid grid-cols-2 gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleViewWorkflow(workflow.id)}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View Details
+                  </Button>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setSchedulingWorkflow(workflow.id)}
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Schedule
+                      </Button>
+                    </DialogTrigger>
+                    
+                    {schedulingWorkflow === workflow.id && (
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Schedule Workflow: {workflow.name}</DialogTitle>
+                          <DialogDescription>
+                            Set when this workflow should run
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="grid gap-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="association">Select Association</Label>
+                            <Select
+                              value={selectedAssociation}
+                              onValueChange={setSelectedAssociation}
+                            >
+                              <SelectTrigger id="association">
+                                <SelectValue placeholder="Select an association" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {associations.map((association) => (
+                                  <SelectItem key={association.id} value={association.id}>
+                                    {association.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Date</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !date && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {date ? format(date, "PPP") : "Select a date"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={date}
+                                  onSelect={setDate}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Time</Label>
+                            <Select value={time} onValueChange={setTime}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 24 }).map((_, hour) => (
+                                  <React.Fragment key={hour}>
+                                    <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>
+                                      {hour.toString().padStart(2, '0')}:00
+                                    </SelectItem>
+                                    <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>
+                                      {hour.toString().padStart(2, '0')}:30
+                                    </SelectItem>
+                                  </React.Fragment>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <DialogFooter>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setSchedulingWorkflow(null)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={() => handleScheduleWorkflow(workflow.id)}
+                          >
+                            Schedule
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    )}
+                  </Dialog>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleEditWorkflow(workflow.id)}
+                    className="col-span-1"
+                  >
+                    Edit
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="col-span-1"
+                    onClick={() => handleToggleStatus(workflow.id)}
+                  >
+                    <PauseCircle className="h-4 w-4 mr-2" />
+                    Deactivate
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-muted p-6 mb-4">
+                <Zap className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">No active workflows</h3>
+              <p className="text-muted-foreground mb-6">
+                Activate existing workflows or create new ones from templates
+              </p>
+              <Button onClick={() => navigate('/workflows?tab=templates')}>
+                Browse Templates
+              </Button>
+            </div>
+          )}
+        </div>
       </ScrollArea>
     </div>
   );
