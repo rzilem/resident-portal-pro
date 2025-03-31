@@ -9,6 +9,8 @@ import FixThisButton from '@/components/alerts/FixThisButton';
 import { Alert } from '@/types/alert';
 import { getRecentAlerts } from '@/utils/alerts/alertQueries';
 import { useAssociations } from '@/hooks/use-associations';
+import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface CIInsightsWidgetProps {
   className?: string;
@@ -19,6 +21,8 @@ interface CIInsightsWidgetProps {
 const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, cardClass }) => {
   const [expanded, setExpanded] = useState(false);
   const { activeAssociation } = useAssociations();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   const alerts = getRecentAlerts(activeAssociation?.id);
   const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
@@ -38,6 +42,41 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
       case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
     }
+  };
+
+  const handleFixAlert = (alert: Alert) => {
+    toast({
+      title: "Fixing Issue",
+      description: `Starting fix workflow for: ${alert.title}`,
+    });
+    
+    // Navigate to the appropriate fix page based on alert type
+    navigate(`/alerts/fix/${alert.id}`, {
+      state: { alertDetails: alert }
+    });
+  };
+  
+  const handleViewAllAlerts = () => {
+    if (totalAlerts <= 3) {
+      return; // Don't do anything if there are 3 or fewer alerts
+    }
+    
+    if (expanded) {
+      setExpanded(false);
+    } else {
+      setExpanded(true);
+    }
+  };
+  
+  const handleAlertClick = (alert: Alert) => {
+    navigate(`/alerts/${alert.id}`, {
+      state: { alertDetails: alert }
+    });
+    
+    toast({
+      title: "Alert Selected",
+      description: `Viewing details for: ${alert.title}`,
+    });
   };
   
   return (
@@ -74,7 +113,11 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
             </div>
             <ul className="space-y-3">
               {displayedAlerts.map(alert => (
-                <li key={alert.id} className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950">
+                <li 
+                  key={alert.id} 
+                  className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950 cursor-pointer"
+                  onClick={() => handleAlertClick(alert)}
+                >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1">
@@ -91,6 +134,10 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
                         variant="default" 
                         size="sm"
                         className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-0.5 h-6 px-2 ml-2 shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFixAlert(alert);
+                        }}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">{alert.description}</p>
@@ -106,7 +153,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setExpanded(!expanded)}
+            onClick={handleViewAllAlerts}
             className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 text-xs h-7"
           >
             {expanded ? 'Show Less' : 'Show All'} 

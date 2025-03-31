@@ -152,6 +152,16 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const handleQuickButtonClick = (command: string) => {
+    setInputValue(command);
+    
+    // Optional - you can automatically send the message after a short delay
+    setTimeout(() => {
+      sendMessage(command);
+      setInputValue('');
+    }, 500);
+  };
+
   return (
     <Card className={cn("flex flex-col h-full", cardClass)}>
       <CardContent className="flex flex-col p-3 h-full">
@@ -222,7 +232,35 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
           </div>
         </ScrollArea>
         
-        <form onSubmit={handleSendMessage} className="mt-3">
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap gap-1 mb-2 mt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs py-1 h-7 bg-muted/50"
+            onClick={() => handleQuickButtonClick("Send email to residents")}
+          >
+            Send email
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs py-1 h-7 bg-muted/50"
+            onClick={() => handleQuickButtonClick("Create maintenance request")}
+          >
+            Maintenance
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs py-1 h-7 bg-muted/50"
+            onClick={() => handleQuickButtonClick("Schedule event")}
+          >
+            Schedule
+          </Button>
+        </div>
+        
+        <form onSubmit={handleSendMessage} className="mt-1">
           <div className="flex gap-2">
             <div className="relative flex-shrink-0">
               <Button
@@ -259,7 +297,7 @@ const ChatbotWidget = ({ cardClass, size = 'medium' }: ChatbotWidgetProps) => {
               {isLoading ? <ArrowDown className="h-4 w-4 animate-bounce" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
-          {!isRecording && (
+          {!isRecording && inputValue.length === 0 && (
             <div className="mt-1.5 text-xs text-muted-foreground">
               Try: "Send email to residents" or "Create an alert for..."
             </div>

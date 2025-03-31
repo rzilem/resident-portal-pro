@@ -4,6 +4,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Wrench, Plus, AlertTriangle, CheckCircle2, Clock, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface MaintenanceWidgetProps {
   size?: 'small' | 'medium' | 'large';
@@ -11,6 +13,9 @@ interface MaintenanceWidgetProps {
 }
 
 const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidgetProps) => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   // Sample maintenance requests with real-world scenarios
   const requests = [
     { id: 1, title: 'Broken irrigation system', property: 'Pine Gardens', unit: '101', assignee: 'John Doe', status: 'urgent', date: '2023-10-02' },
@@ -61,6 +66,24 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
     }
   };
   
+  const handleRequestClick = (request: any) => {
+    navigate(`/maintenance/request/${request.id}`, { 
+      state: { requestDetails: request }
+    });
+    toast({
+      title: "Maintenance Request Selected",
+      description: `Viewing details for: ${request.title}`,
+    });
+  };
+
+  const handleNewRequest = () => {
+    navigate('/maintenance/new');
+    toast({
+      title: "New Maintenance Request",
+      description: "Creating a new maintenance request",
+    });
+  };
+  
   return (
     <Card className={`${cardClass}`}>
       <CardHeader className="pb-2">
@@ -75,7 +98,11 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
             const { icon, variant, label } = getStatusDetails(request.status);
             
             return (
-              <li key={request.id} className="p-2 border rounded-md">
+              <li 
+                key={request.id} 
+                className="p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleRequestClick(request)}
+              >
                 <div className="flex justify-between items-start gap-2">
                   <div>
                     <p className="font-medium">{request.title}</p>
@@ -106,7 +133,7 @@ const MaintenanceWidget = ({ size = 'medium', cardClass = '' }: MaintenanceWidge
         </ul>
       </CardContent>
       <CardFooter className="pt-0">
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" size="sm" className="w-full" onClick={handleNewRequest}>
           <Plus className="h-4 w-4 mr-2" /> New Request
         </Button>
       </CardFooter>

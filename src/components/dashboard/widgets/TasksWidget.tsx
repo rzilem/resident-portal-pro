@@ -5,6 +5,8 @@ import { CheckCircle2, Circle, Plus, Clock, AlertTriangle, CalendarClock } from 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface TasksWidgetProps {
   size?: 'small' | 'medium' | 'large';
@@ -12,8 +14,11 @@ interface TasksWidgetProps {
 }
 
 const TasksWidget = ({ size = 'small', cardClass = '' }: TasksWidgetProps) => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   // Sample tasks data with realistic HOA management tasks
-  const tasks = [
+  const [tasks, setTasks] = React.useState([
     { id: 1, title: 'Review maintenance requests', completed: false, priority: 'high', due: 'Today' },
     { id: 2, title: 'Sign financial documents', completed: false, priority: 'medium', due: 'Tomorrow' },
     { id: 3, title: 'Schedule quarterly board meeting', completed: true, priority: 'medium', due: 'Completed' },
@@ -22,7 +27,7 @@ const TasksWidget = ({ size = 'small', cardClass = '' }: TasksWidgetProps) => {
     { id: 6, title: 'Approve landscaping proposal', completed: false, priority: 'medium', due: 'Tomorrow' },
     { id: 7, title: 'Follow up on insurance claim', completed: false, priority: 'high', due: 'Overdue' },
     { id: 8, title: 'Review security vendor contract', completed: true, priority: 'medium', due: 'Completed' },
-  ];
+  ]);
 
   // Decide how many tasks to show based on size
   const limit = size === 'small' ? 3 : size === 'medium' ? 4 : 6;
@@ -60,6 +65,33 @@ const TasksWidget = ({ size = 'small', cardClass = '' }: TasksWidgetProps) => {
     }
   };
 
+  const handleToggleTask = (taskId: number) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    ));
+    
+    toast({
+      title: "Task Updated",
+      description: `Task ${tasks.find(t => t.id === taskId)?.completed ? 'marked as incomplete' : 'marked as complete'}`,
+    });
+  };
+
+  const handleAddTask = () => {
+    navigate('/tasks/new');
+    toast({
+      title: "Add Task",
+      description: "Creating a new task",
+    });
+  };
+
+  const handleShowAllTasks = () => {
+    navigate('/tasks');
+    toast({
+      title: "Tasks",
+      description: "Viewing all tasks",
+    });
+  };
+
   return (
     <Card className={`${cardClass} overflow-hidden`}>
       <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-b">
@@ -78,7 +110,10 @@ const TasksWidget = ({ size = 'small', cardClass = '' }: TasksWidgetProps) => {
         <ul className="space-y-3">
           {displayedTasks.map(task => (
             <li key={task.id} className="flex items-start gap-2 group">
-              <div className="flex-shrink-0 mt-0.5">
+              <div 
+                className="flex-shrink-0 mt-0.5 cursor-pointer"
+                onClick={() => handleToggleTask(task.id)}
+              >
                 {task.completed ? (
                   <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
                 ) : (
@@ -105,14 +140,22 @@ const TasksWidget = ({ size = 'small', cardClass = '' }: TasksWidgetProps) => {
           ))}
           
           {remainingCount > 0 && (
-            <li className="text-sm text-muted-foreground pt-1 text-center border-t mt-3 pt-3">
+            <li 
+              className="text-sm text-muted-foreground pt-1 text-center border-t mt-3 pt-3 cursor-pointer hover:text-primary transition-colors"
+              onClick={handleShowAllTasks}
+            >
               + {remainingCount} more tasks
             </li>
           )}
         </ul>
       </CardContent>
       <CardFooter className="pt-0 pb-4">
-        <Button variant="outline" size="sm" className="w-full border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors"
+          onClick={handleAddTask}
+        >
           <Plus className="h-4 w-4 mr-2" /> Add Task
         </Button>
       </CardFooter>

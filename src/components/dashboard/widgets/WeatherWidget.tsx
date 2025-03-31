@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CloudSun, Droplets, Wind, Thermometer, Sun, Cloud, CloudRain, CloudSnow, CloudFog } from 'lucide-react';
+import { CloudSun, Droplets, Wind, Thermometer, Sun, Cloud, CloudRain, CloudSnow, CloudFog, MapPin, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 interface WeatherWidgetProps {
   size?: 'small' | 'medium' | 'large';
@@ -13,7 +15,8 @@ interface WeatherWidgetProps {
 }
 
 const WeatherWidget = ({ size = 'small', cardClass = '', config }: WeatherWidgetProps) => {
-  const location = "Austin, TX"; // Fixed to Austin, TX
+  const { toast } = useToast();
+  const [location, setLocation] = useState("Austin, TX"); // Fixed to Austin, TX
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'current' | 'forecast'>('current');
   
@@ -70,6 +73,29 @@ const WeatherWidget = ({ size = 'small', cardClass = '', config }: WeatherWidget
     return () => clearTimeout(timer);
   }, []);
 
+  const handleRefreshWeather = () => {
+    setLoading(true);
+    toast({
+      title: "Refreshing Weather",
+      description: "Fetching latest weather data...",
+    });
+    
+    setTimeout(() => {
+      setLoading(false);
+      toast({
+        title: "Weather Updated",
+        description: "Latest weather data has been loaded",
+      });
+    }, 1500);
+  };
+
+  const handleLocationClick = () => {
+    toast({
+      title: "Change Location",
+      description: "You can change your weather location in settings",
+    });
+  };
+
   if (loading) {
     return (
       <Card className={`${cardClass}`}>
@@ -93,7 +119,10 @@ const WeatherWidget = ({ size = 'small', cardClass = '', config }: WeatherWidget
     <div className="bg-gradient-to-br from-blue-400 to-sky-500 text-white p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-medium">{location}</h3>
+          <h3 className="font-medium flex items-center cursor-pointer" onClick={handleLocationClick}>
+            <MapPin className="h-3 w-3 mr-1" />
+            {location}
+          </h3>
           <p className="text-3xl font-bold mt-1">{weatherData.temperature}°F</p>
           <p className="text-sm text-blue-100">{weatherData.condition}</p>
         </div>
@@ -113,13 +142,37 @@ const WeatherWidget = ({ size = 'small', cardClass = '', config }: WeatherWidget
           <Thermometer className="h-4 w-4 mr-1" /> Feels like {weatherData.temperature - 2}°F
         </div>
       </div>
+      
+      <div className="mt-3 text-right">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:text-white hover:bg-white/20 p-1 h-7"
+          onClick={handleRefreshWeather}
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1" />
+          <span className="text-xs">Refresh</span>
+        </Button>
+      </div>
     </div>
   );
 
   const renderForecast = () => (
     <div className="bg-gradient-to-br from-blue-400 to-sky-500 text-white p-4">
-      <div className="mb-3">
-        <h3 className="font-medium">{location} - 5 Day Forecast</h3>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-medium flex items-center cursor-pointer" onClick={handleLocationClick}>
+          <MapPin className="h-3 w-3 mr-1" />
+          {location} - 5 Day Forecast
+        </h3>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:text-white hover:bg-white/20 p-1 h-7"
+          onClick={handleRefreshWeather}
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1" />
+          <span className="text-xs">Refresh</span>
+        </Button>
       </div>
       
       <div className="grid grid-cols-5 gap-2">
