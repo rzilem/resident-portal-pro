@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DollarSign, FileText, CreditCard, PiggyBank, Book, Receipt, BarChart, Calculator } from 'lucide-react';
+import { DollarSign, FileText, CreditCard, PiggyBank, Book, Receipt, BarChart, Calculator, BankIcon, LineChart } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getAccountingSection = (currentPath: string): NavItem => ({
@@ -14,6 +14,12 @@ export const getAccountingSection = (currentPath: string): NavItem => ({
       icon: BarChart,
       href: "/accounting/dashboard",
       active: currentPath === "/accounting/dashboard"
+    },
+    {
+      label: "Bank Accounts",
+      icon: BankIcon,
+      href: "/accounting/bank-accounts",
+      active: currentPath === "/accounting/bank-accounts"
     },
     {
       label: "Invoice Queue",
@@ -46,16 +52,16 @@ export const getAccountingSection = (currentPath: string): NavItem => ({
       active: currentPath === "/accounting/gl-accounts"
     },
     {
+      label: "Financial Reports",
+      icon: LineChart,
+      href: "/accounting/reports",
+      active: currentPath === "/accounting/reports"
+    },
+    {
       label: "Budget Planning",
       icon: PiggyBank,
       href: "/accounting/budget",
       active: currentPath === "/accounting/budget"
-    },
-    {
-      label: "Reports",
-      icon: BarChart,
-      href: "/accounting/reports",
-      active: currentPath === "/accounting/reports"
     }
   ]
 });
