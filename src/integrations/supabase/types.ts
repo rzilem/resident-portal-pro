@@ -506,6 +506,47 @@ export type Database = {
           },
         ]
       }
+      report_data: {
+        Row: {
+          association_id: string | null
+          created_at: string | null
+          data: Json
+          id: string
+          report_category: string
+          report_type: string
+          time_range: string
+          updated_at: string | null
+        }
+        Insert: {
+          association_id?: string | null
+          created_at?: string | null
+          data: Json
+          id?: string
+          report_category: string
+          report_type: string
+          time_range: string
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string | null
+          created_at?: string | null
+          data?: Json
+          id?: string
+          report_category?: string
+          report_type?: string
+          time_range?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_data_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resale_certificates: {
         Row: {
           assessment_frequency: string | null

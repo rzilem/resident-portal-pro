@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { ChevronLeft, Download, Printer, Share2 } from 'lucide-react';
 import ReportFilters from './ReportFilters';
 import { useAssociations } from '@/hooks/use-associations';
 import { useToast } from '@/components/ui/use-toast';
-import { sampleReportDataService } from '@/services/SampleReportDataService';
+import { reportDataService } from '@/services/ReportDataService';
 import BankBalancesReport from './financial/BankBalancesReport';
 import IncomeExpenseReport from './financial/IncomeExpenseReport';
 import CashFlowReport from './financial/CashFlowReport';
@@ -29,16 +28,15 @@ const FinancialReportDetail = () => {
     const fetchReportData = async () => {
       setIsLoading(true);
       try {
-        // Get sample data from our service with the current association id
-        setTimeout(() => {
-          const data = sampleReportDataService.getFinancialData(reportId || '', association);
-          setReportData({
-            title: formatReportName(reportId || ''),
-            description: 'Financial report details',
-            data: data
-          });
-          setIsLoading(false);
-        }, 800);
+        // Get data from our service with the current association id
+        const data = await reportDataService.getReportData(reportId || '', association, timeRange);
+        
+        setReportData({
+          title: formatReportName(reportId || ''),
+          description: 'Financial report details',
+          data: data
+        });
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching report data:', error);
         toast({
@@ -53,7 +51,7 @@ const FinancialReportDetail = () => {
     if (reportId) {
       fetchReportData();
     }
-  }, [reportId, toast, association]);
+  }, [reportId, toast, association, timeRange]);
   
   const formatReportName = (name: string) => {
     return name

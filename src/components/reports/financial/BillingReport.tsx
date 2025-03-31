@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { sampleReportDataService } from '@/services/SampleReportDataService';
+import { reportDataService } from '@/services/ReportDataService';
 
 interface BillingReportProps {
   timeRange: string;
@@ -15,9 +15,12 @@ const BillingReport = ({ timeRange, association, reportType }: BillingReportProp
   const [reportData, setReportData] = useState<any>(null);
   
   useEffect(() => {
-    // Get sample data from our service
-    const data = sampleReportDataService.getFinancialData(reportType, association);
-    setReportData(data);
+    const fetchData = async () => {
+      const data = await reportDataService.getReportData(reportType, association, timeRange);
+      setReportData(data);
+    };
+    
+    fetchData();
   }, [association, timeRange, reportType]);
   
   if (!reportData) {

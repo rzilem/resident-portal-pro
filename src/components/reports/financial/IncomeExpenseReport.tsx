@@ -11,7 +11,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
-import { sampleReportDataService } from '@/services/SampleReportDataService';
+import { reportDataService } from '@/services/ReportDataService';
 
 interface IncomeExpenseReportProps {
   timeRange: string;
@@ -22,9 +22,12 @@ const IncomeExpenseReport = ({ timeRange, association }: IncomeExpenseReportProp
   const [reportData, setReportData] = useState<any>(null);
   
   useEffect(() => {
-    // Get sample data from our service
-    const data = sampleReportDataService.getFinancialData('income-expense', association);
-    setReportData(data);
+    const fetchData = async () => {
+      const data = await reportDataService.getReportData('income-expense', association, timeRange);
+      setReportData(data);
+    };
+    
+    fetchData();
   }, [association, timeRange]);
   
   if (!reportData) {

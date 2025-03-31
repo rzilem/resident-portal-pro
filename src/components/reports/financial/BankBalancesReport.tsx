@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { sampleReportDataService } from '@/services/SampleReportDataService';
+import { reportDataService } from '@/services/ReportDataService';
 
 interface BankBalancesReportProps {
   timeRange: string;
@@ -21,9 +21,12 @@ const BankBalancesReport = ({ timeRange, association }: BankBalancesReportProps)
   const [reportData, setReportData] = useState<any>(null);
   
   useEffect(() => {
-    // Get sample data from our service
-    const data = sampleReportDataService.getFinancialData('bank-balances', association);
-    setReportData(data);
+    const fetchData = async () => {
+      const data = await reportDataService.getReportData('bank-balances', association, timeRange);
+      setReportData(data);
+    };
+    
+    fetchData();
   }, [association, timeRange]);
   
   if (!reportData) {
