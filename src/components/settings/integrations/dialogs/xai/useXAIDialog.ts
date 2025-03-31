@@ -90,7 +90,6 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
   return {
     apiKey,
     defaultModel,
-    defaultModel,
     organization,
     isTesting,
     isLoading,
