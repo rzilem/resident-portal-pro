@@ -6,8 +6,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, UserPlus, Eye, Download } from 'lucide-react';
+import { Edit, Trash2, UserPlus, Eye } from 'lucide-react';
 import { TooltipButton } from '@/components/ui/tooltip-button';
+import { toast } from 'sonner';
 
 const mockResidentData = [
   {
@@ -66,6 +67,22 @@ const ResidentRecords: React.FC = () => {
     return matchesSearch && matchesStatus && matchesProperty;
   });
 
+  const handleAddResident = () => {
+    toast.info("Add resident functionality would open a form");
+  };
+
+  const handleViewDetails = (id: string) => {
+    toast.info(`Viewing details for resident ${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    toast.info(`Editing resident ${id}`);
+  };
+
+  const handleDelete = (id: string) => {
+    toast.info(`Deleting resident ${id}`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -97,7 +114,7 @@ const ResidentRecords: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button className="gap-2">
+        <Button onClick={handleAddResident} className="gap-2">
           <UserPlus className="h-4 w-4" />
           Add Resident
         </Button>
@@ -142,13 +159,13 @@ const ResidentRecords: React.FC = () => {
                   </TableCell>
                   <TableCell>{resident.balance}</TableCell>
                   <TableCell className="text-right space-x-1">
-                    <TooltipButton tooltipText="View Details" variant="ghost" size="icon">
+                    <TooltipButton tooltipText="View Details" variant="ghost" size="icon" onClick={() => handleViewDetails(resident.id)}>
                       <Eye className="h-4 w-4" />
                     </TooltipButton>
-                    <TooltipButton tooltipText="Edit" variant="ghost" size="icon">
+                    <TooltipButton tooltipText="Edit" variant="ghost" size="icon" onClick={() => handleEdit(resident.id)}>
                       <Edit className="h-4 w-4" />
                     </TooltipButton>
-                    <TooltipButton tooltipText="Delete" variant="ghost" size="icon">
+                    <TooltipButton tooltipText="Delete" variant="ghost" size="icon" onClick={() => handleDelete(resident.id)}>
                       <Trash2 className="h-4 w-4" />
                     </TooltipButton>
                   </TableCell>

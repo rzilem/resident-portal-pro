@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FilePdf, Download, Print } from 'lucide-react';
+import { FileText, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { ResaleCertificateData } from '@/utils/pdfGenerator';
@@ -61,7 +61,7 @@ const ResaleCertificate: React.FC<ResaleCertificateProps> = ({
         <CardTitle className="text-xl">Resale Certificate</CardTitle>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handlePrint}>
-            <Print className="h-4 w-4 mr-2" />
+            <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
           <Button variant="outline" size="sm" onClick={handleDownload}>
@@ -69,7 +69,7 @@ const ResaleCertificate: React.FC<ResaleCertificateProps> = ({
             Download
           </Button>
           <Button size="sm" onClick={handleCreateNew}>
-            <FilePdf className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4 mr-2" />
             Create New
           </Button>
         </div>
