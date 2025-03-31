@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for storage operations in document management
  */
@@ -5,7 +6,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { getCurrentUserId, isUsingDemoCredentials } from './authUtils';
-import { isDemoAuthenticated } from '@/utils/auth/demoAuth';
+import { isDemoMode } from '@/utils/auth/demoAuth';
 
 // Don't import ensureBucketExists here - it's already exported in index.ts
 // import { ensureBucketExists } from './bucketUtils';
@@ -24,7 +25,7 @@ export const uploadFile = async (
 ): Promise<{path: string} | null> => {
   try {
     // For demo user, simulate successful upload
-    if (isDemoAuthenticated()) {
+    if (isDemoMode()) {
       console.log(`[Demo mode] Simulating file upload: ${file.name} to ${bucketName}/${path}`);
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
       return { path: `${path}/${file.name}` };

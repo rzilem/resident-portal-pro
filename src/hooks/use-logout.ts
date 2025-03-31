@@ -14,13 +14,7 @@ export const useLogout = () => {
       clearDemoAuthentication();
       
       // Sign out from Supabase
-      const { error } = await signOut();
-      
-      if (error) {
-        console.error('Logout error:', error);
-        toast.error('Error signing out. Please try again.');
-        return;
-      }
+      await signOut();
       
       toast.success('Successfully signed out');
       navigate('/login');
