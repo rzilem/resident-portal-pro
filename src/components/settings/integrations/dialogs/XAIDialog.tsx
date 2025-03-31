@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Loader2 } from 'lucide-react';
+import { MessageSquare, Loader2, AlertTriangle } from 'lucide-react';
 import { useXAI } from '@/hooks/use-xai';
 import { X_AI_MODELS } from '@/utils/xai';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface XAIDialogProps {
   open: boolean;
@@ -19,7 +20,7 @@ const XAIDialog: React.FC<XAIDialogProps> = ({
   open,
   onOpenChange
 }) => {
-  const { settings, saveXAISettings, testXAIConnection, isLoading } = useXAI();
+  const { settings, saveXAISettings, testXAIConnection, isLoading, isAuthenticated } = useXAI();
   
   const [apiKey, setApiKey] = useState(settings.apiKey);
   const [defaultModel, setDefaultModel] = useState(settings.defaultModel);
@@ -37,6 +38,11 @@ const XAIDialog: React.FC<XAIDialogProps> = ({
   const handleSave = async () => {
     if (!apiKey.trim()) {
       toast.error('API key is required');
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      toast.error('You need to be logged in to save settings permanently');
       return;
     }
     
@@ -80,6 +86,15 @@ const XAIDialog: React.FC<XAIDialogProps> = ({
             Configure your X.AI API for AI-powered text generation
           </DialogDescription>
         </DialogHeader>
+
+        {!isAuthenticated && (
+          <Alert variant="warning" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              You need to be logged in to save settings permanently. Settings will be saved in local storage for now.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">

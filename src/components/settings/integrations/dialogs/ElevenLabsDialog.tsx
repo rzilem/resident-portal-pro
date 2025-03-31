@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Volume2, Loader2 } from 'lucide-react';
+import { Volume2, Loader2, AlertTriangle } from 'lucide-react';
 import { useElevenLabs } from '@/hooks/use-elevenlabs';
 import { VOICE_OPTIONS } from '@/utils/elevenlabs';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ElevenLabsDialogProps {
   open: boolean;
@@ -19,7 +20,7 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
   open,
   onOpenChange
 }) => {
-  const { settings, saveElevenLabsSettings, testElevenLabsAPI, isLoading } = useElevenLabs();
+  const { settings, saveElevenLabsSettings, testElevenLabsAPI, isLoading, isAuthenticated } = useElevenLabs();
   
   const [apiKey, setApiKey] = useState(settings.apiKey);
   const [defaultVoiceId, setDefaultVoiceId] = useState(settings.defaultVoiceId);
@@ -37,6 +38,11 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
   const handleSave = async () => {
     if (!apiKey.trim()) {
       toast.error('API key is required');
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      toast.error('You need to be logged in to save settings permanently');
       return;
     }
     
@@ -80,6 +86,15 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
             Configure your ElevenLabs API for high-quality voice synthesis
           </DialogDescription>
         </DialogHeader>
+
+        {!isAuthenticated && (
+          <Alert variant="warning" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              You need to be logged in to save settings permanently. Settings will be saved in local storage for now.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">

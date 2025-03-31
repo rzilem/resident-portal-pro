@@ -16,7 +16,8 @@ export function useXAI() {
     updateIntegrationSettings, 
     getIntegration, 
     isConnected,
-    connectIntegration 
+    connectIntegration,
+    isAuthenticated
   } = useIntegrations();
 
   const xaiIntegration = getIntegration('XAI');
@@ -43,7 +44,7 @@ export function useXAI() {
       });
       
       console.log('X.AI settings saved:', result);
-      toast.success('X.AI settings saved successfully');
+      toast.success('X.AI settings saved permanently');
       return true;
     } catch (error) {
       console.error('Error saving X.AI settings:', error);
@@ -78,6 +79,7 @@ export function useXAI() {
     settings: getSettings(),
     saveXAISettings,
     testXAIConnection,
-    isLoading
+    isLoading,
+    isAuthenticated
   };
 }

@@ -1,6 +1,8 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { integrationService } from '@/services/integrationService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface IntegrationSettings {
   enabled: boolean;
@@ -16,13 +18,33 @@ export function useIntegrations(entityId: string = 'current-user') {
   const [integrations, setIntegrations] = useState<Record<string, IntegrationSettings>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Check if the user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setCurrentUser(data?.session?.user || null);
+    };
+    
+    checkAuth();
+    
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user || null);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Fetch all integrations
   const fetchIntegrations = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = integrationService.getIntegrations(entityId);
+      const data = await integrationService.getIntegrations(entityId);
       setIntegrations(data);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch integrations'));
@@ -38,7 +60,7 @@ export function useIntegrations(entityId: string = 'current-user') {
     settings: IntegrationSettings
   ) => {
     try {
-      const updatedIntegration = integrationService.connectIntegration(entityId, integrationId, settings);
+      const updatedIntegration = await integrationService.connectIntegration(entityId, integrationId, settings);
       setIntegrations(prev => ({
         ...prev,
         [integrationId]: updatedIntegration
@@ -54,7 +76,7 @@ export function useIntegrations(entityId: string = 'current-user') {
   // Disconnect an integration
   const disconnectIntegration = useCallback(async (integrationId: string) => {
     try {
-      const success = integrationService.disconnectIntegration(entityId, integrationId);
+      const success = await integrationService.disconnectIntegration(entityId, integrationId);
       if (success) {
         setIntegrations(prev => ({
           ...prev,
@@ -78,7 +100,7 @@ export function useIntegrations(entityId: string = 'current-user') {
     updates: Partial<IntegrationSettings>
   ) => {
     try {
-      const updatedIntegration = integrationService.updateIntegrationSettings(entityId, integrationId, updates);
+      const updatedIntegration = await integrationService.updateIntegrationSettings(entityId, integrationId, updates);
       if (updatedIntegration) {
         setIntegrations(prev => ({
           ...prev,
@@ -93,42 +115,10 @@ export function useIntegrations(entityId: string = 'current-user') {
     }
   }, [entityId]);
 
-  // Test a webhook
-  const testWebhook = useCallback(async (url: string, payload: any = {}) => {
-    try {
-      const success = await integrationService.testWebhook(url, {
-        ...payload,
-        test: true,
-        timestamp: new Date().toISOString()
-      });
-      
-      if (success) {
-        toast.success('Webhook test successful');
-      } else {
-        toast.error('Webhook test failed');
-      }
-      
-      return success;
-    } catch (err) {
-      toast.error('Webhook test failed');
-      throw err;
-    }
-  }, []);
-
-  // Check if an integration is connected
-  const isConnected = useCallback((integrationId: string) => {
-    return integrations[integrationId]?.enabled || false;
-  }, [integrations]);
-
-  // Get a specific integration
-  const getIntegration = useCallback((integrationId: string) => {
-    return integrations[integrationId] || null;
-  }, [integrations]);
-
-  // Load integrations on mount
+  // Load integrations on mount or when auth state changes
   useEffect(() => {
     fetchIntegrations();
-  }, [fetchIntegrations]);
+  }, [fetchIntegrations, currentUser]);
 
   return {
     integrations,
@@ -144,6 +134,7 @@ export function useIntegrations(entityId: string = 'current-user') {
     getIntegration: useCallback((integrationId: string) => {
       return integrations[integrationId] || null;
     }, [integrations]),
-    fetchIntegrations
+    fetchIntegrations,
+    isAuthenticated: !!currentUser
   };
 }

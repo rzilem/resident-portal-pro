@@ -16,7 +16,8 @@ export function useElevenLabs() {
     updateIntegrationSettings, 
     getIntegration, 
     isConnected,
-    connectIntegration 
+    connectIntegration,
+    isAuthenticated
   } = useIntegrations();
 
   const elevenLabsIntegration = getIntegration('ElevenLabs');
@@ -78,6 +79,7 @@ export function useElevenLabs() {
     settings: getSettings(),
     saveElevenLabsSettings,
     testElevenLabsAPI,
-    isLoading
+    isLoading,
+    isAuthenticated
   };
 }
