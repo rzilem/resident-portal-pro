@@ -10,7 +10,8 @@ import {
   BookOpen, 
   BarChart4, 
   Landmark, 
-  Inbox 
+  Inbox,
+  PenTool
 } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -31,6 +32,12 @@ export const getAccountingSection = (currentPath: string): NavItem => ({
       icon: Inbox,
       href: "/accounting/invoice-queue",
       active: currentPath === "/accounting/invoice-queue"
+    },
+    {
+      label: "Invoice Coding",
+      icon: PenTool,
+      href: "/accounting/invoice-coding",
+      active: currentPath === "/accounting/invoice-coding"
     },
     {
       label: "Transactions",

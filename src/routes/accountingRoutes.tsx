@@ -3,6 +3,7 @@ import React from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AccountingDashboard from '../pages/accounting/AccountingDashboard';
 import InvoiceQueue from '../pages/accounting/InvoiceQueue';
+import InvoiceCoding from '../pages/accounting/InvoiceCoding';
 import Transactions from '../pages/accounting/Transactions';
 import Payments from '../pages/accounting/Payments';
 import JournalEntries from '../pages/accounting/JournalEntries';
@@ -23,6 +24,14 @@ export const accountingRoutes = [
     element: (
       <ProtectedRoute>
         <InvoiceQueue />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/accounting/invoice-coding',
+    element: (
+      <ProtectedRoute>
+        <InvoiceCoding />
       </ProtectedRoute>
     ),
   },

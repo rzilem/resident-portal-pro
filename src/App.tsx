@@ -25,6 +25,7 @@ import LetterTemplates from '@/pages/letter-templates/LetterTemplates';
 
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
+import InvoiceCoding from '@/pages/accounting/InvoiceCoding';
 import Transactions from '@/pages/accounting/Transactions';
 import Payments from '@/pages/accounting/Payments';
 import JournalEntries from '@/pages/accounting/JournalEntries';
@@ -106,6 +107,7 @@ const App = () => {
           
           <Route path="/accounting/dashboard" element={<AccountingDashboard />} />
           <Route path="/accounting/invoice-queue" element={<InvoiceQueue />} />
+          <Route path="/accounting/invoice-coding" element={<InvoiceCoding />} />
           <Route path="/accounting/transactions" element={<Transactions />} />
           <Route path="/accounting/payments" element={<Payments />} />
           <Route path="/accounting/journal-entries" element={<JournalEntries />} />

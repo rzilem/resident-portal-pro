@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Plus, FileText, Download, Printer, Upload, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -28,21 +29,17 @@ const InvoiceActionButtons = () => {
   
   return (
     <div className="flex flex-wrap gap-2">
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button asChild variant="default" size="sm" className="gap-1">
-              <Link to="/accounting/invoice-coding">
-                <Plus className="h-4 w-4" />
-                Create Invoice
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="z-50">
-            <p>Create a new invoice</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Link to="/accounting/invoice-coding">
+        <TooltipButton 
+          variant="default" 
+          size="sm" 
+          className="gap-1"
+          tooltipText="Create a new invoice"
+        >
+          <Plus className="h-4 w-4" />
+          Create Invoice
+        </TooltipButton>
+      </Link>
       
       <TooltipProvider delayDuration={300}>
         <Tooltip>
@@ -105,24 +102,16 @@ const InvoiceActionButtons = () => {
         </Tooltip>
       </TooltipProvider>
       
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-1"
-              onClick={() => toast({ title: "Print queue initiated", description: "Preparing invoices for printing..." })}
-            >
-              <Printer className="h-4 w-4" />
-              Print
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="z-50">
-            <p>Send invoices to printer</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <TooltipButton
+        variant="outline"
+        size="sm"
+        className="gap-1"
+        onClick={() => toast({ title: "Print queue initiated", description: "Preparing invoices for printing..." })}
+        tooltipText="Send invoices to printer"
+      >
+        <Printer className="h-4 w-4" />
+        Print
+      </TooltipButton>
     </div>
   );
 };
