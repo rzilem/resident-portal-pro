@@ -54,18 +54,18 @@ export const saveAssociationData = async (
     for (const associationData of data) {
       // Prepare association record
       const association = {
-        name: associationData.association_name,
-        address: associationData.association_address || associationData.street,
+        name: associationData.association_name || associationData.name,
+        address: associationData.address || associationData.location,
         city: associationData.city,
         state: associationData.state,
         zip: associationData.zip,
-        contact_phone: associationData.association_phone || associationData.phone,
-        contact_email: associationData.association_email || associationData.email,
-        contact_website: associationData.association_website || associationData.website,
-        founded_date: associationData.year_established || associationData.founded_date,
-        units: associationData.property_units_count || associationData.total_units,
-        type: associationData.association_type || associationData.type || 'hoa',
-        status: 'active'
+        contact_phone: associationData.contact_phone || associationData.phone,
+        contact_email: associationData.contact_email || associationData.email,
+        contact_website: associationData.contact_website || associationData.website,
+        founded_date: associationData.founded_date || associationData.onboarding_date,
+        units: associationData.units || associationData.total_units,
+        type: associationData.type || associationData.association_type || 'hoa',
+        status: associationData.status || 'active'
       };
       
       console.log('Inserting association:', association);
@@ -84,14 +84,21 @@ export const saveAssociationData = async (
       }
       
       // Insert association settings if applicable
-      if (newAssociation && (associationData.fiscal_year_start || associationData.fees_frequency)) {
+      if (newAssociation) {
         const settings = {
           association_id: newAssociation.id,
           settings: {
             fiscalYearStart: associationData.fiscal_year_start || '01-01',
-            feesFrequency: associationData.fees_frequency || 'monthly',
+            feesFrequency: associationData.assessment_frequency || associationData.fees_frequency || 'monthly',
             annualFees: associationData.annual_fees || null,
-            taxId: associationData.tax_id || null
+            taxId: associationData.tax_id || null,
+            county: associationData.county || null,
+            hasPool: (associationData.has_pool === 'Yes' || associationData.has_pool === true),
+            hasGate: (associationData.has_gate === 'Yes' || associationData.has_gate === true),
+            hasPedestrianGate: (associationData.has_pedestrian_gate === 'Yes' || associationData.has_pedestrian_gate === true),
+            offsiteAddresses: associationData.offsite_addresses || null,
+            leases: associationData.leases || null,
+            serviceType: associationData.service_type || null
           }
         };
         

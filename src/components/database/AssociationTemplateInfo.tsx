@@ -11,42 +11,29 @@ const AssociationTemplateInfo = () => {
   // Template columns structure
   const templateColumns = [
     { field: "association_name", description: "Name of the HOA or association", example: "Oakwood Heights HOA", required: true },
-    { field: "association_address", description: "Primary address of the association", example: "123 Main Street, Seattle, WA 98101", required: true },
-    { field: "association_phone", description: "Primary contact phone for the association", example: "(555) 123-4567", required: true },
-    { field: "association_email", description: "Primary contact email for the association", example: "info@oakwoodheightshoa.com", required: true },
-    { field: "association_tax_id", description: "Tax ID number of the association", example: "12-3456789", required: false },
-    { field: "property_name", description: "Name of the property", example: "Oakwood Heights", required: true },
-    { field: "property_type", description: "Type of property (Condo, Single Family, etc.)", example: "Condominium", required: true },
-    { field: "property_year_built", description: "Year the property was built", example: "2005", required: false },
-    { field: "property_units_count", description: "Total number of units in the property", example: "120", required: true },
-    { field: "unit_number", description: "Unit number or identifier", example: "101", required: true },
-    { field: "unit_address", description: "Full address of the unit", example: "123 Main Street, Unit 101, Seattle, WA 98101", required: true },
-    { field: "unit_bedrooms", description: "Number of bedrooms in the unit", example: "2", required: false },
-    { field: "unit_bathrooms", description: "Number of bathrooms in the unit", example: "2.5", required: false },
-    { field: "unit_square_feet", description: "Square footage of the unit", example: "1200", required: false },
-    { field: "homeowner_id", description: "Unique identifier for the homeowner (if exists)", example: "H001", required: false },
-    { field: "homeowner_first_name", description: "First name of the homeowner", example: "Alice", required: true },
-    { field: "homeowner_last_name", description: "Last name of the homeowner", example: "Johnson", required: true },
-    { field: "homeowner_email", description: "Email address of the homeowner", example: "alice.j@example.com", required: true },
-    { field: "homeowner_phone", description: "Phone number of the homeowner", example: "(555) 123-4567", required: true },
-    { field: "homeowner_alternate_phone", description: "Alternate phone number", example: "(555) 987-6543", required: false },
-    { field: "homeowner_mailing_address", description: "Mailing address if different from unit", example: "Same as unit or alternate address", required: false },
-    { field: "homeowner_move_in_date", description: "Date homeowner moved in (MM/DD/YYYY)", example: "01/15/2020", required: true },
-    { field: "homeowner_status", description: "Current status (Active, Inactive, Pending)", example: "Active", required: true },
-    { field: "homeowner_type", description: "Owner or Tenant", example: "Owner", required: true },
-    { field: "homeowner_primary_residence", description: "Is this their primary residence (Yes/No)", example: "Yes", required: true },
-    { field: "homeowner_balance", description: "Current balance amount ($)", example: "$0.00", required: false },
-    { field: "homeowner_last_payment_date", description: "Date of last payment (MM/DD/YYYY)", example: "05/01/2023", required: false },
-    { field: "homeowner_last_payment_amount", description: "Amount of last payment ($)", example: "$350.00", required: false },
-    { field: "homeowner_payment_method", description: "Preferred payment method", example: "Auto-draft", required: false },
-    // New fields
-    { field: "homeowner_ach_start_date", description: "Date ACH payments began (MM/DD/YYYY)", example: "01/15/2020", required: false },
-    { field: "homeowner_closing_date", description: "Property closing date (MM/DD/YYYY)", example: "01/10/2020", required: false },
-    { field: "homeowner_comm_preference", description: "Preferred communication method", example: "Email", required: false },
-    { field: "homeowner_billing_preference", description: "Preferred billing method", example: "Email", required: false },
-    { field: "homeowner_emergency_contact", description: "Emergency contact name and phone", example: "John Smith (555) 123-4567", required: false },
-    { field: "homeowner_board_member", description: "Is a board member (Yes/No)", example: "No", required: false },
-    { field: "homeowner_notes", description: "Additional notes about homeowner", example: "Board member 2020-2022", required: false },
+    { field: "location", description: "Primary location of the association", example: "123 Main Street, Seattle, WA 98101", required: true },
+    { field: "units", description: "Total number of units in the association", example: "120", required: true },
+    { field: "status", description: "Current status of the association", example: "Active", required: true },
+    { field: "onboarding_date", description: "Date the association was onboarded", example: "06/01/2023", required: true },
+    { field: "annual_fees", description: "Total annual fees per unit", example: "2400", required: false },
+    { field: "assessment_frequency", description: "How often assessments are collected", example: "Monthly", required: true },
+    { field: "has_pool", description: "Whether the association has a pool (Yes/No)", example: "Yes", required: false },
+    { field: "has_gate", description: "Whether the association has a gate (Yes/No)", example: "Yes", required: false },
+    { field: "has_pedestrian_gate", description: "Whether the association has a pedestrian gate (Yes/No)", example: "No", required: false },
+    { field: "county", description: "County where the association is located", example: "Travis", required: false },
+    { field: "city", description: "City where the association is located", example: "Austin", required: true },
+    { field: "state", description: "State where the association is located", example: "TX", required: true },
+    { field: "zip", description: "ZIP code of the association", example: "78703", required: true },
+    { field: "address", description: "Street address of the association", example: "789 Oak Avenue", required: true },
+    { field: "offsite_addresses", description: "Number of offsite addresses", example: "5", required: false },
+    { field: "leases", description: "Number of leased units", example: "12", required: false },
+    { field: "service_type", description: "Type of service provided", example: "Full Service", required: false },
+    { field: "association_type", description: "Type of association (HOA, Condo, etc.)", example: "HOA", required: true },
+    { field: "founded_date", description: "Date the association was founded", example: "01/15/2005", required: false },
+    { field: "contact_email", description: "Primary contact email for the association", example: "info@oakwoodheightshoa.com", required: true },
+    { field: "contact_phone", description: "Primary contact phone for the association", example: "(555) 123-4567", required: true },
+    { field: "contact_website", description: "Website of the association", example: "www.oakwoodheightshoa.com", required: false },
+    { field: "tax_id", description: "Tax ID number of the association", example: "12-3456789", required: false },
   ];
 
   return (
@@ -54,7 +41,7 @@ const AssociationTemplateInfo = () => {
       <CardHeader>
         <CardTitle>Association Template Format</CardTitle>
         <CardDescription>
-          This is the comprehensive format for bulk importing an entire association with all homeowner data.
+          This is the comprehensive format for bulk importing an entire association with all required data.
           Download this template to ensure your data is formatted correctly for import.
         </CardDescription>
       </CardHeader>

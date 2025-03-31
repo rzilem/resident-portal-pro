@@ -40,6 +40,34 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
     } else if (associationFieldPatterns.website(header)) {
       targetField = 'association_website';
     }
+    // New association fields from the image
+    else if (/^location$/i.test(header)) {
+      targetField = 'location';
+    } else if (/^units$/i.test(header)) {
+      targetField = 'units';
+    } else if (/^status$/i.test(header)) {
+      targetField = 'status';
+    } else if (/^onboarding.?date$/i.test(header)) {
+      targetField = 'onboarding_date';
+    } else if (/^annual.?fees$/i.test(header)) {
+      targetField = 'annual_fees';
+    } else if (/^assessment.?frequency$/i.test(header)) {
+      targetField = 'assessment_frequency';
+    } else if (/^has.?pool$/i.test(header)) {
+      targetField = 'has_pool';
+    } else if (/^has.?gate$/i.test(header) && !/pedestrian/i.test(header)) {
+      targetField = 'has_gate';
+    } else if (/^has.?pedestrian.?gate$/i.test(header)) {
+      targetField = 'has_pedestrian_gate';
+    } else if (/^county$/i.test(header)) {
+      targetField = 'county';
+    } else if (/^offsite.?addresses$/i.test(header)) {
+      targetField = 'offsite_addresses';
+    } else if (/^leases$/i.test(header)) {
+      targetField = 'leases';
+    } else if (/^service.?type$/i.test(header)) {
+      targetField = 'service_type';
+    }
     // Property fields
     else if (propertyFieldPatterns.name(header)) {
       targetField = 'property_name';
