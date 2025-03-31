@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   PieChart, 
   Pie, 
@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { sampleReportDataService } from '@/services/SampleReportDataService';
 
 interface BankBalancesReportProps {
   timeRange: string;
@@ -17,13 +18,17 @@ interface BankBalancesReportProps {
 }
 
 const BankBalancesReport = ({ timeRange, association }: BankBalancesReportProps) => {
-  // Sample data
-  const bankAccountsData = [
-    { account: 'Operating Account', number: 'XXXX-4532', balance: 125000, lastUpdated: '2023-07-25' },
-    { account: 'Reserve Fund', number: 'XXXX-7890', balance: 345000, lastUpdated: '2023-07-25' },
-    { account: 'Special Assessment', number: 'XXXX-1234', balance: 78000, lastUpdated: '2023-07-25' },
-    { account: 'Maintenance Fund', number: 'XXXX-5678', balance: 42000, lastUpdated: '2023-07-25' },
-  ];
+  const [reportData, setReportData] = useState<any>(null);
+  
+  useEffect(() => {
+    // Get sample data from our service
+    const data = sampleReportDataService.getFinancialData('bank-balances', association);
+    setReportData(data);
+  }, [association, timeRange]);
+  
+  if (!reportData) {
+    return <div className="animate-pulse p-6 text-center">Loading account data...</div>;
+  }
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -59,7 +64,7 @@ const BankBalancesReport = ({ timeRange, association }: BankBalancesReportProps)
           </TableRow>
         </TableHeader>
         <TableBody>
-          {bankAccountsData.map((account, index) => (
+          {reportData.bankAccounts.map((account: any, index: number) => (
             <TableRow key={index}>
               <TableCell className="font-medium">{account.account}</TableCell>
               <TableCell>{account.number}</TableCell>
@@ -74,7 +79,7 @@ const BankBalancesReport = ({ timeRange, association }: BankBalancesReportProps)
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={bankAccountsData.map(a => ({ name: a.account, value: a.balance }))}
+              data={reportData.bankAccounts.map((a: any) => ({ name: a.account, value: a.balance }))}
               cx="50%"
               cy="50%"
               labelLine={true}
@@ -83,7 +88,7 @@ const BankBalancesReport = ({ timeRange, association }: BankBalancesReportProps)
               dataKey="value"
               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
             >
-              {bankAccountsData.map((entry, index) => (
+              {reportData.bankAccounts.map((entry: any, index: number) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
@@ -94,7 +99,7 @@ const BankBalancesReport = ({ timeRange, association }: BankBalancesReportProps)
       
       <div className="mt-4 p-4 bg-muted/50 rounded-md">
         <h4 className="text-base font-medium mb-2">Total Assets</h4>
-        <p className="text-2xl font-bold">{formatCurrency(bankAccountsData.reduce((sum, account) => sum + account.balance, 0))}</p>
+        <p className="text-2xl font-bold">{formatCurrency(reportData.bankAccounts.reduce((sum: number, account: any) => sum + account.balance, 0))}</p>
         <p className="text-sm text-green-600 mt-1">+5.2% since last month</p>
       </div>
     </>

@@ -7,7 +7,12 @@ import { ChevronLeft, Download, Printer, Share2 } from 'lucide-react';
 import ReportFilters from './ReportFilters';
 import { useAssociations } from '@/hooks/use-associations';
 import { useToast } from '@/components/ui/use-toast';
-import { reportsService } from '@/services/ReportsService';
+import { sampleReportDataService } from '@/services/SampleReportDataService';
+import BankBalancesReport from './financial/BankBalancesReport';
+import IncomeExpenseReport from './financial/IncomeExpenseReport';
+import CashFlowReport from './financial/CashFlowReport';
+import CashForecastReport from './financial/CashForecastReport';
+import BillingReport from './financial/BillingReport';
 
 const FinancialReportDetail = () => {
   const { reportId } = useParams<{ reportId: string }>();
@@ -24,18 +29,16 @@ const FinancialReportDetail = () => {
     const fetchReportData = async () => {
       setIsLoading(true);
       try {
-        // This would be an API call to fetch the report data
-        // For now, we'll simulate it with a timeout
+        // Get sample data from our service with the current association id
         setTimeout(() => {
+          const data = sampleReportDataService.getFinancialData(reportId || '', association);
           setReportData({
             title: formatReportName(reportId || ''),
             description: 'Financial report details',
-            data: [
-              // sample data would go here
-            ]
+            data: data
           });
           setIsLoading(false);
-        }, 1500);
+        }, 800);
       } catch (error) {
         console.error('Error fetching report data:', error);
         toast({
@@ -50,7 +53,7 @@ const FinancialReportDetail = () => {
     if (reportId) {
       fetchReportData();
     }
-  }, [reportId, toast]);
+  }, [reportId, toast, association]);
   
   const formatReportName = (name: string) => {
     return name
@@ -72,6 +75,71 @@ const FinancialReportDetail = () => {
         description: 'Your report has been downloaded.',
       });
     }, 2000);
+  };
+  
+  const renderReportContent = () => {
+    if (!reportData) return null;
+    
+    // Return different report components based on the reportId
+    switch(reportId) {
+      case 'bank-balances':
+        return <BankBalancesReport timeRange={timeRange} association={association} />;
+      case 'income-expense':
+        return <IncomeExpenseReport timeRange={timeRange} association={association} />;
+      case 'cash-flow':
+        return <CashFlowReport timeRange={timeRange} association={association} />;
+      case 'cash-forecast':
+        return <CashForecastReport timeRange={timeRange} association={association} />;
+      case 'admin-billing':
+      case 'billing-report':
+        return <BillingReport timeRange={timeRange} association={association} reportType={reportId as any} />;
+      default:
+        return (
+          <div className="border rounded-md p-4 bg-accent/5">
+            <h3 className="text-lg font-medium mb-2">Sample Report Data for {formatReportName(reportId || '')}</h3>
+            <p className="mb-4">This is sample content for the report. In the full implementation, detailed data and visualizations would be displayed based on the selected time range and association.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-base font-medium mb-2">Report Summary</h4>
+                <ul className="space-y-2">
+                  <li className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Total Income:</span>
+                    <span className="text-sm font-medium">${reportData.data.summary.totalIncome.toLocaleString()}</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Total Expenses:</span>
+                    <span className="text-sm font-medium">${reportData.data.summary.totalExpenses.toLocaleString()}</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Net Income:</span>
+                    <span className="text-sm font-medium">${reportData.data.summary.netIncome.toLocaleString()}</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Total Assets:</span>
+                    <span className="text-sm font-medium">${reportData.data.summary.totalAssets.toLocaleString()}</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-base font-medium mb-2">Report Details</h4>
+                <p className="text-sm mb-2">
+                  Association: {association === 'all' ? 'All Associations' : `Association ${association}`}
+                </p>
+                <p className="text-sm mb-2">
+                  Time Range: {timeRange === 'month' ? 'This Month' : 
+                              timeRange === 'quarter' ? 'This Quarter' : 
+                              timeRange === 'year' ? 'This Year' : 
+                              timeRange === '90days' ? 'Last 90 Days' : 'Custom Range'}
+                </p>
+                <p className="text-sm">
+                  Generated on: {new Date().toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+    }
   };
   
   return (
@@ -131,18 +199,7 @@ const FinancialReportDetail = () => {
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : (
-            <div>
-              {/* Render report content here */}
-              <p className="mb-4">Report content would be displayed here, with data visualizations, tables, and other relevant information.</p>
-              
-              <div className="border rounded-md p-4 bg-accent/5">
-                <h3 className="text-lg font-medium mb-2">Sample Report Data</h3>
-                <p>This is placeholder content for the {formatReportName(reportId || '')} report.</p>
-                <p className="mt-2">The actual implementation would include detailed financial data and visualizations based on the selected time range and association.</p>
-              </div>
-            </div>
-          )}
+          ) : renderReportContent()}
         </CardContent>
       </Card>
     </div>

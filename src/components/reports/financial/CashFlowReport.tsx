@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -10,6 +10,7 @@ import {
   Legend, 
   ResponsiveContainer
 } from 'recharts';
+import { sampleReportDataService } from '@/services/SampleReportDataService';
 
 interface CashFlowReportProps {
   timeRange: string;
@@ -17,21 +18,17 @@ interface CashFlowReportProps {
 }
 
 const CashFlowReport = ({ timeRange, association }: CashFlowReportProps) => {
-  // Sample data for charts
-  const monthlyData = [
-    { name: 'Jan', income: 42000, expenses: 30000 },
-    { name: 'Feb', income: 44000, expenses: 32000 },
-    { name: 'Mar', income: 43500, expenses: 31000 },
-    { name: 'Apr', income: 45000, expenses: 33000 },
-    { name: 'May', income: 47000, expenses: 31500 },
-    { name: 'Jun', income: 48000, expenses: 32000 },
-    { name: 'Jul', income: 49000, expenses: 33000 },
-    { name: 'Aug', income: 48500, expenses: 32500 },
-    { name: 'Sep', income: 50000, expenses: 34000 },
-    { name: 'Oct', income: 52000, expenses: 35000 },
-    { name: 'Nov', income: 53000, expenses: 36000 },
-    { name: 'Dec', income: 55000, expenses: 37000 },
-  ];
+  const [reportData, setReportData] = useState<any>(null);
+  
+  useEffect(() => {
+    // Get sample data from our service
+    const data = sampleReportDataService.getFinancialData('cash-flow', association);
+    setReportData(data);
+  }, [association, timeRange]);
+  
+  if (!reportData) {
+    return <div className="animate-pulse p-6 text-center">Loading cash flow data...</div>;
+  }
 
   // Format currency for tooltip
   const formatCurrency = (value: number) => {
@@ -42,11 +39,26 @@ const CashFlowReport = ({ timeRange, association }: CashFlowReportProps) => {
       maximumFractionDigits: 0,
     }).format(value);
   };
+  
+  // Calculate average monthly income
+  const avgMonthlyIncome = Math.round(
+    reportData.monthlyData.reduce((sum: number, month: any) => sum + month.income, 0) / 
+    reportData.monthlyData.length
+  );
+  
+  // Calculate average monthly expenses
+  const avgMonthlyExpenses = Math.round(
+    reportData.monthlyData.reduce((sum: number, month: any) => sum + month.expenses, 0) / 
+    reportData.monthlyData.length
+  );
+  
+  // Calculate average net cash flow
+  const avgNetCashFlow = avgMonthlyIncome - avgMonthlyExpenses;
 
   return (
     <>
       <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={monthlyData}>
+        <LineChart data={reportData.monthlyData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis tickFormatter={(value) => `$${value / 1000}k`} />
@@ -62,7 +74,7 @@ const CashFlowReport = ({ timeRange, association }: CashFlowReportProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <p className="text-sm mb-2">
-              The cash flow trend shows consistent positive growth throughout the year, with income consistently exceeding expenses. The largest positive cash flow was observed in December, with a net positive of $18,000.
+              The cash flow trend shows consistent positive growth throughout the year, with income consistently exceeding expenses. The largest positive cash flow was observed in December, with a net positive of ${formatCurrency(reportData.monthlyData[reportData.monthlyData.length - 1].income - reportData.monthlyData[reportData.monthlyData.length - 1].expenses).replace('$', '')}.
             </p>
             <p className="text-sm">
               Seasonal variations are evident, with higher expense periods in winter months (Jan-Feb) and summer months (Jun-Aug), likely due to increased maintenance and utility costs during these seasons.
@@ -73,19 +85,19 @@ const CashFlowReport = ({ timeRange, association }: CashFlowReportProps) => {
             <ul className="space-y-2">
               <li className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Average Monthly Income:</span>
-                <span className="text-sm font-medium">$48,083</span>
+                <span className="text-sm font-medium">{formatCurrency(avgMonthlyIncome)}</span>
               </li>
               <li className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Average Monthly Expenses:</span>
-                <span className="text-sm font-medium">$33,083</span>
+                <span className="text-sm font-medium">{formatCurrency(avgMonthlyExpenses)}</span>
               </li>
               <li className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Average Net Cash Flow:</span>
-                <span className="text-sm font-medium">$15,000</span>
+                <span className="text-sm font-medium">{formatCurrency(avgNetCashFlow)}</span>
               </li>
               <li className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Year-End Reserve Balance:</span>
-                <span className="text-sm font-medium">$235,000</span>
+                <span className="text-sm font-medium">{formatCurrency(reportData.summary.totalAssets * 0.2)}</span>
               </li>
             </ul>
           </div>

@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { sampleReportDataService } from '@/services/SampleReportDataService';
 
 interface BillingReportProps {
   timeRange: string;
@@ -11,17 +12,17 @@ interface BillingReportProps {
 }
 
 const BillingReport = ({ timeRange, association, reportType }: BillingReportProps) => {
-  // Sample data
-  const invoiceData = [
-    { id: 'INV-2305', date: '2023-05-15', amount: 1250, status: 'Paid', vendor: 'ABC Maintenance' },
-    { id: 'INV-2306', date: '2023-05-22', amount: 850, status: 'Paid', vendor: 'City Utilities' },
-    { id: 'INV-2307', date: '2023-06-01', amount: 1500, status: 'Pending', vendor: 'Premium Insurance' },
-    { id: 'INV-2308', date: '2023-06-10', amount: 750, status: 'Paid', vendor: 'Green Landscaping' },
-    { id: 'INV-2309', date: '2023-06-15', amount: 1100, status: 'Overdue', vendor: 'Security Systems Inc' },
-    { id: 'INV-2310', date: '2023-06-28', amount: 950, status: 'Pending', vendor: 'ABC Maintenance' },
-    { id: 'INV-2311', date: '2023-07-05', amount: 1350, status: 'Paid', vendor: 'Elevator Services' },
-    { id: 'INV-2312', date: '2023-07-12', amount: 800, status: 'Pending', vendor: 'City Utilities' },
-  ];
+  const [reportData, setReportData] = useState<any>(null);
+  
+  useEffect(() => {
+    // Get sample data from our service
+    const data = sampleReportDataService.getFinancialData(reportType, association);
+    setReportData(data);
+  }, [association, timeRange, reportType]);
+  
+  if (!reportData) {
+    return <div className="animate-pulse p-6 text-center">Loading billing data...</div>;
+  }
 
   // Format currency for tooltip
   const formatCurrency = (value: number) => {
@@ -32,6 +33,12 @@ const BillingReport = ({ timeRange, association, reportType }: BillingReportProp
       maximumFractionDigits: 0,
     }).format(value);
   };
+  
+  // Calculate totals
+  const totalBilled = reportData.invoices.reduce((sum: number, invoice: any) => sum + invoice.amount, 0);
+  const totalPaid = reportData.invoices.filter((invoice: any) => invoice.status === 'Paid')
+    .reduce((sum: number, invoice: any) => sum + invoice.amount, 0);
+  const totalOutstanding = totalBilled - totalPaid;
 
   return (
     <>
@@ -58,7 +65,7 @@ const BillingReport = ({ timeRange, association, reportType }: BillingReportProp
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoiceData.map((invoice) => (
+          {reportData.invoices.map((invoice: any) => (
             <TableRow key={invoice.id}>
               <TableCell className="font-medium">{invoice.id}</TableCell>
               <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
@@ -83,15 +90,15 @@ const BillingReport = ({ timeRange, association, reportType }: BillingReportProp
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-card p-3 rounded-md border">
             <p className="text-sm text-muted-foreground">Total Billed</p>
-            <p className="text-xl font-bold mt-1">$8,550</p>
+            <p className="text-xl font-bold mt-1">{formatCurrency(totalBilled)}</p>
           </div>
           <div className="bg-card p-3 rounded-md border">
             <p className="text-sm text-muted-foreground">Paid</p>
-            <p className="text-xl font-bold mt-1 text-green-600">$5,100</p>
+            <p className="text-xl font-bold mt-1 text-green-600">{formatCurrency(totalPaid)}</p>
           </div>
           <div className="bg-card p-3 rounded-md border">
             <p className="text-sm text-muted-foreground">Outstanding</p>
-            <p className="text-xl font-bold mt-1 text-amber-600">$3,450</p>
+            <p className="text-xl font-bold mt-1 text-amber-600">{formatCurrency(totalOutstanding)}</p>
           </div>
         </div>
       </div>

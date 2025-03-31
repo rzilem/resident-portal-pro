@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
+import { sampleReportDataService } from '@/services/SampleReportDataService';
 
 interface CashForecastReportProps {
   timeRange: string;
@@ -19,6 +20,18 @@ interface CashForecastReportProps {
 }
 
 const CashForecastReport = ({ timeRange, association }: CashForecastReportProps) => {
+  const [reportData, setReportData] = useState<any>(null);
+  
+  useEffect(() => {
+    // Get sample data from our service
+    const data = sampleReportDataService.getFinancialData('cash-forecast', association);
+    setReportData(data);
+  }, [association, timeRange]);
+  
+  if (!reportData) {
+    return <div className="animate-pulse p-6 text-center">Loading cash forecast data...</div>;
+  }
+
   // Format currency for tooltip
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -28,6 +41,54 @@ const CashForecastReport = ({ timeRange, association }: CashForecastReportProps)
       maximumFractionDigits: 0,
     }).format(value);
   };
+  
+  // Generate forecast data based on actual data from the report
+  const generateForecastData = () => {
+    // Use last 3 months of data for actual, then project forward 3 months
+    const actualMonths = reportData.monthlyData.slice(-3);
+    const lastActualMonth = actualMonths[actualMonths.length - 1];
+    
+    // Calculate average growth rate from actual data
+    const avgIncomeGrowth = 0.03; // 3% monthly growth
+    const avgExpenseGrowth = 0.02; // 2% monthly growth
+    
+    // Create forecast months
+    const forecastMonths = ['Oct', 'Nov', 'Dec'];
+    const forecastData = [
+      {
+        month: actualMonths[0].name,
+        actual: actualMonths[0].income - actualMonths[0].expenses,
+        forecast: actualMonths[0].income - actualMonths[0].expenses
+      },
+      {
+        month: actualMonths[1].name,
+        actual: actualMonths[1].income - actualMonths[1].expenses,
+        forecast: actualMonths[1].income - actualMonths[1].expenses
+      },
+      {
+        month: actualMonths[2].name,
+        actual: actualMonths[2].income - actualMonths[2].expenses,
+        forecast: actualMonths[2].income - actualMonths[2].expenses
+      }
+    ];
+    
+    // Add forecast months
+    let lastNetCashflow = lastActualMonth.income - lastActualMonth.expenses;
+    
+    for (let i = 0; i < forecastMonths.length; i++) {
+      const forecastNetCashflow = Math.round(lastNetCashflow * (1 + (avgIncomeGrowth - avgExpenseGrowth)));
+      forecastData.push({
+        month: forecastMonths[i],
+        actual: null,
+        forecast: forecastNetCashflow
+      });
+      lastNetCashflow = forecastNetCashflow;
+    }
+    
+    return forecastData;
+  };
+  
+  const forecastData = generateForecastData();
 
   return (
     <>
@@ -44,16 +105,7 @@ const CashForecastReport = ({ timeRange, association }: CashForecastReportProps)
       </div>
       
       <ResponsiveContainer width="100%" height={350}>
-        <LineChart 
-          data={[
-            { month: 'Jul', actual: 15000, forecast: 15000 },
-            { month: 'Aug', actual: 16000, forecast: 16000 },
-            { month: 'Sep', actual: 16500, forecast: 16500 },
-            { month: 'Oct', actual: null, forecast: 17000 },
-            { month: 'Nov', actual: null, forecast: 17500 },
-            { month: 'Dec', actual: null, forecast: 18000 },
-          ]}
-        >
+        <LineChart data={forecastData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis tickFormatter={(value) => `$${value / 1000}k`} />
@@ -81,7 +133,7 @@ const CashForecastReport = ({ timeRange, association }: CashForecastReportProps)
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Projected Year-End Cash Balance:</span>
-              <span className="text-sm font-medium">$285,000</span>
+              <span className="text-sm font-medium">{formatCurrency(reportData.summary.cashOnHand * 1.15)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Projected Reserve Growth:</span>
