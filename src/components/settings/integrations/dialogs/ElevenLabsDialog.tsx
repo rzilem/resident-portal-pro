@@ -41,10 +41,11 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
       return;
     }
     
-    if (!isAuthenticated) {
-      toast.error('You need to be logged in to save settings permanently');
-      return;
-    }
+    console.log('Saving ElevenLabs settings with:', {
+      apiKey: apiKey.length > 0 ? `${apiKey.substring(0, 5)}...` : 'empty',
+      defaultVoiceId,
+      defaultModel
+    });
     
     const success = await saveElevenLabsSettings({
       apiKey,
@@ -53,6 +54,7 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
     });
     
     if (success) {
+      toast.success('ElevenLabs settings saved successfully');
       onOpenChange(false);
     }
   };
@@ -88,9 +90,9 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
         </DialogHeader>
 
         {!isAuthenticated && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
+          <Alert variant="default" className="mb-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
+            <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <AlertDescription className="text-yellow-600 dark:text-yellow-400">
               You need to be logged in to save settings permanently. Settings will be saved in local storage for now.
             </AlertDescription>
           </Alert>

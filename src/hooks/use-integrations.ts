@@ -45,8 +45,10 @@ export function useIntegrations(entityId: string = 'current-user') {
     setError(null);
     try {
       const data = await integrationService.getIntegrations(entityId);
+      console.log('Fetched integrations:', data);
       setIntegrations(data);
     } catch (err) {
+      console.error('Error fetching integrations:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch integrations'));
       toast.error('Failed to load integrations');
     } finally {
@@ -60,14 +62,15 @@ export function useIntegrations(entityId: string = 'current-user') {
     settings: IntegrationSettings
   ) => {
     try {
+      console.log('Connecting integration:', integrationId, settings);
       const updatedIntegration = await integrationService.connectIntegration(entityId, integrationId, settings);
       setIntegrations(prev => ({
         ...prev,
         [integrationId]: updatedIntegration
       }));
-      toast.success(`${integrationId} connected successfully`);
       return updatedIntegration;
     } catch (err) {
+      console.error('Failed to connect integration:', err);
       toast.error(`Failed to connect ${integrationId}`);
       throw err;
     }
@@ -85,10 +88,10 @@ export function useIntegrations(entityId: string = 'current-user') {
             enabled: false
           }
         }));
-        toast.success(`${integrationId} disconnected successfully`);
       }
       return success;
     } catch (err) {
+      console.error('Failed to disconnect integration:', err);
       toast.error(`Failed to disconnect ${integrationId}`);
       throw err;
     }
@@ -100,16 +103,17 @@ export function useIntegrations(entityId: string = 'current-user') {
     updates: Partial<IntegrationSettings>
   ) => {
     try {
+      console.log('Updating integration settings:', integrationId, updates);
       const updatedIntegration = await integrationService.updateIntegrationSettings(entityId, integrationId, updates);
       if (updatedIntegration) {
         setIntegrations(prev => ({
           ...prev,
           [integrationId]: updatedIntegration
         }));
-        console.log(`${integrationId} settings updated successfully`, updatedIntegration);
       }
       return updatedIntegration;
     } catch (err) {
+      console.error('Failed to update integration settings:', err);
       toast.error(`Failed to update ${integrationId} settings`);
       throw err;
     }

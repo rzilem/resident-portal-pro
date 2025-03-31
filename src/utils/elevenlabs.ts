@@ -41,22 +41,21 @@ export const testElevenLabsAPI = async (apiKey: string): Promise<boolean> => {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`ElevenLabs API error (${response.status}):`, errorText);
       throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 
     const data = await response.json();
     if (data?.voices?.length > 0) {
       console.log('ElevenLabs API connection successful');
-      toast.success('ElevenLabs API connection successful');
       return true;
     } else {
       console.error('Unexpected response from ElevenLabs API');
-      toast.error('Unexpected response from ElevenLabs API');
-      return false;
+      throw new Error('Unexpected response from ElevenLabs API');
     }
   } catch (error) {
     console.error('Error testing ElevenLabs API:', error);
-    toast.error('Failed to connect to ElevenLabs API');
     return false;
   }
 };
@@ -73,7 +72,13 @@ export const speakWithElevenLabs = async (
     
     // Get the API key from integration settings
     const elevenLabsIntegration = integrationService.getIntegration('current-user', 'ElevenLabs');
-    const apiKey = elevenLabsIntegration?.apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
+    
+    let apiKey = elevenLabsIntegration?.apiKey || '';
+    
+    // Fallback to environment variable if available
+    if (!apiKey && import.meta.env.VITE_ELEVENLABS_API_KEY) {
+      apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+    }
     
     if (!apiKey) {
       console.warn('ElevenLabs API key not found. Falling back to Web Speech API.');
@@ -105,6 +110,8 @@ export const speakWithElevenLabs = async (
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`ElevenLabs API error (${response.status}):`, errorText);
       throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 

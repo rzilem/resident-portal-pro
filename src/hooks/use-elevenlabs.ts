@@ -31,6 +31,7 @@ export function useElevenLabs() {
       
       // First ensure we're connected if not already connected
       if (!isElevenLabsConnected) {
+        console.log('Connecting ElevenLabs integration...');
         await connectIntegration('ElevenLabs', {
           ...settings,
           enabled: true
@@ -38,17 +39,18 @@ export function useElevenLabs() {
       }
       
       // Then update the settings
+      console.log('Updating ElevenLabs settings...');
       const result = await updateIntegrationSettings('ElevenLabs', {
         ...settings,
         enabled: true
       });
       
-      console.log('ElevenLabs settings saved:', result);
-      toast.success('ElevenLabs settings saved permanently');
+      console.log('ElevenLabs settings saved successfully:', result);
+      toast.success('ElevenLabs settings saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving ElevenLabs settings:', error);
-      toast.error('Failed to save ElevenLabs settings');
+      toast.error('Failed to save ElevenLabs settings: ' + (error instanceof Error ? error.message : 'Unknown error'));
       return false;
     } finally {
       setIsLoading(false);

@@ -17,8 +17,18 @@ const ElevenLabsTest = () => {
       return;
     }
 
+    if (!settings.apiKey) {
+      toast.error("No API key found. Please check your ElevenLabs integration settings.");
+      return;
+    }
+
     setIsPlaying(true);
     try {
+      console.log("Testing ElevenLabs voice with settings:", {
+        voiceId: settings.defaultVoiceId,
+        model: settings.defaultModel
+      });
+      
       await speakWithElevenLabs(
         "Hello! Your ElevenLabs integration is working correctly. This is a test of the voice synthesis API.",
         {
@@ -53,7 +63,7 @@ const ElevenLabsTest = () => {
           {isElevenLabsConnected && (
             <div>
               <p className="text-sm text-muted-foreground mb-2">
-                Using voice: {settings.defaultVoiceId || "Default"} 
+                Using voice: {settings.defaultVoiceId === 'EXAVITQu4vr4xnSDxMaL' ? 'Sarah (Default)' : settings.defaultVoiceId} 
                 <br />
                 Model: {settings.defaultModel || "Default"}
               </p>
