@@ -1,166 +1,263 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Filter, Download, ChevronUp, ChevronDown } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DatabaseColumnsSelector, DatabaseColumn } from './DatabaseColumnsSelector';
-import { useSettings } from '@/hooks/use-settings';
+import { Eye, Edit, Trash, Download, MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const mockProperties = [
+  {
+    id: 'P001',
+    address: '123 Main Street',
+    unitNumber: '101',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78701',
+    type: 'Condo',
+    association: 'Oakwood Heights',
+    bedrooms: 2,
+    bathrooms: 2,
+    squareFeet: 1200,
+    status: 'Occupied'
+  },
+  {
+    id: 'P002',
+    address: '456 Park Avenue',
+    unitNumber: '201',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78702',
+    type: 'Townhouse',
+    association: 'Willow Creek Estates',
+    bedrooms: 3,
+    bathrooms: 2.5,
+    squareFeet: 1800,
+    status: 'Vacant'
+  },
+  {
+    id: 'P003',
+    address: '789 River Road',
+    unitNumber: '301',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78703',
+    type: 'Single Family',
+    association: 'Riverfront Towers',
+    bedrooms: 4,
+    bathrooms: 3,
+    squareFeet: 2500,
+    status: 'Occupied'
+  },
+  {
+    id: 'P004',
+    address: '101 Lake View',
+    unitNumber: '',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78704',
+    type: 'Single Family',
+    association: 'Lakeside Community',
+    bedrooms: 5,
+    bathrooms: 4,
+    squareFeet: 3200,
+    status: 'Occupied'
+  },
+  {
+    id: 'P005',
+    address: '202 Mountain Trail',
+    unitNumber: '105',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78705',
+    type: 'Condo',
+    association: 'Mountain View HOA',
+    bedrooms: 1,
+    bathrooms: 1,
+    squareFeet: 800,
+    status: 'Vacant'
+  }
+];
 
 const PropertyRecords = () => {
-  const { preferences } = useSettings();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<string>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [view, setView] = useState<'table' | 'card'>('table');
   
-  // Define default columns
-  const defaultColumns: DatabaseColumn[] = [
-    { id: 'id', label: 'ID', checked: true },
-    { id: 'name', label: 'Property Name', checked: true },
-    { id: 'type', label: 'Type', checked: true },
-    { id: 'units', label: 'Units', checked: true },
-    { id: 'location', label: 'Location', checked: true },
-    { id: 'created', label: 'Created Date', checked: true },
-  ];
-  
-  // Initialize columns from preferences or defaults
-  const [columns, setColumns] = useState<DatabaseColumn[]>(
-    preferences?.databasePropertyColumns || defaultColumns
-  );
-  
-  // Update columns when preferences change
-  useEffect(() => {
-    if (preferences?.databasePropertyColumns) {
-      setColumns(preferences.databasePropertyColumns);
-    }
-  }, [preferences]);
-  
-  const handleColumnsChange = (newColumns: DatabaseColumn[]) => {
-    setColumns(newColumns);
+  const handleExport = () => {
+    toast.success('Exporting property records');
   };
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      // Toggle direction if same field clicked
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new field and default to ascending
-      setSortField(field);
-      setSortDirection('asc');
-    }
+  const handleViewDetails = (id: string) => {
+    toast.info(`Viewing property details for ${id}`);
   };
-  
-  // Sample property data
-  const properties = [
-    { id: 'P001', name: 'Oakwood Heights', type: 'Condominium', units: '48', location: 'Seattle, WA', created: '2021-05-14' },
-    { id: 'P002', name: 'Willow Creek Estates', type: 'HOA', units: '86', location: 'Portland, OR', created: '2018-09-22' },
-    { id: 'P003', name: 'Riverfront Towers', type: 'Condominium', units: '64', location: 'Denver, CO', created: '2020-03-15' },
-    { id: 'P004', name: 'Sunset Gardens', type: 'HOA', units: '32', location: 'San Diego, CA', created: '2019-07-08' },
-    { id: 'P005', name: 'Pine Valley Community', type: 'HOA', units: '26', location: 'Austin, TX', created: '2021-11-29' },
-  ];
 
-  // Filter properties based on search term
-  const filteredProperties = searchTerm
-    ? properties.filter(property => 
-        Object.values(property).some(value => 
-          value && String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
-    : properties;
+  const handleEdit = (id: string) => {
+    toast.info(`Editing property ${id}`);
+  };
 
-  // Sort properties based on current sort field and direction
-  const sortedProperties = [...filteredProperties].sort((a, b) => {
-    const valueA = a[sortField as keyof typeof a];
-    const valueB = b[sortField as keyof typeof b];
-    
-    if (valueA === undefined || valueB === undefined) return 0;
-    
-    // Special case for numeric columns
-    if (sortField === 'units') {
-      const numA = parseInt(String(valueA), 10) || 0;
-      const numB = parseInt(String(valueB), 10) || 0;
-      return sortDirection === 'asc' ? numA - numB : numB - numA;
-    } else {
-      // Default string comparison
-      const strA = String(valueA).toLowerCase();
-      const strB = String(valueB).toLowerCase();
-      
-      return sortDirection === 'asc' 
-        ? strA.localeCompare(strB)
-        : strB.localeCompare(strA);
+  const handleDelete = (id: string) => {
+    toast.info(`Deleting property ${id}`);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Occupied':
+        return 'bg-green-100 text-green-800';
+      case 'Vacant':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-  });
-
-  const SortIcon = ({ field }: { field: string }) => {
-    if (sortField !== field) return null;
-    return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
   };
 
   return (
-    <div className="pt-4">
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search properties..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <DatabaseColumnsSelector 
-            columns={columns}
-            onChange={handleColumnsChange}
-            type="property"
-          />
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-        </div>
-      </div>
-      
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map(col => col.checked && (
-              <TableHead 
-                key={col.id}
-                className="cursor-pointer hover:bg-muted/30 transition-colors"
-                onClick={() => handleSort(col.id)}
-              >
-                <div className="flex items-center gap-1">
-                  {col.label}
-                  <SortIcon field={col.id} />
-                </div>
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedProperties.map((property, i) => (
-            <TableRow key={i}>
-              {columns.map(col => col.checked && (
-                <TableCell key={col.id}>
-                  {col.id === 'id' ? (
-                    <span className="font-mono">{property[col.id as keyof typeof property]}</span>
-                  ) : col.id === 'name' ? (
-                    <span className="font-medium">{property[col.id as keyof typeof property]}</span>
-                  ) : (
-                    property[col.id as keyof typeof property]
-                  )}
-                </TableCell>
+    <div>
+      {view === 'table' ? (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Association</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockProperties.map((property) => (
+                <TableRow key={property.id}>
+                  <TableCell className="font-medium">{property.id}</TableCell>
+                  <TableCell>
+                    {property.address}
+                    {property.unitNumber && `, Unit ${property.unitNumber}`}
+                    <div className="text-xs text-muted-foreground">
+                      {property.city}, {property.state} {property.zip}
+                    </div>
+                  </TableCell>
+                  <TableCell>{property.type}</TableCell>
+                  <TableCell>{property.association}</TableCell>
+                  <TableCell>
+                    {property.squareFeet} sq ft
+                    <div className="text-xs text-muted-foreground">
+                      {property.bedrooms} bd, {property.bathrooms} ba
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getStatusColor(property.status)}>
+                      {property.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewDetails(property.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDetails(property.id)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(property.id)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport()}>
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(property.id)}
+                            className="text-red-600"
+                          >
+                            <Trash className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
               ))}
-            </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {mockProperties.map((property) => (
+            <Card key={property.id}>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium">{property.address}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {property.unitNumber && `Unit ${property.unitNumber}, `}
+                      {property.city}, {property.state} {property.zip}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={getStatusColor(property.status)}>
+                    {property.status}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Property Type</p>
+                    <p className="text-sm">{property.type}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Association</p>
+                    <p className="text-sm">{property.association}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Size</p>
+                    <p className="text-sm">{property.squareFeet} sq ft</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Layout</p>
+                    <p className="text-sm">{property.bedrooms} bd, {property.bathrooms} ba</p>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="ghost" size="sm" onClick={() => handleViewDetails(property.id)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(property.id)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)} className="text-red-600">
+                    <Trash className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ))}
-        </TableBody>
-      </Table>
+        </div>
+      )}
     </div>
   );
 };

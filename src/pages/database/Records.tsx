@@ -1,28 +1,27 @@
 
 import React, { useState } from 'react';
-import { PlusCircle, RefreshCw, Upload, Download, Database } from 'lucide-react';
+import { PlusCircle, RefreshCw, Upload, Download, Database, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Import components
 import DatabaseExplorer from '@/components/database/DatabaseExplorer';
 import DatabaseStats from '@/components/database/DatabaseStats';
 import BulkUploadDialog from '@/components/database/BulkUploadDialog';
-import { useToast } from '@/hooks/use-toast';
+import ExportDialog from '@/components/database/ExportDialog';
 
 const Records = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const { toast } = useToast();
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState('explorer');
 
   const handleRefresh = () => {
-    toast({
-      title: "Refreshed",
-      description: "Database records have been refreshed",
-    });
+    toast.success("Database records have been refreshed");
   };
 
   const handleExport = () => {
-    toast({
-      title: "Export Started",
-      description: "Your data is being prepared for export",
-    });
+    setIsExportDialogOpen(true);
   };
 
   return (
@@ -41,33 +40,46 @@ const Records = () => {
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="gap-2" onClick={handleRefresh}>
                 <RefreshCw className="h-4 w-4" />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
               <Button variant="outline" className="gap-2" onClick={() => setIsUploadDialogOpen(true)}>
                 <Upload className="h-4 w-4" />
-                Bulk Upload
+                <span className="hidden sm:inline">Bulk Upload</span>
               </Button>
               <Button variant="outline" className="gap-2" onClick={handleExport}>
                 <Download className="h-4 w-4" />
-                Export
+                <span className="hidden sm:inline">Export</span>
               </Button>
               <Button className="gap-2">
                 <PlusCircle className="h-4 w-4" />
-                Add Record
+                <span className="hidden sm:inline">Add Record</span>
               </Button>
             </div>
           </div>
+          
+          <Tabs defaultValue="explorer" value={currentTab} onValueChange={setCurrentTab}>
+            <TabsList>
+              <TabsTrigger value="explorer">Database Explorer</TabsTrigger>
+              <TabsTrigger value="stats">Statistics</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </section>
         
-        <DatabaseExplorer />
-        <div className="mt-6">
+        {currentTab === 'explorer' ? (
+          <DatabaseExplorer />
+        ) : (
           <DatabaseStats />
-        </div>
+        )}
       </main>
 
       <BulkUploadDialog 
         open={isUploadDialogOpen} 
         onOpenChange={setIsUploadDialogOpen} 
+      />
+      
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
       />
     </div>
   );

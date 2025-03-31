@@ -1,237 +1,157 @@
 
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { ResaleCertificate } from '@/types/supabase';
+import { AccountStatementData } from './pdf/AccountStatementGenerator';
+import { ResaleCertificateData } from './pdf/ResaleCertificateGenerator';
+import { CondoQuestionnaireData } from './pdf/CondoQuestionnaireGenerator';
 
-// Define the specific data needed for resale certificates
-export interface ResaleCertificateData {
-  propertyAddress: string;
-  ownerName: string;
-  associationName: string;
-  closingDate: string;
-  regularAssessment: string;
-  assessmentFrequency: string;
-  specialAssessment: string;
-  transferFee: string;
-  outstandingBalance: string;
-  violations: string;
-  litigation: string;
-}
-
-// Define the data needed for condo questionnaires
-export interface CondoQuestionnaireData {
-  condoName: string;
-  propertyAddress: string;
-  unitNumber: string;
-  associationName: string;
-  managementCompany: string;
-  totalUnits: string;
-  yearBuilt: string;
-  monthlyFee: string;
-  reserveBalance: string;
-  ownerOccupiedPercentage: string;
-  arrearsPercentage: string;
-  insuranceCarrier: string;
-  policyNumber: string;
-  expirationDate: string;
-}
-
-// Define the data needed for account statements
-export interface AccountStatementData {
-  ownerName: string;
-  propertyAddress: string;
-  accountNumber: string;
-  statementDate: string;
-  previousBalance: string;
-  payments: string;
-  newCharges: string;
-  currentBalance: string;
-  transactions: any[][];
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
 }
 
 export class PdfGenerator {
-  static createResaleCertificate(data: ResaleCertificateData) {
-    const doc = new jsPDF();
-    
-    // Add logo or header
-    doc.setFontSize(20);
-    doc.text('Resale Certificate', 105, 20, { align: 'center' });
-    
-    // Add property and association info
-    doc.setFontSize(12);
-    doc.text(`Property: ${data.propertyAddress}`, 20, 40);
-    doc.text(`Owner: ${data.ownerName}`, 20, 50);
-    doc.text(`Association: ${data.associationName}`, 20, 60);
-    doc.text(`Closing Date: ${data.closingDate}`, 20, 70);
-    
-    // Add financial information
-    doc.setFontSize(14);
-    doc.text('Financial Information', 20, 90);
-    
-    // Create financial table
-    (doc as any).autoTable({
-      startY: 95,
-      head: [['Item', 'Amount']],
-      body: [
-        ['Regular Assessment', `$${data.regularAssessment} (${data.assessmentFrequency})`],
-        ['Special Assessment', data.specialAssessment],
-        ['Transfer Fee', `$${data.transferFee}`],
-        ['Outstanding Balance', `$${data.outstandingBalance}`]
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [66, 139, 202] }
-    });
-    
-    // Add violations and litigation
-    let yPos = (doc as any).lastAutoTable.finalY + 20;
-    
-    doc.setFontSize(14);
-    doc.text('Property Status', 20, yPos);
-    
-    yPos += 10;
-    doc.setFontSize(12);
-    doc.text('Violations:', 20, yPos);
-    yPos += 10;
-    doc.text(data.violations, 30, yPos);
-    
-    yPos += 20;
-    doc.text('Litigation:', 20, yPos);
-    yPos += 10;
-    doc.text(data.litigation, 30, yPos);
-    
-    // Add footer with certification
-    yPos += 30;
-    doc.setFontSize(10);
-    doc.text('This certificate is issued in compliance with state law governing property transfers.', 20, yPos);
-    yPos += 10;
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPos);
-    
-    return doc;
-  }
-
-  // Add the missing methods
-  static createCondoQuestionnaire(data: CondoQuestionnaireData) {
-    const doc = new jsPDF();
-    
-    // Add header
-    doc.setFontSize(20);
-    doc.text('Condominium Questionnaire', 105, 20, { align: 'center' });
-    
-    // Add property and association info
-    doc.setFontSize(12);
-    doc.text(`Condominium: ${data.condoName}`, 20, 40);
-    doc.text(`Property: ${data.propertyAddress}`, 20, 50);
-    doc.text(`Unit: ${data.unitNumber}`, 20, 60);
-    doc.text(`Association: ${data.associationName}`, 20, 70);
-    
-    // Add basic information
-    doc.setFontSize(14);
-    doc.text('Basic Information', 20, 90);
-    
-    // Create basic info table
-    (doc as any).autoTable({
-      startY: 95,
-      head: [['Item', 'Details']],
-      body: [
-        ['Management Company', data.managementCompany],
-        ['Total Units', data.totalUnits],
-        ['Year Built', data.yearBuilt],
-        ['Monthly Fee', `$${data.monthlyFee}`],
-        ['Reserve Balance', `$${data.reserveBalance}`],
-        ['Owner-Occupied %', `${data.ownerOccupiedPercentage}%`],
-        ['Units in Arrears %', `${data.arrearsPercentage}%`]
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [66, 139, 202] }
-    });
-    
-    // Add insurance information
-    let yPos = (doc as any).lastAutoTable.finalY + 20;
-    
-    doc.setFontSize(14);
-    doc.text('Insurance Information', 20, yPos);
-    
-    yPos += 10;
-    
-    // Create insurance table
-    (doc as any).autoTable({
-      startY: yPos,
-      head: [['Item', 'Details']],
-      body: [
-        ['Insurance Carrier', data.insuranceCarrier],
-        ['Policy Number', data.policyNumber],
-        ['Expiration Date', data.expirationDate]
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [66, 139, 202] }
-    });
-    
-    // Add footer with certification
-    yPos = (doc as any).lastAutoTable.finalY + 30;
-    doc.setFontSize(10);
-    doc.text('This questionnaire is completed in compliance with lender requirements.', 20, yPos);
-    yPos += 10;
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPos);
-    
-    return doc;
-  }
-  
   static createAccountStatement(data: AccountStatementData) {
     const doc = new jsPDF();
     
     // Add header
     doc.setFontSize(20);
-    doc.text('Account Statement', 105, 20, { align: 'center' });
+    doc.text('ACCOUNT STATEMENT', 105, 20, { align: 'center' });
     
-    // Add account info
+    // Add account information
+    doc.setFontSize(14);
+    doc.text('ACCOUNT INFORMATION', 20, 40);
     doc.setFontSize(12);
-    doc.text(`Owner: ${data.ownerName}`, 20, 40);
-    doc.text(`Property: ${data.propertyAddress}`, 20, 50);
-    doc.text(`Account #: ${data.accountNumber}`, 20, 60);
-    doc.text(`Statement Date: ${data.statementDate}`, 20, 70);
+    doc.text(`Owner: ${data.ownerName || 'N/A'}`, 20, 50);
+    doc.text(`Property Address: ${data.propertyAddress || 'N/A'}`, 20, 60);
+    doc.text(`Account Number: ${data.accountNumber || 'N/A'}`, 20, 70);
+    doc.text(`Statement Date: ${data.statementDate || 'N/A'}`, 20, 80);
     
     // Add account summary
     doc.setFontSize(14);
-    doc.text('Account Summary', 20, 90);
-    
-    // Create account summary table
-    (doc as any).autoTable({
-      startY: 95,
-      head: [['Item', 'Amount']],
-      body: [
-        ['Previous Balance', `$${data.previousBalance}`],
-        ['Payments', `$${data.payments}`],
-        ['New Charges', `$${data.newCharges}`],
-        ['Current Balance', `$${data.currentBalance}`]
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [66, 139, 202] }
-    });
+    doc.text('ACCOUNT SUMMARY', 20, 100);
+    doc.setFontSize(12);
+    doc.text(`Previous Balance: $${data.previousBalance || '0.00'}`, 20, 110);
+    doc.text(`Payments: $${data.payments || '0.00'}`, 20, 120);
+    doc.text(`New Charges: $${data.newCharges || '0.00'}`, 20, 130);
+    doc.text(`Current Balance: $${data.currentBalance || '0.00'}`, 20, 140);
     
     // Add transaction history
-    let yPos = (doc as any).lastAutoTable.finalY + 20;
-    
     doc.setFontSize(14);
-    doc.text('Transaction History', 20, yPos);
+    doc.text('TRANSACTION HISTORY', 20, 160);
     
-    yPos += 10;
+    // Add table of transactions
+    const header = ['Date', 'Description', 'Amount', 'Balance'];
+    const transactions = data.transactions || [];
     
-    // Create transactions table
-    (doc as any).autoTable({
-      startY: yPos,
-      head: [['Date', 'Description', 'Amount', 'Balance']],
-      body: data.transactions || [],
-      theme: 'grid',
-      headStyles: { fillColor: [66, 139, 202] }
+    doc.autoTable({
+      head: [header],
+      body: transactions,
+      startY: 170,
+      margin: { top: 180 },
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [66, 133, 244] }
     });
     
-    // Add footer
-    yPos = (doc as any).lastAutoTable.finalY + 30;
-    doc.setFontSize(10);
-    doc.text('Please contact the management office regarding any questions about this statement.', 20, yPos);
-    yPos += 10;
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPos);
+    return doc;
+  }
+
+  static createResaleCertificate(data: ResaleCertificateData) {
+    const doc = new jsPDF();
+    
+    // Add header
+    doc.setFontSize(20);
+    doc.text('TEXAS RESALE CERTIFICATE', 105, 20, { align: 'center' });
+    
+    // Property information
+    doc.setFontSize(14);
+    doc.text('PROPERTY INFORMATION', 20, 40);
+    doc.setFontSize(12);
+    doc.text(`Address: ${data.propertyAddress || 'N/A'}`, 20, 50);
+    doc.text(`Owner: ${data.ownerName || 'N/A'}`, 20, 60);
+    doc.text(`Association: ${data.associationName || 'N/A'}`, 20, 70);
+    doc.text(`Closing Date: ${data.closingDate || 'N/A'}`, 20, 80);
+    
+    // Financial information
+    doc.setFontSize(14);
+    doc.text('FINANCIAL INFORMATION', 20, 100);
+    doc.setFontSize(12);
+    doc.text(`Current Regular Assessment: $${data.regularAssessment || '0.00'} ${data.assessmentFrequency || 'monthly'}`, 20, 110);
+    doc.text(`Special Assessment: ${data.specialAssessment || 'None'}`, 20, 120);
+    doc.text(`Transfer Fee: $${data.transferFee || '0.00'}`, 20, 130);
+    doc.text(`Outstanding Balance: $${data.outstandingBalance || '0.00'}`, 20, 140);
+    
+    // Legal matters
+    doc.setFontSize(14);
+    doc.text('LEGAL MATTERS', 20, 160);
+    doc.setFontSize(12);
+    doc.text(`Violations: ${data.violations || 'None reported'}`, 20, 170);
+    doc.text(`Litigation: ${data.litigation || 'No pending litigation'}`, 20, 180);
+    
+    // Certification
+    doc.setFontSize(14);
+    doc.text('CERTIFICATION', 20, 200);
+    doc.setFontSize(12);
+    doc.text('This Resale Certificate is issued in compliance with Texas Property Code Chapter 207.', 20, 210);
+    
+    // Signature line
+    doc.line(20, 240, 100, 240);
+    doc.text('Authorized Signature', 20, 250);
     
     return doc;
+  }
+
+  static createCondoQuestionnaire(data: CondoQuestionnaireData) {
+    const doc = new jsPDF();
+    
+    // Add header
+    doc.setFontSize(20);
+    doc.text('CONDOMINIUM QUESTIONNAIRE', 105, 20, { align: 'center' });
+    
+    // Property information
+    doc.setFontSize(14);
+    doc.text('PROPERTY INFORMATION', 20, 40);
+    doc.setFontSize(12);
+    doc.text(`Condominium Name: ${data.condoName || 'N/A'}`, 20, 50);
+    doc.text(`Property Address: ${data.propertyAddress || 'N/A'}`, 20, 60);
+    doc.text(`Unit Number: ${data.unitNumber || 'N/A'}`, 20, 70);
+    
+    // Association information
+    doc.setFontSize(14);
+    doc.text('ASSOCIATION INFORMATION', 20, 90);
+    doc.setFontSize(12);
+    doc.text(`Association Name: ${data.associationName || 'N/A'}`, 20, 100);
+    doc.text(`Management Company: ${data.managementCompany || 'N/A'}`, 20, 110);
+    doc.text(`Total Units: ${data.totalUnits || 'N/A'}`, 20, 120);
+    doc.text(`Year Built: ${data.yearBuilt || 'N/A'}`, 20, 130);
+    
+    // Financial information
+    doc.setFontSize(14);
+    doc.text('FINANCIAL INFORMATION', 20, 150);
+    doc.setFontSize(12);
+    doc.text(`Monthly HOA Fee: $${data.monthlyFee || '0.00'}`, 20, 160);
+    doc.text(`Reserve Fund Balance: $${data.reserveBalance || '0.00'}`, 20, 170);
+    doc.text(`Percentage of Owner-Occupied Units: ${data.ownerOccupiedPercentage || '0'}%`, 20, 180);
+    doc.text(`Percentage of Units in Arrears: ${data.arrearsPercentage || '0'}%`, 20, 190);
+    
+    // Insurance information
+    doc.setFontSize(14);
+    doc.text('INSURANCE INFORMATION', 20, 210);
+    doc.setFontSize(12);
+    doc.text(`Insurance Carrier: ${data.insuranceCarrier || 'N/A'}`, 20, 220);
+    doc.text(`Policy Number: ${data.policyNumber || 'N/A'}`, 20, 230);
+    doc.text(`Expiration Date: ${data.expirationDate || 'N/A'}`, 20, 240);
+    
+    // Signature line
+    doc.line(20, 260, 100, 260);
+    doc.text('Completed By', 20, 270);
+    
+    return doc;
+  }
+  
+  // Function to save the PDF
+  static savePdf(doc: jsPDF, filename: string) {
+    doc.save(filename);
   }
 }
