@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useVoiceGreeting } from '@/hooks/use-voice-greeting';
 import { Widget } from '@/types/dashboard';
@@ -9,7 +10,6 @@ import { useCardStyle } from '@/hooks/use-card-style';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import DashboardStats from '@/components/dashboard/DashboardStats';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 
 const Dashboard = () => {
@@ -141,7 +141,7 @@ const Dashboard = () => {
         />
         
         {isCustomizing && (
-          <div className="relative p-6 md:p-8">
+          <div className="relative p-4 md:p-6">
             <DashboardCustomizer 
               widgets={dashboardWidgets}
               columns={columns}
@@ -149,14 +149,13 @@ const Dashboard = () => {
             />
           </div>
         )}
-        
-        <DashboardStats />
       </div>
       
       <motion.div
         variants={container}
         initial="hidden"
         animate="show"
+        className="mt-2"
       >
         <DashboardLayout 
           widgets={dashboardWidgets}

@@ -3,14 +3,23 @@ import React from 'react';
 import { LayoutDashboard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DashboardActions from './DashboardActions';
+import DashboardStats from './DashboardStats';
 
-const DashboardHeader: React.FC<React.PropsWithChildren<{}>> = () => {
+interface DashboardHeaderProps {
+  isCustomizing?: boolean;
+  setIsCustomizing?: (value: boolean) => void;
+}
+
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
+  isCustomizing = false, 
+  setIsCustomizing = () => {} 
+}) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative mb-8"
+      className="relative mb-4"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-2xl" />
       <div className="relative p-6 md:p-8">
@@ -29,6 +38,11 @@ const DashboardHeader: React.FC<React.PropsWithChildren<{}>> = () => {
             </p>
           </div>
           <DashboardActions />
+        </div>
+        
+        {/* Move DashboardStats inside the header */}
+        <div className="mt-4">
+          <DashboardStats />
         </div>
       </div>
     </motion.div>
