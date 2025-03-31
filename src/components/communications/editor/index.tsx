@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import EditorTabs from './EditorTabs';
 import VisualEditor, { VisualEditorRef } from './VisualEditor';
@@ -11,7 +10,7 @@ export interface HtmlEditorRef {
   insertAtCursor: (text: string) => void;
 }
 
-interface HtmlEditorProps {
+export interface HtmlEditorProps {
   value: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
@@ -29,10 +28,8 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
 
     const handleTabChange = (tab: string) => {
       if (activeTab === "visual" && tab === "html") {
-        // Switching from visual to HTML - update the HTML code
         setHtmlCode(value);
       } else if (activeTab === "html" && tab === "visual") {
-        // Switching from HTML to visual - update the editor
         onChange(htmlCode);
       }
       setActiveTab(tab);
@@ -54,7 +51,6 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
     const executeCommand = (command: string, value: string | null = null) => {
       if (readOnly || activeTab !== "visual") return;
       
-      // Use the visual editor's executeCommand method
       visualEditorRef.current?.executeCommand(command, value);
     };
 
@@ -76,7 +72,6 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
       }
     };
     
-    // Handle toolbar actions
     const handleToolbarAction = (action: string) => {
       if (readOnly || activeTab !== "visual") return;
       
@@ -116,7 +111,6 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
       }
     };
 
-    // Expose method to parent component to insert at cursor
     useImperativeHandle(ref, () => ({
       insertAtCursor: (text: string) => {
         if (activeTab === "visual" && visualEditorRef.current) {
@@ -124,7 +118,6 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
         } else if (activeTab === "html" && htmlEditorRef.current) {
           htmlEditorRef.current.insertAtCursor(text);
         } else {
-          // Fallback: append to the end
           if (activeTab === "visual") {
             handleVisualUpdate(value + text);
           } else {
