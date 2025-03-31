@@ -39,7 +39,8 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   setOpen,
   onSuccess,
   refreshDocuments,
-  categoryId
+  categoryId,
+  associationId
 }) => {
   const [categories, setCategories] = useState<Array<{id: string, name: string}>>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -57,11 +58,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     },
   });
   
-  // Load categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // Fetch categories from Supabase
         const { data, error } = await supabase
           .from('document_categories')
           .select('id, name')
@@ -75,7 +74,6 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         
         setCategories(data || []);
         
-        // Set default category if provided and exists
         if (categoryId) {
           form.setValue('category', categoryId);
         }
@@ -94,9 +92,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       const file = files[0];
       form.setValue('file', file);
       
-      // Auto-fill name from file name if empty
       if (!form.getValues('name')) {
-        // Remove extension from filename
         const fileName = file.name.split('.').slice(0, -1).join('.');
         form.setValue('name', fileName);
       }
@@ -109,7 +105,6 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
       return;
     }
     
-    // Use provided associationId or fall back to the active association
     const targetAssociationId = associationId || (activeAssociation ? activeAssociation.id : null);
     
     if (!targetAssociationId) {
@@ -120,7 +115,6 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setIsUploading(true);
     
     try {
-      // Parse tags
       const tagArray = values.tags 
         ? values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
         : [];
@@ -138,12 +132,10 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         setOpen(false);
         form.reset();
         
-        // Call success callback if provided
         if (onSuccess) {
           onSuccess();
         }
         
-        // Refresh documents list if provided
         if (refreshDocuments) {
           refreshDocuments();
         }

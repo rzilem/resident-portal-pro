@@ -1,7 +1,8 @@
+
 /**
  * Document utilities for fetching and manipulating document data
  */
-import { DocumentCategory } from '@/types/documents';
+import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -39,7 +40,7 @@ export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
       id: cat.id,
       name: cat.name,
       description: cat.description || '',
-      accessLevel: cat.access_level || 'all',
+      accessLevel: (cat.access_level || 'all') as DocumentAccessLevel,
       sortOrder: cat.sort_order,
     }));
   } catch (error) {

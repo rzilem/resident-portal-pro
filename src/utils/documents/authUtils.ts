@@ -1,4 +1,3 @@
-
 /**
  * Authentication utilities for document management
  */
