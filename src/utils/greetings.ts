@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for generating time-based greetings
  */
@@ -40,6 +39,7 @@ export const speakGreeting = async (
   if (options?.greetingType === 'custom' && options.customGreeting) {
     // Use custom greeting with name substitution
     message = options.customGreeting.replace('{name}', name);
+    console.log('Using custom greeting:', message); // Add logging for debugging
   } else if (options?.greetingType === 'preset' && options.presetGreetingId) {
     // Use preset greeting
     const presetText = getPresetGreetingById(options.presetGreetingId);
@@ -55,6 +55,9 @@ export const speakGreeting = async (
     const greeting = getTimeBasedGreeting();
     message = `${greeting}, ${name}. Welcome to your dashboard.`;
   }
+  
+  // Log the final message for debugging
+  console.log('Final greeting message:', message);
   
   // Use ElevenLabs for high-quality natural voice
   await speakWithElevenLabs(message, {
