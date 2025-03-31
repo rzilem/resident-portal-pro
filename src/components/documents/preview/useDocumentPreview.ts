@@ -63,7 +63,7 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
       errorLog('Error processing document URL:', error);
       setPreviewError("Failed to process document URL");
       
-      // Only pass the URL to the state setter
+      // Only pass the URL to the state setter - fixed to pass just one argument
       const fallbackUrl = sanitizeDocumentUrl(doc.url);
       setPreviewUrl(fallbackUrl);
       setIsLoading(false);
@@ -73,7 +73,7 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
   const handleLoadError = () => {
     setIsLoading(false);
     setPreviewError("Failed to load document preview");
-    errorLog("Failed to load document preview for:", document?.name, document?.url);
+    errorLog("Failed to load document preview for:", document?.name);
   };
   
   const handleLoadSuccess = () => {
