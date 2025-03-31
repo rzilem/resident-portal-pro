@@ -1,73 +1,29 @@
 
 /**
- * Utility for debug logging
+ * Log debug messages to console (only in development)
  */
-
-const DEBUG_MODE = true;
-
-/**
- * Log debug messages to console when in debug mode
- * @param message Debug message
- * @param data Optional data to log
- */
-export const debugLog = (message: string, data?: any): void => {
-  if (DEBUG_MODE) {
-    if (data) {
-      console.log(`[DEBUG] ${message}`, data);
-    } else {
-      console.log(`[DEBUG] ${message}`);
-    }
+export const debugLog = (...args: any[]): void => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(...args);
   }
 };
 
 /**
  * Log error messages to console
- * @param message Error message
- * @param error Error object or data
  */
 export const errorLog = (message: string, error?: any): void => {
+  console.error(message);
   if (error) {
-    console.error(`[ERROR] ${message}`, error);
-  } else {
-    console.error(`[ERROR] ${message}`);
+    console.error(error);
   }
 };
 
 /**
  * Log warning messages to console
- * @param message Warning message
- * @param data Optional data to log
  */
 export const warnLog = (message: string, data?: any): void => {
+  console.warn(message);
   if (data) {
-    console.warn(`[WARNING] ${message}`, data);
-  } else {
-    console.warn(`[WARNING] ${message}`);
-  }
-};
-
-/**
- * Log success messages to console
- * @param message Success message
- * @param data Optional data to log
- */
-export const successLog = (message: string, data?: any): void => {
-  if (data) {
-    console.log(`[SUCCESS] ${message}`, data);
-  } else {
-    console.log(`[SUCCESS] ${message}`);
-  }
-};
-
-/**
- * Log information messages to console
- * @param message Info message
- * @param data Optional data to log
- */
-export const infoLog = (message: string, data?: any): void => {
-  if (data) {
-    console.info(`[INFO] ${message}`, data);
-  } else {
-    console.info(`[INFO] ${message}`);
+    console.warn(data);
   }
 };

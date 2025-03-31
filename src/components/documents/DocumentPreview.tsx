@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -59,38 +60,48 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
     
     try {
-      if (doc.url.includes('storage.googleapis.com') || doc.url.includes('supabase')) {
-        let bucket = 'documents';
-        let path = '';
+      // Handle Supabase URLs - with more robust pattern matching
+      if (doc.url.includes('supabase') || doc.url.includes('storage.googleapis.com')) {
+        // Try to extract the bucket and path from the URL
+        // This regex matches both formats:
+        // - /storage/v1/object/public/bucket/path
+        // - /storage/v1/object/sign/bucket/path
+        const bucketPathMatch = doc.url.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/(.+?)(?:\?.*)?$/);
         
-        const match = doc.url.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/);
-        if (match) {
-          bucket = match[1];
-          path = match[2];
-          console.log(`Extracted bucket: ${bucket}, path: ${path}`);
+        if (bucketPathMatch) {
+          const bucket = bucketPathMatch[1];
+          const path = bucketPathMatch[2];
           
+          console.log(`Extracted storage details - Bucket: ${bucket}, Path: ${path}`);
+          
+          // Get a fresh URL using the storage utility
           const freshUrl = getFileUrl(bucket, path);
-          console.log('Fresh Supabase URL:', freshUrl);
           
           if (freshUrl) {
+            console.log('Generated fresh Supabase URL:', freshUrl);
             setPreviewUrl(freshUrl);
           } else {
+            console.log('Failed to generate fresh URL, using sanitized original');
             setPreviewUrl(sanitizeDocumentUrl(doc.url));
           }
         } else {
-          console.log('Could not parse URL, using original:', doc.url);
+          // If we couldn't extract the bucket and path, use the original URL
+          console.log('Could not parse storage URL format, using sanitized original:', doc.url);
           setPreviewUrl(sanitizeDocumentUrl(doc.url));
         }
       } else {
+        // For non-Supabase URLs, just sanitize and use directly
+        console.log('Using non-Supabase URL:', doc.url);
         setPreviewUrl(sanitizeDocumentUrl(doc.url));
       }
     } catch (error) {
-      console.error('Error updating preview URL:', error);
-      setPreviewError("Failed to generate preview URL");
+      console.error('Error processing document URL:', error);
+      setPreviewError("Failed to process document URL");
+      // Fallback to original URL
       setPreviewUrl(sanitizeDocumentUrl(doc.url));
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
   
   if (!document) {
@@ -209,8 +220,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     const fileType = document.fileType.toLowerCase();
     const previewUrlToUse = getPreviewUrl();
     
-    console.log("Preview URL:", previewUrlToUse);
-    console.log("File type:", fileType);
+    console.log("Final Preview URL being used:", previewUrlToUse);
+    console.log("File type being previewed:", fileType);
     
     if (fileType.includes('pdf')) {
       return (
