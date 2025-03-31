@@ -15,10 +15,12 @@ import {
   getMimeTypeFromFileName, 
   canUseOfficeViewer, 
   getOfficeViewerUrl,
-  sanitizeDocumentUrl 
+  sanitizeDocumentUrl,
+  formatDate
 } from '@/utils/documents/documentUtils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getFileUrl } from '@/utils/supabase/storage/getUrl';
 
 interface DocumentPreviewProps {
   document: DocumentFile | null;
@@ -57,22 +59,26 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
     
     try {
-      if (doc.url.includes('storage/v1/object') || doc.url.includes('storage.googleapis.com')) {
+      if (doc.url.includes('storage.googleapis.com') || doc.url.includes('supabase')) {
+        let bucket = 'documents';
         let path = '';
-        const match = doc.url.match(/public\/([^/]+)\/(.+)$/);
+        
+        const match = doc.url.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/);
         if (match) {
-          const bucket = match[1];
+          bucket = match[1];
           path = match[2];
           console.log(`Extracted bucket: ${bucket}, path: ${path}`);
           
-          const { data: urlData } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(path);
+          const freshUrl = getFileUrl(bucket, path);
+          console.log('Fresh Supabase URL:', freshUrl);
           
-          console.log('Fresh Supabase URL:', urlData.publicUrl);
-          setPreviewUrl(urlData.publicUrl);
+          if (freshUrl) {
+            setPreviewUrl(freshUrl);
+          } else {
+            setPreviewUrl(sanitizeDocumentUrl(doc.url));
+          }
         } else {
-          console.log('Using original URL:', doc.url);
+          console.log('Could not parse URL, using original:', doc.url);
           setPreviewUrl(sanitizeDocumentUrl(doc.url));
         }
       } else {
@@ -92,14 +98,6 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   }
   
   const showVersionHistory = document.previousVersions && document.previousVersions.length > 0;
-  
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
   
   const handleDownload = () => {
     if (!document.url) {
