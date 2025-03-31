@@ -56,12 +56,14 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
       const cleanUrl = sanitizeDocumentUrl(doc.url);
       documentPreviewLog('Using sanitized URL', { cleanUrl });
       
+      // Only pass the URL to the state setter
       setPreviewUrl(cleanUrl);
       setIsLoading(false);
     } catch (error) {
       errorLog('Error processing document URL:', error);
       setPreviewError("Failed to process document URL");
       
+      // Only pass the URL to the state setter
       const fallbackUrl = sanitizeDocumentUrl(doc.url);
       setPreviewUrl(fallbackUrl);
       setIsLoading(false);
