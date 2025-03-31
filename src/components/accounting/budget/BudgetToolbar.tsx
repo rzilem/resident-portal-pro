@@ -24,40 +24,40 @@ const BudgetToolbar: React.FC<BudgetToolbarProps> = ({ activeTab }) => {
       </TabsList>
       
       <div className="flex gap-2">
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-1">
                 <RefreshCw size={16} /> Refresh
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="top" className="z-50">
               <p>Refresh budget data</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
         
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-1">
                 <Download size={16} /> Export
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="top" className="z-50">
               <p>Export budget to spreadsheet</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
         
-        <TooltipProvider>
+        <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button size="sm" className="flex items-center gap-1">
                 <PlusCircle size={16} /> New Budget Item
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="top" className="z-50">
               <p>Add new budget line item</p>
             </TooltipContent>
           </Tooltip>

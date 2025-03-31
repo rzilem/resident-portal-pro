@@ -5,6 +5,12 @@ import { CalendarEvent, CalendarEventType } from '@/types/calendar';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface CalendarDisplayProps {
   currentDate: Date;
@@ -74,11 +80,20 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
             {props.date.getDate()}
           </div>
           {hasEvents && eventsCount > 0 && (
-            <div className="text-xs mt-1">
-              <Badge variant="outline" className="h-4 min-w-4 px-1 text-[10px]">
-                {eventsCount}
-              </Badge>
-            </div>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-xs mt-1">
+                    <Badge variant="outline" className="h-4 min-w-4 px-1 text-[10px]">
+                      {eventsCount}
+                    </Badge>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="z-50">
+                  <p>{eventsCount} event{eventsCount !== 1 ? 's' : ''} on {format(props.date, 'MMMM d')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>

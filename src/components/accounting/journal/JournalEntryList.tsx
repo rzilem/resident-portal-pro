@@ -6,6 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Pencil, Search, Filter, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 // Sample data for demonstration
 const sampleJournalEntries = [
@@ -114,9 +120,18 @@ const JournalEntryList: React.FC<JournalEntryListProps> = ({ onEditEntry }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon" className="shrink-0">
-            <Filter size={16} />
-          </Button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="shrink-0">
+                  <Filter size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Filter journal entries</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="flex gap-2">
           <select
@@ -170,13 +185,22 @@ const JournalEntryList: React.FC<JournalEntryListProps> = ({ onEditEntry }) => {
                     {renderStatusBadge(entry.status)}
                   </TableCell>
                   <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => onEditEntry(entry)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => onEditEntry(entry)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                          <p>Edit journal entry</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
               ))

@@ -26,4 +26,20 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+// Configure default provider with sensible defaults
+const ConfiguredTooltipProvider: React.FC<React.ComponentPropsWithoutRef<typeof TooltipProvider>> = ({
+  children,
+  delayDuration = 300,
+  skipDelayDuration = 300,
+  ...props
+}) => (
+  <TooltipProvider 
+    delayDuration={delayDuration} 
+    skipDelayDuration={skipDelayDuration} 
+    {...props}
+  >
+    {children}
+  </TooltipProvider>
+)
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, ConfiguredTooltipProvider }
