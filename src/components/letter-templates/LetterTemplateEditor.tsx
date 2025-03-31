@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,6 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
   
   const [isMergeTagsDialogOpen, setIsMergeTagsDialogOpen] = useState(false);
   
-  // Reset form when selected template changes
   useEffect(() => {
     if (selectedTemplate) {
       setName(selectedTemplate.name);
@@ -69,7 +67,6 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
     setHasChanges(false);
   }, [selectedTemplate]);
   
-  // Check for changes
   useEffect(() => {
     const currentValues = { name, description, category, content };
     setHasChanges(
@@ -81,20 +78,20 @@ const LetterTemplateEditor: React.FC<LetterTemplateEditorProps> = ({
     if (editorRef.current?.insertAtCursor) {
       editorRef.current.insertAtCursor(tag.tag);
     } else {
-      // Fallback - append to content
       setContent(prev => prev + ' ' + tag.tag);
     }
     setIsMergeTagsDialogOpen(false);
   };
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     
     if (isReadOnly) {
       return;
     }
     
-    // Validate form
     if (!name.trim()) {
       toast.error('Please enter a template name');
       return;

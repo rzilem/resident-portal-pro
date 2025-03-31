@@ -1,5 +1,5 @@
 
-import { MergeTagGroup } from "@/types/mergeTags";
+import { MergeTagGroup, MergeTag, CustomMergeTagDefinition, MergeTagCategory } from "@/types/mergeTags";
 
 // Define sample merge tags for letter templates
 const MERGE_TAG_GROUPS: MergeTagGroup[] = [
@@ -203,6 +203,73 @@ class MergeTagService {
   // Get all available merge tags (flattened)
   async getAllMergeTags() {
     return MERGE_TAG_GROUPS.flatMap(group => group.tags);
+  }
+
+  // Process merge tags in content (replace them with sample values)
+  async processMergeTags(content: string): Promise<string> {
+    if (!content) return content;
+    
+    const allTags = await this.getAllMergeTags();
+    let processedContent = content;
+    
+    // Simple replacement of merge tags with their example values
+    allTags.forEach(tag => {
+      if (tag.example) {
+        const regex = new RegExp(tag.tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        processedContent = processedContent.replace(regex, tag.example);
+      }
+    });
+    
+    return processedContent;
+  }
+  
+  // Get custom merge tags for a specific association
+  async getCustomMergeTagsForAssociation(associationId: string): Promise<MergeTag[]> {
+    // In a real implementation, this would fetch from the database
+    // For now, just return a sample custom tag
+    return [
+      {
+        id: 'custom-1',
+        name: 'Pool Access Code',
+        description: 'The current access code for the community pool',
+        tag: '{{custom.property.pool_access_code}}',
+        example: '1234',
+        category: 'property'
+      }
+    ];
+  }
+  
+  // Create a new custom merge tag
+  async createCustomMergeTag(definition: CustomMergeTagDefinition): Promise<MergeTag> {
+    // In a real implementation, this would store to the database
+    return {
+      id: `custom-${Date.now()}`,
+      name: definition.name,
+      description: definition.description,
+      tag: definition.tag,
+      example: definition.defaultValue,
+      category: definition.category
+    };
+  }
+  
+  // Update an existing custom merge tag
+  async updateCustomMergeTag(id: string, updates: Partial<CustomMergeTagDefinition>): Promise<MergeTag> {
+    // In a real implementation, this would update the database
+    return {
+      id,
+      name: updates.name || 'Updated Tag',
+      description: updates.description || 'Updated Description',
+      tag: updates.tag || '{{custom.updated}}',
+      example: updates.defaultValue,
+      category: updates.category || 'custom'
+    };
+  }
+  
+  // Delete a custom merge tag
+  async deleteCustomMergeTag(id: string): Promise<boolean> {
+    // In a real implementation, this would delete from the database
+    console.log(`Deleting custom merge tag with ID: ${id}`);
+    return true;
   }
 }
 

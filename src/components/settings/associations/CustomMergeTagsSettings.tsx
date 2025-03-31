@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAssociations } from '@/hooks/use-associations';
 import { mergeTagService } from '@/services/mergeTagService';
@@ -123,7 +122,7 @@ const CustomMergeTagsSettings = () => {
           description: data.description,
           category: data.category as MergeTagCategory,
           tag: data.tag,
-          example: data.defaultValue,
+          defaultValue: data.defaultValue,
         });
 
         setCustomTags(prevTags => 
