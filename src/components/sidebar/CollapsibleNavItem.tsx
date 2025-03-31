@@ -19,7 +19,9 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
   const Icon = item.icon;
 
   // Handle navigation to the default page of the section
-  const handleNavigate = (href: string) => {
+  const handleNavigate = (href: string, e: React.MouseEvent) => {
+    // Prevent the event from bubbling to the toggle handler
+    e.stopPropagation();
     console.log('Navigating to:', href);
     navigate(href);
   };
@@ -49,7 +51,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
               "flex-1 justify-start font-normal",
               item.active ? "font-medium" : "font-normal"
             )}
-            onClick={() => item.href && handleNavigate(item.href)}
+            onClick={(e) => item.href && handleNavigate(item.href, e)}
           >
             <span className="flex items-center">
               {item.icon && <span className="mr-2"><Icon className="h-4 w-4" /></span>}

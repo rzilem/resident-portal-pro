@@ -104,7 +104,7 @@ export function useSidebarState(initialGroups: SidebarGroupState = {}) {
       console.log("Updating open groups:", newOpenGroups);
       setOpenGroups(newOpenGroups);
     }
-  }, [location.pathname, openGroups]);
+  }, [location.pathname]);  // Remove openGroups from dependency array to prevent infinite updates
 
   // Function to toggle a specific group
   const toggleGroup = (group: string) => {
