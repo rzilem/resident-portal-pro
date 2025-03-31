@@ -51,8 +51,11 @@ export const useViolations = (associationId?: string): UseViolationsResult => {
 
         // Transform data for the table
         const formattedViolations = data?.map(item => {
-          // Ensure properties is handled as a single object, not an array
-          const propertyAddress = typeof item.properties === 'object' ? item.properties.address : 'Unknown Property';
+          // Access properties safely - it might be null, an object, or structured differently
+          const propertyAddress = item.properties && 
+            typeof item.properties === 'object' && 
+            'address' in item.properties ? 
+              item.properties.address : 'Unknown Property';
           
           return {
             id: item.id,
