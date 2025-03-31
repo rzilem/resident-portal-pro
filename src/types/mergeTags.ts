@@ -20,6 +20,7 @@ export interface CustomMergeTagDefinition {
   tag: string;
   defaultValue?: string;
   category: string;
+  associationId?: string;
 }
 
 export type MergeTagCategory = 
@@ -29,4 +30,12 @@ export type MergeTagCategory =
   | 'compliance'
   | 'financial'
   | 'date'
+  | 'maintenance'
+  | 'communication'
+  | 'meeting'
+  | 'workflow'
+  | 'board'
+  | 'event'
+  | 'violation'
   | 'custom';
+

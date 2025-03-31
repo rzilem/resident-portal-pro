@@ -1,24 +1,26 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Edit, Mail, Trash2 } from 'lucide-react';
+import { 
+  Card, CardContent, CardDescription, 
+  CardFooter, CardHeader, CardTitle 
+} from '@/components/ui/card';
+import { 
+  Edit, Eye, MessageSquare, 
+  FileText, Trash2, CalendarClock
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { formatDate } from '@/components/communications/composer/ComposerUtils';
 import { MessageTemplate } from '@/pages/communications/types';
 import { TooltipButton } from '@/components/ui/tooltip-button';
 
 interface TemplateCardProps {
   template: MessageTemplate;
-  onSelect: (template: MessageTemplate) => void;
-  onEdit: (template: MessageTemplate) => void;
-  onDelete: (templateId: string) => Promise<void>;
+  onSelect: () => void;
+  onEdit: () => void;
+  onDelete: () => Promise<void>;
+  onPreview?: () => void;
+  getCommunityName: (id: string) => string;
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({
@@ -26,141 +28,98 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   onSelect,
   onEdit,
   onDelete,
+  onPreview,
+  getCommunityName
 }) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-
-  const handleDelete = async () => {
-    await onDelete(template.id);
-    setDeleteDialogOpen(false);
+  // Function to truncate text
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
-
+  
   return (
-    <>
-      <Card className="flex flex-col h-full">
-        <CardHeader className="pb-2 pt-4 px-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-base font-medium">{template.name}</h3>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                {template.description || 'No description'}
-              </p>
-            </div>
-            <span className="px-2 py-1 rounded-full bg-primary/10 text-xs">
-              {template.category}
-            </span>
+    <Card className="flex flex-col h-full">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <Badge variant="secondary" className="mb-2">
+            {template.category}
+          </Badge>
+          <div className="flex gap-1">
+            {template.communities && template.communities.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {template.communities.includes('all') 
+                  ? 'All Communities' 
+                  : template.communities.length === 1 
+                    ? getCommunityName(template.communities[0])
+                    : `${template.communities.length} Communities`}
+              </Badge>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="px-4 py-2 flex-1">
-          <p className="text-sm font-medium mb-1">Subject:</p>
-          <p className="text-sm mb-3 line-clamp-1">{template.subject}</p>
-          <p className="text-sm font-medium mb-1">Preview:</p>
-          <div
-            className="text-xs text-muted-foreground line-clamp-3 overflow-hidden"
-            onClick={() => setPreviewOpen(true)}
-          >
-            {template.content?.replace(/<[^>]*>/g, '') || 'No content'}
+        </div>
+        <CardTitle className="text-base">{template.name}</CardTitle>
+        <CardDescription className="text-xs">
+          <div className="flex items-center gap-1">
+            <CalendarClock className="h-3 w-3" />
+            <span>Updated {formatDate(template.updatedAt)}</span>
           </div>
-        </CardContent>
-        <CardFooter className="px-4 py-3 flex gap-2 justify-between">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pb-2 flex-1">
+        <p className="text-sm text-muted-foreground mb-2">
+          {truncateText(template.description, 120)}
+        </p>
+        <div className="flex flex-col gap-1 text-sm">
+          <div className="flex items-start gap-2">
+            <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <span className="font-medium">{truncateText(template.subject, 60)}</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <span className="text-muted-foreground">{truncateText(template.content, 100)}</span>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="pt-2 flex justify-between">
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={onSelect}
+        >
+          Use Template
+        </Button>
+        <div className="flex gap-1">
+          {onPreview && (
+            <TooltipButton
+              variant="ghost"
+              size="icon"
+              onClick={onPreview}
+              tooltipText="Preview template"
+              className="h-8 w-8"
+            >
+              <Eye className="h-4 w-4" />
+            </TooltipButton>
+          )}
           <TooltipButton
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(template)}
+            variant="ghost"
+            size="icon"
+            onClick={onEdit}
             tooltipText="Edit template"
+            className="h-8 w-8"
           >
-            <Edit className="h-4 w-4 mr-1" />
-            Edit
+            <Edit className="h-4 w-4" />
           </TooltipButton>
-          <div className="flex gap-2">
-            <TooltipButton
-              variant="destructive"
-              size="sm"
-              onClick={() => setDeleteDialogOpen(true)}
-              tooltipText="Delete template"
-            >
-              <Trash2 className="h-4 w-4" />
-            </TooltipButton>
-            <TooltipButton
-              size="sm"
-              onClick={() => onSelect(template)}
-              tooltipText="Use template"
-            >
-              <Mail className="h-4 w-4 mr-1" />
-              Use
-            </TooltipButton>
-          </div>
-        </CardFooter>
-      </Card>
-
-      {/* Preview Dialog */}
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{template.name}</DialogTitle>
-            <DialogDescription>{template.description}</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-1">Subject:</h4>
-              <p>{template.subject}</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium mb-1">Content:</h4>
-              <div
-                className="border rounded-md p-4 overflow-auto max-h-96"
-                dangerouslySetInnerHTML={{ __html: template.content }}
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="mt-4 flex gap-2 justify-between">
-            <Button
-              variant="outline"
-              onClick={() => onEdit(template)}
-              className="sm:w-auto"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Template
-            </Button>
-            <Button onClick={() => {
-              setPreviewOpen(false);
-              onSelect(template);
-            }}>
-              <Mail className="h-4 w-4 mr-2" />
-              Use Template
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Template</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{template.name}"? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4 gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          <TooltipButton
+            variant="ghost"
+            size="icon"
+            onClick={onDelete}
+            tooltipText="Delete template"
+            className="h-8 w-8 text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </TooltipButton>
+        </div>
+      </CardFooter>
+    </Card>
   );
 };
 

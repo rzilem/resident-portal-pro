@@ -15,6 +15,10 @@ interface TemplatesListProps {
   searchQuery?: string;
   selectedCategory?: string;
   selectedCommunity?: string;
+  onSelect?: (template: MessageTemplate) => void;
+  onEdit?: (template: MessageTemplate) => void;
+  onDelete?: (id: string) => void;
+  onPreview?: (template: MessageTemplate) => void;
 }
 
 const TemplatesList: React.FC<TemplatesListProps> = ({
@@ -26,13 +30,38 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
   searchQuery = '',
   selectedCategory = '',
   selectedCommunity = '',
+  onSelect,
+  onEdit,
+  onDelete,
+  onPreview
 }) => {
   // Handle template deletion, making it return a Promise
   const handleDeleteTemplate = async (id: string) => {
     try {
+      if (onDelete) {
+        onDelete(id);
+        return;
+      }
       await onDeleteTemplate(id);
     } catch (error) {
       console.error('Error deleting template:', error);
+    }
+  };
+
+  // Use appropriate handlers based on what was provided
+  const handleSelectTemplate = (template: MessageTemplate) => {
+    if (onSelect) {
+      onSelect(template);
+    } else {
+      onSelectTemplate(template);
+    }
+  };
+
+  const handleEditTemplate = (template: MessageTemplate) => {
+    if (onEdit) {
+      onEdit(template);
+    } else {
+      onEditTemplate(template);
     }
   };
 
@@ -83,9 +112,10 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
             <TemplateCard
               key={template.id}
               template={template}
-              onSelect={() => onSelectTemplate(template)}
-              onEdit={() => onEditTemplate(template)}
+              onSelect={() => handleSelectTemplate(template)}
+              onEdit={() => handleEditTemplate(template)}
               onDelete={() => handleDeleteTemplate(template.id)}
+              onPreview={onPreview ? () => onPreview(template) : undefined}
               getCommunityName={getCommunityName}
             />
           ))}
