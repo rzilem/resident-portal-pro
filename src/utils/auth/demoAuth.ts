@@ -1,71 +1,31 @@
 
 /**
- * Utility functions for demo authentication
+ * Utilities for demo authentication
  */
 
-/**
- * Check if the current user is using the demo authentication
- * @returns {boolean} True if using demo authentication
- */
-export const isDemoAuthenticated = (): boolean => {
-  // Check if there's a demo flag in localStorage
-  const isDemoFlag = localStorage.getItem('demo_auth') === 'true';
+// Check if credentials match demo account credentials
+export const isDemoCredentials = (email: string, password: string): boolean => {
+  const demoEmail = "demo@example.com";
+  const demoPassword = "demo123";
   
-  // Check if we're in demo/development mode based on URL or environment
-  const isDemoEnvironment = 
-    window.location.hostname.includes('demo') || 
-    window.location.hostname.includes('localhost') ||
-    window.location.hostname.includes('127.0.0.1') ||
-    window.location.search.includes('demo=true');
-  
-  return isDemoFlag || isDemoEnvironment;
+  return email.toLowerCase() === demoEmail && password === demoPassword;
 };
 
-/**
- * Set demo authentication mode
- * @param {boolean} isDemo Whether to enable demo authentication
- */
-export const setDemoAuthentication = (isDemo: boolean = true): void => {
+// Set demo authentication mode
+export const setDemoAuthentication = (isDemo: boolean): void => {
   if (isDemo) {
-    localStorage.setItem('demo_auth', 'true');
+    localStorage.setItem('demoAuth', 'true');
   } else {
-    localStorage.removeItem('demo_auth');
+    localStorage.removeItem('demoAuth');
   }
 };
 
-/**
- * Clear demo authentication
- */
+// Clear demo authentication
 export const clearDemoAuthentication = (): void => {
-  localStorage.removeItem('demo_auth');
+  localStorage.removeItem('demoAuth');
 };
 
-/**
- * Check if credentials are demo credentials
- * @param {string} email Email address
- * @param {string} password Password
- * @returns {boolean} True if credentials are demo credentials
- */
-export const isDemoCredentials = (email: string, password: string): boolean => {
-  const demoEmails = ['demo@example.com', 'demo@test.com', 'admin@demo.com'];
-  const demoPasswords = ['demo123', 'password', 'demopassword'];
-  
-  return (
-    (demoEmails.includes(email.toLowerCase()) && demoPasswords.includes(password)) ||
-    (email.includes('demo') && password.includes('demo'))
-  );
-};
-
-/**
- * Get demo user data
- * @returns {object} Demo user data
- */
-export const getDemoUser = () => {
-  return {
-    id: 'demo-user-id',
-    email: 'demo@example.com',
-    name: 'Demo User',
-    role: 'demo',
-    isDemo: true
-  };
+// Check if user is in demo authentication mode
+export const isDemoMode = (): boolean => {
+  return localStorage.getItem('demoAuth') === 'true';
 };

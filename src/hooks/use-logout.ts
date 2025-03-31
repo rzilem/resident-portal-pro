@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/auth/AuthProvider';
@@ -7,33 +6,29 @@ import { clearDemoAuthentication } from '@/utils/auth/demoAuth';
 
 export const useLogout = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   const { signOut } = useAuth();
 
   const handleLogout = async () => {
-    setIsLoading(true);
-    
     try {
-      // Clear demo auth if it was used
+      // Clear demo authentication if active
       clearDemoAuthentication();
       
-      // Perform Supabase signout
-      await signOut();
+      // Sign out from Supabase
+      const { error } = await signOut();
       
-      toast.success("Logged out successfully");
+      if (error) {
+        console.error('Logout error:', error);
+        toast.error('Error signing out. Please try again.');
+        return;
+      }
       
-      // Navigate back to the login page
+      toast.success('Successfully signed out');
       navigate('/login');
     } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("An error occurred during logout. Please try again.");
-    } finally {
-      setIsLoading(false);
+      console.error('Logout error:', error);
+      toast.error('An unexpected error occurred');
     }
   };
 
-  return {
-    isLoading,
-    handleLogout
-  };
+  return { handleLogout };
 };
