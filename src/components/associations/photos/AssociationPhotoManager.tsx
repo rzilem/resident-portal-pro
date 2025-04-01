@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useAssociationPhotos } from '@/hooks/useAssociationPhotos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,13 +64,11 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
     
     if (!file) return;
     
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setUploadError('Please select an image file');
       return;
     }
     
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setUploadError('File size must be less than 5MB');
       return;
@@ -103,14 +100,7 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
   };
 
   const openPreview = (photoUrl: string) => {
-    // Process URL to ensure it's a valid image URL
-    // For demo URLs, use a placeholder instead
-    const isDemo = photoUrl.includes('demo-storage.example.com');
-    const imageUrl = isDemo 
-      ? "https://placehold.co/800x600?text=Demo+Image" 
-      : photoUrl;
-      
-    setSelectedPhoto(imageUrl);
+    setSelectedPhoto(photoUrl);
     setPreviewDialogOpen(true);
   };
 
@@ -225,12 +215,7 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
           <ScrollArea className="h-[400px] pr-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {photos.map((photo) => {
-                // Process URL to ensure it's a valid image URL
-                // For demo URLs, use a placeholder instead
-                const isDemo = photo.url.includes('demo-storage.example.com');
-                const imageUrl = isDemo 
-                  ? "https://placehold.co/600x400?text=Demo+Image" 
-                  : photo.url;
+                const imageUrl = photo.url;
                   
                 return (
                   <div 
@@ -289,7 +274,6 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
         )}
       </CardContent>
       
-      {/* Photo Preview Dialog */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
         <DialogContent className="sm:max-w-3xl">
           {selectedPhoto && (

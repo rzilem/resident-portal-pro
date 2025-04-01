@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Image, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -95,14 +94,10 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
         <Carousel className="w-full">
           <CarouselContent>
             {photos.map((photo) => {
-              // Process URL to ensure it's a valid image URL
-              // For demo URLs, use a placeholder instead
-              const isDemo = photo.url.includes('demo-storage.example.com');
-              const imageUrl = isDemo 
-                ? "https://placehold.co/600x400?text=Demo+Image" 
-                : photo.url;
+              // Always use the original URL without replacing demo URLs
+              const imageUrl = photo.url;
                 
-              console.log(`Rendering photo: ${photo.id} with URL: ${imageUrl} (original: ${photo.url})`);
+              console.log(`Rendering photo: ${photo.id} with URL: ${imageUrl}`);
               
               return (
                 <CarouselItem key={photo.id}>
