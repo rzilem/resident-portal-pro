@@ -23,6 +23,11 @@ import AssociationProfile from '@/pages/AssociationProfile';
 import Calendar from '@/pages/Calendar';
 import LetterTemplates from '@/pages/letter-templates/LetterTemplates';
 
+// Lead Management Pages
+import LeadsManagement from '@/pages/leads/LeadsManagement';
+import ProposalCreator from '@/pages/leads/ProposalCreator';
+import ProposalViewer from '@/pages/leads/ProposalViewer';
+
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
 import InvoiceCoding from '@/pages/accounting/InvoiceCoding';
@@ -119,6 +124,11 @@ const App = () => {
           {communicationRoutes.map((route, index) => (
             <Route key={`communication-route-${index}`} path={route.path} element={route.element} />
           ))}
+
+          {/* Lead Management Routes */}
+          <Route path="/leads" element={<LeadsManagement />} />
+          <Route path="/leads/proposal-creator" element={<ProposalCreator />} />
+          <Route path="/proposal/:id" element={<ProposalViewer />} />
           
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
