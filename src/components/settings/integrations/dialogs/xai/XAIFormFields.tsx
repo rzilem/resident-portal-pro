@@ -46,7 +46,7 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           autoComplete="off"
-          className="bg-background"
+          className="bg-background focus:ring-offset-background"
         />
         <p className="text-xs text-muted-foreground">
           Obtain your API key from console.x.ai and paste it here.
@@ -83,7 +83,7 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
           autoComplete="off"
-          className="bg-background"
+          className="bg-background focus:ring-offset-background"
         />
         <p className="text-xs text-muted-foreground">
           Required only for organizational X.AI accounts.
