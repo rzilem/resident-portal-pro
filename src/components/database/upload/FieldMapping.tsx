@@ -1,7 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ColumnMapping, ValidationResult, validateMappings } from '@/utils/spreadsheets/mapping';
+import { 
+  ColumnMapping, 
+  ValidationResult, 
+  validateMappings 
+} from '@/utils/spreadsheets/mapping';
 import MappingHeader from './mapping/MappingHeader';
 import MappingFieldsList from './mapping/MappingFieldsList';
 import MappingFooter from './mapping/MappingFooter';
