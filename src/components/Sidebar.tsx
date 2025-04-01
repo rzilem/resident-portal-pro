@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -48,15 +49,15 @@ export function Sidebar({
   };
 
   return <SidebarProvider defaultOpen={true}>
-      <div className={cn("pb-12 border-r min-h-screen bg-background", className)}>
-        <SidebarContent className="space-y-4 py-4">
-          <SidebarHeader className="py-2 px-[71px] my-0">
+      <div className={cn("pb-12 border-r min-h-screen bg-background w-[250px]", className)}>
+        <SidebarContent className="space-y-2 py-3">
+          <SidebarHeader className="py-1 px-4 my-0">
             <div className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group" onClick={handleLogoClick}>
               {settings.logoUrl ? <>
                   <img 
                     src={settings.logoUrl} 
                     alt={settings.companyName || "Company Logo"} 
-                    className="h-16 max-w-[250px] object-contain" 
+                    className="h-12 max-w-[200px] object-contain" 
                   />
                   <TooltipProvider>
                     <Tooltip>
@@ -69,7 +70,7 @@ export function Sidebar({
                     </Tooltip>
                   </TooltipProvider>
                 </> : <>
-                  <div className="text-xl font-semibold tracking-tight">
+                  <div className="text-lg font-semibold tracking-tight">
                     {settings.companyName || "HOA Management"}
                   </div>
                   <TooltipProvider>
@@ -85,7 +86,7 @@ export function Sidebar({
                 </>}
             </div>
           </SidebarHeader>
-          <ScrollArea className="h-[calc(100vh-8rem)] px-3">
+          <ScrollArea className="h-[calc(100vh-7rem)] px-2">
             <div className="space-y-1">
               {NAV_ITEMS.map((item, i) => {
                 if (item === 'separator') {

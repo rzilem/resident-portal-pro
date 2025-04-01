@@ -48,13 +48,13 @@ export const HoaSidebar = ({
     <aside 
       className={cn(
         "fixed top-0 left-0 h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 z-30",
-        collapsed ? "w-20" : "w-64",
+        collapsed ? "w-20" : "w-[250px]",
         className
       )} 
       {...props}
     >
       <div className="h-full flex flex-col">
-        <div className="p-4 flex items-center justify-between border-b">
+        <div className="p-3 flex items-center justify-between border-b">
           {!collapsed ? (
             settings.logoUrl ? (
               <img 
@@ -82,7 +82,7 @@ export const HoaSidebar = ({
         </div>
         
         {/* Back to main app - prominent placement */}
-        <div className="p-3 border-b border-gray-100">
+        <div className="p-2 border-b border-gray-100">
           <Button
             variant="outline"
             size="sm"
@@ -96,9 +96,9 @@ export const HoaSidebar = ({
           </Button>
         </div>
         
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-3">
           <div className="mb-1">
-            <Badge variant="outline" className="mb-3 bg-blue-50 text-blue-700 border-blue-200">
+            <Badge variant="outline" className="mb-2 bg-blue-50 text-blue-700 border-blue-200">
               {collapsed ? "HOA" : "HOA Navigation"}
             </Badge>
           </div>
@@ -126,7 +126,7 @@ export const HoaSidebar = ({
           </ul>
           
           {/* Main app quick links */}
-          <div className="my-4 border-t border-gray-200 pt-4">
+          <div className="my-3 border-t border-gray-200 pt-3">
             <h3 className={cn("text-xs uppercase text-gray-500 font-semibold mb-2", collapsed && "sr-only")}>
               Main App Links
             </h3>
@@ -171,7 +171,7 @@ export const HoaSidebar = ({
           </div>
         </nav>
         
-        <div className="p-4 border-t">
+        <div className="p-3 border-t">
           <Button
             variant="ghost"
             className="w-full justify-start text-left"
