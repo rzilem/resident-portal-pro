@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
-import { CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
+import { CalendarAccessLevel, CalendarEventType, CalendarEvent } from '@/types/calendar';
 import { Association } from '@/types/association';
 
 const EVENT_TYPES = [
@@ -36,6 +36,7 @@ interface CalendarEventDialogProps {
   userAccessLevel: CalendarAccessLevel;
   isGlobalView?: boolean;
   associations?: Association[];
+  editEvent?: CalendarEvent; // Add this prop to support editing events
 }
 
 const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
@@ -45,7 +46,8 @@ const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
   associationId,
   userAccessLevel,
   isGlobalView = false,
-  associations = []
+  associations = [],
+  editEvent
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -56,6 +58,25 @@ const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
   const [accessLevel, setAccessLevel] = useState<CalendarAccessLevel>(userAccessLevel);
   const [allDay, setAllDay] = useState(false);
   const [selectedAssociationId, setSelectedAssociationId] = useState<string | undefined>(associationId);
+
+  // Populate form with event data when editing
+  useEffect(() => {
+    if (editEvent) {
+      setTitle(editEvent.title);
+      setDescription(editEvent.description || '');
+      setLocation(editEvent.location || '');
+      setStartDate(typeof editEvent.start === 'string' ? new Date(editEvent.start) : editEvent.start);
+      
+      if (editEvent.end) {
+        setEndDate(typeof editEvent.end === 'string' ? new Date(editEvent.end) : editEvent.end);
+      }
+      
+      setEventType(editEvent.type);
+      setAccessLevel(editEvent.accessLevel);
+      setAllDay(editEvent.allDay || false);
+      setSelectedAssociationId(editEvent.associationId);
+    }
+  }, [editEvent]);
 
   const handleSave = () => {
     if (!title || !startDate) {
@@ -80,22 +101,24 @@ const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
     onSave(eventData);
     onOpenChange(false);
     
-    // Reset form
-    setTitle('');
-    setDescription('');
-    setLocation('');
-    setStartDate(new Date());
-    setEndDate(undefined);
-    setEventType('meeting');
-    setAccessLevel(userAccessLevel);
-    setAllDay(false);
+    // Reset form if not editing
+    if (!editEvent) {
+      setTitle('');
+      setDescription('');
+      setLocation('');
+      setStartDate(new Date());
+      setEndDate(undefined);
+      setEventType('meeting');
+      setAccessLevel(userAccessLevel);
+      setAllDay(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
+          <DialogTitle>{editEvent ? 'Edit Event' : 'Create New Event'}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -241,7 +264,7 @@ const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
             Cancel
           </Button>
           <Button type="submit" onClick={handleSave}>
-            Save Event
+            {editEvent ? 'Update Event' : 'Save Event'}
           </Button>
         </DialogFooter>
       </DialogContent>

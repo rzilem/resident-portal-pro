@@ -33,7 +33,8 @@ export function useManagerCalendar() {
         if (isManager && managedAssociations.length > 0) {
           // For each association, fetch its events and combine them
           for (const association of managedAssociations) {
-            const associationEvents = calendarService.getAllEvents(
+            // Fixed: Now awaiting the Promise to resolve
+            const associationEvents = await calendarService.getAllEvents(
               currentUser.id,
               'admin',
               association.id
@@ -42,7 +43,8 @@ export function useManagerCalendar() {
           }
         } else {
           // For non-managers, get events they have access to
-          allEvents = calendarService.getAllEvents(
+          // Fixed: Now awaiting the Promise to resolve
+          allEvents = await calendarService.getAllEvents(
             currentUser.id,
             'residents'
           );
