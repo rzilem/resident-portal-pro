@@ -32,7 +32,9 @@ export const useLeadsData = () => {
       state: lead.state,
       has_pool: lead.has_pool,
       has_gate: lead.has_gate,
-      has_onsite_management: lead.has_onsite_management
+      has_onsite_management: lead.has_onsite_management,
+      notes: lead.notes,
+      uploaded_files: lead.uploaded_files || []
     }));
 
     return mappedLeads;

@@ -19,6 +19,17 @@ export interface LeadData {
   has_pool?: boolean;
   has_gate?: boolean;
   has_onsite_management?: boolean;
+  documents?: LeadDocument[];
+  uploaded_files?: LeadDocument[];
+}
+
+export interface LeadDocument {
+  name: string;
+  size: number;
+  type: string;
+  path: string;
+  url: string;
+  uploadedAt: string;
 }
 
 export interface LeadTableFilters {

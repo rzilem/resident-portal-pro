@@ -20,6 +20,7 @@ import LeadsTableLoading from './LeadsTableLoading';
 import LeadErrorAlert from './LeadErrorAlert';
 import { useLeadsData } from './useLeadsData';
 import { LeadTableFilters } from './types';
+import { Paperclip } from 'lucide-react';
 
 const LeadsTable: React.FC = () => {
   const [filters, setFilters] = useState<LeadTableFilters>({
@@ -47,6 +48,7 @@ const LeadsTable: React.FC = () => {
     { id: 'has_onsite_management', label: 'Onsite Mgmt', checked: false },
     { id: 'lastContacted', label: 'Last Contacted', checked: true },
     { id: 'source', label: 'Source', checked: false },
+    { id: 'documents', label: 'Documents', checked: true },
   ];
   
   const [columns, setColumns] = useState<LeadColumn[]>(defaultColumns);
@@ -188,6 +190,18 @@ const LeadsTable: React.FC = () => {
                   )}
                   {columns.find(c => c.id === 'source')?.checked && (
                     <TableCell>{lead.source || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'documents')?.checked && (
+                    <TableCell>
+                      {lead.uploaded_files && lead.uploaded_files.length > 0 ? (
+                        <div className="flex items-center">
+                          <Paperclip className="h-3.5 w-3.5 mr-1" />
+                          <span>{lead.uploaded_files.length}</span>
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
                   )}
                   <TableCell className="text-right">
                     <LeadRowActions lead={lead} />
