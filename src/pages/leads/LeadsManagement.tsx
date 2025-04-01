@@ -9,11 +9,13 @@ import LeadAnalytics from '@/components/leads/LeadAnalytics';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const LeadsManagement = () => {
   const [searchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const [activeTab, setActiveTab] = useState(tabFromUrl || "leads");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -25,12 +27,18 @@ const LeadsManagement = () => {
     }
   }, [tabFromUrl]);
   
+  // Auto refresh leads data when component mounts
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+  }, [queryClient]);
+  
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     navigate(`/leads?tab=${value}`);
   };
   
   const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
     setRefreshKey(prev => prev + 1);
     toast.success("Refreshing data...");
   };

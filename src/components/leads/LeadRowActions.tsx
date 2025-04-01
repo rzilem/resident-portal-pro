@@ -26,7 +26,11 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
     try {
       const { error } = await supabase
         .from('leads')
-        .update({ status, lastcontactedat: new Date().toISOString() })
+        .update({ 
+          status, 
+          lastcontactedat: new Date().toISOString(),
+          updatedat: new Date().toISOString()
+        })
         .eq('id', lead.id);
         
       if (error) throw error;
@@ -45,7 +49,8 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
         .from('leads')
         .update({ 
           lastcontactedat: new Date().toISOString(),
-          lastcontacttype: type
+          lastcontacttype: type,
+          updatedat: new Date().toISOString()
         })
         .eq('id', lead.id);
         

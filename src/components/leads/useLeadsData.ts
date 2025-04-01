@@ -10,7 +10,7 @@ export const useLeadsData = () => {
     const { data, error } = await supabase
       .from('leads')
       .select('*')
-      .order('createdAt', { ascending: false });
+      .order('createdat', { ascending: false });
     
     if (error) throw error;
 
@@ -48,9 +48,11 @@ export const useLeadsData = () => {
     queryFn: fetchLeads,
     refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    onError: (error) => {
-      console.error('Error fetching leads:', error);
-      toast.error('Failed to load leads');
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error fetching leads:', error);
+        toast.error('Failed to load leads');
+      }
     }
   });
 
