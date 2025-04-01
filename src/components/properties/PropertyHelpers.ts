@@ -2,7 +2,7 @@
 import { Association } from '@/types/association';
 
 export interface Property {
-  id?: string;
+  id?: string; // Make id optional to match the type expected in PropertyListReport
   name: string;
   location: string;
   units: number;
