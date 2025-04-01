@@ -67,7 +67,7 @@ const LeadTableToolbar: React.FC<LeadTableToolbarProps> = ({
           
           <LeadColumnsSelector 
             columns={columns} 
-            onColumnsChange={onColumnsChange} 
+            onChange={onColumnsChange} 
           />
           
           <Button 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { LeadDocument } from './types';
 import { Button } from '@/components/ui/button';
@@ -22,11 +23,11 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
     return <div className="text-sm text-muted-foreground">No documents attached</div>;
   }
 
-  const handleDownload = (document: LeadDocument) => {
+  const handleDownload = (doc: LeadDocument) => {
     try {
       const link = document.createElement('a');
-      link.href = document.url;
-      link.download = document.name;
+      link.href = doc.url;
+      link.download = doc.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -36,17 +37,17 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
     }
   };
 
-  const handlePreview = (document: LeadDocument) => {
-    window.open(document.url, '_blank');
+  const handlePreview = (doc: LeadDocument) => {
+    window.open(doc.url, '_blank');
   };
 
-  const handleDelete = async (document: LeadDocument, index: number) => {
+  const handleDelete = async (doc: LeadDocument, index: number) => {
     if (!onDocumentsChange) return;
     
     try {
       const { error } = await supabase.storage
         .from('documents')
-        .remove([document.path]);
+        .remove([doc.path]);
 
       if (error) throw error;
 
