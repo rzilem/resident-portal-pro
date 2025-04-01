@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Stepper, Step } from '@/components/ui/stepper';
 import { ArrowLeft, ArrowRight, Check, Save, FileClock } from 'lucide-react';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 // Import necessary wizard steps
 import PropertyDetailsStep from './steps/PropertyDetailsStep';
@@ -158,12 +160,26 @@ const ResaleWizard = () => {
         <CardContent>
           <Stepper currentStep={currentStep}>
             {steps.map((step, index) => (
-              <Step 
-                key={step.id} 
-                label={step.label} 
-                completed={currentStep > index}
-                active={currentStep === index}
-              />
+              <TooltipProvider key={step.id} delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Step 
+                      label={step.label} 
+                      completed={currentStep > index}
+                      active={currentStep === index}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="z-50">
+                    <p>
+                      {index === 0 && "Enter property and association details"}
+                      {index === 1 && "Enter owner and purchaser information"}
+                      {index === 2 && "Select which documents are needed"}
+                      {index === 3 && "Add payment details and processing options"}
+                      {index === 4 && "Review all information before submission"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ))}
           </Stepper>
           
@@ -172,50 +188,55 @@ const ResaleWizard = () => {
         <CardFooter className="flex justify-between">
           <div>
             {currentStep > 0 && (
-              <Button 
+              <TooltipButton 
                 variant="outline" 
                 onClick={handleBack}
                 className="gap-2"
+                tooltipText="Go back to previous step"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
-              </Button>
+              </TooltipButton>
             )}
           </div>
           
           <div className="flex gap-2">
-            <Button 
+            <TooltipButton 
               variant="outline" 
               onClick={handleCancel}
+              tooltipText="Cancel and return to dashboard"
             >
               Cancel
-            </Button>
+            </TooltipButton>
             
-            <Button 
+            <TooltipButton 
               variant="outline" 
               onClick={handleSaveAsDraft}
               className="gap-2"
+              tooltipText="Save your progress for later completion"
             >
               <Save className="h-4 w-4" />
               Save as Draft
-            </Button>
+            </TooltipButton>
             
             {currentStep < steps.length - 1 ? (
-              <Button 
+              <TooltipButton 
                 onClick={handleNext}
                 className="gap-2"
+                tooltipText="Continue to next step"
               >
                 Next
                 <ArrowRight className="h-4 w-4" />
-              </Button>
+              </TooltipButton>
             ) : (
-              <Button 
+              <TooltipButton 
                 onClick={handleSubmit}
                 className="gap-2"
+                tooltipText="Submit your completed request"
               >
                 <Check className="h-4 w-4" />
                 Submit Request
-              </Button>
+              </TooltipButton>
             )}
           </div>
         </CardFooter>
