@@ -56,7 +56,7 @@ interface Lead {
 const LeadsTable: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const { getPreference, updatePreference } = useSettings();
+  const { preferences, updatePreference } = useSettings();
   
   // Define available columns
   const defaultColumns: LeadColumn[] = [
@@ -81,11 +81,11 @@ const LeadsTable: React.FC = () => {
   
   // Load user preferences for column visibility
   useEffect(() => {
-    const savedColumns = getPreference<LeadColumn[]>('leadTableColumns');
+    const savedColumns = preferences?.leadTableColumns as LeadColumn[] | undefined;
     if (savedColumns && savedColumns.length > 0) {
       setColumns(savedColumns);
     }
-  }, [getPreference]);
+  }, [preferences]);
   
   // Mock leads data with expanded fields
   const leads: Lead[] = [
