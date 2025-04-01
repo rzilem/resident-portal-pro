@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,10 @@ import { RefreshCw, Plus, Mail, BugPlay, AlertTriangle, CheckCircle2 } from "luc
 import { useEmailWorkflows } from '@/hooks/use-email-workflows';
 import { useEmailToLead } from '@/hooks/use-email-to-lead';
 import { toast } from 'sonner';
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 const EmailWorkflowSettings: React.FC = () => {
   const { workflowRules, isLoading, error, fetchWorkflowRules, createWorkflowRule, updateWorkflowRule, deleteWorkflowRule, toggleWorkflowRuleStatus } = useEmailWorkflows();
@@ -121,6 +126,17 @@ const EmailWorkflowSettings: React.FC = () => {
     setRecentEmails(prev => prev.map(email => email.id === id ? { ...email, status: success ? 'success' : 'failed' } : email));
   };
 
+  // Handler for opening the debug dialog
+  const handleDebugDialog = () => {
+    setDebugDialogOpen(true);
+  };
+
+  // Handler for adding a new workflow rule
+  const handleAddClick = () => {
+    setEditingRule(null);
+    setDialogOpen(true);
+  };
+
   return (
     <div className="w-full">
       <Card>
@@ -170,6 +186,61 @@ const EmailWorkflowSettings: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Debug Email Dialog */}
+      <Dialog open={debugDialogOpen} onOpenChange={setDebugDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Debug Email Processing</DialogTitle>
+            <DialogDescription>
+              Test how an email would be processed by the system
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="from" className="text-sm font-medium">From</label>
+              <Input 
+                id="from" 
+                value={debugEmail.from} 
+                onChange={e => setDebugEmail({...debugEmail, from: e.target.value})}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="subject" className="text-sm font-medium">Subject</label>
+              <Input 
+                id="subject" 
+                value={debugEmail.subject} 
+                onChange={e => setDebugEmail({...debugEmail, subject: e.target.value})}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="body" className="text-sm font-medium">Body</label>
+              <Textarea 
+                id="body" 
+                rows={6} 
+                value={debugEmail.body} 
+                onChange={e => setDebugEmail({...debugEmail, body: e.target.value})}
+              />
+            </div>
+          </div>
+          
+          {processingStatus && (
+            <div className={`p-3 rounded-md ${processingStatus.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+              {processingStatus}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDebugDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleProcessDebugEmail} disabled={isProcessing}>
+              Process Email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
