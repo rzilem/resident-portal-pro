@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ResidentStats from '@/components/residents/ResidentStats';
 import ResidentSearch from '@/components/residents/ResidentSearch';
@@ -15,6 +15,9 @@ export type ResidentColumn = {
 };
 
 const Residents = () => {
+  // Add a refresh counter to trigger useResidents to re-fetch data
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  
   const {
     columns,
     handleColumnToggle,
@@ -31,7 +34,13 @@ const Residents = () => {
     handleBulkExport,
     handleBulkTag,
     handleBulkDelete
-  } = useResidents();
+  } = useResidents(refreshCounter);
+
+  // Handler for when a new resident is added
+  const handleResidentAdded = () => {
+    // Increment the refresh counter to trigger a refresh
+    setRefreshCounter(prev => prev + 1);
+  };
 
   return (
     <div className="flex-1 p-4 md:p-6 overflow-auto animate-fade-in">
@@ -56,6 +65,7 @@ const Residents = () => {
               setSearchTerm={setSearchTerm}
               columns={columns}
               handleColumnToggle={handleColumnToggle}
+              onResidentAdded={handleResidentAdded}
             />
             
             <BulkActionBar 

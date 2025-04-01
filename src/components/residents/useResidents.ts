@@ -1,10 +1,10 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useSettings } from '@/hooks/use-settings';
 import { ResidentColumn } from '@/pages/Residents';
+import { supabase } from '@/integrations/supabase/client';
 
-export const useResidents = () => {
+export const useResidents = (refreshTrigger = 0) => {
   const { preferences, updatePreference } = useSettings();
   
   // Define default columns
@@ -36,130 +36,351 @@ export const useResidents = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedResidents, setSelectedResidents] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [residents, setResidents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock residents data
-  const residents = [
-    { 
-      id: 101, 
-      name: 'Alice Johnson', 
-      unit: '301', 
-      property: 'Oakwood Heights', 
-      email: 'alice.j@example.com',
-      phone: '(555) 123-4567',
-      status: 'Active',
-      moveInDate: '05/15/2021',
-      moveOutDate: '',
-      mailingAddress: '123 Main St, Apt 301, Seattle, WA 98101',
-      propertyAddress: '123 Main St, Apt 301, Seattle, WA 98101',
-      balance: '$0.00',
-      lastPayment: '$350 on 06/01/2023',
-      achStartDate: '05/20/2021',
-      closingDate: '05/10/2021',
-      commPreference: 'Email',
-      billingPreference: 'Auto-draft',
-      ownerType: 'Owner-Occupied'
-    },
-    { 
-      id: 102, 
-      name: 'Robert Smith', 
-      unit: '142', 
-      property: 'Willow Creek Estates', 
-      email: 'robert.s@example.com',
-      phone: '(555) 234-5678',
-      status: 'Active',
-      moveInDate: '03/10/2022',
-      moveOutDate: '',
-      mailingAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
-      propertyAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
-      balance: '$75.00',
-      lastPayment: '$275 on 05/28/2023',
-      achStartDate: '03/15/2022',
-      closingDate: '03/05/2022',
-      commPreference: 'Text',
-      billingPreference: 'Check',
-      ownerType: 'Investor'
-    },
-    { 
-      id: 103, 
-      name: 'Emily Davis', 
-      unit: '506', 
-      property: 'Riverfront Towers', 
-      email: 'emily.d@example.com',
-      phone: '(555) 345-6789',
-      status: 'Active',
-      moveInDate: '11/20/2020',
-      moveOutDate: '',
-      mailingAddress: '789 River Rd, #506, Chicago, IL 60601',
-      propertyAddress: '789 River Rd, #506, Chicago, IL 60601',
-      balance: '$0.00',
-      lastPayment: '$425 on 06/01/2023',
-      achStartDate: '12/01/2020',
-      closingDate: '11/15/2020',
-      commPreference: 'Email',
-      billingPreference: 'Auto-draft',
-      ownerType: 'Owner-Occupied'
-    },
-    { 
-      id: 201, 
-      name: 'Michael Wilson', 
-      unit: '203', 
-      property: 'Sunset Gardens', 
-      email: 'michael.w@example.com',
-      phone: '(555) 456-7890',
-      status: 'Pending',
-      moveInDate: '07/01/2023',
-      moveOutDate: '',
-      mailingAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
-      propertyAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
-      balance: '$150.00',
-      lastPayment: '$0.00',
-      achStartDate: 'Pending',
-      closingDate: '06/25/2023',
-      commPreference: 'Phone',
-      billingPreference: 'Credit Card',
-      ownerType: 'Owner-Occupied'
-    },
-    { 
-      id: 202, 
-      name: 'Sarah Brown', 
-      unit: '118', 
-      property: 'Pine Valley Community', 
-      email: 'sarah.b@example.com',
-      phone: '(555) 567-8901',
-      status: 'Active',
-      moveInDate: '09/15/2021',
-      moveOutDate: '',
-      mailingAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
-      propertyAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
-      balance: '$25.00',
-      lastPayment: '$300 on 05/30/2023',
-      achStartDate: '10/01/2021',
-      closingDate: '09/10/2021',
-      commPreference: 'Email',
-      billingPreference: 'Auto-draft',
-      ownerType: 'Owner-Occupied'
-    },
-    { 
-      id: 301, 
-      name: 'David Miller', 
-      unit: '224', 
-      property: 'Oakwood Heights', 
-      email: 'david.m@example.com',
-      phone: '(555) 678-9012',
-      status: 'Inactive',
-      moveInDate: '02/10/2020',
-      moveOutDate: '04/30/2023',
-      mailingAddress: '987 Oak St, Denver, CO 80203',
-      propertyAddress: '123 Main St, Apt 224, Seattle, WA 98101',
-      balance: '$0.00',
-      lastPayment: '$275 on 04/15/2023',
-      achStartDate: '03/01/2020',
-      closingDate: '02/01/2020',
-      commPreference: 'Mail',
-      billingPreference: 'Check',
-      ownerType: 'Investor'
-    },
-  ];
+  // Fetch residents from Supabase or use mock data as fallback
+  useEffect(() => {
+    const fetchResidents = async () => {
+      setIsLoading(true);
+      try {
+        // First try resident_profiles table
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('resident_profiles')
+          .select('*');
+
+        if (!profilesError && profilesData && profilesData.length > 0) {
+          // Map Supabase data to the format expected by the UI
+          const formattedResidents = profilesData.map((resident, index) => ({
+            id: resident.id,
+            name: `${resident.first_name} ${resident.last_name}`,
+            unit: resident.unit || '',
+            property: resident.property || '',
+            email: resident.email || '',
+            phone: resident.phone || '',
+            status: resident.status || 'Active',
+            moveInDate: resident.move_in_date ? new Date(resident.move_in_date).toLocaleDateString() : '',
+            moveOutDate: resident.move_out_date ? new Date(resident.move_out_date).toLocaleDateString() : '',
+            mailingAddress: resident.mailing_address || '',
+            propertyAddress: resident.property_address || '',
+            balance: resident.balance ? `$${resident.balance.toFixed(2)}` : '$0.00',
+            paymentPreference: resident.payment_preference || '',
+            // Default values for fields not in the database
+            lastPayment: '',
+            achStartDate: '',
+            closingDate: '',
+            commPreference: '',
+            billingPreference: '',
+            ownerType: ''
+          }));
+          
+          setResidents(formattedResidents);
+          setIsLoading(false);
+          return;
+        }
+
+        // Check for resident and profile data in the existing schema
+        const { data: residentData, error: residentError } = await supabase
+          .from('residents')
+          .select('*, profiles(*)');
+        
+        if (!residentError && residentData && residentData.length > 0) {
+          // Map Supabase data to the format expected by the UI
+          const formattedResidents = residentData.map((resident, index) => {
+            const profile = resident.profiles || {};
+            return {
+              id: resident.id,
+              name: profile.first_name && profile.last_name 
+                ? `${profile.first_name} ${profile.last_name}`
+                : `Resident ${index + 1}`,
+              unit: '',
+              property: '',
+              email: profile.email || '',
+              phone: profile.phone_number || '',
+              status: 'Active',
+              moveInDate: resident.move_in_date ? new Date(resident.move_in_date).toLocaleDateString() : '',
+              moveOutDate: resident.move_out_date ? new Date(resident.move_out_date).toLocaleDateString() : '',
+              // Default values for fields not in the database
+              mailingAddress: '',
+              propertyAddress: '',
+              balance: '$0.00',
+              lastPayment: '',
+              paymentPreference: '',
+              achStartDate: '',
+              closingDate: '',
+              commPreference: '',
+              billingPreference: '',
+              ownerType: resident.resident_type || ''
+            };
+          });
+          
+          setResidents(formattedResidents);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fall back to local storage if available
+        const storedResidents = localStorage.getItem('residents');
+        if (storedResidents) {
+          setResidents(JSON.parse(storedResidents));
+          setIsLoading(false);
+          return;
+        }
+
+        // Finally, use mock data as last resort
+        setResidents([
+          { 
+            id: 101, 
+            name: 'Alice Johnson', 
+            unit: '301', 
+            property: 'Oakwood Heights', 
+            email: 'alice.j@example.com',
+            phone: '(555) 123-4567',
+            status: 'Active',
+            moveInDate: '05/15/2021',
+            moveOutDate: '',
+            mailingAddress: '123 Main St, Apt 301, Seattle, WA 98101',
+            propertyAddress: '123 Main St, Apt 301, Seattle, WA 98101',
+            balance: '$0.00',
+            lastPayment: '$350 on 06/01/2023',
+            achStartDate: '05/20/2021',
+            closingDate: '05/10/2021',
+            commPreference: 'Email',
+            billingPreference: 'Auto-draft',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 102, 
+            name: 'Robert Smith', 
+            unit: '142', 
+            property: 'Willow Creek Estates', 
+            email: 'robert.s@example.com',
+            phone: '(555) 234-5678',
+            status: 'Active',
+            moveInDate: '03/10/2022',
+            moveOutDate: '',
+            mailingAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
+            propertyAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
+            balance: '$75.00',
+            lastPayment: '$275 on 05/28/2023',
+            achStartDate: '03/15/2022',
+            closingDate: '03/05/2022',
+            commPreference: 'Text',
+            billingPreference: 'Check',
+            ownerType: 'Investor'
+          },
+          { 
+            id: 103, 
+            name: 'Emily Davis', 
+            unit: '506', 
+            property: 'Riverfront Towers', 
+            email: 'emily.d@example.com',
+            phone: '(555) 345-6789',
+            status: 'Active',
+            moveInDate: '11/20/2020',
+            moveOutDate: '',
+            mailingAddress: '789 River Rd, #506, Chicago, IL 60601',
+            propertyAddress: '789 River Rd, #506, Chicago, IL 60601',
+            balance: '$0.00',
+            lastPayment: '$425 on 06/01/2023',
+            achStartDate: '12/01/2020',
+            closingDate: '11/15/2020',
+            commPreference: 'Email',
+            billingPreference: 'Auto-draft',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 201, 
+            name: 'Michael Wilson', 
+            unit: '203', 
+            property: 'Sunset Gardens', 
+            email: 'michael.w@example.com',
+            phone: '(555) 456-7890',
+            status: 'Pending',
+            moveInDate: '07/01/2023',
+            moveOutDate: '',
+            mailingAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
+            propertyAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
+            balance: '$150.00',
+            lastPayment: '$0.00',
+            achStartDate: 'Pending',
+            closingDate: '06/25/2023',
+            commPreference: 'Phone',
+            billingPreference: 'Credit Card',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 202, 
+            name: 'Sarah Brown', 
+            unit: '118', 
+            property: 'Pine Valley Community', 
+            email: 'sarah.b@example.com',
+            phone: '(555) 567-8901',
+            status: 'Active',
+            moveInDate: '09/15/2021',
+            moveOutDate: '',
+            mailingAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
+            propertyAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
+            balance: '$25.00',
+            lastPayment: '$300 on 05/30/2023',
+            achStartDate: '10/01/2021',
+            closingDate: '09/10/2021',
+            commPreference: 'Email',
+            billingPreference: 'Auto-draft',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 301, 
+            name: 'David Miller', 
+            unit: '224', 
+            property: 'Oakwood Heights', 
+            email: 'david.m@example.com',
+            phone: '(555) 678-9012',
+            status: 'Inactive',
+            moveInDate: '02/10/2020',
+            moveOutDate: '04/30/2023',
+            mailingAddress: '987 Oak St, Denver, CO 80203',
+            propertyAddress: '123 Main St, Apt 224, Seattle, WA 98101',
+            balance: '$0.00',
+            lastPayment: '$275 on 04/15/2023',
+            achStartDate: '03/01/2020',
+            closingDate: '02/01/2020',
+            commPreference: 'Mail',
+            billingPreference: 'Check',
+            ownerType: 'Investor'
+          },
+        ]);
+      } catch (error) {
+        console.error('Error fetching residents:', error);
+        setResidents([
+          { 
+            id: 101, 
+            name: 'Alice Johnson', 
+            unit: '301', 
+            property: 'Oakwood Heights', 
+            email: 'alice.j@example.com',
+            phone: '(555) 123-4567',
+            status: 'Active',
+            moveInDate: '05/15/2021',
+            moveOutDate: '',
+            mailingAddress: '123 Main St, Apt 301, Seattle, WA 98101',
+            propertyAddress: '123 Main St, Apt 301, Seattle, WA 98101',
+            balance: '$0.00',
+            lastPayment: '$350 on 06/01/2023',
+            achStartDate: '05/20/2021',
+            closingDate: '05/10/2021',
+            commPreference: 'Email',
+            billingPreference: 'Auto-draft',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 102, 
+            name: 'Robert Smith', 
+            unit: '142', 
+            property: 'Willow Creek Estates', 
+            email: 'robert.s@example.com',
+            phone: '(555) 234-5678',
+            status: 'Active',
+            moveInDate: '03/10/2022',
+            moveOutDate: '',
+            mailingAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
+            propertyAddress: '456 Park Ave, Unit 142, Portland, OR 97201',
+            balance: '$75.00',
+            lastPayment: '$275 on 05/28/2023',
+            achStartDate: '03/15/2022',
+            closingDate: '03/05/2022',
+            commPreference: 'Text',
+            billingPreference: 'Check',
+            ownerType: 'Investor'
+          },
+          { 
+            id: 103, 
+            name: 'Emily Davis', 
+            unit: '506', 
+            property: 'Riverfront Towers', 
+            email: 'emily.d@example.com',
+            phone: '(555) 345-6789',
+            status: 'Active',
+            moveInDate: '11/20/2020',
+            moveOutDate: '',
+            mailingAddress: '789 River Rd, #506, Chicago, IL 60601',
+            propertyAddress: '789 River Rd, #506, Chicago, IL 60601',
+            balance: '$0.00',
+            lastPayment: '$425 on 06/01/2023',
+            achStartDate: '12/01/2020',
+            closingDate: '11/15/2020',
+            commPreference: 'Email',
+            billingPreference: 'Auto-draft',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 201, 
+            name: 'Michael Wilson', 
+            unit: '203', 
+            property: 'Sunset Gardens', 
+            email: 'michael.w@example.com',
+            phone: '(555) 456-7890',
+            status: 'Pending',
+            moveInDate: '07/01/2023',
+            moveOutDate: '',
+            mailingAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
+            propertyAddress: '321 Sunset Blvd, #203, Los Angeles, CA 90028',
+            balance: '$150.00',
+            lastPayment: '$0.00',
+            achStartDate: 'Pending',
+            closingDate: '06/25/2023',
+            commPreference: 'Phone',
+            billingPreference: 'Credit Card',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 202, 
+            name: 'Sarah Brown', 
+            unit: '118', 
+            property: 'Pine Valley Community', 
+            email: 'sarah.b@example.com',
+            phone: '(555) 567-8901',
+            status: 'Active',
+            moveInDate: '09/15/2021',
+            moveOutDate: '',
+            mailingAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
+            propertyAddress: '654 Pine Valley Rd, #118, Denver, CO 80202',
+            balance: '$25.00',
+            lastPayment: '$300 on 05/30/2023',
+            achStartDate: '10/01/2021',
+            closingDate: '09/10/2021',
+            commPreference: 'Email',
+            billingPreference: 'Auto-draft',
+            ownerType: 'Owner-Occupied'
+          },
+          { 
+            id: 301, 
+            name: 'David Miller', 
+            unit: '224', 
+            property: 'Oakwood Heights', 
+            email: 'david.m@example.com',
+            phone: '(555) 678-9012',
+            status: 'Inactive',
+            moveInDate: '02/10/2020',
+            moveOutDate: '04/30/2023',
+            mailingAddress: '987 Oak St, Denver, CO 80203',
+            propertyAddress: '123 Main St, Apt 224, Seattle, WA 98101',
+            balance: '$0.00',
+            lastPayment: '$275 on 04/15/2023',
+            achStartDate: '03/01/2020',
+            closingDate: '02/01/2020',
+            commPreference: 'Mail',
+            billingPreference: 'Check',
+            ownerType: 'Investor'
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchResidents();
+  }, [refreshTrigger]); // Re-fetch when refresh trigger changes
 
   const handleColumnToggle = (columnId: string) => {
     const updatedColumns = columns.map(column => 
@@ -293,6 +514,7 @@ export const useResidents = () => {
     handleBulkEmail,
     handleBulkExport,
     handleBulkTag,
-    handleBulkDelete
+    handleBulkDelete,
+    isLoading
   };
 };

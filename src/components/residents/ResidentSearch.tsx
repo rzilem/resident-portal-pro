@@ -1,17 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Settings2 } from 'lucide-react';
+import { Search, Settings2, UserPlus } from 'lucide-react';
 import { ResidentColumn } from '@/pages/Residents';
+import AddResidentDialog from './AddResidentDialog';
 
 interface ResidentSearchProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   columns: ResidentColumn[];
   handleColumnToggle: (columnId: string) => void;
+  onResidentAdded?: () => void;
 }
 
 const ResidentSearch: React.FC<ResidentSearchProps> = ({
@@ -19,7 +21,10 @@ const ResidentSearch: React.FC<ResidentSearchProps> = ({
   setSearchTerm,
   columns,
   handleColumnToggle,
+  onResidentAdded,
 }) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-4">
       <div className="relative flex-1">
@@ -66,8 +71,17 @@ const ResidentSearch: React.FC<ResidentSearchProps> = ({
             </div>
           </PopoverContent>
         </Popover>
-        <Button>Add Resident</Button>
+        <Button onClick={() => setDialogOpen(true)}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Add Resident
+        </Button>
       </div>
+      
+      <AddResidentDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onResidentAdded={onResidentAdded}
+      />
     </div>
   );
 };
