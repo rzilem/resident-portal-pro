@@ -179,7 +179,7 @@ const Announcements: React.FC = () => {
       )}
 
       <AnnouncementDialog
-        open={dialogOpen}
+        isOpen={dialogOpen}
         onOpenChange={setDialogOpen}
         announcement={selectedAnnouncement}
         onSave={handleSaveAnnouncement}

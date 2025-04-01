@@ -12,21 +12,25 @@ import MessagePreview from './composer/MessagePreview';
 import AiAssistant from './composer/AiAssistant';
 import { appendToContent } from './composer/ComposerUtils';
 import { useComposer } from './composer/ComposerContext';
-import { INITIAL_TEMPLATES } from '@/pages/communications/useCommunityMessaging';
+import { MessageTemplate } from '@/components/communications/templates/types';
 import { MergeTag } from '@/types/mergeTags';
 import MessageTypeSelector from './composer/MessageTypeSelector';
 
-interface MessageComposerProps {
+export interface MessageComposerProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
+  onScheduleMessage?: (message: { subject: string; content: string; recipients: string[]; scheduledDate: Date }) => void;
   initialSubject?: string;
   initialContent?: string;
+  availableTemplates?: MessageTemplate[];
 }
 
 // Main component wrapper
 const MessageComposer: React.FC<MessageComposerProps> = ({ 
   onSendMessage,
+  onScheduleMessage,
   initialSubject = '',
   initialContent = '',
+  availableTemplates = [],
 }) => {
   console.log("MessageComposer rendered with:", { initialSubject, initialContent });
   
@@ -36,13 +40,25 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
       initialContent={initialContent}
       initialCommunity={SAMPLE_COMMUNITIES[0].id}
     >
-      <ComposerContent onSendMessage={onSendMessage} />
+      <ComposerContent 
+        onSendMessage={onSendMessage} 
+        onScheduleMessage={onScheduleMessage}
+        availableTemplates={availableTemplates}
+      />
     </ComposerProvider>
   );
 };
 
 // Inner component that uses the context
-const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMessage'] }> = ({ onSendMessage }) => {
+const ComposerContent: React.FC<{ 
+  onSendMessage: MessageComposerProps['onSendMessage'];
+  onScheduleMessage?: MessageComposerProps['onScheduleMessage'];
+  availableTemplates?: MessageTemplate[];
+}> = ({ 
+  onSendMessage, 
+  onScheduleMessage,
+  availableTemplates = []
+}) => {
   const { 
     previewContent, 
     content, 
@@ -92,7 +108,7 @@ const ComposerContent: React.FC<{ onSendMessage: MessageComposerProps['onSendMes
           
           {/* Only show subject field for emails */}
           {messageType === 'email' && (
-            <SubjectField templates={INITIAL_TEMPLATES} />
+            <SubjectField templates={availableTemplates || []} />
           )}
           
           <ContentEditor 

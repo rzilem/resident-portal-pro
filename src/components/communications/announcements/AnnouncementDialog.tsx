@@ -3,117 +3,96 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Announcement } from '@/pages/communications/types';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
 
-interface AnnouncementDialogProps {
+export interface AnnouncementDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
+  announcement: Announcement | null;
   onSave: (announcement: Announcement) => Promise<void>;
-  announcement?: Announcement | null;
-  isEdit?: boolean;
 }
-
-const ANNOUNCEMENT_TYPES = [
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'event', label: 'Event' },
-  { value: 'meeting', label: 'Meeting' },
-  { value: 'general', label: 'General' }
-] as const;
-
-type AnnouncementType = typeof ANNOUNCEMENT_TYPES[number]['value'];
 
 const AnnouncementDialog: React.FC<AnnouncementDialogProps> = ({
   isOpen,
-  onClose,
-  onSave,
+  onOpenChange,
   announcement,
-  isEdit = false
+  onSave
 }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [type, setType] = useState<AnnouncementType>('general');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [type, setType] = useState('general');
   const [isPinned, setIsPinned] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset form when dialog is opened or announcement changes
+  // Reset form when dialog opens or announcement changes
   useEffect(() => {
-    if (announcement) {
-      setTitle(announcement.title);
-      setContent(announcement.content);
-      setType(announcement.type as AnnouncementType);
-      setStartDate(announcement.startDate.substring(0, 10));
-      setEndDate(announcement.endDate?.substring(0, 10) || '');
-      setIsPinned(announcement.isPinned);
-      setIsPublished(announcement.isPublished);
-    } else {
-      // Default values for new announcement
-      setTitle('');
-      setContent('');
-      setType('general');
-      setStartDate(new Date().toISOString().substring(0, 10));
-      setEndDate('');
-      setIsPinned(false);
-      setIsPublished(true);
+    if (isOpen) {
+      if (announcement) {
+        setTitle(announcement.title);
+        setContent(announcement.content);
+        setStartDate(announcement.startDate);
+        setEndDate(announcement.endDate || '');
+        setType(announcement.type);
+        setIsPinned(announcement.isPinned);
+        setIsPublished(announcement.isPublished);
+      } else {
+        setTitle('');
+        setContent('');
+        setStartDate(new Date().toISOString().split('T')[0]);
+        setEndDate('');
+        setType('general');
+        setIsPinned(false);
+        setIsPublished(true);
+      }
     }
-  }, [announcement, isOpen]);
+  }, [isOpen, announcement]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim() || !startDate) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const now = new Date().toISOString();
-      const newAnnouncement: Announcement = {
-        id: announcement?.id || uuidv4(),
+      const announcementData: Announcement = {
+        id: announcement?.id || '',
         title,
         content,
         type,
-        startDate: startDate,
+        authorId: announcement?.authorId || 'current-user',
+        authorName: announcement?.authorName,
+        createdAt: announcement?.createdAt || new Date().toISOString(),
+        startDate,
         endDate: endDate || undefined,
         isPinned,
-        isPublished,
-        authorId: announcement?.authorId || 'current-user', // This would normally come from auth context
-        authorName: announcement?.authorName || 'Current User', // This would normally come from auth context
-        createdAt: announcement?.createdAt || now,
-        updatedAt: now
+        isPublished
       };
       
-      await onSave(newAnnouncement);
-      onClose();
-      toast.success(`Announcement ${isEdit ? 'updated' : 'created'} successfully`);
+      await onSave(announcementData);
+      onOpenChange(false);
     } catch (error) {
       console.error('Error saving announcement:', error);
-      toast.error(`Failed to ${isEdit ? 'update' : 'create'} announcement`);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => !isLoading && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Announcement' : 'Create Announcement'}</DialogTitle>
+          <DialogTitle>
+            {announcement ? 'Edit Announcement' : 'Create New Announcement'}
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
@@ -124,7 +103,7 @@ const AnnouncementDialog: React.FC<AnnouncementDialogProps> = ({
             />
           </div>
           
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="content">Content</Label>
             <Textarea
               id="content"
@@ -136,27 +115,24 @@ const AnnouncementDialog: React.FC<AnnouncementDialogProps> = ({
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="type">Type</Label>
-              <Select 
-                value={type} 
-                onValueChange={(value) => setType(value as AnnouncementType)}
-              >
+              <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ANNOUNCEMENT_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="emergency">Emergency</SelectItem>
+                  <SelectItem value="event">Event</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="startDate">Start Date</Label>
               <Input
                 id="startDate"
@@ -166,8 +142,10 @@ const AnnouncementDialog: React.FC<AnnouncementDialogProps> = ({
                 required
               />
             </div>
-            
-            <div className="space-y-2">
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="endDate">End Date (Optional)</Label>
               <Input
                 id="endDate"
@@ -176,34 +154,38 @@ const AnnouncementDialog: React.FC<AnnouncementDialogProps> = ({
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="isPinned" 
-                checked={isPinned} 
-                onCheckedChange={setIsPinned} 
-              />
-              <Label htmlFor="isPinned">Pin Announcement</Label>
-            </div>
             
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="isPublished" 
-                checked={isPublished} 
-                onCheckedChange={setIsPublished} 
-              />
-              <Label htmlFor="isPublished">Publish Immediately</Label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="pinned">Pin Announcement</Label>
+                <Switch 
+                  id="pinned" 
+                  checked={isPinned} 
+                  onCheckedChange={setIsPinned} 
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="published">Publish Immediately</Label>
+                <Switch 
+                  id="published" 
+                  checked={isPublished} 
+                  onCheckedChange={setIsPublished} 
+                />
+              </div>
             </div>
           </div>
           
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : isEdit ? 'Update' : 'Create'}
+              {isLoading ? 'Saving...' : announcement ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </form>

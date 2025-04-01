@@ -18,17 +18,7 @@ import { communicationService } from '@/services/communicationService';
 import { formatDate } from '../composer/ComposerUtils';
 import MessageHistoryActions from './MessageHistoryActions';
 import NoMessages from './NoMessages';
-
-interface Message {
-  id: string;
-  subject: string;
-  content: string;
-  sentAt: string;
-  status: 'sent' | 'scheduled' | 'draft' | 'failed';
-  messageType: 'email' | 'sms';
-  recipientCount: number;
-  author: string;
-}
+import { Message } from '@/pages/communications/types';
 
 const MessageHistory: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -50,7 +40,18 @@ const MessageHistory: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await communicationService.getCommunications();
-      setMessages(data);
+      // Convert Communication[] to Message[]
+      const messageData: Message[] = data.map(comm => ({
+        id: comm.id,
+        subject: comm.subject || '',
+        content: comm.content || '',
+        sentAt: comm.scheduled_for || comm.created_at || '',
+        status: comm.status as 'sent' | 'scheduled' | 'draft' | 'failed',
+        messageType: comm.message_type as 'email' | 'sms',
+        recipientCount: comm.recipients?.length || 0,
+        author: 'System' // Default author
+      }));
+      setMessages(messageData);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {

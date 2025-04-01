@@ -102,11 +102,10 @@ const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
             <TemplateContentEditor 
               content={template.content}
               onContentChange={(value) => handleValueChange(setTemplate.setContent, value)}
-              onFormatToggle={(value) => handleValueChange(setTemplate.setIsHtmlFormat, value)}
               isHtmlEnabled={template.isHtmlFormat}
+              onHtmlToggle={(value) => handleValueChange(setTemplate.setIsHtmlFormat, value)}
               onMergeTagsClick={handleOpenMergeTagsDialog}
               onSaveTemplate={handleSave}
-              onInsertMergeTag={handleInsertMergeTag}
               ref={contentEditorRef}
             />
           </div>

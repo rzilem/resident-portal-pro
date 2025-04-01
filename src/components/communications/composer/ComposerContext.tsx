@@ -16,8 +16,8 @@ interface ComposerContextType {
   setSelectedCommunity: (community: string) => void;
   scheduledSend: boolean;
   setScheduledSend: (scheduled: boolean) => void;
-  scheduledDate: string;
-  setScheduledDate: (date: string) => void;
+  scheduledDate: Date | null;
+  setScheduledDate: (date: Date | null) => void;
   scheduledTime: string;
   setScheduledTime: (time: string) => void;
   showMergeTagPreview: boolean;
@@ -27,6 +27,9 @@ interface ComposerContextType {
   messageType: 'email' | 'sms';
   setMessageType: (type: 'email' | 'sms') => void;
   previewProcessedContent: (content: string) => Promise<string>;
+  // Add missing properties
+  recipientType: string;
+  validateCanSend: () => { valid: boolean; error?: string };
 }
 
 const ComposerContext = createContext<ComposerContextType | undefined>(undefined);
@@ -53,11 +56,12 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [selectedCommunity, setSelectedCommunity] = useState(initialCommunity);
   const [scheduledSend, setScheduledSend] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
   const [scheduledTime, setScheduledTime] = useState('12:00');
   const [showMergeTagPreview, setShowMergeTagPreview] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [messageType, setMessageType] = useState<'email' | 'sms'>('email');
+  const [recipientType, setRecipientType] = useState('all');
 
   useEffect(() => {
     // For the prototype, we'll just do a simple merge tag replacement
@@ -89,6 +93,22 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
     return processedContent;
   };
 
+  const validateCanSend = () => {
+    if (!content.trim()) {
+      return { valid: false, error: 'Message content is required' };
+    }
+    
+    if (messageType === 'email' && !subject.trim()) {
+      return { valid: false, error: 'Subject is required for email messages' };
+    }
+    
+    if (selectedRecipients.length === 0 && recipientType === 'custom') {
+      return { valid: false, error: 'Please select at least one recipient' };
+    }
+    
+    return { valid: true };
+  };
+
   return (
     <ComposerContext.Provider
       value={{
@@ -117,6 +137,8 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
         messageType,
         setMessageType,
         previewProcessedContent,
+        recipientType,
+        validateCanSend,
       }}
     >
       {children}

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { MessageTemplate, CompositionMessage } from '@/pages/communications/types';
 
@@ -247,13 +247,51 @@ export const markAsSent = async (id: string): Promise<boolean> => {
 // Cancel a scheduled communication
 export const cancelScheduledCommunication = async (id: string): Promise<boolean> => {
   // This would typically delete or update the status in the database
+  console.log('Cancelling scheduled communication:', id);
+  toast.success('Scheduled message cancelled');
   return true;
 };
 
 // Get all communications (sent and scheduled)
 export const getCommunications = async (): Promise<Communication[]> => {
   // This would typically fetch from the database
-  return [];
+  // For now, return mock data
+  return [
+    {
+      id: '1',
+      subject: 'Meeting Reminder',
+      content: '<p>This is a reminder about the upcoming board meeting.</p>',
+      message_type: 'email',
+      format: 'html',
+      recipients: [{ recipient_email: 'user1@example.com' }, { recipient_email: 'user2@example.com' }],
+      status: 'sent',
+      created_at: '2023-09-15T14:30:00Z',
+      updated_at: '2023-09-15T14:30:00Z'
+    },
+    {
+      id: '2',
+      subject: 'Pool Maintenance',
+      content: '<p>The pool will be closed for maintenance tomorrow.</p>',
+      message_type: 'email',
+      format: 'html',
+      recipients: [{ recipient_email: 'residents@example.com' }],
+      status: 'scheduled',
+      scheduled_for: '2023-09-22T10:00:00Z',
+      created_at: '2023-09-15T11:20:00Z',
+      updated_at: '2023-09-15T11:20:00Z'
+    },
+    {
+      id: '3',
+      subject: '',
+      content: 'Reminder: Trash pickup is delayed this week due to the holiday.',
+      message_type: 'sms',
+      format: 'plain',
+      recipients: [{ recipient_email: '+11234567890' }, { recipient_email: '+10987654321' }],
+      status: 'sent',
+      created_at: '2023-09-14T09:45:00Z',
+      updated_at: '2023-09-14T09:45:00Z'
+    }
+  ];
 };
 
 // Mock function to get sample templates for demo purposes

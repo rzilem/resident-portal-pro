@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CommunityTabsContent from './CommunityTabsContent';
 import MessageComposer from '@/components/communications/MessageComposer';
-import MessageHistory from '@/components/communications/MessageHistory';
+import MessageHistory from '@/components/communications/history/MessageHistory';
 import MessageTemplatesComponent from '@/components/communications/MessageTemplates';
 import useCommunityMessaging from './useCommunityMessaging';
 import { Tab } from './types';
@@ -14,16 +14,10 @@ const CommunityMessaging: React.FC = () => {
     recipientTypes,
     formatOptions,
     messageTypes,
-    selectedRecipientType,
-    selectedFormat,
-    selectedMessageType,
     subject,
     content,
     selectedRecipients,
     scheduledDate,
-    setSelectedRecipientType,
-    setSelectedFormat,
-    setSelectedMessageType,
     setSubject,
     setContent,
     setSelectedRecipients,
@@ -57,25 +51,10 @@ const CommunityMessaging: React.FC = () => {
         <TabsContent value="compose">
           <CommunityTabsContent activeTab={activeTab}>
             <MessageComposer
-              subject={subject}
-              content={content}
-              selectedRecipients={selectedRecipients}
-              selectedRecipientType={selectedRecipientType}
-              selectedFormat={selectedFormat}
-              selectedMessageType={selectedMessageType}
-              scheduledDate={scheduledDate}
-              onSubjectChange={setSubject}
-              onContentChange={setContent}
-              onSelectRecipients={setSelectedRecipients}
-              onSelectRecipientType={setSelectedRecipientType}
-              onSelectFormat={setSelectedFormat}
-              onSelectMessageType={setSelectedMessageType}
-              onScheduledDateChange={setScheduledDate}
+              initialSubject={subject}
+              initialContent={content}
               onSendMessage={handleSendMessage}
               onScheduleMessage={handleScheduleMessage}
-              recipientTypes={recipientTypes}
-              formatOptions={formatOptions}
-              messageTypes={messageTypes}
               availableTemplates={templates}
             />
           </CommunityTabsContent>

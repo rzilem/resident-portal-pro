@@ -2,7 +2,7 @@
 export interface MessageTemplate {
   id: string;
   name: string;
-  description?: string;
+  description: string;
   subject: string;
   content: string;
   category: string;
@@ -94,7 +94,7 @@ export interface CompositionMessage {
   recipients: {
     type: string;
     items: any[];
-  }[];
+  };
   scheduledFor?: Date | null;
   status: string;
 }
@@ -102,4 +102,21 @@ export interface CompositionMessage {
 export interface Tab {
   id: string;
   label: string;
+}
+
+export interface Message {
+  id: string;
+  subject: string;
+  content: string;
+  sentAt: string;
+  status: 'sent' | 'scheduled' | 'draft' | 'failed';
+  messageType: 'email' | 'sms';
+  recipientCount: number;
+  author: string;
+}
+
+export interface NoMessagesProps {
+  searchTerm: string;
+  statusFilter: string;
+  typeFilter: string;
 }

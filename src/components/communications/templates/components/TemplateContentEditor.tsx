@@ -1,133 +1,150 @@
 
-import React, { forwardRef, useImperativeHandle, useRef, useEffect, useState } from 'react';
-import HtmlEditor, { HtmlEditorRef } from '@/components/communications/HtmlEditor';
-import { mergeTagService } from '@/services/mergeTagService';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Eye, Code, Save, Tags } from 'lucide-react';
 import { MergeTag } from '@/types/mergeTags';
+
+export interface TemplateContentEditorRef {
+  insertTextAtCursor: (text: string) => void;
+  getSelectionPosition: () => { start: number; end: number } | null;
+}
 
 export interface TemplateContentEditorProps {
   content: string;
   onContentChange: (value: string) => void;
-  onFormatChange?: (value: any) => void;
+  isHtmlEnabled: boolean;
+  onHtmlToggle?: (value: boolean) => void;
   onMergeTagsClick: () => void;
   onSaveTemplate: () => void;
   onInsertMergeTag: (tag: MergeTag) => void;
 }
 
-export interface TemplateContentEditorRef {
-  insertMergeTag: (tag: MergeTag) => void;
-  getContent: () => string;
-  insertAtCursor?: (content: string) => void;
-}
-
 const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateContentEditorProps>(
-  ({ content, onContentChange, onMergeTagsClick, onSaveTemplate, onInsertMergeTag, onFormatChange }, ref) => {
-    const editorRef = useRef<HtmlEditorRef>(null);
-    const [mergeTags, setMergeTags] = useState<MergeTag[]>([]);
-    const [isHtmlFormat, setIsHtmlFormat] = useState(true);
-
-    useEffect(() => {
-      const loadMergeTags = async () => {
-        try {
-          const tags = await mergeTagService.getAllMergeTags();
-          setMergeTags(tags);
-        } catch (error) {
-          console.error('Failed to load merge tags:', error);
-        }
-      };
-
-      loadMergeTags();
-    }, []);
+  ({ 
+    content, 
+    onContentChange, 
+    isHtmlEnabled, 
+    onHtmlToggle,
+    onMergeTagsClick, 
+    onSaveTemplate 
+  }, ref) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
-      insertMergeTag: (tag: MergeTag) => {
-        if (isHtmlFormat) {
-          // Insert tag in HTML editor
-          if (editorRef.current) {
-            const tagContent = `{{${tag.tag}}}`;
-            // Use appropriate method to insert content
-            const currentContent = editorRef.current.getContent();
-            editorRef.current.getContent = () => currentContent + tagContent;
-            onContentChange(currentContent + tagContent);
-            onInsertMergeTag(tag);
-          }
-        } else {
-          // For plain text, we'll need to handle this differently
-          onInsertMergeTag(tag);
+      insertTextAtCursor: (text: string) => {
+        if (textareaRef.current) {
+          const textarea = textareaRef.current;
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          
+          const beforeText = textarea.value.substring(0, start);
+          const afterText = textarea.value.substring(end);
+          
+          const newText = beforeText + text + afterText;
+          onContentChange(newText);
+          
+          // Reset cursor position after update
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + text.length, start + text.length);
+          }, 0);
         }
       },
-      getContent: () => {
-        if (isHtmlFormat && editorRef.current) {
-          return editorRef.current.getContent();
+      getSelectionPosition: () => {
+        if (textareaRef.current) {
+          return {
+            start: textareaRef.current.selectionStart,
+            end: textareaRef.current.selectionEnd
+          };
         }
-        return content;
-      },
-      insertAtCursor: (content: string) => {
-        if (isHtmlFormat && editorRef.current) {
-          const currentContent = editorRef.current.getContent();
-          // Simple append for now
-          onContentChange(currentContent + content);
-        }
+        return null;
       }
     }));
 
-    const handleFormatToggle = () => {
-      setIsHtmlFormat(!isHtmlFormat);
-      if (onFormatChange) {
-        onFormatChange(!isHtmlFormat);
-      }
-    };
-
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={handleFormatToggle}
-            >
-              {isHtmlFormat ? 'Switch to Plain Text' : 'Switch to HTML'}
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={onMergeTagsClick}
-            >
-              Insert Merge Tag
-            </Button>
-          </div>
-          <Button 
-            type="button" 
-            onClick={onSaveTemplate}
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <Tabs 
+            defaultValue={isHtmlEnabled ? "html" : "plain"} 
+            className="w-full"
+            onValueChange={(value) => onHtmlToggle && onHtmlToggle(value === "html")}
           >
-            Save Template
-          </Button>
-        </div>
+            <div className="flex justify-between items-center">
+              <TabsList>
+                <TabsTrigger value="html" disabled={!isHtmlEnabled}>
+                  <Code className="h-4 w-4 mr-2" />
+                  HTML
+                </TabsTrigger>
+                <TabsTrigger value="plain">
+                  <div className="flex items-center">
+                    <span className="mr-2">T</span>
+                    Plain Text
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger value="preview">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </TabsTrigger>
+              </TabsList>
 
-        <div className="min-h-[300px] border rounded-md">
-          {isHtmlFormat ? (
-            <HtmlEditor
-              ref={editorRef}
-              value={content}
-              onChange={onContentChange}
-            />
-          ) : (
-            <Textarea
-              value={content}
-              onChange={(e) => onContentChange(e.target.value)}
-              className="w-full h-[300px] p-2"
-            />
-          )}
+              <div className="flex gap-2">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onMergeTagsClick}
+                >
+                  <Tags className="h-4 w-4 mr-2" />
+                  Insert Merge Tag
+                </Button>
+
+                <Button 
+                  type="button"
+                  size="sm"
+                  onClick={onSaveTemplate}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Template
+                </Button>
+              </div>
+            </div>
+
+            <TabsContent value="html" className="p-0 border-0">
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => onContentChange(e.target.value)}
+                className="w-full h-64 p-3 border rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                placeholder="Enter HTML content here..."
+              />
+            </TabsContent>
+
+            <TabsContent value="plain" className="p-0 border-0">
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => onContentChange(e.target.value)}
+                className="w-full h-64 p-3 border rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                placeholder="Enter plain text content here..."
+              />
+            </TabsContent>
+
+            <TabsContent value="preview" className="p-0 border-0">
+              <div
+                ref={previewRef}
+                className="w-full h-64 p-3 border rounded-md bg-white overflow-auto"
+                dangerouslySetInnerHTML={{ __html: isHtmlEnabled ? content : content.replace(/\n/g, '<br/>') }}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
   }
 );
 
-TemplateContentEditor.displayName = 'TemplateContentEditor';
+TemplateContentEditor.displayName = "TemplateContentEditor";
 
 export default TemplateContentEditor;
