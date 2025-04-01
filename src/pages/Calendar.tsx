@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import CalendarView from '@/components/calendar/CalendarView';
@@ -21,6 +21,12 @@ const Calendar = () => {
   // Get associations for the dropdown
   const { associations, activeAssociation, selectAssociation } = useAssociations();
   
+  // Log associations and active association to help with debugging
+  useEffect(() => {
+    console.log("Associations:", associations);
+    console.log("Active Association:", activeAssociation);
+  }, [associations, activeAssociation]);
+  
   // Sync URL with tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -29,6 +35,11 @@ const Calendar = () => {
   
   // Default user access level based on role
   const userAccessLevel = isManager ? 'admin' as const : 'residents' as const;
+  
+  // Create event handler that respects the current tab (association vs global)
+  const handleCreateEvent = (eventData: any) => {
+    setShowCreateEvent(false);
+  };
   
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
@@ -74,6 +85,7 @@ const Calendar = () => {
               userId={currentUser.id}
               userAccessLevel={userAccessLevel}
               isGlobalAdmin={true}
+              associations={associations}
             />
           )}
         </TabsContent>
@@ -83,9 +95,11 @@ const Calendar = () => {
         <CalendarEventDialog 
           open={showCreateEvent}
           onOpenChange={setShowCreateEvent}
-          onSave={() => {}}
+          onSave={handleCreateEvent}
           associationId={activeTab === 'association' ? activeAssociation?.id : undefined}
           userAccessLevel={userAccessLevel}
+          isGlobalView={activeTab === 'global'}
+          associations={activeTab === 'global' ? associations : undefined}
         />
       )}
     </div>

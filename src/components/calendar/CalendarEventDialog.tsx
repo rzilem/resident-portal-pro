@@ -3,24 +3,39 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
-import { CalendarIcon, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
+import { Association } from '@/types/association';
+
+const EVENT_TYPES = [
+  { value: 'meeting', label: 'Meeting' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'holiday', label: 'Holiday' },
+  { value: 'deadline', label: 'Deadline' },
+  { value: 'community', label: 'Community Event' },
+  { value: 'custom', label: 'Custom' }
+];
+
+const ACCESS_LEVELS = [
+  { value: 'public', label: 'Public' },
+  { value: 'residents', label: 'Residents Only' },
+  { value: 'committee', label: 'Committee Members' },
+  { value: 'board', label: 'Board Members Only' },
+  { value: 'admin', label: 'Administrators Only' }
+];
 
 interface CalendarEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (event: any) => void;
+  onSave: (eventData: any) => void;
   associationId?: string;
   userAccessLevel: CalendarAccessLevel;
-  editEvent?: any;
+  isGlobalView?: boolean;
+  associations?: Association[];
 }
 
 const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
@@ -29,193 +44,203 @@ const CalendarEventDialog: React.FC<CalendarEventDialogProps> = ({
   onSave,
   associationId,
   userAccessLevel,
-  editEvent
+  isGlobalView = false,
+  associations = []
 }) => {
-  const [title, setTitle] = useState(editEvent?.title || '');
-  const [description, setDescription] = useState(editEvent?.description || '');
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    editEvent?.start ? new Date(editEvent.start) : new Date()
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(
-    editEvent?.end ? new Date(editEvent.end) : undefined
-  );
-  const [allDay, setAllDay] = useState(editEvent?.allDay || false);
-  const [location, setLocation] = useState(editEvent?.location || '');
-  const [eventType, setEventType] = useState<CalendarEventType>(editEvent?.type || 'meeting');
-  const [accessLevel, setAccessLevel] = useState<CalendarAccessLevel>(
-    editEvent?.accessLevel || (userAccessLevel === 'admin' ? 'residents' : 'public')
-  );
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [eventType, setEventType] = useState<CalendarEventType>('meeting');
+  const [accessLevel, setAccessLevel] = useState<CalendarAccessLevel>(userAccessLevel);
+  const [allDay, setAllDay] = useState(false);
+  const [selectedAssociationId, setSelectedAssociationId] = useState<string | undefined>(associationId);
 
   const handleSave = () => {
-    if (!title.trim() || !startDate) {
-      // Show validation error
+    if (!title || !startDate) {
+      // Basic validation
+      alert('Please enter a title and start date');
       return;
     }
 
-    const newEvent = {
+    const eventData = {
       title,
       description,
+      location,
       start: startDate,
       end: endDate,
-      allDay,
-      location,
       type: eventType,
-      associationId,
       accessLevel,
+      allDay,
+      associationId: selectedAssociationId || associationId
     };
 
-    onSave(newEvent);
+    console.log("Saving event:", eventData);
+    onSave(eventData);
     onOpenChange(false);
+    
+    // Reset form
+    setTitle('');
+    setDescription('');
+    setLocation('');
+    setStartDate(new Date());
+    setEndDate(undefined);
+    setEventType('meeting');
+    setAccessLevel(userAccessLevel);
+    setAllDay(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>{editEvent ? 'Edit Event' : 'Create New Event'}</DialogTitle>
+          <DialogTitle>Create New Event</DialogTitle>
         </DialogHeader>
-        
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="title">Event Title</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">
+              Title
+            </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter event title"
+              className="col-span-3"
             />
           </div>
           
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter event description"
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+          {isGlobalView && associations.length > 0 && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="association" className="text-right">
+                Association
+              </Label>
+              <Select
+                value={selectedAssociationId}
+                onValueChange={(value) => setSelectedAssociationId(value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select an association" />
+                </SelectTrigger>
+                <SelectContent>
+                  {associations.map((association) => (
+                    <SelectItem key={association.id} value={association.id}>
+                      {association.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div className="space-y-2">
-              <Label>End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    disabled={(date) => date < (startDate || new Date())}
-                  />
-                </PopoverContent>
-              </Popover>
+          )}
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="start-date" className="text-right">
+              Start Date
+            </Label>
+            <div className="col-span-3">
+              <DatePicker
+                date={startDate}
+                onDateChange={setStartDate}
+              />
             </div>
           </div>
           
-          <div className="grid gap-2">
-            <Label htmlFor="location">Location</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="end-date" className="text-right">
+              End Date
+            </Label>
+            <div className="col-span-3">
+              <DatePicker
+                date={endDate}
+                onDateChange={setEndDate}
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="all-day" className="text-right">
+              All Day
+            </Label>
+            <div className="flex items-center space-x-2 col-span-3">
+              <Switch
+                checked={allDay}
+                onCheckedChange={setAllDay}
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="location" className="text-right">
+              Location
+            </Label>
             <Input
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Enter event location"
+              className="col-span-3"
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="eventType">Event Type</Label>
-              <Select value={eventType} onValueChange={(value) => setEventType(value as CalendarEventType)}>
-                <SelectTrigger id="eventType">
-                  <SelectValue placeholder="Select event type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="holiday">Holiday</SelectItem>
-                  <SelectItem value="deadline">Deadline</SelectItem>
-                  <SelectItem value="community">Community</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {userAccessLevel === 'admin' && (
-              <div className="space-y-2">
-                <Label htmlFor="accessLevel">Visibility</Label>
-                <Select 
-                  value={accessLevel} 
-                  onValueChange={(value) => setAccessLevel(value as CalendarAccessLevel)}
-                >
-                  <SelectTrigger id="accessLevel">
-                    <SelectValue placeholder="Select access level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="residents">Residents Only</SelectItem>
-                    <SelectItem value="board">Board Members</SelectItem>
-                    <SelectItem value="committee">Committee</SelectItem>
-                    <SelectItem value="admin">Admins Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="event-type" className="text-right">
+              Event Type
+            </Label>
+            <Select
+              value={eventType}
+              onValueChange={(value) => setEventType(value as CalendarEventType)}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="allDay" 
-              checked={allDay} 
-              onCheckedChange={setAllDay} 
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="access-level" className="text-right">
+              Access Level
+            </Label>
+            <Select
+              value={accessLevel}
+              onValueChange={(value) => setAccessLevel(value as CalendarAccessLevel)}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select access level" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACCESS_LEVELS.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">
+              Description
+            </Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="col-span-3"
+              rows={3}
             />
-            <Label htmlFor="allDay">All day event</Label>
           </div>
         </div>
-        
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button type="submit" onClick={handleSave}>
             Save Event
           </Button>
         </DialogFooter>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { CalendarAccessLevel } from '@/types/calendar';
 import { Association } from '@/types/association';
@@ -42,6 +42,7 @@ const CalendarView = ({
   
   const [quickEventDate, setQuickEventDate] = useState<Date | null>(null);
   
+  // Pass isGlobalAdmin to the useCalendarView hook to ensure we don't filter by associationId when in global view
   const {
     currentDate,
     selectedDate,
@@ -71,8 +72,13 @@ const CalendarView = ({
   } = useCalendarView({
     userId,
     userAccessLevel,
-    associationId
+    associationId: isGlobalAdmin ? undefined : associationId // Don't filter by associationId for global view
   });
+  
+  // This will log events whenever they change to help with debugging
+  useEffect(() => {
+    console.log("Calendar events loaded:", events);
+  }, [events]);
   
   const handleAssociationChange = (associationId: string) => {
     if (onAssociationChange && associations.length > 0) {
@@ -89,12 +95,21 @@ const CalendarView = ({
 
   const handleCreateEvent = (eventData: any) => {
     try {
-      createEvent(eventData);
+      // For global view, ensure associationId is set properly
+      const eventWithAssociation = {
+        ...eventData,
+        associationId: eventData.associationId || associationId
+      };
+      
+      console.log("Creating event with data:", eventWithAssociation);
+      createEvent(eventWithAssociation);
+      
       toast({
         title: "Event created",
         description: "Your event has been created successfully.",
       });
     } catch (error) {
+      console.error("Error creating event:", error);
       toast({
         title: "Error creating event",
         description: "There was a problem creating your event.",
@@ -203,6 +218,8 @@ const CalendarView = ({
           onSave={handleCreateEvent}
           associationId={associationId}
           userAccessLevel={userAccessLevel}
+          isGlobalView={isGlobalAdmin}
+          associations={isGlobalAdmin ? associations : undefined}
         />
       )}
       
@@ -216,6 +233,8 @@ const CalendarView = ({
           associationId={associationId}
           userAccessLevel={userAccessLevel}
           workflows={workflows}
+          isGlobalView={isGlobalAdmin}
+          associations={isGlobalAdmin ? associations : undefined}
         />
       )}
     </div>

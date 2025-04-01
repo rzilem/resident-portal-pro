@@ -1,8 +1,7 @@
-
-import { useState, useMemo } from 'react';
-import { isSameDay, parseISO } from 'date-fns';
+import { useState, useMemo, useEffect } from 'react';
+import { isSameDay, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { useCalendar } from '@/hooks/calendar';
-import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
+import { CalendarEvent, CalendarEventType, CalendarAccessLevel } from '@/types/calendar';
 
 interface UseCalendarViewProps {
   userId: string;
@@ -18,7 +17,6 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [activeEventType, setActiveEventType] = useState<CalendarEventType | 'all'>('all');
   
-  // Use the full hook with all required properties
   const { 
     events, 
     selectedEvent, 
@@ -35,6 +33,20 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     userAccessLevel,
     associationId
   });
+
+  useEffect(() => {
+    if (view === 'month') {
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
+      fetchEventsByDateRange(start, end);
+    } else {
+      fetchEvents();
+    }
+  }, [currentDate, view, associationId, fetchEvents, fetchEventsByDateRange]);
+  
+  useEffect(() => {
+    fetchEvents();
+  }, [associationId, fetchEvents]);
   
   const selectedDateEvents = useMemo(() => {
     if (activeEventType === 'all') {
@@ -75,7 +87,7 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     
     return predominantType;
   };
-  
+
   const getEventsCountForDay = (date: Date): number => {
     return events.filter(event => {
       const eventStart = typeof event.start === 'string' ? parseISO(event.start) : event.start;
@@ -121,7 +133,7 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
   };
   
   const toggleFilters = () => setShowFilters(!showFilters);
-  
+
   const setEventTypeFilter = (type: CalendarEventType | 'all') => {
     setActiveEventType(type);
   };
