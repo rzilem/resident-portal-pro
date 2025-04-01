@@ -8,7 +8,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
   
   // Form state
   const [apiKey, setApiKey] = useState('');
-  const [defaultModel, setDefaultModel] = useState('');
+  const [defaultModel, setDefaultModel] = useState('grok-1');
   const [organization, setOrganization] = useState('');
   const [isTesting, setIsTesting] = useState(false);
 
@@ -17,12 +17,12 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     if (open) {
       console.log('XAI Dialog opened, initializing with settings:', {
         apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-        defaultModel: settings.defaultModel,
+        defaultModel: settings.defaultModel || 'grok-1',
         organization: settings.organization
       });
-      setApiKey(settings.apiKey);
-      setDefaultModel(settings.defaultModel);
-      setOrganization(settings.organization);
+      setApiKey(settings.apiKey || '');
+      setDefaultModel(settings.defaultModel || 'grok-1');
+      setOrganization(settings.organization || '');
     }
   }, [open, settings]);
 

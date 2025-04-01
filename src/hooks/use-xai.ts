@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
-import { testXAIAPI } from '@/utils/xai';
+import { testXAIAPI, generateWithXAI } from '@/utils/xai';
 
 interface XAISettings {
   apiKey: string;
@@ -95,6 +95,31 @@ export function useXAI() {
     }
   }, [xaiIntegration?.apiKey]);
 
+  const generateContent = useCallback(async (
+    prompt: string,
+    options = {}
+  ) => {
+    if (!isXAIConnected || !xaiIntegration?.apiKey) {
+      toast.error('X.AI integration is not properly configured');
+      return null;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await generateWithXAI(prompt, xaiIntegration.apiKey, {
+        model: xaiIntegration.defaultModel || 'grok-1',
+        ...options
+      });
+      return result;
+    } catch (error) {
+      console.error('Error generating with X.AI:', error);
+      toast.error('Failed to generate content with X.AI');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isXAIConnected, xaiIntegration]);
+
   return {
     isXAIConnected,
     settings: {
@@ -104,6 +129,7 @@ export function useXAI() {
     },
     saveXAISettings,
     testXAIConnection,
+    generateContent,
     isLoading,
     isAuthenticated
   };

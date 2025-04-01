@@ -33,6 +33,8 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
   handleTest,
   onCancel
 }) => {
+  console.log("Rendering XAIFormFields with model:", defaultModel);
+  
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
@@ -42,7 +44,6 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           placeholder="Enter your X.AI API key" 
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
-          type="password"
         />
         <p className="text-xs text-muted-foreground">
           Your X.AI API key will be securely stored and used for AI generations.
@@ -51,7 +52,11 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
       
       <div className="space-y-2">
         <Label htmlFor="model">Default Model</Label>
-        <Select value={defaultModel} onValueChange={setDefaultModel}>
+        <Select 
+          value={defaultModel} 
+          onValueChange={setDefaultModel}
+          defaultValue="grok-1"
+        >
           <SelectTrigger id="model">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
