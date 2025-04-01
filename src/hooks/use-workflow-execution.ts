@@ -1,13 +1,16 @@
 
 import { useState, useCallback } from 'react';
-import { Workflow, WorkflowStep, WorkflowExecutionLog, StepExecutionLog } from '@/types/workflow';
+import { Workflow, WorkflowStep, WorkflowExecutionLog, StepExecutionLog, ApprovalStep } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
 import { toast } from "sonner";
+import { useAuth } from '@/hooks/use-auth';
 
 export function useWorkflowExecution() {
+  const { user } = useAuth();
   const [executionLogs, setExecutionLogs] = useState<WorkflowExecutionLog[]>([]);
   const [currentExecution, setCurrentExecution] = useState<WorkflowExecutionLog | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [pendingApprovals, setPendingApprovals] = useState<ApprovalStep[]>([]);
   
   // Execute an entire workflow
   const executeWorkflow = useCallback(async (workflow: Workflow) => {
@@ -65,6 +68,37 @@ export function useWorkflowExecution() {
         if (stepResult.status === 'failed') {
           throw new Error(`Step "${step.name}" failed: ${stepResult.error}`);
         }
+        
+        // If step is an approval and is pending, pause workflow execution
+        if (step.type === 'approval' && stepResult.output?.status === 'pending') {
+          // Add to pending approvals
+          setPendingApprovals(prev => [...prev, { ...step as ApprovalStep, workflowId: workflow.id, executionId }]);
+          
+          // Pause execution and wait for approval
+          toast.info(`Workflow "${workflow.name}" is awaiting approval from ${(step as ApprovalStep).requiredApprovals} approver(s)`);
+          
+          // Mark execution as pending
+          const pendingExecution = {
+            ...newExecution,
+            status: 'pending' as const,
+            pausedAt: new Date().toISOString()
+          };
+          
+          setCurrentExecution(pendingExecution);
+          setExecutionLogs(prev => {
+            const updated = [...prev];
+            const executionIndex = updated.findIndex(e => e.id === executionId);
+            
+            if (executionIndex >= 0) {
+              updated[executionIndex] = pendingExecution;
+            }
+            
+            return updated;
+          });
+          
+          // Return the execution but don't mark as completed
+          return pendingExecution;
+        }
       }
       
       // Mark execution as completed
@@ -117,7 +151,7 @@ export function useWorkflowExecution() {
     } finally {
       setIsExecuting(false);
     }
-  }, []);
+  }, [user]);
   
   // Execute a single workflow step
   const executeStep = useCallback(async (
@@ -145,6 +179,8 @@ export function useWorkflowExecution() {
       } else if (step.type === 'trigger') {
         // Triggers are usually handled separately, but we'll simulate it
         output = { triggered: true, timestamp: new Date().toISOString() };
+      } else if (step.type === 'approval') {
+        output = await initiateApproval(step as ApprovalStep);
       }
       
       // Simulate step execution time (remove in production)
@@ -171,6 +207,91 @@ export function useWorkflowExecution() {
       };
     }
   }, []);
+  
+  // Initiate an approval step
+  const initiateApproval = async (step: ApprovalStep): Promise<any> => {
+    // In a real implementation, this would create approval requests in the database
+    // and notify approvers via email/notifications
+    
+    // For now, we'll simulate the approval process
+    const approvalId = uuid();
+    
+    // Initialize approvals array if not present
+    const approvals = step.approvals || [];
+    
+    // Return approval status and details
+    return {
+      approvalId,
+      status: 'pending',
+      requiredApprovals: step.requiredApprovals,
+      approverRoles: step.approverRoles,
+      approvals,
+      initiated: new Date().toISOString()
+    };
+  };
+  
+  // Process an approval action (approve or reject)
+  const processApproval = useCallback(async (
+    approvalStep: ApprovalStep,
+    action: 'approve' | 'reject',
+    comments?: string
+  ) => {
+    if (!user) {
+      toast.error('You must be logged in to process approvals');
+      return null;
+    }
+    
+    try {
+      // In a real implementation, this would update the approval status in the database
+      
+      // Create a new approval record
+      const approvalRecord = {
+        approverId: user.id,
+        approverName: user.name || user.email,
+        approverRole: user.role,
+        status: action === 'approve' ? 'approved' : 'rejected',
+        timestamp: new Date().toISOString(),
+        comments
+      };
+      
+      // Update the approval step with the new record
+      const updatedApprovals = [...(approvalStep.approvals || []), approvalRecord];
+      const updatedStep = {
+        ...approvalStep,
+        approvals: updatedApprovals
+      };
+      
+      // Check if we have enough approvals
+      const approvedCount = updatedApprovals.filter(a => a.status === 'approved').length;
+      
+      if (action === 'reject') {
+        // If rejected, immediately mark as rejected
+        updatedStep.status = 'rejected';
+      } else if (approvedCount >= approvalStep.requiredApprovals) {
+        // If we have enough approvals, mark as approved
+        updatedStep.status = 'approved';
+      } else {
+        // Still waiting for more approvals
+        updatedStep.status = 'pending';
+      }
+      
+      // Update the pending approvals list
+      setPendingApprovals(prev => prev.map(step => 
+        step.id === approvalStep.id ? updatedStep : step
+      ));
+      
+      // In a real implementation, we would continue the workflow execution
+      // based on the approval result (following either approvedSteps or rejectedSteps)
+      
+      toast.success(`Successfully ${action === 'approve' ? 'approved' : 'rejected'} "${approvalStep.name}"`);
+      
+      return updatedStep;
+    } catch (error) {
+      console.error('Error processing approval:', error);
+      toast.error(`Failed to ${action} the approval: ${error.message}`);
+      return null;
+    }
+  }, [user]);
   
   // Helper function to execute an action step
   const executeAction = async (step: WorkflowStep): Promise<any> => {
@@ -273,6 +394,8 @@ export function useWorkflowExecution() {
     executeStep,
     executionLogs,
     currentExecution,
-    isExecuting
+    isExecuting,
+    pendingApprovals,
+    processApproval
   };
 }

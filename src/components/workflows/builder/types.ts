@@ -16,6 +16,20 @@ export type ActionStep = BaseWorkflowStep & {
   config: any;
 };
 
+export type ApprovalStep = BaseWorkflowStep & {
+  type: 'approval';
+  approvalType: string;
+  requiredApprovals: number;
+  approverRoles: string[];
+  config: {
+    dueDate?: string;
+    reminderFrequency?: string;
+    escalationRules?: any;
+    approvedSteps: WorkflowStep[];
+    rejectedSteps: WorkflowStep[];
+  };
+};
+
 export type ConditionStep = BaseWorkflowStep & {
   type: 'condition';
   conditionType: string;
@@ -27,7 +41,7 @@ export type ConditionStep = BaseWorkflowStep & {
   };
 };
 
-export type WorkflowStep = TriggerStep | ActionStep | ConditionStep;
+export type WorkflowStep = TriggerStep | ActionStep | ConditionStep | ApprovalStep;
 
 export const TRIGGER_TYPES = [
   { id: 'time', label: 'Time-based', icon: 'Calendar' },
@@ -44,6 +58,14 @@ export const ACTION_TYPES = [
   { id: 'update', label: 'Update Record', icon: 'Settings' }
 ];
 
+export const APPROVAL_TYPES = [
+  { id: 'invoice', label: 'Invoice Approval', icon: 'FileText' },
+  { id: 'arc', label: 'ARC Application', icon: 'Home' },
+  { id: 'violation', label: 'Violation Review', icon: 'AlertTriangle' },
+  { id: 'collection', label: 'Collection Advancement', icon: 'DollarSign' },
+  { id: 'custom', label: 'Custom Approval', icon: 'CheckSquare' }
+];
+
 export const CONDITION_TYPES = [
   { id: 'equals', label: 'Equals' },
   { id: 'notEquals', label: 'Not Equals' },
@@ -53,4 +75,14 @@ export const CONDITION_TYPES = [
   { id: 'between', label: 'Between' },
   { id: 'isTrue', label: 'Is True' },
   { id: 'isFalse', label: 'Is False' }
+];
+
+export const APPROVAL_ROLES = [
+  { id: 'board_member', label: 'Board Member' },
+  { id: 'board_president', label: 'Board President' },
+  { id: 'committee_member', label: 'Committee Member' },
+  { id: 'committee_chair', label: 'Committee Chair' },
+  { id: 'manager', label: 'Manager' },
+  { id: 'invoice_approver', label: 'Invoice Approver' },
+  { id: 'admin', label: 'Administrator' }
 ];

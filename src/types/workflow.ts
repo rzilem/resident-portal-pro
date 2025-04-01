@@ -1,4 +1,3 @@
-
 export interface Workflow {
   id: string;
   name: string;
@@ -13,7 +12,7 @@ export interface Workflow {
   metadata?: Record<string, any>; // For storing alert relationships and other custom data
 }
 
-export type WorkflowStepType = 'trigger' | 'action' | 'condition';
+export type WorkflowStepType = 'trigger' | 'action' | 'condition' | 'approval';
 
 export interface BaseWorkflowStep {
   id: string;
@@ -34,6 +33,31 @@ export interface ActionStep extends BaseWorkflowStep {
   useMergeTags?: boolean; // Whether this action supports merge tags
 }
 
+export interface ApprovalStep extends BaseWorkflowStep {
+  type: 'approval';
+  approvalType: string;
+  requiredApprovals: number;
+  approverRoles: string[];
+  status?: 'pending' | 'approved' | 'rejected';
+  approvals?: ApprovalRecord[];
+  config: {
+    dueDate?: string;
+    reminderFrequency?: string;
+    escalationRules?: any;
+    approvedSteps: WorkflowStep[];
+    rejectedSteps: WorkflowStep[];
+  };
+}
+
+export interface ApprovalRecord {
+  approverId: string;
+  approverName: string;
+  approverRole: string;
+  status: 'pending' | 'approved' | 'rejected';
+  timestamp: string;
+  comments?: string;
+}
+
 export interface ConditionStep extends BaseWorkflowStep {
   type: 'condition';
   conditionType: string;
@@ -45,7 +69,7 @@ export interface ConditionStep extends BaseWorkflowStep {
   };
 }
 
-export type WorkflowStep = TriggerStep | ActionStep | ConditionStep;
+export type WorkflowStep = TriggerStep | ActionStep | ConditionStep | ApprovalStep;
 
 export interface WorkflowTemplate {
   id: string;
