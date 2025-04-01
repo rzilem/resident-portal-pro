@@ -1,9 +1,11 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { LeadDocument } from './types';
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Eye, X, AlertTriangle } from 'lucide-react';
+import { FileText, Download, Eye, X, AlertTriangle, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { TooltipButton } from "@/components/ui/tooltip-button";
 
 interface LeadDocumentsProps {
   documents: LeadDocument[];
@@ -18,6 +20,8 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
   canDelete = false,
   onDocumentsChange
 }) => {
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+
   if (!documents || documents.length === 0) {
     return <div className="text-sm text-muted-foreground">No documents attached</div>;
   }
@@ -31,6 +35,7 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
         const link = document.createElement('a');
         link.href = doc.url;
         link.download = doc.name;
+        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -81,7 +86,7 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
         console.log('Getting signed URL for path:', doc.path);
         const { data, error } = await supabase.storage
           .from('documents')
-          .createSignedUrl(doc.path, 60); // 60 seconds expiry
+          .createSignedUrl(doc.path, 300); // 5 minutes expiry
           
         if (error) {
           console.error('Error creating signed URL:', error);
@@ -102,6 +107,7 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
     if (!onDocumentsChange) return;
     
     try {
+      setDeletingIndex(index);
       console.log('Deleting document:', doc, 'at index:', index);
       
       if (doc.path) {
@@ -138,6 +144,8 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
     } catch (error) {
       console.error("Error deleting document:", error);
       toast.error("Failed to delete document");
+    } finally {
+      setDeletingIndex(null);
     }
   };
 
@@ -153,34 +161,39 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <Button
+            <TooltipButton
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
               onClick={() => handlePreview(doc)}
-              title="Preview"
+              tooltipText="Preview document"
             >
               <Eye className="h-3.5 w-3.5" />
-            </Button>
-            <Button
+            </TooltipButton>
+            <TooltipButton
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
               onClick={() => handleDownload(doc)}
-              title="Download"
+              tooltipText="Download document"
             >
               <Download className="h-3.5 w-3.5" />
-            </Button>
+            </TooltipButton>
             {canDelete && onDocumentsChange && (
-              <Button
+              <TooltipButton
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0 text-destructive"
                 onClick={() => handleDelete(doc, index)}
-                title="Delete"
+                disabled={deletingIndex === index}
+                tooltipText="Delete document"
               >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+                {deletingIndex === index ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <X className="h-3.5 w-3.5" />
+                )}
+              </TooltipButton>
             )}
           </div>
         </div>

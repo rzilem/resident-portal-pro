@@ -21,7 +21,8 @@ import {
   Trash2, 
   RefreshCw,
   Paperclip,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { LeadData } from './types';
@@ -37,7 +38,17 @@ import {
 } from "@/components/ui/dialog";
 import LeadDocuments from './LeadDocuments';
 import LeadFormDialog from './LeadFormDialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { TooltipButton } from "@/components/ui/tooltip-button";
 
 interface LeadRowActionsProps {
   lead: LeadData;
@@ -49,9 +60,11 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
   const [documents, setDocuments] = useState(lead.uploaded_files || []);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const updateLeadStatus = async (status: string) => {
     try {
+      console.log(`Updating lead ${lead.id} status to ${status}`);
       const { error } = await supabase
         .from('leads')
         .update({ 
@@ -61,7 +74,10 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
         })
         .eq('id', lead.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating lead status:', error);
+        throw error;
+      }
       
       toast.success(`Lead marked as ${status}`);
       queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -73,6 +89,7 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
 
   const logContact = async (type: 'email' | 'phone' | 'proposal') => {
     try {
+      console.log(`Logging contact for lead ${lead.id} with type ${type}`);
       const { error } = await supabase
         .from('leads')
         .update({ 
@@ -82,7 +99,10 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
         })
         .eq('id', lead.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error(`Error logging ${type} contact:`, error);
+        throw error;
+      }
 
       let message = '';
       if (type === 'email') message = 'Email sent!';
@@ -98,12 +118,14 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
   };
 
   const handleDeleteConfirm = () => {
+    setDeleteError(null);
     setDeleteConfirmOpen(true);
   };
 
   const deleteLead = async () => {
     try {
       setIsDeleting(true);
+      setDeleteError(null);
       console.log('Deleting lead:', lead.id);
       
       // If there are documents, delete them first
@@ -132,15 +154,18 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
         
       if (error) {
         console.error('Database error deleting lead:', error);
+        setDeleteError(error.message || 'Unknown database error');
         throw error;
       }
       
       toast.success(`Lead "${lead.name}" deleted successfully`);
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setDeleteConfirmOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting lead:', err);
+      setDeleteError(err.message || 'Failed to delete lead. Please try again.');
       toast.error('Failed to delete lead. Please try again.');
+      // Don't close the dialog so user can see the error
     } finally {
       setIsDeleting(false);
     }
@@ -160,11 +185,11 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="More options">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => logContact('email')}>
             <Mail className="h-4 w-4 mr-2" />
@@ -239,6 +264,14 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          {deleteError && (
+            <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-3 flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <span>{deleteError}</span>
+            </div>
+          )}
+          
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
@@ -247,9 +280,19 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
                 deleteLead();
               }}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center gap-2"
             >
-              {isDeleting ? 'Deleting...' : 'Delete Lead'}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Delete Lead
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
