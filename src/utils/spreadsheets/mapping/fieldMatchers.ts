@@ -20,7 +20,7 @@ export const findBestFieldMatch = (
   for (const target of availableTargets) {
     const normalizedTarget = target.label.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (normalizedSource === normalizedTarget) {
-      return target.name;
+      return target.value;
     }
   }
   
@@ -28,7 +28,7 @@ export const findBestFieldMatch = (
   for (const target of availableTargets) {
     const normalizedTarget = target.label.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (normalizedSource.includes(normalizedTarget) || normalizedTarget.includes(normalizedSource)) {
-      return target.name;
+      return target.value;
     }
   }
   

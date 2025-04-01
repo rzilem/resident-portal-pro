@@ -4,8 +4,9 @@
  */
 
 export interface ColumnMapping {
-  sourceColumn: string;
+  sourceField: string;
   targetField: string;
+  sourceColumn?: string;
   sourceIndex?: number;
 }
 

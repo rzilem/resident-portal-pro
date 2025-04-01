@@ -1,4 +1,3 @@
-
 import { ColumnMapping, ValidationResult } from './mapping/types';
 
 /**
@@ -16,20 +15,6 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
       targetField = 'address';
     } else if (lowerHeader === 'city') {
       targetField = 'city';
-    } else if (lowerHeader === 'state') {
-      targetField = 'state';
-    } else if (lowerHeader === 'zip') {
-      targetField = 'zip';
-    } else if (lowerHeader.includes('phone') || lowerHeader.includes('contact_phone')) {
-      targetField = 'contact_phone';
-    } else if (lowerHeader.includes('email') || lowerHeader.includes('contact_email')) {
-      targetField = 'contact_email';
-    } else if (lowerHeader.includes('website')) {
-      targetField = 'contact_website';
-    } else if (lowerHeader.includes('units') || lowerHeader.includes('total_units')) {
-      targetField = 'units';
-    } else if (lowerHeader.includes('type')) {
-      targetField = 'type';
     }
     
     // Property fields
@@ -197,6 +182,7 @@ export const validateMappings = (mappings: ColumnMapping[], importType: string):
   
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    message: errors.length > 0 ? `${errors.length} errors found` : "Validation successful"
   };
 };
