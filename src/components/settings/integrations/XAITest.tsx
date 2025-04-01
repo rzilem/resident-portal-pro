@@ -33,10 +33,14 @@ const XAITest = () => {
         toast.success("X.AI API connection verified successfully!");
       } else {
         toast.error("X.AI API connection test failed. Check your API key.");
+        // If test fails, show the config dialog
+        setShowConfigDialog(true);
       }
     } catch (error) {
       console.error("Error testing X.AI connection:", error);
       toast.error("Connection test encountered an error.");
+      // Also show config dialog on error
+      setShowConfigDialog(true);
     } finally {
       setIsTesting(false);
     }

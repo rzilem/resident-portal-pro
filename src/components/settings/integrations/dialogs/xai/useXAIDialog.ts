@@ -20,6 +20,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
         defaultModel: settings.defaultModel || 'grok-1',
         organization: settings.organization
       });
+      
       setApiKey(settings.apiKey || '');
       setDefaultModel(settings.defaultModel || 'grok-1');
       setOrganization(settings.organization || '');
@@ -49,17 +50,22 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
       organization
     });
     
-    const success = await saveXAISettings({
-      apiKey,
-      defaultModel,
-      organization
-    });
-    
-    if (success) {
-      toast.success('X.AI settings saved successfully');
-      onOpenChange(false);
-    } else {
-      toast.error('Failed to save X.AI settings');
+    try {
+      const success = await saveXAISettings({
+        apiKey,
+        defaultModel,
+        organization
+      });
+      
+      if (success) {
+        toast.success('X.AI settings saved successfully');
+        onOpenChange(false);
+      } else {
+        toast.error('Failed to save X.AI settings');
+      }
+    } catch (error) {
+      console.error('Error saving X.AI settings:', error);
+      toast.error('An error occurred while saving settings');
     }
   };
 
@@ -71,7 +77,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     
     setIsTesting(true);
     try {
-      console.log('Testing X.AI API...');
+      console.log('Testing X.AI API with key:', apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
       const success = await testXAIConnection(apiKey);
       
       if (success) {
@@ -87,6 +93,12 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     }
   };
 
+  // Function to handle model change explicitly
+  const handleModelChange = (value: string) => {
+    console.log('Model changed to:', value);
+    setDefaultModel(value);
+  };
+
   return {
     apiKey,
     defaultModel,
@@ -95,7 +107,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     isLoading,
     isAuthenticated,
     setApiKey,
-    setDefaultModel,
+    setDefaultModel: handleModelChange,
     setOrganization,
     handleSave,
     handleTest

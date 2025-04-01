@@ -41,9 +41,11 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Label htmlFor="apiKey">API Key</Label>
         <Input 
           id="apiKey" 
+          type="text"
           placeholder="Enter your X.AI API key" 
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
+          autoComplete="off"
         />
         <p className="text-xs text-muted-foreground">
           Your X.AI API key will be securely stored and used for AI generations.
@@ -54,13 +56,16 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Label htmlFor="model">Default Model</Label>
         <Select 
           value={defaultModel} 
-          onValueChange={setDefaultModel}
+          onValueChange={(value) => {
+            console.log("Model selection changed to:", value);
+            setDefaultModel(value);
+          }}
           defaultValue="grok-1"
         >
-          <SelectTrigger id="model">
+          <SelectTrigger id="model" className="w-full bg-background">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background">
             <SelectItem value="grok-1">Grok-1</SelectItem>
             <SelectItem value="grok-1-mini">Grok-1 Mini</SelectItem>
             <SelectItem value="grok-2">Grok-2</SelectItem>
@@ -75,9 +80,11 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Label htmlFor="organization">Organization ID (Optional)</Label>
         <Input 
           id="organization" 
+          type="text"
           placeholder="Enter your organization ID" 
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
+          autoComplete="off"
         />
         <p className="text-xs text-muted-foreground">
           If you're using an organizational account, enter your organization ID.
