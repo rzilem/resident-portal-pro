@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { generateOnboardingTemplate } from '@/utils/exportToExcel';
+import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 
 interface Property {
   id: string;
@@ -18,7 +19,7 @@ interface Property {
   association_name?: string;
 }
 
-export const usePropertyExport = () => {
+export const usePropertyExport = (properties?: Property[]) => {
   const [loading, setLoading] = useState(false);
   
   const exportPropertyList = async (properties: Property[]) => {
@@ -70,11 +71,28 @@ export const usePropertyExport = () => {
       setLoading(false);
     }
   };
+
+  // Add the missing functions that Properties.tsx is looking for
+  const handleVisibleColumnsExport = (columns: PropertyColumn[]) => {
+    if (!properties || properties.length === 0) {
+      toast.error('No properties to export');
+      return;
+    }
+    
+    exportPropertyList(properties);
+  };
+  
+  const handleTemplateDownload = () => {
+    downloadPropertyTemplate();
+  };
   
   return {
     exportPropertyList,
     downloadPropertyTemplate,
-    loading
+    loading,
+    isExporting: loading,
+    handleVisibleColumnsExport,
+    handleTemplateDownload
   };
 };
 
