@@ -24,8 +24,15 @@ export const useUserManagement = () => {
       const fetchedUsers = await userService.getUsers();
       console.log("Fetched users:", fetchedUsers);
       
+      // Filter out resident users - only show admin and staff type users
+      const filteredUsers = fetchedUsers.filter(user => 
+        user.role !== 'resident'
+      );
+      
+      console.log("Filtered non-resident users:", filteredUsers);
+      
       // Ensure all users have unique IDs to avoid rendering issues
-      const uniqueUsers = removeDuplicateUsers(fetchedUsers);
+      const uniqueUsers = removeDuplicateUsers(filteredUsers);
       setUsers(uniqueUsers);
     } catch (error) {
       toast.error("Failed to load users");

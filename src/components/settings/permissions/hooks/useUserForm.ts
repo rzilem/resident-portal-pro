@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { User, UserRole } from '@/types/user';
+
+import { useState } from 'react';
+import { User } from '@/types/user';
 import { userService } from '@/services/userService';
-import { emailService } from '@/services/emailService';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 interface UseUserFormProps {
   editingUser: User | null;
@@ -11,205 +12,123 @@ interface UseUserFormProps {
   onSuccess: () => void;
 }
 
-export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUserFormProps) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'resident' as UserRole,
-    firstName: '',
-    lastName: '',
+interface FormData {
+  id?: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+export const useUserForm = ({ 
+  editingUser, 
+  users, 
+  setUsers, 
+  onSuccess 
+}: UseUserFormProps) => {
+  // Initialize with editingUser values or defaults
+  const [formData, setFormData] = useState<FormData>({
+    id: editingUser?.id || '',
+    name: editingUser?.name || '',
+    email: editingUser?.email || '',
+    // Default role is now 'admin' instead of 'resident'
+    role: editingUser?.role || 'admin',
   });
-
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailError, setEmailError] = useState('');
-
-  useEffect(() => {
-    if (editingUser) {
-      setFormData({
-        name: editingUser.name,
-        email: editingUser.email,
-        role: editingUser.role as UserRole,
-        firstName: editingUser.firstName || '',
-        lastName: editingUser.lastName || '',
-      });
-      setEmailError('');
-    } else {
-      setFormData({
-        name: '',
-        email: '',
-        role: 'resident' as UserRole,
-        firstName: '',
-        lastName: '',
-      });
-      setEmailError('');
-    }
-  }, [editingUser]);
-
+  const [emailError, setEmailError] = useState<string | null>(null);
+  
+  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
+    // Clear email error when email is modified
     if (name === 'email') {
-      setEmailError('');
-    }
-    
-    if (name === 'firstName' || name === 'lastName') {
-      const fullName = name === 'firstName' 
-        ? `${value} ${formData.lastName}`.trim()
-        : `${formData.firstName} ${value}`.trim();
-      
-      if (fullName) {
-        setFormData(prev => ({ ...prev, name: fullName }));
-      }
+      setEmailError(null);
     }
   };
-
-  const handleRoleChange = (value: UserRole) => {
+  
+  // Handle role selection
+  const handleRoleChange = (value: string) => {
     setFormData(prev => ({ ...prev, role: value }));
   };
-
-  const validateEmail = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      setEmailError('Please enter a valid email address');
-      return false;
-    }
-    
-    try {
-      const existingUser = await userService.getUserByEmail(formData.email);
-      if (existingUser && (!editingUser || existingUser.id !== editingUser.id)) {
-        setEmailError('A user with this email already exists');
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error("Error validating email:", error);
-      return false;
-    }
+  
+  // Check if email is already used
+  const isEmailDuplicate = (email: string, userId?: string): boolean => {
+    return users.some(user => 
+      user.email.toLowerCase() === email.toLowerCase() && user.id !== userId
+    );
   };
-
+  
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError(null);
+    
+    // Validate email
+    if (!formData.email) {
+      setEmailError('Email is required');
+      return;
+    }
+    
+    if (!formData.email.includes('@')) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+    
+    // Check for duplicate email
+    if (isEmailDuplicate(formData.email, formData.id)) {
+      setEmailError('This email is already in use');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      if (!formData.name || !formData.email || !formData.role) {
-        toast.error("Please fill in all required fields");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      const isEmailValid = await validateEmail();
-      if (!isEmailValid) {
-        setIsSubmitting(false);
-        return;
-      }
+      let updatedUser: User;
       
       if (editingUser) {
-        const updatedUser = await userService.updateUser({
+        // Update existing user
+        console.log('Updating user:', { ...formData });
+        updatedUser = await userService.updateUser({
           ...editingUser,
-          name: formData.name,
-          email: formData.email.trim(),
-          role: formData.role,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+          ...formData,
         });
         
-        setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
-        toast.success("User updated successfully");
+        toast.success(`${updatedUser.name} updated successfully`);
+        
+        // Update users list
+        setUsers(users.map(user => 
+          user.id === updatedUser.id ? updatedUser : user
+        ));
       } else {
-        try {
-          console.log("Attempting to create new user:", formData);
-          
-          const newUser = await userService.createUser({
-            name: formData.name,
-            email: formData.email.trim(),
-            role: formData.role,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            status: 'pending',
-            securityLevel: getSecurityLevelForRole(formData.role)
-          });
-          
-          setUsers(prevUsers => [...prevUsers, newUser]);
-          
-          const emailSent = await emailService.sendWelcomeEmail(
-            newUser.email,
-            newUser.firstName || newUser.name,
-            getRoleLabel(newUser.role)
-          );
-          
-          if (emailSent) {
-            console.log(`Welcome email successfully sent to ${newUser.email}`);
-          } else {
-            console.error(`Failed to send welcome email to ${newUser.email}`);
-            toast.warning("User created but welcome email could not be sent");
-          }
-          
-          const adminUser = users.find(user => user.role === 'admin');
-          if (adminUser && adminUser.email) {
-            const notificationSent = await emailService.sendNewUserNotification(
-              adminUser.email,
-              newUser.name,
-              newUser.email,
-              getRoleLabel(newUser.role)
-            );
-            
-            if (notificationSent) {
-              console.log(`Admin notification email sent to ${adminUser.email}`);
-            } else {
-              console.error(`Failed to send admin notification to ${adminUser.email}`);
-            }
-          } else {
-            console.log("No admin user found to notify about new user");
-          }
-          
-          toast.success("User invited successfully and welcome email sent");
-        } catch (createError) {
-          if (createError instanceof Error) {
-            toast.error(createError.message);
-          } else {
-            toast.error("Failed to create user");
-          }
-          console.error("Error creating user:", createError);
-          setIsSubmitting(false);
-          return;
-        }
+        // Create new user
+        const newUser: User = {
+          id: uuidv4(),
+          ...formData,
+          status: 'active',
+          securityLevel: 'basic',
+          createdAt: new Date().toISOString(),
+        };
+        
+        console.log('Creating new user:', newUser);
+        updatedUser = await userService.createUser(newUser);
+        
+        toast.success(`Invitation sent to ${updatedUser.email}`);
+        
+        // Add to users list
+        setUsers([...users, updatedUser]);
       }
       
       onSuccess();
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error(editingUser ? "Failed to update user" : "Failed to invite user");
-      }
-      console.error("Error saving user:", error);
+      console.error('Error saving user:', error);
+      toast.error('Failed to save user');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const getSecurityLevelForRole = (role: UserRole) => {
-    switch (role) {
-      case 'admin':
-        return 'full_access';
-      case 'manager':
-        return 'advanced';
-      case 'board_member':
-      case 'board':
-        return 'elevated';
-      case 'staff':
-        return 'limited_access';
-      case 'resident':
-        return 'basic';
-      case 'vendor':
-        return 'limited_access';
-      default:
-        return 'basic';
-    }
-  };
-
+  
   return {
     formData,
     isSubmitting,
@@ -219,18 +138,3 @@ export const useUserForm = ({ editingUser, users, setUsers, onSuccess }: UseUser
     handleSubmit
   };
 };
-
-const getRoleLabel = (roleValue: string): string => {
-  const role = roles.find(r => r.value === roleValue);
-  return role ? role.label : roleValue.charAt(0).toUpperCase() + roleValue.slice(1).replace('_', ' ');
-};
-
-export const roles: { value: UserRole; label: string }[] = [
-  { value: "admin", label: "Administrator" },
-  { value: "manager", label: "Property Manager" },
-  { value: "board_member", label: "Board Member" },
-  { value: "board", label: "Board" },
-  { value: "staff", label: "Staff" },
-  { value: "resident", label: "Resident" },
-  { value: "vendor", label: "Vendor" }
-];
