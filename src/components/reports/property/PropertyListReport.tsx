@@ -31,7 +31,7 @@ const PropertyListReport: React.FC<PropertyListReportProps> = ({
         </thead>
         <tbody>
           {properties.map((property, index) => (
-            <tr key={property.id || index} className="border-b border-gray-100">
+            <tr key={property.id || `property-${index}`} className="border-b border-gray-100">
               <td className="py-3">
                 {property.address || property.location}
                 {property.name && <div className="text-xs text-muted-foreground">{property.name}</div>}
