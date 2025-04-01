@@ -50,7 +50,11 @@ const EmailWorkflowSettings: React.FC = () => {
     if (monitoringActive) {
       interval = window.setInterval(fetchRecentEmails, 30000);
     }
-    return () => interval && window.clearInterval(interval);
+    return () => {
+      if (interval !== null) {
+        window.clearInterval(interval);
+      }
+    };
   }, [monitoringActive]);
 
   const handleTestEmail = () => {
@@ -93,6 +97,10 @@ const EmailWorkflowSettings: React.FC = () => {
     await fetchRecentEmails();
   };
 
+  const handleDebugDialog = () => {
+    setDebugDialogOpen(true);
+  };
+
   const handleProcessDebugEmail = async () => {
     setProcessingStatus("Processing email...");
     const result = await processEmailAsLead(debugEmail);
@@ -126,11 +134,6 @@ const EmailWorkflowSettings: React.FC = () => {
 
   const recordProcessedEmail = (id: string, success: boolean) => {
     setRecentEmails(prev => prev.map(email => email.id === id ? { ...email, status: success ? 'success' : 'failed' } : email));
-  };
-
-  // Handler for opening the debug dialog
-  const handleDebugDialog = () => {
-    setDebugDialogOpen(true);
   };
 
   // Handler for adding a new workflow rule
