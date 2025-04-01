@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -43,6 +44,7 @@ import SystemUploads from '@/pages/SystemUploads';
 import EmailWorkflows from '@/pages/settings/EmailWorkflows';
 import Associations from '@/pages/settings/Associations';
 import Permissions from '@/pages/settings/Permissions';
+import ProcessScheduler from '@/pages/system/ProcessScheduler';
 import Records from '@/pages/database/Records';
 import Reports from '@/pages/Reports';
 import ResaleDashboard from '@/pages/resale/ResaleDashboard';
@@ -77,10 +79,6 @@ function ScrollToTop() {
   
   return null;
 }
-
-const ProcessScheduler = () => {
-  return <div>Process Scheduler Page</div>;
-};
 
 const App = () => {
   const AppRoutes = () => {
@@ -152,11 +150,7 @@ const App = () => {
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
           <Route path="/resale/admin/project-images" element={<div>Project Images Page</div>} />
           
-          <Route path="/system/processes" element={
-            <ProtectedRoute>
-              <ProcessScheduler />
-            </ProtectedRoute>
-          } />
+          <Route path="/system/processes" element={<ProcessScheduler />} />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
