@@ -1,2 +1,4 @@
 
 project_id = "eqbbnewrorxilukaocjx"
+[functions.delete_lead]
+verify_jwt = true

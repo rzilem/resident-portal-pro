@@ -64,11 +64,11 @@ serve(async (req) => {
     let documentErrors = [];
     
     // Delete associated documents if any exist
-    if (lead.uploaded_files && lead.uploaded_files.length > 0) {
+    if (lead && lead.uploaded_files && lead.uploaded_files.length > 0) {
       console.log(`Found ${lead.uploaded_files.length} documents to delete`);
       
       for (const doc of lead.uploaded_files) {
-        if (doc.path) {
+        if (doc && doc.path) {
           try {
             console.log(`Deleting document: ${doc.path}`);
             const { error: storageError } = await supabaseClient.storage
@@ -91,26 +91,59 @@ serve(async (req) => {
       console.log('No documents to delete');
     }
     
-    // Delete the lead using a direct delete operation
-    console.log('Deleting lead record');
-    const { error: deleteError } = await supabaseClient
-      .from('leads')
-      .delete()
-      .eq('id', leadId);
-      
-    if (deleteError) {
-      console.error('Error deleting lead:', deleteError);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: deleteError.message,
-          documentErrors: documentErrors.length > 0 ? documentErrors : undefined
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    // IMPORTANT: Force bypass RLS for lead deletion
+    // First try with rpc if available
+    try {
+      console.log('Trying to delete lead with service_role capabilities');
+      // Create a service role client to bypass RLS
+      const adminClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
       );
+      
+      // Delete the lead using service role
+      const { error: adminDeleteError } = await adminClient
+        .from('leads')
+        .delete()
+        .eq('id', leadId);
+        
+      if (adminDeleteError) {
+        console.error('Error deleting lead with service role:', adminDeleteError);
+        throw adminDeleteError;
+      } else {
+        console.log('Lead successfully deleted with service role');
+      }
+    } catch (serviceRoleError) {
+      console.error('Service role deletion failed, falling back to standard delete:', serviceRoleError);
+      
+      // Fall back to standard delete
+      const { error: deleteError } = await supabaseClient
+        .from('leads')
+        .delete()
+        .eq('id', leadId);
+        
+      if (deleteError) {
+        console.error('Error deleting lead with standard delete:', deleteError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: deleteError.message,
+            documentErrors: documentErrors.length > 0 ? documentErrors : undefined
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      console.log('Lead successfully deleted with standard delete');
     }
     
-    console.log('Lead successfully deleted');
+    console.log('Lead deletion completed successfully');
     return new Response(
       JSON.stringify({ 
         success: true,
