@@ -30,9 +30,13 @@ export const uploadAssociationPhoto = async (
   description?: string
 ): Promise<AssociationPhoto | null> => {
   try {
+    console.log(`Starting upload for association: ${associationId}, file: ${file.name}`);
+    
     // First upload the file to storage
     const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
     const filePath = `${associationId}/${fileName}`;
+    
+    console.log(`Using storage path: ${filePath}`);
     
     const fileUrl = await uploadFile(
       file, 
@@ -41,8 +45,11 @@ export const uploadAssociationPhoto = async (
     );
     
     if (!fileUrl) {
+      console.error('Upload failed: No URL returned from uploadFile');
       throw new Error('Failed to upload file');
     }
+    
+    console.log(`File uploaded successfully. URL: ${fileUrl}`);
     
     // Then store the reference in the database
     const { data: photo, error } = await supabase
@@ -58,8 +65,12 @@ export const uploadAssociationPhoto = async (
       .select('*')
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Database error when saving photo metadata:', error);
+      throw error;
+    }
     
+    console.log('Photo metadata saved successfully:', photo);
     toast.success('Photo uploaded successfully');
     return photo;
   } catch (error) {

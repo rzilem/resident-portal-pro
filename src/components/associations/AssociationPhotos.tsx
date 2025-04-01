@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Image, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -94,20 +95,17 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
         <Carousel className="w-full">
           <CarouselContent>
             {photos.map((photo) => {
-              // Always use the original URL without replacing demo URLs
-              const imageUrl = photo.url;
-                
-              console.log(`Rendering photo: ${photo.id} with URL: ${imageUrl}`);
+              console.log(`Rendering photo: ${photo.id} with URL: ${photo.url}`);
               
               return (
                 <CarouselItem key={photo.id}>
                   <div className="overflow-hidden rounded-md">
                     <img 
-                      src={imageUrl} 
+                      src={photo.url} 
                       alt={photo.description || `${associationName} property`} 
                       className="h-[250px] w-full object-cover"
                       onError={(e) => {
-                        console.error("Failed to load image:", imageUrl);
+                        console.error("Failed to load image:", photo.url);
                         e.currentTarget.src = "https://placehold.co/600x400?text=Image+Not+Found";
                       }}
                     />
