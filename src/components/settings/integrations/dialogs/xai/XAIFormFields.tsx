@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,26 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
   onCancel
 }) => {
   console.log("Rendering XAIFormFields with model:", defaultModel);
+  const apiKeyInputRef = useRef<HTMLInputElement>(null);
+  
+  // Focus the API key input when the form mounts
+  useEffect(() => {
+    if (apiKeyInputRef.current) {
+      setTimeout(() => {
+        apiKeyInputRef.current?.focus();
+      }, 100);
+    }
+  }, []);
+  
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("API key change event triggered:", e.target.value);
+    setApiKey(e.target.value);
+  };
+
+  const handleOrganizationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Organization change event triggered:", e.target.value);
+    setOrganization(e.target.value);
+  };
   
   return (
     <div className="space-y-4 py-4">
@@ -41,12 +61,13 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Label htmlFor="apiKey">API Key</Label>
         <Input 
           id="apiKey" 
+          ref={apiKeyInputRef}
           type="text"
           placeholder="Enter your X.AI API key (e.g., xai_abc123)" 
           value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          onChange={handleApiKeyChange}
           autoComplete="off"
-          className="bg-background focus:ring-offset-background"
+          className="bg-background focus:ring-offset-background border-input"
           required
         />
         <p className="text-xs text-muted-foreground">
@@ -82,9 +103,9 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           type="text"
           placeholder="Enter your organization ID" 
           value={organization}
-          onChange={(e) => setOrganization(e.target.value)}
+          onChange={handleOrganizationChange}
           autoComplete="off"
-          className="bg-background focus:ring-offset-background"
+          className="bg-background focus:ring-offset-background border-input"
         />
         <p className="text-xs text-muted-foreground">
           Required only for organizational X.AI accounts.

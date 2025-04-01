@@ -1,16 +1,32 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useXAI } from '@/hooks/use-xai';
 import { toast } from 'sonner';
 
 export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => void) {
   const { settings, saveXAISettings, testXAIConnection, isLoading, isAuthenticated } = useXAI();
   
-  // Form state
+  // Form state with debug logging
   const [apiKey, setApiKey] = useState('');
   const [defaultModel, setDefaultModel] = useState('grok-2');
   const [organization, setOrganization] = useState('');
   const [isTesting, setIsTesting] = useState(false);
+
+  // Safe setter functions that include logging
+  const handleSetApiKey = useCallback((value: string) => {
+    console.log('Setting API key to:', value ? `${value.substring(0, 3)}...` : 'empty');
+    setApiKey(value);
+  }, []);
+
+  const handleSetDefaultModel = useCallback((value: string) => {
+    console.log('Setting default model to:', value);
+    setDefaultModel(value);
+  }, []);
+
+  const handleSetOrganization = useCallback((value: string) => {
+    console.log('Setting organization to:', value);
+    setOrganization(value);
+  }, []);
 
   // Update local state when dialog opens or settings change
   useEffect(() => {
@@ -21,22 +37,21 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
         organization: settings.organization
       });
       
-      setApiKey(settings.apiKey || '');
-      setDefaultModel(settings.defaultModel || 'grok-2');
-      setOrganization(settings.organization || '');
+      handleSetApiKey(settings.apiKey || '');
+      handleSetDefaultModel(settings.defaultModel || 'grok-2');
+      handleSetOrganization(settings.organization || '');
     }
-  }, [open, settings]);
+  }, [open, settings, handleSetApiKey, handleSetDefaultModel, handleSetOrganization]);
 
   // Debug state changes
   useEffect(() => {
     console.log('X.AI Dialog State:', {
       openStatus: open,
-      currentSettings: settings,
       localApiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
       localDefaultModel: defaultModel,
       localOrganization: organization
     });
-  }, [open, settings, apiKey, defaultModel, organization]);
+  }, [open, apiKey, defaultModel, organization]);
 
   const handleSave = async () => {
     if (!apiKey.trim()) {
@@ -100,9 +115,9 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     isTesting,
     isLoading,
     isAuthenticated,
-    setApiKey,
-    setDefaultModel,
-    setOrganization,
+    setApiKey: handleSetApiKey,
+    setDefaultModel: handleSetDefaultModel,
+    setOrganization: handleSetOrganization,
     handleSave,
     handleTest
   };

@@ -1,6 +1,5 @@
 
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
 
 export interface InputProps
@@ -8,6 +7,27 @@ export interface InputProps
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
+    const handleCutPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+      // Allow paste events to propagate normally
+      console.log(`Input ${e.type} event`, props.id);
+    };
+
+    // Log when input receives focus and blur events
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      console.log(`Input ${e.type} event`, props.id);
+      if (props.onFocus) props.onFocus(e);
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      console.log(`Input ${e.type} event`, props.id);
+      if (props.onBlur) props.onBlur(e);
+    };
+
+    // Monitor input events
+    const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+      console.log(`Input change event`, e.currentTarget.value);
+    };
+
     return (
       <input
         type={type}
@@ -16,6 +36,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className
         )}
         ref={ref}
+        onPaste={handleCutPaste}
+        onCut={handleCutPaste}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onInput={handleInput}
         {...props}
       />
     )

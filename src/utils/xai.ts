@@ -7,7 +7,7 @@ export const testXAIAPI = async (apiKey: string): Promise<boolean> => {
     return false;
   }
 
-  console.log('Testing X.AI API connection...');
+  console.log('Testing X.AI API connection...', apiKey ? `${apiKey.substring(0, 5)}...` : 'empty');
   
   try {
     // Testing with a minimal request to the models endpoint
@@ -18,6 +18,9 @@ export const testXAIAPI = async (apiKey: string): Promise<boolean> => {
         'Content-Type': 'application/json'
       }
     });
+
+    const responseText = await response.text();
+    console.log('X.AI API response:', response.status, responseText.substring(0, 100));
 
     if (!response.ok) {
       console.error('X.AI API test failed:', response.status, response.statusText);

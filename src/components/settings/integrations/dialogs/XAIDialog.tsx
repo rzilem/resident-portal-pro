@@ -27,6 +27,9 @@ const XAIDialog: React.FC<XAIDialogProps> = ({
     handleTest
   } = useXAIDialog(open, onOpenChange);
 
+  // Debug dialog state
+  console.log("XAIDialog render state:", { open, apiKey, defaultModel, organization });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
