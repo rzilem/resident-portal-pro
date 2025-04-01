@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileUp, FileDown, Database } from 'lucide-react';
+import { Upload, FileUp, FileDown, Database, Users } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import DocumentStructureTab from '@/components/database/upload/DocumentStructureTab';
 import TemplatesTab from '@/components/database/upload/TemplatesTab';
 import UploadDataTab from '@/components/database/upload/UploadDataTab';
+import VendorUploadTab from '@/components/database/upload/VendorUploadTab';
 import SuccessState from '@/components/database/upload/SuccessState';
 
 const SystemUploads = () => {
@@ -48,10 +49,14 @@ const SystemUploads = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6 grid w-full grid-cols-1 md:grid-cols-3">
+            <TabsList className="mb-6 grid w-full grid-cols-1 md:grid-cols-4">
               <TabsTrigger value="upload" className="flex items-center gap-2">
                 <FileUp className="h-4 w-4" />
                 <span>Upload Data</span>
+              </TabsTrigger>
+              <TabsTrigger value="vendors" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>Vendor Import</span>
               </TabsTrigger>
               <TabsTrigger value="templates" className="flex items-center gap-2">
                 <FileDown className="h-4 w-4" />
@@ -74,6 +79,10 @@ const SystemUploads = () => {
               )}
             </TabsContent>
             
+            <TabsContent value="vendors">
+              <VendorUploadTab />
+            </TabsContent>
+            
             <TabsContent value="templates">
               <TemplatesTab onOpenChange={handleDialogClose} />
             </TabsContent>
@@ -85,7 +94,7 @@ const SystemUploads = () => {
         </CardContent>
       </Card>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
@@ -107,6 +116,31 @@ const SystemUploads = () => {
               setUploadStep('initial');
             }}>
               Start Data Upload
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-lg">Vendor Import</CardTitle>
+              <Button variant="ghost" size="icon" className="text-indigo-500">
+                <Users className="h-5 w-5" />
+              </Button>
+            </div>
+            <CardDescription>
+              Import vendor data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Bulk import vendor information from spreadsheets. Add new vendors or update existing ones.
+            </p>
+            <Button 
+              className="w-full mt-4" 
+              onClick={() => setActiveTab('vendors')}
+            >
+              Import Vendors
             </Button>
           </CardContent>
         </Card>

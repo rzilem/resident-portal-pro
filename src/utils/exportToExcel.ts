@@ -164,3 +164,71 @@ export const generatePropertyTemplate = (): void => {
   // Export the template
   exportToExcel(template, 'property-template', 'Properties');
 };
+
+/**
+ * Generate and download a template for vendor data
+ */
+export const generateVendorTemplate = (): void => {
+  // Create sample data with headers and an example row
+  const template = [
+    {
+      'Provider Name': '',
+      'DBA': '',
+      'Check Name': '',
+      'Contact': '',
+      'Phone': '',
+      'eMail': '',
+      'Provider Type': '',
+      'Default Payment Method': '',
+      'Hold Payment': '',
+      'Hold Reason': '',
+      'Is 1099': '',
+      'Report 1099 Box': '',
+      'Is Preferred': '',
+      'Is Default': '',
+      'Is Compliant': '',
+      'Compliance Status': '',
+      'Compliance Group': '',
+      'Street No': '',
+      'Address1': '',
+      'Address2': '',
+      'City': '',
+      'State': '',
+      'Zip': '',
+      'TaxID': '',
+      'Service Provider ID': '',
+      'Notes': ''
+    },
+    {
+      'Provider Name': 'ABC Plumbing Services',
+      'DBA': 'ABC Plumbing',
+      'Check Name': 'ABC Plumbing LLC',
+      'Contact': 'John Smith',
+      'Phone': '(555) 123-4567',
+      'eMail': 'john@abcplumbing.com',
+      'Provider Type': 'Plumbing',
+      'Default Payment Method': 'Check',
+      'Hold Payment': 'No',
+      'Hold Reason': '',
+      'Is 1099': 'Yes',
+      'Report 1099 Box': '7',
+      'Is Preferred': 'Yes',
+      'Is Default': 'No',
+      'Is Compliant': 'Yes',
+      'Compliance Status': 'Approved',
+      'Compliance Group': 'Contractors',
+      'Street No': '123',
+      'Address1': 'Main Street',
+      'Address2': 'Suite 100',
+      'City': 'Anytown',
+      'State': 'CA',
+      'Zip': '12345',
+      'TaxID': '12-3456789',
+      'Service Provider ID': 'SP001',
+      'Notes': 'Reliable service provider for emergency plumbing repairs'
+    }
+  ];
+  
+  // Export the template
+  exportToExcel(template, 'vendor-import-template', 'Vendors');
+};

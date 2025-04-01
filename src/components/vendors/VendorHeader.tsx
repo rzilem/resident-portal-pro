@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Download, UploadCloud } from 'lucide-react';
+import { CardHeader } from '@/components/ui/card';
+import { PlusCircle, Download, Upload } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import VendorColumnsSelector, { VendorColumn } from './VendorColumnsSelector';
 
 interface VendorHeaderProps {
@@ -12,34 +13,41 @@ interface VendorHeaderProps {
 
 const VendorHeader = ({ columns, onColumnsChange }: VendorHeaderProps) => {
   return (
-    <CardHeader className="pb-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <CardTitle>Vendors</CardTitle>
-          <CardDescription>Manage your service providers and suppliers</CardDescription>
-        </div>
+    <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
+      <div className="flex items-center">
+        <h3 className="text-xl font-semibold">Vendors</h3>
+      </div>
+      
+      <div className="flex flex-wrap gap-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          asChild
+        >
+          <Link to="/vendors/import">
+            <Upload className="h-4 w-4 mr-1" />
+            Import Vendors
+          </Link>
+        </Button>
         
-        <div className="flex flex-wrap gap-2 ml-auto">
-          <VendorColumnsSelector 
-            columns={columns} 
-            onChange={onColumnsChange} 
-          />
-          
-          <Button variant="outline" size="sm" className="h-8 gap-1">
-            <Download className="h-4 w-4" />
-            <span className="hidden md:inline">Export</span>
-          </Button>
-          
-          <Button variant="outline" size="sm" className="h-8 gap-1">
-            <UploadCloud className="h-4 w-4" />
-            <span className="hidden md:inline">Import</span>
-          </Button>
-          
-          <Button size="sm" className="h-8 gap-1">
-            <Plus className="h-4 w-4" />
-            <span>Add Vendor</span>
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => {}}
+        >
+          <Download className="h-4 w-4 mr-1" />
+          Export
+        </Button>
+        
+        <VendorColumnsSelector 
+          columns={columns} 
+          onColumnsChange={onColumnsChange} 
+        />
+        
+        <Button size="sm">
+          <PlusCircle className="h-4 w-4 mr-1" />
+          Add Vendor
+        </Button>
       </div>
     </CardHeader>
   );
