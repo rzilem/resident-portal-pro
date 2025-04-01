@@ -1,59 +1,60 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { LeadData, LeadTableFilters } from './types';
 import { toast } from 'sonner';
 
 export const useLeadsData = () => {
-  const [leads, setLeads] = useState<LeadData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  
-  useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('leads')
-          .select('*')
-          .order('createdat', { ascending: false });
-        
-        if (error) throw error;
+  const fetchLeads = async (): Promise<LeadData[]> => {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('createdAt', { ascending: false });
+    
+    if (error) throw error;
 
-        // Map the database column names to our frontend model
-        const mappedLeads: LeadData[] = data.map(lead => ({
-          id: lead.id,
-          name: lead.name || 'Unknown',
-          email: lead.email,
-          company: lead.company,
-          phone: lead.phone,
-          status: lead.status,
-          lastContactedAt: lead.lastcontactedat,
-          createdAt: lead.createdat,
-          source: lead.source,
-          association_name: lead.association_name,
-          association_type: lead.association_type,
-          unit_count: lead.unit_count,
-          city: lead.city,
-          state: lead.state,
-          has_pool: lead.has_pool,
-          has_gate: lead.has_gate,
-          has_onsite_management: lead.has_onsite_management
-        }));
+    // Map the database column names to our frontend model
+    const mappedLeads: LeadData[] = data.map(lead => ({
+      id: lead.id,
+      name: lead.name || 'Unknown',
+      email: lead.email,
+      company: lead.company,
+      phone: lead.phone,
+      status: lead.status,
+      lastContactedAt: lead.lastcontactedat,
+      createdAt: lead.createdat,
+      source: lead.source,
+      association_name: lead.association_name,
+      association_type: lead.association_type,
+      unit_count: lead.unit_count,
+      city: lead.city,
+      state: lead.state,
+      has_pool: lead.has_pool,
+      has_gate: lead.has_gate,
+      has_onsite_management: lead.has_onsite_management
+    }));
 
-        setLeads(mappedLeads);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching leads:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error fetching leads'));
-        toast.error('Failed to load leads');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    return mappedLeads;
+  };
 
-    fetchLeads();
-  }, []);
+  const { 
+    data: leads = [], 
+    isLoading, 
+    error: queryError,
+    refetch
+  } = useQuery({
+    queryKey: ['leads'],
+    queryFn: fetchLeads,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    onError: (error) => {
+      console.error('Error fetching leads:', error);
+      toast.error('Failed to load leads');
+    }
+  });
+
+  const error = queryError instanceof Error ? queryError : null;
 
   const filterLeads = (leads: LeadData[], filters: LeadTableFilters) => {
     return leads.filter(lead => {
@@ -73,6 +74,7 @@ export const useLeadsData = () => {
     leads,
     isLoading,
     error,
-    filterLeads
+    filterLeads,
+    refetch
   };
 };

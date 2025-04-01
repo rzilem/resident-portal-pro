@@ -8,6 +8,7 @@ import FollowUpEmails from '@/components/leads/FollowUpEmails';
 import LeadAnalytics from '@/components/leads/LeadAnalytics';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 const LeadsManagement = () => {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,7 @@ const LeadsManagement = () => {
   
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
+    toast.success("Refreshing data...");
   };
   
   return (

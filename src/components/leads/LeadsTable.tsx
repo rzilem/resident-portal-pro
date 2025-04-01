@@ -17,8 +17,7 @@ import LeadTableToolbar from './LeadTableToolbar';
 import LeadEmptyState from './LeadEmptyState';
 import LeadRowActions from './LeadRowActions';
 import LeadsTableLoading from './LeadsTableLoading';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import LeadErrorAlert from './LeadErrorAlert';
 import { useLeadsData } from './useLeadsData';
 import { LeadTableFilters } from './types';
 
@@ -30,7 +29,7 @@ const LeadsTable: React.FC = () => {
   
   const { preferences, updatePreference } = useSettings();
   const { settings } = useCompanySettings();
-  const { leads, isLoading, error, filterLeads } = useLeadsData();
+  const { leads, isLoading, error, filterLeads, refetch } = useLeadsData();
   
   const defaultColumns: LeadColumn[] = [
     { id: 'name', label: 'Name', checked: true },
@@ -71,6 +70,10 @@ const LeadsTable: React.FC = () => {
     updatePreference('leadTableColumns', newColumns);
   };
   
+  const handleRefresh = () => {
+    refetch();
+  };
+  
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -79,6 +82,7 @@ const LeadsTable: React.FC = () => {
           onFilterChange={handleFilterChange}
           columns={columns}
           onColumnsChange={handleColumnsChange}
+          onRefresh={handleRefresh}
         />
         <LeadsTableLoading />
       </div>
@@ -93,13 +97,11 @@ const LeadsTable: React.FC = () => {
           onFilterChange={handleFilterChange}
           columns={columns}
           onColumnsChange={handleColumnsChange}
+          onRefresh={handleRefresh}
         />
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Error loading leads: {error.message}
-          </AlertDescription>
-        </Alert>
+        <LeadErrorAlert 
+          message={error.message}
+        />
       </div>
     );
   }
@@ -111,6 +113,7 @@ const LeadsTable: React.FC = () => {
         onFilterChange={handleFilterChange}
         columns={columns}
         onColumnsChange={handleColumnsChange}
+        onRefresh={handleRefresh}
       />
       
       {filteredLeads.length > 0 ? (
