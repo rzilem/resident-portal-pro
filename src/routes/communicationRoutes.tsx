@@ -1,18 +1,17 @@
 
 import React from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
-import EmailWorkflows from '../pages/communications/EmailWorkflows';
-import MessageTemplates from '../pages/communications/MessageTemplates';
-import Messaging from '../pages/communications/Messaging';
 import Announcements from '../pages/communications/Announcements';
 import HtmlTemplatesPage from '../pages/communications/HtmlTemplatesPage';
+import CommunityMessaging from '../pages/communications/CommunityMessaging';
+import EmailWorkflows from '../pages/settings/EmailWorkflows';
 
 export const communicationRoutes = [
   {
     path: '/communications',
     element: (
       <ProtectedRoute>
-        <Messaging />
+        <CommunityMessaging />
       </ProtectedRoute>
     ),
   },
@@ -20,7 +19,7 @@ export const communicationRoutes = [
     path: '/communications/templates',
     element: (
       <ProtectedRoute>
-        <MessageTemplates />
+        <CommunityMessaging initialTab="templates" />
       </ProtectedRoute>
     ),
   },
