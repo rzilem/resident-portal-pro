@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table,
@@ -59,8 +58,15 @@ const LeadsTable: React.FC = () => {
       setColumns(savedColumns);
     }
   }, [preferences]);
+  
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refetch();
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
+  }, [refetch]);
 
-  // Filter leads based on search and status filter
   const filteredLeads = filterLeads(leads, filters);
   
   const handleFilterChange = (newFilters: Partial<LeadTableFilters>) => {
@@ -83,7 +89,7 @@ const LeadsTable: React.FC = () => {
           filters={filters}
           onFilterChange={handleFilterChange}
           columns={columns}
-          onColumnsChange={handleColumnsChange}
+          onChange={handleColumnsChange}
           onRefresh={handleRefresh}
         />
         <LeadsTableLoading />
@@ -98,7 +104,7 @@ const LeadsTable: React.FC = () => {
           filters={filters}
           onFilterChange={handleFilterChange}
           columns={columns}
-          onColumnsChange={handleColumnsChange}
+          onChange={handleColumnsChange}
           onRefresh={handleRefresh}
         />
         <LeadErrorAlert 
@@ -114,7 +120,7 @@ const LeadsTable: React.FC = () => {
         filters={filters}
         onFilterChange={handleFilterChange}
         columns={columns}
-        onColumnsChange={handleColumnsChange}
+        onChange={handleColumnsChange}
         onRefresh={handleRefresh}
       />
       

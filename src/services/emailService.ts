@@ -21,10 +21,34 @@ class EmailService {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Log the sent email to leads table if it's to a non-internal address
+      if (!params.to.includes('@yourdomain.com') && !params.to.includes('@internal.com')) {
+        this.processEmailAsLead(params);
+      }
+      
       return true; // Return boolean instead of void
     } catch (error) {
       console.error('Error sending email:', error);
       return false;
+    }
+  }
+
+  // Process sent emails as potential leads
+  private async processEmailAsLead(params: EmailParams): Promise<void> {
+    try {
+      // Import the hook at runtime to avoid circular dependencies
+      const { useEmailToLead } = await import('@/hooks/use-email-to-lead');
+      const { processEmailAsLead } = useEmailToLead();
+      
+      // Process the email as a lead
+      await processEmailAsLead({
+        from: params.to, // The recipient becomes the lead
+        subject: params.subject,
+        body: params.body,
+        received_at: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Error processing email as lead:', err);
     }
   }
 

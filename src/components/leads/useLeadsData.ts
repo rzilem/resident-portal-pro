@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { LeadData, LeadTableFilters } from './types';
@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 export const useLeadsData = () => {
   const fetchLeads = async (): Promise<LeadData[]> => {
+    console.log('Fetching leads from database...');
     const { data, error } = await supabase
       .from('leads')
       .select('*')
@@ -37,6 +38,7 @@ export const useLeadsData = () => {
       uploaded_files: lead.uploaded_files || []
     }));
 
+    console.log(`Fetched ${mappedLeads.length} leads`);
     return mappedLeads;
   };
 
@@ -49,7 +51,7 @@ export const useLeadsData = () => {
     queryKey: ['leads'],
     queryFn: fetchLeads,
     refetchOnWindowFocus: true,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 1, // 1 minute
     meta: {
       onError: (error: Error) => {
         console.error('Error fetching leads:', error);
@@ -60,7 +62,7 @@ export const useLeadsData = () => {
 
   const error = queryError instanceof Error ? queryError : null;
 
-  const filterLeads = (leads: LeadData[], filters: LeadTableFilters) => {
+  const filterLeads = useCallback((leads: LeadData[], filters: LeadTableFilters) => {
     return leads.filter(lead => {
       const matchesSearch = !filters.search || 
         (lead.name?.toLowerCase().includes(filters.search.toLowerCase()) || false) ||
@@ -72,7 +74,7 @@ export const useLeadsData = () => {
       
       return matchesSearch && matchesStatus;
     });
-  };
+  }, []);
 
   return {
     leads,
