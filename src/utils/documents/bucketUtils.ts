@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+
+import { supabase } from '@/lib/supabase';
 
 /**
  * Test if we can access the documents bucket
@@ -80,7 +81,7 @@ export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
     console.log('Creating documents bucket...');
     
     const { data, error } = await supabase.storage.createBucket('documents', {
-      public: true,
+      public: true, // Changed to true to make access easier for demo purposes
       fileSizeLimit: 50 * 1024 * 1024 // 50MB limit
     });
     

@@ -1,139 +1,73 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
 import { testBucketAccess, ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/use-auth';
-import { isDemoMode } from '@/utils/auth/demoAuth';
+import { toast } from 'sonner';
+import { useAuth } from './use-auth';
 
 export const useDocumentsBucket = () => {
-  const [bucketReady, setBucketReady] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { user } = useAuth();
-  const MAX_RETRIES = 3;
+  const [bucketReady, setBucketReady] = useState<boolean>(false);
+  const [isChecking, setIsChecking] = useState<boolean>(true);
+  const [demoMode, setDemoMode] = useState<boolean>(false);
+  const { isAuthenticated } = useAuth();
 
-  const checkBucket = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    
-    // If in demo mode, don't attempt to access storage
-    if (isDemoMode()) {
-      console.log('Demo mode detected, skipping bucket check');
-      setBucketReady(false);
-      setDemoMode(true);
-      setIsLoading(false);
-      return;
-    }
-    
+  const checkBucketAccess = async () => {
+    setIsChecking(true);
     try {
+      console.log('Checking document bucket access...');
+      
+      // Skip check if not authenticated
+      if (!isAuthenticated) {
+        console.log('User not authenticated, skipping bucket check');
+        setBucketReady(false);
+        setDemoMode(true);
+        return;
+      }
+      
       // First ensure the bucket exists
-      console.log('Checking document bucket exists...');
       const bucketExists = await ensureDocumentsBucketExists();
       
       if (!bucketExists) {
-        console.error('Failed to ensure documents bucket exists');
-        setErrorMessage('Failed to create documents storage bucket');
+        console.log('Document bucket does not exist or could not be created');
         setBucketReady(false);
         setDemoMode(true);
-        setIsLoading(false);
         return;
       }
-
-      // Then check if we can access the bucket
+      
+      // Then test if we can access it
       const canAccess = await testBucketAccess();
       
-      if (canAccess) {
-        console.log('Document storage is ready and accessible');
-        setBucketReady(true);
-        setDemoMode(false);
-        setErrorMessage(null);
-      } else {
-        console.log('Document storage is not accessible');
-        setErrorMessage('Document storage is not accessible');
-        setBucketReady(false);
-        
-        // Since we can't access the bucket, we'll treat it as a demo mode situation
-        setDemoMode(true);
-        if (retryCount === 0) {
-          toast.info("Using demo mode for document storage");
-        }
-      }
+      setBucketReady(canAccess);
+      setDemoMode(!canAccess);
       
-      setIsLoading(false);
+      console.log(`Document bucket is ${canAccess ? 'accessible' : 'not accessible'}, using ${!canAccess ? 'demo mode' : 'normal mode'}`);
     } catch (error) {
-      console.error('Error checking bucket status:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Unknown error checking bucket status');
-      toast.error("Failed to connect to document storage");
-      setIsLoading(false);
+      console.error('Error checking document bucket access:', error);
       setBucketReady(false);
       setDemoMode(true);
+    } finally {
+      setIsChecking(false);
     }
-  }, [retryCount]);
-  
+  };
+
   useEffect(() => {
-    let isMounted = true;
-    
-    // Don't attempt bucket check if not authenticated
-    if (!user) {
-      console.log('No user, skipping bucket check');
-      setDemoMode(true);
-      setIsLoading(false);
-      return;
-    }
-    
-    checkBucket();
-    
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
-  }, [checkBucket, user]);
+    checkBucketAccess();
+  }, [isAuthenticated]);
 
   const retryCheck = async () => {
-    if (isLoading || isCreating) return; // Prevent multiple concurrent retries
+    toast.info('Checking document storage access...');
+    await checkBucketAccess();
     
-    // Perform a direct ping to Supabase
-    try {
-      console.log('Manually retrying bucket check...');
-      // Clear demo mode flags before retry
-      setDemoMode(false);
-      
-      // Try a simple authentication check to see if Supabase is responsive
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Authentication check failed:', error.message);
-        toast.error('Connection to Supabase failed. Please check your network connection.');
-        setDemoMode(true);
-        return;
-      }
-      
-      setRetryCount(prev => prev + 1);
-      checkBucket();
-    } catch (error) {
-      console.error('Retry check failed:', error);
-      toast.error('Failed to connect to document storage service');
-      setDemoMode(true);
+    if (bucketReady) {
+      toast.success('Document storage is now accessible');
+    } else {
+      toast.error('Document storage is still unavailable');
     }
   };
-  
-  const checkStorageStatus = () => {
-    setRetryCount(0); // Reset retry count
-    setErrorMessage(null);
-    setIsLoading(true); // Set to true to ensure the check runs
-    checkBucket();
-  };
 
-  return { 
-    bucketReady, 
+  return {
+    bucketReady,
+    isChecking,
     demoMode,
-    isLoading, 
-    isCreating,
-    errorMessage,
-    retryCheck,
-    checkStorageStatus
+    retryCheck
   };
 };
