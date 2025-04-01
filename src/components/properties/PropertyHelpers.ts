@@ -22,7 +22,8 @@ export const getDefaultProperties = (): Property[] => [
     offsiteAddresses: 12,
     leases: 8,
     serviceType: 'Full',
-    associationId: '1'
+    associationId: '1',
+    address: '123 Sunset Blvd, Los Angeles, CA 90001'
   },
   {
     id: '2',
@@ -41,7 +42,8 @@ export const getDefaultProperties = (): Property[] => [
     offsiteAddresses: 35,
     leases: 42,
     serviceType: 'Full',
-    associationId: '2'
+    associationId: '2',
+    address: '456 Ocean Drive, Miami, FL 33139'
   },
   {
     id: '3',
@@ -60,7 +62,8 @@ export const getDefaultProperties = (): Property[] => [
     offsiteAddresses: 15,
     leases: 10,
     serviceType: 'Limited',
-    associationId: '3'
+    associationId: '3',
+    address: '789 Mountain View Rd, Denver, CO 80201'
   }
 ];
 
@@ -88,7 +91,7 @@ export const getPropertiesFromAssociations = (associations: any[]): Property[] =
   return associations.map(association => ({
     id: association.id,
     name: association.name,
-    location: `${association.address?.city}, ${association.address?.state}`,
+    location: `${association.address?.city || 'Unknown'}, ${association.address?.state || 'Unknown'}`,
     units: association.units,
     status: association.status === 'active' ? 'Active' : 'Inactive',
     onboardingDate: association.foundedDate || association.onboardingDate,
@@ -105,6 +108,7 @@ export const getPropertiesFromAssociations = (associations: any[]): Property[] =
     hasGate: association.settings?.hasGate,
     hasPedestrianGate: association.settings?.hasPedestrianGate,
     associationId: association.id,
-    address: association.address?.street
+    // Always provide an address, using the street if available or a placeholder
+    address: association.address?.street || `${association.name} Address`
   }));
 };

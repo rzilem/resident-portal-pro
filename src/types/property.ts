@@ -18,5 +18,5 @@ export interface Property {
   leases?: number;
   serviceType?: string;
   associationId: string;
-  address?: string;
+  address: string;  // Changed to required (no question mark)
 }
