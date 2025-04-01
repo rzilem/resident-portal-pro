@@ -13,7 +13,6 @@ import TrecForms from '@/components/resale/TrecForms';
 import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
 import ResaleOverview from '@/components/resale/dashboard/ResaleOverview';
 import ResaleOrderQueue from '@/components/resale/dashboard/ResaleOrderQueue';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const ResaleDashboard = () => {
   const location = useLocation();
@@ -55,19 +54,10 @@ const ResaleDashboard = () => {
         </div>
         
         <div className="flex gap-2">
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
-                  <Plus className="h-4 w-4" />
-                  New Resale Request
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="z-50">
-                <p>Create a new resale documentation request</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
+            <Plus className="h-4 w-4" />
+            New Resale Request
+          </Button>
         </div>
       </div>
       
@@ -81,100 +71,31 @@ const ResaleDashboard = () => {
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="grid grid-cols-3 md:grid-cols-7 mb-4">
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>View all resale activities at a glance</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="certificate" className="flex items-center gap-1">
-                      <FileCheck className="h-4 w-4" />
-                      <span className="hidden md:inline">Certificates</span>
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Manage resale certificates for property transfers</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="questionnaire" className="flex items-center gap-1">
-                      <FileQuestion className="h-4 w-4" />
-                      <span className="hidden md:inline">Questionnaires</span>
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Complete and manage condo questionnaires for lenders</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="inspection" className="flex items-center gap-1">
-                      <FileSearch className="h-4 w-4" />
-                      <span className="hidden md:inline">Inspections</span>
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Schedule and track property inspections for resales</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="statements" className="flex items-center gap-1">
-                      <FileText className="h-4 w-4" />
-                      <span className="hidden md:inline">Statements</span>
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Generate account statements for closing transactions</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="trec-forms" className="flex items-center gap-1">
-                      <FileBadge className="h-4 w-4" />
-                      <span className="hidden md:inline">TREC Forms</span>
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Access Texas Real Estate Commission forms</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="queue" className="flex items-center gap-1">
-                      <ListOrdered className="h-4 w-4" />
-                      <span className="hidden md:inline">Order Queue</span>
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Track and manage all pending resale document orders</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="certificate" className="flex items-center gap-1">
+                <FileCheck className="h-4 w-4" />
+                <span className="hidden md:inline">Certificates</span>
+              </TabsTrigger>
+              <TabsTrigger value="questionnaire" className="flex items-center gap-1">
+                <FileQuestion className="h-4 w-4" />
+                <span className="hidden md:inline">Questionnaires</span>
+              </TabsTrigger>
+              <TabsTrigger value="inspection" className="flex items-center gap-1">
+                <FileSearch className="h-4 w-4" />
+                <span className="hidden md:inline">Inspections</span>
+              </TabsTrigger>
+              <TabsTrigger value="statements" className="flex items-center gap-1">
+                <FileText className="h-4 w-4" />
+                <span className="hidden md:inline">Statements</span>
+              </TabsTrigger>
+              <TabsTrigger value="trec-forms" className="flex items-center gap-1">
+                <FileBadge className="h-4 w-4" />
+                <span className="hidden md:inline">TREC Forms</span>
+              </TabsTrigger>
+              <TabsTrigger value="queue" className="flex items-center gap-1">
+                <ListOrdered className="h-4 w-4" />
+                <span className="hidden md:inline">Order Queue</span>
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="pt-4">

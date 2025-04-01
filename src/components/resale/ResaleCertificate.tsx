@@ -9,8 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { generateResaleCertificate, ResaleCertificateData } from '@/utils/pdfGenerator';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { TooltipButton } from '@/components/ui/tooltip-button';
 
 // Sample data for resale certificates
 const sampleCertificates = [
@@ -114,74 +112,44 @@ const ResaleCertificate: React.FC = () => {
             <CardTitle className="text-xl">Resale Certificates</CardTitle>
             <CardDescription>Generate and manage resale certificates for property transfers</CardDescription>
           </div>
-          <TooltipButton 
-            tooltipText="Create a new resale certificate" 
-            className="gap-2" 
-            onClick={() => navigate('/resale/wizard')}
-          >
+          <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
             <Plus className="h-4 w-4" />
             New Certificate
-          </TooltipButton>
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Input
-                      placeholder="Search by ID, address, owner, or association..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Search for certificates by ID, address, owner name, or association</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Input
+                placeholder="Search by ID, address, owner, or association..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
             </div>
             <div className="flex flex-row gap-2">
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Expired">Expired</SelectItem>
-                        <SelectItem value="Draft">Draft</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="z-50">
-                    <p>Filter certificates by their current status</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Expired">Expired</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
               
-              <TooltipButton 
-                variant="outline" 
-                className="gap-2" 
-                tooltipText="Apply additional filters to your search"
-              >
+              <Button variant="outline" className="gap-2">
                 <Filter className="h-4 w-4" />
                 More Filters
-              </TooltipButton>
+              </Button>
 
-              <TooltipButton 
-                variant="outline" 
-                className="gap-2" 
-                tooltipText="Export certificates to spreadsheet or PDF"
-              >
+              <Button variant="outline" className="gap-2">
                 <Download className="h-4 w-4" />
                 Export
-              </TooltipButton>
+              </Button>
             </div>
           </div>
 
@@ -223,73 +191,38 @@ const ResaleCertificate: React.FC = () => {
                     <TableCell>{cert.createdAt}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <TooltipProvider delayDuration={300}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => {}}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="z-50">
-                              <p>View certificate details</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider delayDuration={300}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleGeneratePdf(cert)}
-                              >
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="z-50">
-                              <p>Download PDF certificate</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider delayDuration={300}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => {}}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="z-50">
-                              <p>Edit certificate</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider delayDuration={300}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleDeleteCertificate(cert.id)}
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="z-50">
-                              <p>Delete certificate</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => {}} 
+                          title="View Certificate Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleGeneratePdf(cert)} 
+                          title="Download PDF"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => {}} 
+                          title="Edit Certificate"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteCertificate(cert.id)} 
+                          title="Delete Certificate"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
