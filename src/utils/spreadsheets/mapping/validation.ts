@@ -1,22 +1,11 @@
 
-/**
- * Validation utilities for column mappings
- */
 import { ColumnMapping, ValidationResult } from './types';
+import { findMissingRequiredFields } from './fieldMatchers';
 
 /**
- * Validate mappings against file data
- * @param mappings Array of column mappings
- * @param fileData File data object or import type string
- * @returns Validation result object
+ * Validate column mappings
  */
-export const validateMappings = (
-  mappings: ColumnMapping[],
-  fileData: { headers: string[]; rows: Record<string, any>[]; } | string
-): ValidationResult => {
-  // Handle either a fileData object or a string importType
-  const importType = typeof fileData === 'string' ? fileData : 'association';
-  
+export const validateMappings = (mappings: ColumnMapping[], importType: string): ValidationResult => {
   const errors: string[] = [];
   const requiredFields: Record<string, string[]> = {
     association: ['association_name', 'city', 'state'],
@@ -24,21 +13,19 @@ export const validateMappings = (
     resident: ['first_name', 'last_name', 'email']
   };
   
-  const requiredForType = requiredFields[importType as keyof typeof requiredFields] || [];
-  const mappedFields = mappings.map(m => m.targetField);
+  const requiredForType = requiredFields[importType] || [];
+  const missingFields = findMissingRequiredFields(mappings, requiredForType);
   
   // Check if all required fields are mapped
-  requiredForType.forEach(field => {
-    if (!mappedFields.includes(field)) {
-      errors.push(`Required field "${field}" is not mapped.`);
-    }
+  missingFields.forEach(field => {
+    errors.push(`Required field "${field}" is not mapped.`);
   });
-
-  // Simulate validation results for UI display
-  const validationResults = {
+  
+  // Create mock validation results for demonstration
+  const mockValidationResults = {
     total: mappings.length,
     valid: mappings.length - errors.length,
-    warnings: 0,
+    warnings: Math.floor(mappings.length * 0.1), // 10% have warnings
     errors: errors.length
   };
   
@@ -46,6 +33,6 @@ export const validateMappings = (
     isValid: errors.length === 0,
     errors,
     message: errors.length > 0 ? `${errors.length} errors found` : "Validation successful",
-    validationResults
+    validationResults: mockValidationResults
   };
 };

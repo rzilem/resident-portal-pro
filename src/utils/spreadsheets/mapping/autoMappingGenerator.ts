@@ -1,126 +1,59 @@
 
-/**
- * Auto-mapping generator for spreadsheet columns
- */
 import { ColumnMapping } from './types';
-import { 
-  associationFieldPatterns, 
-  propertyFieldPatterns, 
-  unitFieldPatterns,
-  homeownerFieldPatterns,
-  addressFieldPatterns,
-  financialFieldPatterns
-} from './fieldPatterns';
 
 /**
- * Generate automatic mappings from spreadsheet headers to system fields
- * @param headers Array of column headers from the spreadsheet
- * @returns Array of ColumnMapping objects with best-guess mappings
+ * Generate automatic mappings based on spreadsheet headers
  */
 export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
-  console.log("Generating auto mappings for headers:", headers);
-  
   return headers.map(header => {
-    const lowerHeader = header.toLowerCase().replace(/[^a-z0-9_]/g, '');
-    let targetField = '';
+    const lowerHeader = header.toLowerCase();
+    let targetField = 'ignore';
     
     // Association fields
-    if (associationFieldPatterns.name(header)) {
+    if (lowerHeader.includes('association_name') || lowerHeader === 'name') {
       targetField = 'association_name';
-    } else if (associationFieldPatterns.address(header)) {
-      targetField = 'association_address';
-    } else if (associationFieldPatterns.phone(header)) {
-      targetField = 'association_phone';
-    } else if (associationFieldPatterns.email(header)) {
-      targetField = 'association_email';
-    } else if (associationFieldPatterns.taxId(header)) {
-      targetField = 'association_tax_id';
-    } else if (associationFieldPatterns.type(header)) {
-      targetField = 'association_type';
-    } else if (associationFieldPatterns.website(header)) {
-      targetField = 'association_website';
-    }
-    // New association fields from the image
-    else if (/^location$/i.test(header)) {
-      targetField = 'location';
-    } else if (/^units$/i.test(header)) {
-      targetField = 'units';
-    } else if (/^status$/i.test(header)) {
-      targetField = 'status';
-    } else if (/^onboarding.?date$/i.test(header)) {
-      targetField = 'onboarding_date';
-    } else if (/^annual.?fees$/i.test(header)) {
-      targetField = 'annual_fees';
-    } else if (/^assessment.?frequency$/i.test(header)) {
-      targetField = 'assessment_frequency';
-    } else if (/^has.?pool$/i.test(header)) {
-      targetField = 'has_pool';
-    } else if (/^has.?gate$/i.test(header) && !/pedestrian/i.test(header)) {
-      targetField = 'has_gate';
-    } else if (/^has.?pedestrian.?gate$/i.test(header)) {
-      targetField = 'has_pedestrian_gate';
-    } else if (/^county$/i.test(header)) {
-      targetField = 'county';
-    } else if (/^offsite.?addresses$/i.test(header)) {
-      targetField = 'offsite_addresses';
-    } else if (/^leases$/i.test(header)) {
-      targetField = 'leases';
-    } else if (/^service.?type$/i.test(header)) {
-      targetField = 'service_type';
-    }
-    // Property fields
-    else if (propertyFieldPatterns.name(header)) {
-      targetField = 'property_name';
-    } else if (propertyFieldPatterns.type(header)) {
-      targetField = 'property_type';
-    } else if (propertyFieldPatterns.yearBuilt(header)) {
-      targetField = 'property_year_built';
-    } else if (propertyFieldPatterns.unitCount(header)) {
-      targetField = 'property_units_count';
-    }
-    // Unit fields
-    else if (unitFieldPatterns.number(header)) {
-      targetField = 'unit_number';
-    } else if (unitFieldPatterns.address(header)) {
-      targetField = 'unit_address';
-    } else if (unitFieldPatterns.bedrooms(header)) {
-      targetField = 'unit_bedrooms';
-    } else if (unitFieldPatterns.bathrooms(header)) {
-      targetField = 'unit_bathrooms';
-    } else if (unitFieldPatterns.squareFeet(header)) {
-      targetField = 'unit_square_feet';
-    }
-    // Homeowner fields
-    else if (homeownerFieldPatterns.id(header)) {
-      targetField = 'homeowner_id';
-    } else if (homeownerFieldPatterns.firstName(header)) {
-      targetField = 'homeowner_first_name';
-    } else if (homeownerFieldPatterns.lastName(header)) {
-      targetField = 'homeowner_last_name';
-    } else if (homeownerFieldPatterns.email(header)) {
-      targetField = 'homeowner_email';
-    } else if (homeownerFieldPatterns.phone(header)) {
-      targetField = 'homeowner_phone';
-    }
-    // Address components
-    else if (addressFieldPatterns.street(header)) {
-      targetField = 'street';
-    } else if (addressFieldPatterns.city(header)) {
+    } else if (lowerHeader.includes('address')) {
+      targetField = 'address';
+    } else if (lowerHeader === 'city') {
       targetField = 'city';
-    } else if (addressFieldPatterns.state(header)) {
-      targetField = 'state';
-    } else if (addressFieldPatterns.zip(header)) {
-      targetField = 'zip';
-    } else if (addressFieldPatterns.country(header)) {
-      targetField = 'country';
     }
-    // Financial fields
-    else if (financialFieldPatterns.fiscalYearStart(header)) {
-      targetField = 'fiscal_year_start';
-    } else if (financialFieldPatterns.feesFrequency(header)) {
-      targetField = 'fees_frequency';
-    } else if (financialFieldPatterns.annualFees(header)) {
-      targetField = 'annual_fees';
+    
+    // Property fields
+    else if (lowerHeader.includes('unit_number') || lowerHeader === 'unit') {
+      targetField = 'unit_number';
+    } else if (lowerHeader.includes('property_address') || lowerHeader === 'property') {
+      targetField = 'property_address';
+    } else if (lowerHeader.includes('bedrooms')) {
+      targetField = 'bedrooms';
+    } else if (lowerHeader.includes('bathrooms')) {
+      targetField = 'bathrooms';
+    } else if (lowerHeader.includes('square_feet') || lowerHeader.includes('sqft')) {
+      targetField = 'square_feet';
+    } else if (lowerHeader.includes('property_type')) {
+      targetField = 'property_type';
+    }
+    
+    // Resident fields
+    else if (lowerHeader.includes('first_name') || lowerHeader.includes('homeowner_first_name')) {
+      targetField = 'first_name';
+    } else if (lowerHeader.includes('last_name') || lowerHeader.includes('homeowner_last_name')) {
+      targetField = 'last_name';
+    } else if (lowerHeader.includes('homeowner_email')) {
+      targetField = 'email';
+    } else if (lowerHeader.includes('resident_type')) {
+      targetField = 'resident_type';
+    } else if (lowerHeader.includes('move_in_date')) {
+      targetField = 'move_in_date';
+    } else if (lowerHeader.includes('move_out_date')) {
+      targetField = 'move_out_date';
+    } else if (lowerHeader.includes('status')) {
+      targetField = 'status';
+    } else if (lowerHeader.includes('balance')) {
+      targetField = 'balance';
+    } else if (lowerHeader.includes('mailing_address')) {
+      targetField = 'mailing_address';
+    } else if (lowerHeader.includes('payment_preference')) {
+      targetField = 'payment_preference';
     }
     
     return {

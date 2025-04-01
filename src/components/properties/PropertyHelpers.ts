@@ -1,5 +1,3 @@
-// src/components/properties/PropertyHelpers.ts
-import { Association } from '@/types/association';
 import { Property } from '@/types/property';
 
 export const getDefaultProperties = (): Property[] => [
@@ -68,7 +66,7 @@ export const getDefaultColumns = () => {
     { id: 'location', label: 'Location', checked: true },
     { id: 'units', label: 'Units', checked: true },
     { id: 'status', label: 'Status', checked: true },
-    { id: 'onboardingDate', label: 'Onboarding Date', checked: true }, // Updated to match Property field
+    { id: 'onboardingDate', label: 'Onboarding Date', checked: true },
     { id: 'annualFees', label: 'Annual Fees', checked: false },
     { id: 'assessmentFrequency', label: 'Assessment Frequency', checked: true },
     { id: 'hasPool', label: 'Has Pool', checked: false },
@@ -82,7 +80,7 @@ export const getDefaultColumns = () => {
   ];
 };
 
-export const getPropertiesFromAssociations = (associations: Association[]): Property[] => {
+export const getPropertiesFromAssociations = (associations: Property[]): Property[] => {
   return associations.map(association => ({
     id: association.id,
     name: association.name,

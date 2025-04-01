@@ -1,50 +1,31 @@
 
-/**
- * Functions for matching spreadsheet fields to system fields
- */
-import { FieldOption } from './types';
+import { ColumnMapping } from './types';
 
 /**
- * Find the best match for a source field from available field options
- * @param sourceField The source field name from the spreadsheet
- * @param availableTargets Array of available target field options
- * @returns Best matching target field or empty string if no good match
+ * Find the best match between source fields and target fields
  */
-export const findBestFieldMatch = (
-  sourceField: string, 
-  availableTargets: FieldOption[]
-): string => {
-  const normalizedSource = sourceField.toLowerCase().replace(/[^a-z0-9]/g, '');
+export const findBestFieldMatch = (sourceField: string, targetFields: string[]): string => {
+  const lowerSource = sourceField.toLowerCase();
   
-  // Look for exact matches first
-  for (const target of availableTargets) {
-    const normalizedTarget = target.label.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (normalizedSource === normalizedTarget) {
-      return target.value;
-    }
-  }
+  // Exact match
+  const exactMatch = targetFields.find(tf => tf.toLowerCase() === lowerSource);
+  if (exactMatch) return exactMatch;
   
-  // Look for partial matches
-  for (const target of availableTargets) {
-    const normalizedTarget = target.label.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (normalizedSource.includes(normalizedTarget) || normalizedTarget.includes(normalizedSource)) {
-      return target.value;
-    }
-  }
+  // Contains match
+  const containsMatch = targetFields.find(tf => lowerSource.includes(tf.toLowerCase()));
+  if (containsMatch) return containsMatch;
   
-  return '';
+  // Default
+  return 'ignore';
 };
 
 /**
- * Validate that all required fields are mapped
- * @param mappings Array of current column mappings
- * @param requiredFields Array of required target field names
- * @returns Array of missing field names, empty if all required fields are mapped
+ * Find required fields that are missing from the mappings
  */
 export const findMissingRequiredFields = (
-  mappings: { sourceField: string; targetField: string }[], 
+  mappings: ColumnMapping[], 
   requiredFields: string[]
 ): string[] => {
-  const mapped = mappings.map(m => m.targetField);
-  return requiredFields.filter(field => !mapped.includes(field));
+  const mappedFields = mappings.map(m => m.targetField);
+  return requiredFields.filter(f => !mappedFields.includes(f));
 };
