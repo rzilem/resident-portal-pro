@@ -57,6 +57,7 @@ import ResaleWizard from '@/pages/resale/wizard/ResaleWizard';
 import BidRequestWizard from '@/pages/resale/wizard/BidRequestWizard';
 import BidRequests from '@/pages/resale/BidRequests';
 import BidRequestDetail from '@/pages/resale/BidRequestDetail';
+import ProjectImagesPage from '@/pages/resale/admin/ProjectImages';
 import CommunityHub from '@/pages/CommunityHub';
 import Vendors from '@/pages/vendors/Vendors';
 import VendorProfile from '@/pages/vendors/VendorProfile';
@@ -158,7 +159,7 @@ const App = () => {
           <Route path="/resale/bid-request" element={<BidRequestWizard />} />
           <Route path="/resale/bid-requests" element={<BidRequests />} />
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
-          <Route path="/resale/admin/project-images" element={<div>Project Images Page</div>} />
+          <Route path="/resale/admin/project-images" element={<ProjectImagesPage />} />
           
           <Route path="/system/processes" element={<ProcessScheduler />} />
           
