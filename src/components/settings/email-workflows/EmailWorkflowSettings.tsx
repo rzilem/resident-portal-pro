@@ -5,7 +5,6 @@ import { RefreshCw, Plus, Mail, BugPlay, AlertTriangle, CheckCircle2 } from "luc
 import { useEmailWorkflows } from '@/hooks/use-email-workflows';
 import { useEmailToLead } from '@/hooks/use-email-to-lead';
 import { toast } from 'sonner';
-// ... other imports ...
 
 const EmailWorkflowSettings: React.FC = () => {
   const { workflowRules, isLoading, error, fetchWorkflowRules, createWorkflowRule, updateWorkflowRule, deleteWorkflowRule, toggleWorkflowRuleStatus } = useEmailWorkflows();
@@ -26,7 +25,7 @@ const EmailWorkflowSettings: React.FC = () => {
 
   const fetchRecentEmails = async () => {
     try {
-      const response = await fetch('https://your-app.com/api/recent-emails'); // Adjust URL
+      const response = await fetch('https://your-app.com/api/recent-emails');
       const data = await response.json();
       setRecentEmails(data.map(email => ({
         id: email.id,
@@ -84,7 +83,7 @@ const EmailWorkflowSettings: React.FC = () => {
       localStorage.removeItem('testEmails');
       toast.success('Test emails processed');
     }
-    await fetchRecentEmails(); // Update with server data
+    await fetchRecentEmails();
   };
 
   const handleProcessDebugEmail = async () => {
@@ -94,11 +93,33 @@ const EmailWorkflowSettings: React.FC = () => {
     await fetchRecentEmails();
   };
 
+  const handleProcess1202Email = async () => {
+    const testEmail = {
+      from: "Incoming Lead <lead@example.com>",
+      subject: "12:02 Email Inquiry",
+      body: "Received at 12:02, interested in property management services",
+      received_at: new Date().toISOString()
+    };
+
+    try {
+      const result = await processEmailAsLead(testEmail);
+      
+      if (result?.created) {
+        toast.success(`New lead created from 12:02 email. Lead ID: ${result.id}`);
+      } else if (result?.updated) {
+        toast.success(`Existing lead updated from 12:02 email. Lead ID: ${result.id}`);
+      } else {
+        toast.error('Unexpected result when processing 12:02 email');
+      }
+    } catch (error) {
+      console.error('Error processing 12:02 email:', error);
+      toast.error('Failed to process 12:02 email');
+    }
+  };
+
   const recordProcessedEmail = (id, success) => {
     setRecentEmails(prev => prev.map(email => email.id === id ? { ...email, status: success ? 'success' : 'failed' } : email));
   };
-
-  // ... rest of the functions (handleAddClick, handleEditClick, etc.) remain unchanged ...
 
   return (
     <div className="w-full">
@@ -139,7 +160,14 @@ const EmailWorkflowSettings: React.FC = () => {
               </div>
             </div>
           )}
-          {/* ... rest of the JSX (table, dialogs, etc.) remains unchanged ... */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleProcess1202Email}
+            className="mt-4"
+          >
+            Process 12:02 Email
+          </Button>
         </CardContent>
       </Card>
     </div>
