@@ -4,6 +4,7 @@ import { useAuthRole } from './use-auth-role';
 import { CalendarEvent, CalendarAccessLevel } from '@/types/calendar';
 import { calendarService } from '@/services/calendar';
 import { useAssociations } from './use-associations';
+import { toast } from 'sonner';
 
 export function useManagerCalendar() {
   const { currentUser, isManager } = useAuthRole();
@@ -55,6 +56,7 @@ export function useManagerCalendar() {
       } catch (err) {
         console.error("Error loading manager calendar events:", err);
         setError("Failed to load calendar events");
+        toast.error("Failed to load calendar events");
       } finally {
         setIsLoading(false);
       }

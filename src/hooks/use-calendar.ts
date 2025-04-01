@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { CalendarEvent, CalendarAccessLevel } from '@/types/calendar';
 import { calendarService } from '@/services/calendar';
+import { toast } from 'sonner';
 
 interface UseCalendarProps {
   userId: string;
@@ -19,57 +20,64 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     loadEvents();
   }, [userId, userAccessLevel, associationId]);
 
-  const loadEvents = () => {
+  const loadEvents = async () => {
     setIsLoading(true);
     try {
-      // Get all events for the current user
-      const userEvents = calendarService.getAllEvents(userId, userAccessLevel, associationId);
+      // Get all events for the current user and await the result
+      const userEvents = await calendarService.getAllEvents(userId, userAccessLevel, associationId);
       setEvents(userEvents);
     } catch (error) {
       console.error("Error loading calendar events:", error);
+      toast.error("Failed to load calendar events");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Create a new event
-  const createEvent = (event: Omit<CalendarEvent, 'id'>) => {
+  const createEvent = async (event: Omit<CalendarEvent, 'id'>) => {
     try {
-      const newEvent = calendarService.createEvent(event);
+      const newEvent = await calendarService.createEvent(event);
       setEvents(prev => [...prev, newEvent]);
+      toast.success("Event created successfully");
       return newEvent;
     } catch (error) {
       console.error("Error creating event:", error);
+      toast.error("Failed to create event");
       throw error;
     }
   };
 
   // Update an existing event
-  const updateEvent = (id: string, updates: Partial<CalendarEvent>) => {
+  const updateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
     try {
-      const updatedEvent = calendarService.updateEvent(id, updates);
+      const updatedEvent = await calendarService.updateEvent(id, updates);
       setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
       if (selectedEvent?.id === id) {
         setSelectedEvent(updatedEvent);
       }
+      toast.success("Event updated successfully");
       return updatedEvent;
     } catch (error) {
       console.error("Error updating event:", error);
+      toast.error("Failed to update event");
       throw error;
     }
   };
 
   // Delete an event
-  const deleteEvent = (id: string) => {
+  const deleteEvent = async (id: string) => {
     try {
-      calendarService.deleteEvent(id);
+      await calendarService.deleteEvent(id);
       setEvents(prev => prev.filter(event => event.id !== id));
       if (selectedEvent?.id === id) {
         setSelectedEvent(null);
       }
+      toast.success("Event deleted successfully");
       return { success: true };
     } catch (error) {
       console.error("Error deleting event:", error);
+      toast.error("Failed to delete event");
       throw error;
     }
   };
@@ -77,16 +85,18 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   // Create a workflow event
   const createWorkflowEvent = async (workflowId: string, title: string, start: Date) => {
     if (!associationId) {
-      console.error("Association ID is required to create a workflow event");
+      toast.error("Association ID is required to create a workflow event");
       return null;
     }
     
     try {
       const newEvent = await calendarService.createWorkflowEvent(workflowId, title, start, associationId);
       setEvents(prev => [...prev, newEvent]);
+      toast.success("Workflow scheduled successfully");
       return newEvent;
     } catch (error) {
       console.error("Error creating workflow event:", error);
+      toast.error("Failed to schedule workflow");
       throw error;
     }
   };
@@ -96,6 +106,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     selectedEvent,
     setSelectedEvent,
     isLoading,
+    loadEvents,
     createEvent,
     updateEvent,
     deleteEvent,
