@@ -6,9 +6,9 @@ export interface MessageTemplate {
   subject: string;
   content: string;
   category: string;
-  type?: string;
-  format?: string;
-  lastUpdated?: string;
+  type: string;
+  format: string;
+  lastUpdated: string;
   createdAt: string;
   updatedAt: string;
   communities?: string[]; // Array of community IDs or 'all'

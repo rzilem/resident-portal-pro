@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -306,5 +305,95 @@ export const communicationService = {
       toast.error('Failed to delete template');
       return false;
     }
+  }
+};
+
+/**
+ * Fetch message templates
+ */
+export const fetchTemplates = async (): Promise<MessageTemplate[]> => {
+  // Simulate API call
+  const mockTemplates: MessageTemplate[] = [
+    {
+      id: '1',
+      name: 'Welcome Email',
+      description: 'Sent to new homeowners when they join the community',
+      subject: 'Welcome to our Community!',
+      content: '<p>Dear {first_name},</p><p>Welcome to our community! We are excited to have you join us.</p>',
+      type: 'email',
+      format: 'html',
+      category: 'Welcome',
+      lastUpdated: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isDefault: true,
+      tags: ['welcome', 'onboarding'],
+    },
+    {
+      id: '2',
+      name: 'Meeting Reminder',
+      description: 'Reminder for upcoming association meetings',
+      subject: 'Reminder: HOA Meeting on {meeting_date}',
+      content: '<p>Dear {first_name},</p><p>This is a reminder that we have an HOA meeting scheduled for {meeting_date} at {meeting_time}.</p>',
+      type: 'email',
+      format: 'html',
+      category: 'Meetings',
+      lastUpdated: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      tags: ['meeting', 'reminder'],
+    },
+    {
+      id: '3',
+      name: 'Payment Confirmation',
+      description: 'Sent when a resident makes a payment',
+      subject: 'Payment Confirmation - {payment_date}',
+      content: '<p>Dear {first_name},</p><p>Thank you for your payment of ${payment_amount} received on {payment_date}.</p>',
+      type: 'email',
+      format: 'html',
+      category: 'Financial',
+      lastUpdated: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      tags: ['payment', 'financial'],
+    }
+  ];
+  
+  return mockTemplates;
+};
+
+/**
+ * Get templates from the database
+ */
+export const getTemplatesFromDatabase = async (): Promise<MessageTemplate[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('communication_templates')
+      .select('*');
+    
+    if (error) {
+      throw error;
+    }
+
+    // Transform to match the MessageTemplate interface
+    return data.map(template => ({
+      id: template.id,
+      name: template.name,
+      description: template.description || '',
+      subject: template.subject || '',
+      content: template.content,
+      category: template.category || 'General',
+      type: 'email',
+      format: 'html', 
+      lastUpdated: template.updated_at,
+      createdAt: template.created_at,
+      updatedAt: template.updated_at,
+      isDefault: false,
+      tags: []
+    }));
+  } catch (error) {
+    console.error('Error fetching templates:', error);
+    toast.error('Failed to fetch message templates');
+    return [];
   }
 };

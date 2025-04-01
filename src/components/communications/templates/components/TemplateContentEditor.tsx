@@ -1,110 +1,159 @@
 
-import React, { useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import HtmlEditor from '../../editor';
-import type { HtmlEditorRef } from '../../HtmlEditor';
-import FormatSelector from '../../composer/FormatSelector';
-import { Tags } from 'lucide-react';
-import { MergeTag } from '@/types/mergeTags';
-
-export interface TemplateContentEditorRef {
-  insertAtCursor: (text: string) => void;
-}
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Editor as TinyMCEEditor } from 'tinymce';
+import { mergeTagService } from '@/services/mergeTagService';
+import { Tag } from 'lucide-react';
+import HtmlEditor, { HtmlEditorRef } from '@/components/communications/HtmlEditor';
 
 interface TemplateContentEditorProps {
   content: string;
-  isHtmlFormat: boolean;
   onContentChange: (content: string) => void;
-  onFormatChange: (isHtml: boolean) => void;
-  onMergeTagsClick: () => void;
-  onSaveTemplate?: () => void;
-  onInsertMergeTag?: (tag: MergeTag) => void;
+  subject: string;
+  onSubjectChange: (subject: string) => void;
 }
 
-const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateContentEditorProps>(({
+const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
   content,
-  isHtmlFormat,
   onContentChange,
-  onFormatChange,
-  onMergeTagsClick,
-  onSaveTemplate,
-  onInsertMergeTag
-}, ref) => {
-  const htmlEditorRef = useRef<HtmlEditorRef>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  subject,
+  onSubjectChange
+}) => {
+  const [activeTab, setActiveTab] = useState<string>('visual');
+  const [htmlContent, setHtmlContent] = useState<string>(content);
+  const [mergeTags, setMergeTags] = useState<{ tag: string; description: string }[]>([]);
+  const editorRef = useRef<HtmlEditorRef | null>(null);
 
-  // Handle merge tag insertion
-  const handleInsertMergeTag = (tag: MergeTag) => {
-    if (onInsertMergeTag) {
-      onInsertMergeTag(tag);
+  useEffect(() => {
+    // Load merge tags from service
+    const loadMergeTags = async () => {
+      const tags = await mergeTagService.getMergeTags();
+      setMergeTags(tags);
+    };
+    
+    loadMergeTags();
+  }, []);
+
+  useEffect(() => {
+    setHtmlContent(content);
+  }, [content]);
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    if (value === 'visual' && activeTab === 'html') {
+      // When switching from HTML to Visual, update the editor content
+      onContentChange(htmlContent);
+    }
+    
+    setActiveTab(value);
+  };
+
+  // Handle HTML content change in source mode
+  const handleHtmlContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setHtmlContent(newContent);
+    onContentChange(newContent);
+  };
+
+  // Insert merge tag into content
+  const insertMergeTag = (tag: string) => {
+    if (activeTab === 'visual' && editorRef.current) {
+      // For visual editor
+      if (editorRef.current && editorRef.current.insertContent) {
+        editorRef.current.insertContent(`{${tag}}`);
+      }
+    } else {
+      // For HTML source editor
+      setHtmlContent(prev => {
+        const newContent = prev + `{${tag}}`;
+        onContentChange(newContent);
+        return newContent;
+      });
     }
   };
 
-  // Expose method to parent component to insert at cursor
-  useImperativeHandle(ref, () => ({
-    insertAtCursor: (text: string) => {
-      if (isHtmlFormat && htmlEditorRef.current) {
-        htmlEditorRef.current.insertAtCursor(text);
-      } else if (!isHtmlFormat && textareaRef.current) {
-        const textarea = textareaRef.current;
-        const startPos = textarea.selectionStart;
-        const endPos = textarea.selectionEnd;
-        
-        // Insert the text at the cursor position
-        const newValue = content.substring(0, startPos) + text + content.substring(endPos);
-        onContentChange(newValue);
-        
-        // Set the cursor position after the inserted text
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = startPos + text.length;
-        }, 0);
-      }
-    }
-  }));
+  // Insert merge tag into subject
+  const insertMergeTagInSubject = (tag: string) => {
+    const newSubject = subject + `{${tag}}`;
+    onSubjectChange(newSubject);
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-        <div className="flex items-center gap-2">
-          <FormatSelector 
-            format={isHtmlFormat ? 'html' : 'plain'} 
-            onChange={(format) => onFormatChange(format === 'html')}
-          />
-          
-          <Button 
-            type="button" 
-            size="sm" 
-            variant="outline" 
-            onClick={onMergeTagsClick}
-            className="flex items-center gap-1"
-          >
-            <Tags className="h-4 w-4" />
-            Insert Merge Tags
-          </Button>
+      <div>
+        <Label htmlFor="subject">Subject</Label>
+        <div className="flex mt-1.5 space-x-2">
+          <div className="flex-1">
+            <Textarea
+              id="subject"
+              value={subject}
+              onChange={(e) => onSubjectChange(e.target.value)}
+              placeholder="Email subject line"
+              className="resize-none"
+            />
+          </div>
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Show merge tags dropdown for subject
+              }}
+            >
+              <Tag className="h-4 w-4 mr-1" />
+              Insert Tag
+            </Button>
+          </div>
         </div>
       </div>
       
-      {isHtmlFormat ? (
-        <HtmlEditor 
-          value={content} 
-          onChange={onContentChange}
-          onSave={onSaveTemplate}
-          ref={htmlEditorRef}
-          isTemplate={true}
-        />
-      ) : (
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          className="w-full min-h-[250px] p-4 border rounded-md"
-          placeholder="Enter template content here..."
-        />
-      )}
+      <div>
+        <Label>Content</Label>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-1.5">
+          <div className="flex justify-between items-center mb-2">
+            <TabsList>
+              <TabsTrigger value="visual">Visual Editor</TabsTrigger>
+              <TabsTrigger value="html">HTML Source</TabsTrigger>
+            </TabsList>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Show merge tags dropdown for content
+              }}
+            >
+              <Tag className="h-4 w-4 mr-1" />
+              Insert Tag
+            </Button>
+          </div>
+          
+          <TabsContent value="visual" className="mt-0">
+            <HtmlEditor
+              ref={editorRef as React.RefObject<HtmlEditorRef>}
+              value={content}
+              onChange={onContentChange}
+              height={350}
+            />
+          </TabsContent>
+          
+          <TabsContent value="html" className="mt-0">
+            <Textarea
+              value={htmlContent}
+              onChange={handleHtmlContentChange}
+              placeholder="Enter HTML content"
+              className="min-h-[350px] font-mono text-sm"
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
-});
-
-TemplateContentEditor.displayName = 'TemplateContentEditor';
+};
 
 export default TemplateContentEditor;

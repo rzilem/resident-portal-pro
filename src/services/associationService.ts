@@ -2,6 +2,28 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/**
+ * Get an association by ID
+ * @param {string} id - The association ID 
+ * @returns {Promise<any>} - The association object or null if not found
+ */
+export const getAssociationById = async (id: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('associations')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching association:', error);
+    toast.error('Failed to load association details');
+    return null;
+  }
+};
+
 export const associationService = {
   async getAssociations() {
     try {
@@ -19,22 +41,7 @@ export const associationService = {
     }
   },
   
-  async getAssociationById(id: string) {
-    try {
-      const { data, error } = await supabase
-        .from('associations')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error fetching association:', error);
-      toast.error('Failed to load association details');
-      return null;
-    }
-  },
+  getAssociationById,
   
   async createAssociation(association: any) {
     try {

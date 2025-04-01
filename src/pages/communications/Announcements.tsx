@@ -1,6 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Announcement } from '@/pages/communications/types';
+
+export { Announcement };
 
 const Announcements: React.FC = () => {
   return (
