@@ -2,12 +2,12 @@
 import React from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
 import ResaleDashboard from '../pages/resale/ResaleDashboard';
-import ResaleWizard from '../pages/resale/wizard/ResaleWizard';
 import BidRequestWizard from '../pages/resale/wizard/BidRequestWizard';
 import BidRequests from '../pages/resale/BidRequests';
 import BidRequestDetail from '../pages/resale/BidRequestDetail';
 import ProjectImagesPage from '../pages/resale/admin/ProjectImages';
 import Reports from '../pages/Reports';
+import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
 
 export const resaleRoutes = [
   {
@@ -22,7 +22,7 @@ export const resaleRoutes = [
     path: '/resale/wizard',
     element: (
       <ProtectedRoute>
-        <ResaleWizard />
+        <ResaleDashboard />
       </ProtectedRoute>
     ),
   },
@@ -110,7 +110,9 @@ export const resaleRoutes = [
     path: '/resale/admin/project-images',
     element: (
       <ProtectedRoute>
-        <ProjectImagesPage />
+        <ResaleRbacWrapper requiredPermission="admin">
+          <ProjectImagesPage />
+        </ResaleRbacWrapper>
       </ProtectedRoute>
     ),
   },

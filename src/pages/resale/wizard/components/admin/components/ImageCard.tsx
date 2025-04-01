@@ -44,7 +44,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
             variant="ghost"
             size="icon"
             className="text-destructive hover:text-destructive/90"
-            onClick={() => onDelete(image.name)}
+            onClick={() => onDelete(image.id)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

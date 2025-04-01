@@ -6,10 +6,15 @@ import { Upload, RefreshCw } from 'lucide-react';
 import ProjectImagesManager from '../wizard/components/admin/ProjectImagesManager';
 import { migrateImagesToSupabase, checkImages } from '@/utils/supabase/migrateImagesToSupabase';
 import { toast } from 'sonner';
+import { useAuthRole } from '@/hooks/use-auth-role';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ShieldAlert } from 'lucide-react';
+import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
 
 const ProjectImagesPage = () => {
   const [isMigrating, setIsMigrating] = useState(false);
   const [checkingImages, setCheckingImages] = useState(false);
+  const { isAdmin } = useAuthRole();
 
   const handleMigrateImages = async () => {
     setIsMigrating(true);
@@ -50,36 +55,38 @@ const ProjectImagesPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Project Images</h1>
-        <p className="text-muted-foreground mb-4">
-          Manage images used in project bid requests
-        </p>
+    <ResaleRbacWrapper requiredPermission="admin">
+      <div className="container mx-auto p-4 max-w-6xl">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">Project Images</h1>
+          <p className="text-muted-foreground mb-4">
+            Manage images used in project bid requests
+          </p>
 
-        <div className="flex flex-wrap gap-2 mb-6">
-          <Button
-            onClick={handleMigrateImages}
-            disabled={isMigrating}
-            className="flex items-center gap-2"
-          >
-            <Upload className={`h-4 w-4 ${isMigrating ? 'animate-bounce' : ''}`} />
-            {isMigrating ? 'Migrating Images...' : 'Migrate Sample Images to Supabase'}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={handleCheckImages}
-            disabled={checkingImages}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${checkingImages ? 'animate-spin' : ''}`} />
-            Check Image Accessibility
-          </Button>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button
+              onClick={handleMigrateImages}
+              disabled={isMigrating}
+              className="flex items-center gap-2"
+            >
+              <Upload className={`h-4 w-4 ${isMigrating ? 'animate-bounce' : ''}`} />
+              {isMigrating ? 'Migrating Images...' : 'Migrate Sample Images to Supabase'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleCheckImages}
+              disabled={checkingImages}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${checkingImages ? 'animate-spin' : ''}`} />
+              Check Image Accessibility
+            </Button>
+          </div>
         </div>
+        
+        <ProjectImagesManager />
       </div>
-      
-      <ProjectImagesManager />
-    </div>
+    </ResaleRbacWrapper>
   );
 };
 

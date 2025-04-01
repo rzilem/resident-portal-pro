@@ -19,7 +19,7 @@ const RecentUploadsTab: React.FC<RecentUploadsTabProps> = ({
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Recent Uploads (Last 30 Minutes)</h3>
+        <h3 className="text-lg font-medium">Recent Uploads</h3>
         <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -29,7 +29,7 @@ const RecentUploadsTab: React.FC<RecentUploadsTabProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {recentUploads.map((image) => (
           <ImageCard 
-            key={image.url} 
+            key={image.id} 
             image={image} 
             onDelete={() => Promise.resolve()} // No delete functionality for recent uploads tab
             showDate={true}
@@ -38,7 +38,7 @@ const RecentUploadsTab: React.FC<RecentUploadsTabProps> = ({
         
         {recentUploads.length === 0 && !loading && (
           <div className="col-span-full py-12 text-center text-muted-foreground">
-            No images uploaded in the last 30 minutes
+            No images uploaded recently
           </div>
         )}
       </div>

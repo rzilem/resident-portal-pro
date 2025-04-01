@@ -3,16 +3,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface ProjectImage {
+export interface ImageItem {
   id: string;
   url: string;
   category: string;
-  fileName: string;
+  name: string;
+  size: number;
+  createdAt: string;
 }
 
 export const useProjectImages = () => {
-  const [images, setImages] = useState<ProjectImage[]>([]);
-  const [recentUploads, setRecentUploads] = useState<ProjectImage[]>([]);
+  const [images, setImages] = useState<ImageItem[]>([]);
+  const [recentUploads, setRecentUploads] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [category, setCategory] = useState<string>('all');
 
@@ -55,7 +57,9 @@ export const useProjectImages = () => {
             id: image.id,
             url: urlData.publicUrl,
             category: image.category || 'uncategorized',
-            fileName: image.file_name
+            name: image.file_name,
+            size: image.file_size || 0,
+            createdAt: image.created_at
           };
         })
       );
@@ -93,7 +97,9 @@ export const useProjectImages = () => {
             id: image.id,
             url: urlData.publicUrl,
             category: image.category || 'uncategorized',
-            fileName: image.file_name
+            name: image.file_name,
+            size: image.file_size || 0,
+            createdAt: image.created_at
           };
         })
       );
@@ -104,12 +110,25 @@ export const useProjectImages = () => {
     }
   };
 
-  const handleDeleteImage = async (imageId: string, filePath: string) => {
+  const handleDeleteImage = async (imageId: string) => {
     try {
+      // Get the file path first
+      const { data: imageData, error: fetchError } = await supabase
+        .from('bid_request_images')
+        .select('file_path')
+        .eq('id', imageId)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching image data:', fetchError);
+        toast.error('Failed to find image metadata');
+        return;
+      }
+      
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('bid_request_images')
-        .remove([filePath]);
+        .remove([imageData.file_path]);
       
       if (storageError) {
         console.error('Error deleting image from storage:', storageError);
