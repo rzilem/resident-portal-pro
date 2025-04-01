@@ -47,6 +47,7 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           onChange={(e) => setApiKey(e.target.value)}
           autoComplete="off"
           className="bg-background focus:ring-offset-background"
+          required
         />
         <p className="text-xs text-muted-foreground">
           Obtain your API key from console.x.ai and paste it here.
