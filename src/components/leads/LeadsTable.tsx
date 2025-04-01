@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Table,
@@ -59,6 +60,13 @@ const LeadsTable: React.FC = () => {
     }
   }, [preferences]);
 
+  // Filter leads based on search and status filter
+  const filteredLeads = filterLeads(leads, filters);
+  
+  const handleFilterChange = (newFilters: Partial<LeadTableFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+  
   const handleColumnsChange = (newColumns: LeadColumn[]) => {
     setColumns(newColumns);
     updatePreference('leadTableColumns', newColumns);
