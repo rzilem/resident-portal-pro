@@ -729,6 +729,56 @@ export type Database = {
           },
         ]
       }
+      html_templates: {
+        Row: {
+          association_id: string | null
+          category: string
+          content: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_global: boolean | null
+          name: string
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          association_id?: string | null
+          category: string
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_global?: boolean | null
+          name: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          association_id?: string | null
+          category?: string
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_global?: boolean | null
+          name?: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "html_templates_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           association_id: string
@@ -1889,7 +1939,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      storage_path_for_association: {
+        Args: {
+          association_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

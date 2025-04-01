@@ -1,9 +1,9 @@
 
-import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
 export interface VisualEditorRef {
+  executeCommand: (command: string, value?: string | null) => void;
   insertAtCursor: (text: string) => void;
-  executeCommand: (command: string, value: string | null) => void;
 }
 
 interface VisualEditorProps {
@@ -16,93 +16,76 @@ const VisualEditor = forwardRef<VisualEditorRef, VisualEditorProps>(
   ({ value, onUpdate, readOnly = false }, ref) => {
     const editorRef = useRef<HTMLDivElement>(null);
     
-    // Make sure editor content is updated when value prop changes
+    // Initialize editor
+    useEffect(() => {
+      if (editorRef.current) {
+        editorRef.current.innerHTML = value;
+        if (readOnly) {
+          editorRef.current.setAttribute('contenteditable', 'false');
+        } else {
+          editorRef.current.setAttribute('contenteditable', 'true');
+        }
+      }
+    }, [readOnly]);
+    
+    // Update editor content when value prop changes
     useEffect(() => {
       if (editorRef.current && editorRef.current.innerHTML !== value) {
         editorRef.current.innerHTML = value;
       }
     }, [value]);
     
-    // Execute editor commands (bold, italic, etc.)
-    const executeCommand = (command: string, value: string | null) => {
-      if (readOnly) return;
-      
-      document.execCommand(command, false, value);
-      
-      // After the command is executed, update the content
-      if (editorRef.current) {
-        onUpdate(editorRef.current.innerHTML);
-      }
-    };
-    
-    // Expose methods to parent component
-    useImperativeHandle(ref, () => ({
-      insertAtCursor: (text: string) => {
-        const selection = window.getSelection();
-        
-        if (selection && selection.rangeCount > 0 && editorRef.current) {
-          const range = selection.getRangeAt(0);
-          
-          // Check if the selection is within our editor
-          if (editorRef.current.contains(range.commonAncestorContainer)) {
-            // Insert the text at cursor position
-            const textNode = document.createTextNode(text);
-            range.deleteContents();
-            range.insertNode(textNode);
-            
-            // Move cursor to the end of inserted text
-            range.setStartAfter(textNode);
-            range.setEndAfter(textNode);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            
-            // Update the value
-            onUpdate(editorRef.current.innerHTML);
-          } else {
-            // If cursor is not in editor, append to the end
-            editorRef.current.innerHTML += text;
-            onUpdate(editorRef.current.innerHTML);
-          }
-        } else {
-          // Fallback: append to the end
-          if (editorRef.current) {
-            editorRef.current.innerHTML += text;
-            onUpdate(editorRef.current.innerHTML);
-          }
-        }
-      },
-      executeCommand
-    }));
-    
+    // Handle editor content changes
     const handleInput = () => {
       if (editorRef.current) {
         onUpdate(editorRef.current.innerHTML);
       }
     };
     
-    // Ensure the editor is focused when clicked
-    const handleClick = () => {
-      if (!readOnly && editorRef.current) {
-        editorRef.current.focus();
+    // Expose editor methods to parent
+    useImperativeHandle(ref, () => ({
+      executeCommand: (command: string, value: string | null = null) => {
+        document.execCommand(command, false, value);
+        handleInput();
+      },
+      insertAtCursor: (text: string) => {
+        if (!editorRef.current) return;
+        
+        // If it's a selection range
+        if (window.getSelection) {
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(text));
+            
+            // Move cursor to the end of inserted text
+            range.setStartAfter(range.endContainer);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            handleInput();
+            return;
+          }
+        }
+        
+        // Fallback if no selection
+        editorRef.current.innerHTML += text;
+        handleInput();
       }
-    };
+    }));
     
     return (
-      <div className="p-4">
-        <div
-          ref={editorRef}
-          contentEditable={!readOnly}
-          className="min-h-[300px] p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          dangerouslySetInnerHTML={{ __html: value }}
-          onInput={handleInput}
-          onClick={handleClick}
-          style={{ 
-            userSelect: 'text',
-            WebkitUserSelect: 'text',
-            cursor: readOnly ? 'default' : 'text'
-          }}
-        />
-      </div>
+      <div 
+        ref={editorRef}
+        onInput={handleInput}
+        className={`p-4 min-h-[300px] outline-none ${readOnly ? 'bg-muted/20' : ''}`}
+        style={{ 
+          overflowY: 'auto',
+          wordBreak: 'break-word'
+        }}
+      />
     );
   }
 );

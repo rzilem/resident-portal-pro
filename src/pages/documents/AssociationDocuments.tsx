@@ -1,277 +1,194 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import DashboardHeaderWithNav from '@/components/DashboardHeaderWithNav';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import DocumentList from '@/components/documents/DocumentList';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { File, Folder, FileText, Upload, Download, Search, Clock, BookMarked, Star } from 'lucide-react';
-import DocumentCategoryList from '@/components/documents/DocumentCategoryList';
-import DocumentSearch from '@/components/documents/DocumentSearch';
-import DocumentTable from '@/components/documents/DocumentTable';
-import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
-import { DOCUMENT_CATEGORIES } from '@/components/database/DocumentCategoryStructure';
-import AssociationSelector from '@/components/documents/AssociationSelector';
-import { useAssociations } from '@/hooks/use-associations';
-import { DocumentFile, DocumentCategory, DocumentSearchFilters, DocumentAccessLevel } from '@/types/documents';
-import { getDocumentCategories } from '@/utils/documents/documentUtils';
-import DocumentPreview from '@/components/documents/DocumentPreview';
-import DocumentTemplates from '@/components/documents/templates/DocumentTemplates';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { debugLog, errorLog, infoLog } from '@/utils/debug';
+import { Search, FolderPlus, Folder } from 'lucide-react';
+import { associationService } from '@/services/associationService';
+import { Association } from '@/types/association';
+import HtmlTemplates from '@/components/communications/html-templates/HtmlTemplates';
 
-const AssociationDocuments = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [activeCategory, setActiveCategory] = useState('');
+const DOCUMENT_CATEGORIES = [
+  { id: 'all', name: 'All Documents' },
+  { id: 'financial', name: 'Financial' },
+  { id: 'legal', name: 'Legal' },
+  { id: 'meeting', name: 'Meeting' },
+  { id: 'maintenance', name: 'Maintenance' },
+  { id: 'communication', name: 'Communication' },
+  { id: 'templates', name: 'Templates' }
+];
+
+const AssociationDocuments: React.FC = () => {
+  const { id: urlId } = useParams<{ id: string }>();
+  const [selectedAssociationId, setSelectedAssociationId] = useState<string>(urlId || '');
+  const [associations, setAssociations] = useState<Association[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [categories, setCategories] = useState<DocumentCategory[]>([]);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [advancedFilters, setAdvancedFilters] = useState<DocumentSearchFilters>({});
-  const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const { activeAssociation } = useAssociations();
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('documents');
   
+  // Fetch associations
   useEffect(() => {
-    loadCategories();
+    const fetchAssociations = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedAssociations = await associationService.getAssociations();
+        setAssociations(fetchedAssociations);
+        
+        // If no association is selected and we have associations, select the first one
+        if (!selectedAssociationId && fetchedAssociations.length > 0) {
+          setSelectedAssociationId(fetchedAssociations[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching associations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAssociations();
   }, []);
   
-  const loadCategories = async () => {
-    try {
-      const fetchedCategories = await getDocumentCategories();
-      // Cast the accessLevel to the correct type
-      const typedCategories = fetchedCategories.map(cat => ({
-        ...cat,
-        accessLevel: (cat.accessLevel || 'all') as DocumentAccessLevel
-      }));
-      setCategories(typedCategories);
-    } catch (error) {
-      console.error('Failed to load document categories:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load document categories"
-      });
-    }
-  };
-  
-  const refreshDocuments = () => {
-    console.log('Refreshing documents list');
-    setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleCategoryUpdate = (updatedCategory: DocumentCategory) => {
-    console.log('Category updated:', updatedCategory);
-    
-    setCategories(prevCategories => 
-      prevCategories.map(cat => 
-        cat.id === updatedCategory.id ? updatedCategory : cat
-      )
-    );
-    
-    toast({
-      title: "Category Updated",
-      description: `${updatedCategory.name} has been updated successfully`
-    });
-  };
-  
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-  
-  const handleAdvancedSearch = (filters: DocumentSearchFilters) => {
-    setAdvancedFilters(filters);
-    if (filters.query) {
-      setSearchQuery(filters.query);
-    }
-  };
-  
-  const handleCategorySelect = (categoryId: string) => {
-    setActiveCategory(categoryId);
-  };
-  
-  const handleDocumentView = (document: DocumentFile) => {
-    infoLog('Opening document preview', {
-      documentId: document.id,
-      documentName: document.name,
-      documentType: document.fileType,
-      documentUrl: document.url?.substring(0, 50) + '...'
-    });
-    
-    setSelectedDocument(document);
-    setShowPreview(true);
-  };
-  
-  const handleUploadSuccess = () => {
-    toast({
-      title: "Upload Successful",
-      description: "Document has been uploaded successfully"
-    });
-    refreshDocuments();
-  };
-  
-  const getCategoryName = () => {
-    if (!activeCategory) return 'All Documents';
-    const category = categories.find(c => c.id === activeCategory);
-    return category ? category.name : 'Documents';
-  };
-  
+  // Update selected association when URL ID changes
   useEffect(() => {
-    infoLog('Preview dialog state changed', { showPreview, documentName: selectedDocument?.name });
-  }, [showPreview, selectedDocument]);
+    if (urlId && urlId !== selectedAssociationId) {
+      setSelectedAssociationId(urlId);
+    }
+  }, [urlId]);
+  
+  const selectedAssociation = associations.find(a => a.id === selectedAssociationId);
   
   return (
-    <>
-      <DashboardHeaderWithNav
-        title="Association Documents"
-        icon={<FileText className="h-6 w-6" />}
-      />
+    <div className="container mx-auto py-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-semibold">Association Documents</h1>
+        <p className="text-muted-foreground">
+          Manage documents and templates for your associations
+        </p>
+      </div>
       
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="mb-6 flex justify-end">
-          <AssociationSelector className="ml-auto" />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="association-select">Select Association</Label>
+                  <select
+                    id="association-select"
+                    value={selectedAssociationId}
+                    onChange={(e) => setSelectedAssociationId(e.target.value)}
+                    className="w-full p-2 border rounded-md mt-1"
+                    disabled={isLoading}
+                  >
+                    <option value="" disabled>Select an association</option>
+                    {associations.map((association) => (
+                      <option key={association.id} value={association.id}>
+                        {association.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {selectedAssociationId && (
+                  <>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search categories..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <Label>Document Categories</Label>
+                      <ul className="mt-2 space-y-1">
+                        {DOCUMENT_CATEGORIES.filter(category => 
+                          category.name.toLowerCase().includes(searchQuery.toLowerCase())
+                        ).map((category) => (
+                          <li key={category.id}>
+                            <Button
+                              variant={activeCategory === category.id ? "secondary" : "ghost"}
+                              className="w-full justify-start"
+                              onClick={() => {
+                                setActiveCategory(category.id);
+                                setActiveTab('documents');
+                              }}
+                            >
+                              <Folder className="h-4 w-4 mr-2" />
+                              {category.name}
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2"
+                      onClick={() => {
+                        // Logic to create new category would go here
+                      }}
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                      Create Category
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-1">
-            <Card className="h-full">
-              <CardHeader className="pb-3">
-                <CardTitle>Document Categories</CardTitle>
-                <CardDescription>Browse document categories</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DocumentCategoryList 
-                  categories={categories}
-                  activeCategory={activeCategory}
-                  onSelectCategory={handleCategorySelect}
-                  onUpdateCategory={handleCategoryUpdate}
-                />
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="md:col-span-3">
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <DocumentSearch 
-                  onSearch={handleSearch} 
-                  onAdvancedSearch={handleAdvancedSearch}
-                />
-                <Button onClick={() => setShowUploadDialog(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Document
-                </Button>
-              </div>
-              
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-6">
+          {selectedAssociationId ? (
+            <>
               <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-center">
-                    <CardTitle>
-                      {getCategoryName()}
-                      {activeAssociation && (
-                        <span className="text-sm font-normal text-muted-foreground ml-2">
-                          ({activeAssociation.name})
-                        </span>
-                      )}
-                    </CardTitle>
-                    <Download className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-primary" />
-                  </div>
-                  <CardDescription>
-                    {searchQuery ? `Search results for "${searchQuery}"` : 'Browse and manage documents'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="all" className="space-y-4" onValueChange={setActiveTab}>
-                    <TabsList>
-                      <TabsTrigger value="all" className="flex items-center gap-1">
-                        <File className="h-4 w-4" />
-                        All
-                      </TabsTrigger>
-                      <TabsTrigger value="recent" className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        Recent
-                      </TabsTrigger>
-                      <TabsTrigger value="shared" className="flex items-center gap-1">
-                        <Folder className="h-4 w-4" />
-                        Shared
-                      </TabsTrigger>
-                      <TabsTrigger value="important" className="flex items-center gap-1">
-                        <Star className="h-4 w-4" />
-                        Important
-                      </TabsTrigger>
-                      <TabsTrigger value="templates" className="flex items-center gap-1">
-                        <BookMarked className="h-4 w-4" />
-                        Templates
-                      </TabsTrigger>
+                <CardContent className="pt-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="documents">Documents</TabsTrigger>
+                      <TabsTrigger value="html-templates">HTML Templates</TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value="all" className="space-y-4">
-                      <DocumentTable 
-                        category={activeCategory} 
-                        searchQuery={searchQuery}
-                        associationId={activeAssociation?.id}
-                        refreshTrigger={refreshTrigger}
+                    <TabsContent value="documents" className="mt-0">
+                      <DocumentList 
+                        associationId={selectedAssociationId}
+                        category={activeCategory !== 'all' ? activeCategory : undefined}
                       />
                     </TabsContent>
                     
-                    <TabsContent value="recent" className="space-y-4">
-                      <DocumentTable 
-                        category={activeCategory} 
-                        searchQuery={searchQuery}
-                        filter="recent"
-                        associationId={activeAssociation?.id}
-                        refreshTrigger={refreshTrigger}
+                    <TabsContent value="html-templates" className="mt-0">
+                      <HtmlTemplates 
+                        associationId={selectedAssociationId}
                       />
-                    </TabsContent>
-                    
-                    <TabsContent value="shared" className="space-y-4">
-                      <DocumentTable 
-                        category={activeCategory} 
-                        searchQuery={searchQuery}
-                        filter="shared"
-                        associationId={activeAssociation?.id}
-                        refreshTrigger={refreshTrigger}
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="important" className="space-y-4">
-                      <DocumentTable 
-                        category={activeCategory} 
-                        searchQuery={searchQuery}
-                        filter="important"
-                        associationId={activeAssociation?.id}
-                        refreshTrigger={refreshTrigger}
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="templates" className="space-y-4 m-0">
-                      <DocumentTemplates />
                     </TabsContent>
                   </Tabs>
                 </CardContent>
               </Card>
-            </div>
-          </div>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Folder className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Association Selected</h3>
+                <p className="text-muted-foreground mb-4">
+                  Please select an association to view its documents
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
-      
-      <DocumentUploadDialog 
-        open={showUploadDialog}
-        setOpen={setShowUploadDialog}
-        onSuccess={handleUploadSuccess}
-        refreshDocuments={refreshDocuments}
-      />
-      
-      <DocumentPreview
-        document={selectedDocument}
-        isOpen={showPreview}
-        onClose={() => {
-          infoLog('Closing document preview');
-          setShowPreview(false);
-        }}
-      />
-    </>
+    </div>
   );
 };
 

@@ -1,15 +1,15 @@
 
-import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
-import EditorTabs from './EditorTabs';
+import React, { useState, useRef, forwardRef } from 'react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import EditorToolbar from './EditorToolbar';
 import VisualEditor, { VisualEditorRef } from './VisualEditor';
 import HtmlSourceEditor, { HtmlSourceEditorRef } from './HtmlSourceEditor';
-import EditorToolbar from './EditorToolbar';
-import { TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import EditorTabs from './EditorTabs';
 
 export interface HtmlEditorRef {
   insertAtCursor: (text: string) => void;
   getContent: () => string;
+  executeCommand: (command: string, value?: string | null) => void;
 }
 
 export interface HtmlEditorProps {
@@ -18,63 +18,23 @@ export interface HtmlEditorProps {
   readOnly?: boolean;
   onSave?: () => void;
   onPreview?: () => void;
-  isTemplate?: boolean;
+  hasUnsavedChanges?: boolean;
 }
 
 const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
-  ({ value, onChange, readOnly = false, onSave, onPreview, isTemplate }, ref) => {
-    const [activeTab, setActiveTab] = useState<string>("visual");
-    const [htmlCode, setHtmlCode] = useState<string>(value);
+  ({ value, onChange, readOnly = false, onSave, onPreview, hasUnsavedChanges = false }, ref) => {
+    const [activeTab, setActiveTab] = useState<'visual' | 'html'>('visual');
     const visualEditorRef = useRef<VisualEditorRef>(null);
     const htmlEditorRef = useRef<HtmlSourceEditorRef>(null);
-
-    const handleTabChange = (tab: string) => {
-      if (activeTab === "visual" && tab === "html") {
-        setHtmlCode(value);
-      } else if (activeTab === "html" && tab === "visual") {
-        onChange(htmlCode);
-      }
-      setActiveTab(tab);
-    };
-
-    const handleVisualUpdate = (content: string) => {
-      if (!readOnly) {
-        onChange(content);
-        setHtmlCode(content);
-      }
-    };
-
-    const handleHtmlUpdate = (content: string) => {
-      if (!readOnly) {
-        setHtmlCode(content);
-      }
-    };
-
+    
+    // Execute editor commands
     const executeCommand = (command: string, value: string | null = null) => {
       if (readOnly || activeTab !== "visual") return;
       
       visualEditorRef.current?.executeCommand(command, value);
     };
 
-    const createLink = () => {
-      if (readOnly || activeTab !== "visual") return;
-      
-      const url = prompt('Enter link URL:');
-      if (url) {
-        executeCommand('createLink', url);
-      }
-    };
-
-    const insertImage = () => {
-      if (readOnly || activeTab !== "visual") return;
-      
-      const url = prompt('Enter image URL:');
-      if (url) {
-        executeCommand('insertImage', url);
-      }
-    };
-    
-    const handleToolbarAction = (action: string) => {
+    const handleToolbarAction = (action: string, value?: string) => {
       if (readOnly || activeTab !== "visual") return;
       
       switch (action) {
@@ -93,86 +53,88 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
         case 'orderedList':
           executeCommand('insertOrderedList', null);
           break;
+        case 'heading':
+          executeCommand('formatBlock', `<h${value}>`);
+          break;
         case 'link':
-          createLink();
+          const url = prompt('Enter link URL:');
+          if (url) {
+            executeCommand('createLink', url);
+          }
           break;
         case 'image':
-          insertImage();
-          break;
-        case 'alignLeft':
-          executeCommand('justifyLeft', null);
-          break;
-        case 'alignCenter':
-          executeCommand('justifyCenter', null);
-          break;
-        case 'alignRight':
-          executeCommand('justifyRight', null);
+          const imageUrl = prompt('Enter image URL:');
+          if (imageUrl) {
+            executeCommand('insertImage', imageUrl);
+          }
           break;
         default:
-          console.log('Unhandled action:', action);
+          console.log('Toolbar action:', action);
       }
     };
-
-    useImperativeHandle(ref, () => ({
+    
+    // Expose methods to parent components
+    React.useImperativeHandle(ref, () => ({
       insertAtCursor: (text: string) => {
-        if (activeTab === "visual" && visualEditorRef.current) {
+        if (activeTab === 'visual' && visualEditorRef.current) {
           visualEditorRef.current.insertAtCursor(text);
-        } else if (activeTab === "html" && htmlEditorRef.current) {
+        } else if (activeTab === 'html' && htmlEditorRef.current) {
           htmlEditorRef.current.insertAtCursor(text);
-        } else {
-          if (activeTab === "visual") {
-            handleVisualUpdate(value + text);
-          } else {
-            handleHtmlUpdate(htmlCode + text);
-          }
         }
       },
-      getContent: () => activeTab === "visual" ? value : htmlCode
+      getContent: () => value,
+      executeCommand
     }));
-
+    
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (onSave) onSave();
+      }
+    };
+    
     return (
-      <div className="border rounded-md overflow-hidden">
+      <div className="border rounded-md overflow-hidden" onKeyDown={handleKeyDown}>
         <EditorTabs 
-          activeTab={activeTab as 'visual' | 'html'} 
-          onTabChange={handleTabChange}
+          activeTab={activeTab} 
+          onTabChange={(tab) => setActiveTab(tab as 'visual' | 'html')}
           onSave={onSave}
-          hasUnsavedChanges={true}
+          hasUnsavedChanges={hasUnsavedChanges}
         >
-          {activeTab === "visual" && !readOnly && (
-            <EditorToolbar 
-              onAction={handleToolbarAction}
-              disabled={readOnly}
-            />
-          )}
-          
-          <TabsContent value="visual" className="p-0">
-            <VisualEditor 
-              value={value} 
-              onUpdate={handleVisualUpdate} 
-              readOnly={readOnly}
-              ref={visualEditorRef}
-            />
-          </TabsContent>
-
-          <TabsContent value="html" className="p-0">
-            <HtmlSourceEditor 
-              value={htmlCode} 
-              onChange={handleHtmlUpdate} 
-              readOnly={readOnly}
-              ref={htmlEditorRef}
-            />
-          </TabsContent>
+          <Tabs value={activeTab} className="w-full">
+            <TabsContent value="visual" className="m-0 p-0">
+              <EditorToolbar 
+                disabled={readOnly} 
+                onAction={handleToolbarAction}
+              />
+              <VisualEditor 
+                value={value} 
+                onUpdate={onChange} 
+                readOnly={readOnly}
+                ref={visualEditorRef}
+              />
+            </TabsContent>
+            
+            <TabsContent value="html" className="m-0 p-0">
+              <HtmlSourceEditor 
+                value={value} 
+                onChange={onChange} 
+                readOnly={readOnly}
+                ref={htmlEditorRef}
+              />
+            </TabsContent>
+          </Tabs>
         </EditorTabs>
         
         {onPreview && (
           <div className="flex justify-end p-2 border-t">
             <Button 
-              variant="ghost"
-              size="sm"
+              variant="ghost" 
+              size="sm" 
               onClick={onPreview}
               className="text-sm text-blue-600 hover:underline"
             >
-              Preview with merge tags
+              Preview
             </Button>
           </div>
         )}
@@ -182,5 +144,8 @@ const HtmlEditor = forwardRef<HtmlEditorRef, HtmlEditorProps>(
 );
 
 HtmlEditor.displayName = 'HtmlEditor';
+
+// Import Button since we're using it
+import { Button } from '@/components/ui/button';
 
 export default HtmlEditor;

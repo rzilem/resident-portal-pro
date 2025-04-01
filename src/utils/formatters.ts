@@ -1,86 +1,84 @@
 
 /**
- * Format a number as a currency string
- * @param amount - The amount to format
- * @param currencySymbol - The currency symbol to use (defaults to $)
- * @returns Formatted currency string
+ * Format bytes to a human-readable string
+ * @param bytes Number of bytes
+ * @param decimals Number of decimal places
+ * @returns Formatted string
  */
-export const formatCurrency = (amount: number, currencySymbol: string = '$'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    currencyDisplay: 'symbol'
-  })
-    .format(amount)
-    .replace('$', currencySymbol);
+export const formatBytes = (bytes: number, decimals: number = 2): string => {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
 /**
- * Format a date string to a friendly format
- * @param dateString - The date string to format
- * @param format - The format to use (defaults to 'long')
+ * Format a date string to a human-readable format
+ * @param dateString Date string or ISO string
  * @returns Formatted date string
  */
-export const formatDate = (dateString: string, format: 'short' | 'medium' | 'long' = 'long'): string => {
+export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   
-  switch (format) {
-    case 'short':
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        year: '2-digit'
-      }).format(date);
-    case 'medium':
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }).format(date);
-    case 'long':
-    default:
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      }).format(date);
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
   }
+  
+  // Format: Month Day, Year
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 };
 
 /**
- * Format a number as a percentage
- * @param value - The value to format (e.g., 0.75 for 75%)
- * @param decimals - The number of decimal places to show
- * @returns Formatted percentage string
+ * Format a date string to include time
+ * @param dateString Date string or ISO string
+ * @returns Formatted date and time string
  */
-export const formatPercentage = (value: number, decimals: number = 1): string => {
+export const formatDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+  
+  // Format: Month Day, Year at Hour:Minute AM/PM
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+/**
+ * Format a currency value
+ * @param value Numeric value
+ * @param currency Currency code
+ * @returns Formatted currency string
+ */
+export const formatCurrency = (value: number, currency: string = 'USD'): string => {
   return new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
+    style: 'currency',
+    currency: currency
   }).format(value);
 };
 
 /**
- * Get the suffix for a day of the month (st, nd, rd, th)
- * @param day - The day of the month
- * @returns The day with appropriate suffix
+ * Format a number with commas
+ * @param value Numeric value
+ * @returns Formatted number string
  */
-export const getDaySuffix = (day: number): string => {
-  if (day >= 11 && day <= 13) {
-    return `${day}th`;
-  }
-  
-  switch (day % 10) {
-    case 1:
-      return `${day}st`;
-    case 2:
-      return `${day}nd`;
-    case 3:
-      return `${day}rd`;
-    default:
-      return `${day}th`;
-  }
+export const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat('en-US').format(value);
 };
