@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -140,140 +139,142 @@ const EmailWorkflowSettings: React.FC = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Email Workflow Management</CardTitle>
-          <CardDescription>
-            Configure how incoming emails are processed and which workflows they trigger
-          </CardDescription>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={checkForNewEmails} disabled={isLoading || isProcessing}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Check For New Emails
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleTestEmail}>
-            <Mail className="h-4 w-4 mr-2" />
-            Create Test Email
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDebugDialog}>
-            <BugPlay className="h-4 w-4 mr-2" />
-            Debug Email Processing
-          </Button>
-          <Button variant="outline" size="sm" onClick={fetchWorkflowRules} disabled={isLoading}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button size="sm" onClick={handleAddClick}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Rule
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {error ? (
-          <div className="p-4 text-center text-red-500 bg-red-50 rounded-md">
-            Failed to load email workflow rules. Please try refreshing.
+    <div className="w-full">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Email Workflow Management</CardTitle>
+            <CardDescription>
+              Configure how incoming emails are processed and which workflows they trigger
+            </CardDescription>
           </div>
-        ) : isLoading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-            <p className="text-muted-foreground">Loading workflow rules...</p>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm" onClick={checkForNewEmails} disabled={isLoading || isProcessing}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Check For New Emails
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleTestEmail}>
+              <Mail className="h-4 w-4 mr-2" />
+              Create Test Email
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDebugDialog}>
+              <BugPlay className="h-4 w-4 mr-2" />
+              Debug Email Processing
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchWorkflowRules} disabled={isLoading}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button size="sm" onClick={handleAddClick}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Rule
+            </Button>
           </div>
-        ) : (
-          <EmailWorkflowTable
-            workflowRules={workflowRules}
-            onEdit={handleEditClick}
-            onDelete={deleteWorkflowRule}
-            onToggleStatus={toggleWorkflowRuleStatus}
-          />
-        )}
-
-        <EmailWorkflowDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          onSave={handleSaveRule}
-          editingRule={editingRule}
-        />
-
-        <Dialog open={debugDialogOpen} onOpenChange={setDebugDialogOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Debug Email Processing</DialogTitle>
-              <DialogDescription>
-                Use this tool to debug email-to-lead processing by simulating an incoming email
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="email-from">From (format: "Name &lt;email@example.com&gt;")</Label>
-                <Input 
-                  id="email-from" 
-                  value={debugEmail.from}
-                  onChange={e => setDebugEmail({...debugEmail, from: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email-subject">Subject</Label>
-                <Input 
-                  id="email-subject" 
-                  value={debugEmail.subject}
-                  onChange={e => setDebugEmail({...debugEmail, subject: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email-body">Body</Label>
-                <Textarea 
-                  id="email-body" 
-                  rows={6}
-                  value={debugEmail.body}
-                  onChange={e => setDebugEmail({...debugEmail, body: e.target.value})}
-                />
-              </div>
-              
-              {processingStatus && (
-                <div className={`p-4 rounded-md ${processingStatus.includes('Error') || processingStatus.includes('Exception') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                  <p className="text-sm whitespace-pre-wrap">{processingStatus}</p>
-                </div>
-              )}
+        </CardHeader>
+        <CardContent>
+          {error ? (
+            <div className="p-4 text-center text-red-500 bg-red-50 rounded-md">
+              Failed to load email workflow rules. Please try refreshing.
             </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDebugDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleProcessDebugEmail} disabled={isProcessing}>
-                Process Email
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          ) : isLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+              <p className="text-muted-foreground">Loading workflow rules...</p>
+            </div>
+          ) : (
+            <EmailWorkflowTable
+              workflowRules={workflowRules}
+              onEdit={handleEditClick}
+              onDelete={deleteWorkflowRule}
+              onToggleStatus={toggleWorkflowRuleStatus}
+            />
+          )}
 
-        <div className="mt-4">
-          <p className="text-sm text-muted-foreground">
-            Email workflow rules determine how incoming messages are processed. Each rule maps an incoming email address to 
-            a specific workflow type and forwarding address. When an email arrives at the inbound address, the system will 
-            automatically trigger the associated workflow and forward the message as needed.
-          </p>
-          
-          <div className="mt-4 p-4 bg-blue-50 rounded-md">
-            <h3 className="font-medium text-blue-800">Testing Emails to Leads</h3>
-            <p className="text-sm text-blue-700 mt-1">
-              To test the email-to-lead functionality, click the "Create Test Email" button above, then click "Check For New Emails" 
-              to process it. This will create a new lead from the test email. For more detailed testing, use the "Debug Email Processing" button.
+          <EmailWorkflowDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            onSave={handleSaveRule}
+            editingRule={editingRule}
+          />
+
+          <Dialog open={debugDialogOpen} onOpenChange={setDebugDialogOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Debug Email Processing</DialogTitle>
+                <DialogDescription>
+                  Use this tool to debug email-to-lead processing by simulating an incoming email
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-from">From (format: "Name &lt;email@example.com&gt;")</Label>
+                  <Input 
+                    id="email-from" 
+                    value={debugEmail.from}
+                    onChange={e => setDebugEmail({...debugEmail, from: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email-subject">Subject</Label>
+                  <Input 
+                    id="email-subject" 
+                    value={debugEmail.subject}
+                    onChange={e => setDebugEmail({...debugEmail, subject: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email-body">Body</Label>
+                  <Textarea 
+                    id="email-body" 
+                    rows={6}
+                    value={debugEmail.body}
+                    onChange={e => setDebugEmail({...debugEmail, body: e.target.value})}
+                  />
+                </div>
+                
+                {processingStatus && (
+                  <div className={`p-4 rounded-md ${processingStatus.includes('Error') || processingStatus.includes('Exception') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                    <p className="text-sm whitespace-pre-wrap">{processingStatus}</p>
+                  </div>
+                )}
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDebugDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleProcessDebugEmail} disabled={isProcessing}>
+                  Process Email
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">
+              Email workflow rules determine how incoming messages are processed. Each rule maps an incoming email address to 
+              a specific workflow type and forwarding address. When an email arrives at the inbound address, the system will 
+              automatically trigger the associated workflow and forward the message as needed.
             </p>
-            <p className="text-sm text-blue-700 mt-2">
-              For real emails, ensure your server is properly configured to forward received emails to your email-to-lead processor.
-              The debug tool can help verify if the lead conversion process is working correctly.
-            </p>
+            
+            <div className="mt-4 p-4 bg-blue-50 rounded-md">
+              <h3 className="font-medium text-blue-800">Testing Emails to Leads</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                To test the email-to-lead functionality, click the "Create Test Email" button above, then click "Check For New Emails" 
+                to process it. This will create a new lead from the test email. For more detailed testing, use the "Debug Email Processing" button.
+              </p>
+              <p className="text-sm text-blue-700 mt-2">
+                For real emails, ensure your server is properly configured to forward received emails to your email-to-lead processor.
+                The debug tool can help verify if the lead conversion process is working correctly.
+              </p>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
