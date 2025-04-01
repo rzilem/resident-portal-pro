@@ -39,10 +39,22 @@ export const uploadFile = async (
       .upload(filePath, file, {
         cacheControl: options.cacheControl || '3600',
         upsert: options.upsert !== undefined ? options.upsert : true,
-        contentType: options.contentType
+        contentType: options.contentType || file.type
       });
     
     if (error) {
+      // If bucket doesn't exist, try to create it (for development/demo purposes)
+      if (error.message.includes('bucket') && error.message.includes('not found')) {
+        console.log(`Bucket ${bucket} not found, attempting to create...`);
+        try {
+          // In a real implementation, you'd have a proper bucket creation flow
+          // This is simplified for demo purposes
+          toast.warning(`Storage bucket "${bucket}" may need to be created in your Supabase dashboard`);
+        } catch (bucketError) {
+          console.error('Error creating bucket:', bucketError);
+        }
+      }
+      
       errorLog(`Error uploading file to ${bucket}:`, error);
       toast.error('Failed to upload file');
       return null;

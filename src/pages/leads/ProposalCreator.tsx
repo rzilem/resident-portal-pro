@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash, Edit, FilePlus, ImagePlus, Video, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Trash, Edit, FilePlus, ImagePlus, Video, FileText, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { uploadFile } from '@/utils/supabase/storage/uploadFile';
+import { FileUploader } from '@/components/ui/file-uploader';
 
 interface ProposalSection {
   id: string;
@@ -27,6 +29,8 @@ const ProposalCreator: React.FC = () => {
   const [sections, setSections] = useState<ProposalSection[]>([]);
   const [currentTab, setCurrentTab] = useState('content');
   const [addSectionDialogOpen, setAddSectionDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({});
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -52,12 +56,49 @@ const ProposalCreator: React.FC = () => {
 
   const removeSection = (id: string) => {
     setSections(sections.filter(section => section.id !== id));
+    // Remove any uploaded file for this section
+    const newUploadFiles = { ...uploadFiles };
+    delete newUploadFiles[id];
+    setUploadFiles(newUploadFiles);
   };
 
   const updateSection = (id: string, updates: Partial<ProposalSection>) => {
     setSections(sections.map(section => 
       section.id === id ? { ...section, ...updates } : section
     ));
+  };
+
+  const handleFileChange = (sectionId: string, file: File | null) => {
+    setUploadFiles({
+      ...uploadFiles,
+      [sectionId]: file
+    });
+  };
+
+  const handleFileUpload = async (sectionId: string) => {
+    const file = uploadFiles[sectionId];
+    if (!file) return;
+
+    setUploading(sectionId);
+
+    try {
+      const bucket = "proposals";
+      const path = `sections/${sectionId}`;
+      
+      const fileUrl = await uploadFile(file, bucket, path);
+      
+      if (fileUrl) {
+        updateSection(sectionId, { content: fileUrl });
+        toast.success("File uploaded successfully");
+      } else {
+        toast.error("Failed to upload file");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Error uploading file");
+    } finally {
+      setUploading(null);
+    }
   };
 
   const handleSave = () => {
@@ -163,29 +204,57 @@ const ProposalCreator: React.FC = () => {
                                 </div>
                               </div>
                               
-                              <div className="grid gap-2">
-                                <Label htmlFor={`content-${section.id}`}>
-                                  {section.type === 'document' || section.type === 'pdf' 
-                                    ? 'Document URL or File' 
-                                    : section.type === 'image' 
-                                      ? 'Image URL or File'
-                                      : 'Video URL or File'}
-                                </Label>
-                                <Input
-                                  id={`content-${section.id}`}
-                                  value={section.content}
-                                  onChange={(e) => updateSection(section.id, { content: e.target.value })}
-                                  placeholder={`Enter ${section.type} URL or upload file`}
-                                />
+                              <div className="grid gap-4">
+                                {section.type !== 'video' && (
+                                  <div className="space-y-2">
+                                    <Label>Upload File</Label>
+                                    <div className="flex gap-2">
+                                      <div className="flex-1">
+                                        <FileUploader
+                                          file={uploadFiles[section.id] || null}
+                                          setFile={(file) => handleFileChange(section.id, file)}
+                                          acceptedTypes={section.type === 'image' ? 
+                                            "image/jpeg,image/png,image/gif" : 
+                                            "application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+                                        />
+                                      </div>
+                                      <Button 
+                                        onClick={() => handleFileUpload(section.id)} 
+                                        disabled={!uploadFiles[section.id] || uploading === section.id}
+                                        className="mt-auto"
+                                      >
+                                        {uploading === section.id ? 'Uploading...' : 'Upload'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                                 
-                                <Label htmlFor={`description-${section.id}`}>Description (optional)</Label>
-                                <Textarea
-                                  id={`description-${section.id}`}
-                                  value={section.description || ''}
-                                  onChange={(e) => updateSection(section.id, { description: e.target.value })}
-                                  placeholder="Add description for this section"
-                                  rows={2}
-                                />
+                                <div className="grid gap-2">
+                                  <Label htmlFor={`content-${section.id}`}>
+                                    {section.type === 'document' || section.type === 'pdf' 
+                                      ? 'Document URL' 
+                                      : section.type === 'image' 
+                                        ? 'Image URL'
+                                        : 'Video URL'}
+                                  </Label>
+                                  <Input
+                                    id={`content-${section.id}`}
+                                    value={section.content}
+                                    onChange={(e) => updateSection(section.id, { content: e.target.value })}
+                                    placeholder={`Enter ${section.type} URL or upload a file above`}
+                                  />
+                                </div>
+                                
+                                <div className="grid gap-2">
+                                  <Label htmlFor={`description-${section.id}`}>Description (optional)</Label>
+                                  <Textarea
+                                    id={`description-${section.id}`}
+                                    value={section.description || ''}
+                                    onChange={(e) => updateSection(section.id, { description: e.target.value })}
+                                    placeholder="Add description for this section"
+                                    rows={2}
+                                  />
+                                </div>
                               </div>
                             </div>
                           )}
