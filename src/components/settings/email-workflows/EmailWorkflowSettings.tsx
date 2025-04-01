@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { TooltipButton } from "@/components/ui/tooltip-button";
 import { RefreshCw, Plus, Mail, BugPlay, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useEmailWorkflows } from '@/hooks/use-email-workflows';
 import { useEmailToLead } from '@/hooks/use-email-to-lead';
@@ -136,19 +135,16 @@ const EmailWorkflowSettings: React.FC = () => {
     setRecentEmails(prev => prev.map(email => email.id === id ? { ...email, status: success ? 'success' : 'failed' } : email));
   };
 
-  // Handler for adding a new workflow rule
   const handleAddClick = () => {
     setEditingRule(null);
     setDialogOpen(true);
   };
 
-  // Handler for editing a workflow rule
   const handleEditRule = (rule: any) => {
     setEditingRule(rule);
     setDialogOpen(true);
   };
 
-  // Handler for saving a workflow rule
   const handleSaveRule = (ruleData: any) => {
     if (editingRule) {
       updateWorkflowRule(editingRule.id, ruleData);
@@ -166,13 +162,50 @@ const EmailWorkflowSettings: React.FC = () => {
             <CardDescription>Configure how incoming emails are processed and which workflows they trigger</CardDescription>
           </div>
           <div className="flex space-x-2">
-            <Button variant={monitoringActive ? "default" : "outline"} size="sm" onClick={() => setMonitoringActive(!monitoringActive)}>
+            <TooltipButton 
+              variant={monitoringActive ? "default" : "outline"} 
+              size="sm" 
+              onClick={() => setMonitoringActive(!monitoringActive)}
+              tooltipText={monitoringActive ? "Stop monitoring emails" : "Start monitoring emails"}
+            >
               {monitoringActive ? <><CheckCircle2 className="h-4 w-4 mr-2" />Monitoring Active</> : <><RefreshCw className="h-4 w-4 mr-2" />Start Monitoring</>}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => checkForNewEmails(false)} disabled={isLoading || isProcessing}><RefreshCw className="h-4 w-4 mr-2" />Process Emails Now</Button>
-            <Button variant="outline" size="sm" onClick={handleTestEmail}><Mail className="h-4 w-4 mr-2" />Create Test Email</Button>
-            <Button variant="outline" size="sm" onClick={handleDebugDialog}><BugPlay className="h-4 w-4 mr-2" />Debug Email</Button>
-            <Button size="sm" onClick={handleAddClick}><Plus className="h-4 w-4 mr-2" />Add Rule</Button>
+            </TooltipButton>
+
+            <TooltipButton 
+              variant="outline" 
+              size="sm" 
+              onClick={() => checkForNewEmails(false)} 
+              disabled={isLoading || isProcessing}
+              tooltipText="Check and process new emails"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />Process Emails Now
+            </TooltipButton>
+
+            <TooltipButton 
+              variant="outline" 
+              size="sm" 
+              onClick={handleTestEmail}
+              tooltipText="Create a test email for processing"
+            >
+              <Mail className="h-4 w-4 mr-2" />Create Test Email
+            </TooltipButton>
+
+            <TooltipButton 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDebugDialog}
+              tooltipText="Debug email processing"
+            >
+              <BugPlay className="h-4 w-4 mr-2" />Debug Email
+            </TooltipButton>
+
+            <TooltipButton 
+              size="sm" 
+              onClick={handleAddClick}
+              tooltipText="Add a new workflow rule"
+            >
+              <Plus className="h-4 w-4 mr-2" />Add Rule
+            </TooltipButton>
           </div>
         </CardHeader>
         <CardContent>
@@ -219,7 +252,6 @@ const EmailWorkflowSettings: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Email Workflow Dialog for creating/editing rules */}
       <EmailWorkflowDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -227,7 +259,6 @@ const EmailWorkflowSettings: React.FC = () => {
         editingRule={editingRule}
       />
 
-      {/* Debug Email Dialog */}
       <Dialog open={debugDialogOpen} onOpenChange={setDebugDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
