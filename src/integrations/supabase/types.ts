@@ -561,6 +561,72 @@ export type Database = {
         }
         Relationships: []
       }
+      email_sequences: {
+        Row: {
+          active: boolean | null
+          createdat: string
+          createdby: string | null
+          description: string | null
+          id: string
+          name: string
+          steps: Json
+          updatedat: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          createdat?: string
+          createdby?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          steps?: Json
+          updatedat?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          createdat?: string
+          createdby?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          steps?: Json
+          updatedat?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body: string
+          category: string
+          createdat: string
+          createdby: string | null
+          id: string
+          name: string
+          subject: string
+          updatedat: string | null
+        }
+        Insert: {
+          body: string
+          category: string
+          createdat?: string
+          createdby?: string | null
+          id?: string
+          name: string
+          subject: string
+          updatedat?: string | null
+        }
+        Update: {
+          body?: string
+          category?: string
+          createdat?: string
+          createdby?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          updatedat?: string | null
+        }
+        Relationships: []
+      }
       gl_accounts: {
         Row: {
           association_id: string | null
@@ -664,6 +730,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leads: {
+        Row: {
+          assignedto: string | null
+          company: string | null
+          createdat: string
+          email: string
+          id: string
+          lastcontactedat: string | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          proposalids: string[] | null
+          source: string | null
+          status: string
+          tags: string[] | null
+          updatedat: string | null
+        }
+        Insert: {
+          assignedto?: string | null
+          company?: string | null
+          createdat?: string
+          email: string
+          id?: string
+          lastcontactedat?: string | null
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          proposalids?: string[] | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
+          updatedat?: string | null
+        }
+        Update: {
+          assignedto?: string | null
+          company?: string | null
+          createdat?: string
+          email?: string
+          id?: string
+          lastcontactedat?: string | null
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          proposalids?: string[] | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
+          updatedat?: string | null
+        }
+        Relationships: []
       }
       ledger_entries: {
         Row: {
@@ -859,6 +976,118 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      proposal_sections: {
+        Row: {
+          content: string
+          description: string | null
+          id: string
+          proposalid: string | null
+          sortorder: number | null
+          title: string
+          type: string
+        }
+        Insert: {
+          content: string
+          description?: string | null
+          id?: string
+          proposalid?: string | null
+          sortorder?: number | null
+          title: string
+          type: string
+        }
+        Update: {
+          content?: string
+          description?: string | null
+          id?: string
+          proposalid?: string | null
+          sortorder?: number | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_sections_proposalid_fkey"
+            columns: ["proposalid"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_views: {
+        Row: {
+          id: string
+          proposalid: string | null
+          sections: Json | null
+          totaltimespent: number | null
+          viewedat: string
+          vieweremail: string
+          viewerip: string | null
+        }
+        Insert: {
+          id?: string
+          proposalid?: string | null
+          sections?: Json | null
+          totaltimespent?: number | null
+          viewedat?: string
+          vieweremail: string
+          viewerip?: string | null
+        }
+        Update: {
+          id?: string
+          proposalid?: string | null
+          sections?: Json | null
+          totaltimespent?: number | null
+          viewedat?: string
+          vieweremail?: string
+          viewerip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_views_proposalid_fkey"
+            columns: ["proposalid"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          createdat: string
+          createdby: string | null
+          description: string | null
+          id: string
+          lastviewedat: string | null
+          name: string
+          sections: Json
+          updatedat: string | null
+          viewcount: number | null
+        }
+        Insert: {
+          createdat?: string
+          createdby?: string | null
+          description?: string | null
+          id?: string
+          lastviewedat?: string | null
+          name: string
+          sections?: Json
+          updatedat?: string | null
+          viewcount?: number | null
+        }
+        Update: {
+          createdat?: string
+          createdby?: string | null
+          description?: string | null
+          id?: string
+          lastviewedat?: string | null
+          name?: string
+          sections?: Json
+          updatedat?: string | null
+          viewcount?: number | null
+        }
+        Relationships: []
       }
       report_data: {
         Row: {
@@ -1060,6 +1289,48 @@ export type Database = {
           start_date?: string
         }
         Relationships: []
+      }
+      section_views: {
+        Row: {
+          id: string
+          proposalid: string | null
+          sectionid: string | null
+          timespent: number | null
+          viewedat: string
+          vieweremail: string
+        }
+        Insert: {
+          id?: string
+          proposalid?: string | null
+          sectionid?: string | null
+          timespent?: number | null
+          viewedat?: string
+          vieweremail: string
+        }
+        Update: {
+          id?: string
+          proposalid?: string | null
+          sectionid?: string | null
+          timespent?: number | null
+          viewedat?: string
+          vieweremail?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_views_proposalid_fkey"
+            columns: ["proposalid"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "section_views_sectionid_fkey"
+            columns: ["sectionid"]
+            isOneToOne: false
+            referencedRelation: "proposal_sections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_integrations: {
         Row: {

@@ -1,0 +1,7 @@
+
+# This file contains config for the Supabase Edge Runtime.
+
+project_id = "eqbbnewrorxilukaocjx"
+
+[[fetch_module]]
+includes = ["https://esm.sh/*"]

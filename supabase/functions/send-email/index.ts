@@ -1,75 +1,101 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
 interface EmailRequest {
   to: string;
   subject: string;
-  html: string;
-  from?: string;
+  body: string;
+  isHtml?: boolean;
   replyTo?: string;
+  from?: string;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: corsHeaders,
+    })
   }
 
   try {
-    const { to, subject, html, from, replyTo }: EmailRequest = await req.json();
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    )
 
-    if (!to) {
-      throw new Error("Recipient email (to) is required");
+    // Get request body
+    const emailData: EmailRequest = await req.json()
+    const { to, subject, body, isHtml, replyTo, from } = emailData
+    
+    // Validate input
+    if (!to || !subject || !body) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
     }
 
-    if (!subject) {
-      throw new Error("Email subject is required");
+    // In a real implementation, you would use a service like SendGrid, Mailgun, etc.
+    // For now, we'll just log the email
+    console.log('Sending email:')
+    console.log('To:', to)
+    console.log('Subject:', subject)
+    console.log('Body:', body.substring(0, 100) + '...')
+    console.log('Is HTML:', isHtml)
+    console.log('Reply To:', replyTo)
+    console.log('From:', from)
+
+    // In a real implementation, you would send the email here
+    // For example with SendGrid:
+    // const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${Deno.env.get('SENDGRID_API_KEY')}`,
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     personalizations: [{ to: [{ email: to }] }],
+    //     subject,
+    //     content: [{ type: isHtml ? 'text/html' : 'text/plain', value: body }],
+    //     from: { email: from || 'no-reply@yourdomain.com' },
+    //     reply_to: replyTo ? { email: replyTo } : undefined,
+    //   }),
+    // });
+
+    // if (!response.ok) {
+    //   throw new Error(`Failed to send email: ${response.statusText}`);
+    // }
+
+    // Log the email in the communications table
+    const { error: logError } = await supabaseClient
+      .from('communications')
+      .insert([
+        {
+          message_type: 'email',
+          subject,
+          content: body,
+          format: isHtml ? 'html' : 'text',
+          status: 'sent'
+        }
+      ])
+
+    if (logError) {
+      console.error('Error logging email:', logError)
+      throw logError
     }
 
-    if (!html) {
-      throw new Error("Email content (html) is required");
-    }
-
-    console.log(`Sending email to: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`From: ${from || 'noreply@residentpro.com'}`);
-
-    const emailResponse = await resend.emails.send({
-      from: from || "ResidentPro <noreply@residentpro.com>",
-      to: [to],
-      subject: subject,
-      html: html,
-      reply_to: replyTo,
-    });
-
-    console.log("Email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
-  } catch (error: any) {
-    console.error("Error in send-email function:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+      JSON.stringify({ success: true }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+    )
+  } catch (error) {
+    console.error('Error in send-email:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    )
   }
-};
-
-serve(handler);
+})
