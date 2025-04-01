@@ -18,8 +18,8 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
+      // Await the Promise to resolve before setting state
       const allEvents = await calendarService.getAllEvents(userId, userAccessLevel, associationId);
-      // Fixed: Now properly waiting for the Promise to resolve before setting state
       setEvents(allEvents);
     } catch (error) {
       console.error('Error fetching calendar events:', error);
@@ -32,10 +32,10 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const fetchEventsByDateRange = useCallback(async (start: Date, end: Date) => {
     try {
       setIsLoading(true);
+      // Await the Promise to resolve before setting state
       const rangeEvents = await calendarService.getEventsByDateRange(
         start, end, userId, userAccessLevel, associationId
       );
-      // Fixed: Now properly waiting for the Promise to resolve before setting state
       setEvents(rangeEvents);
     } catch (error) {
       console.error('Error fetching events by date range:', error);
@@ -47,12 +47,12 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   
   const createEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
     try {
+      // Await the Promise to resolve before updating state
       const newEvent = await calendarService.createEvent({
         ...event,
         createdBy: userId // Fixed property name
       });
       
-      // Fixed: Now properly waiting for the Promise to resolve before updating state
       setEvents(prev => [...prev, newEvent]);
       toast.success('Event created successfully');
       return newEvent;
@@ -65,8 +65,9 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
     try {
+      // Await the Promise to resolve before updating state
       const updatedEvent = await calendarService.updateEvent(id, updates);
-      // Fixed: Now properly waiting for the Promise to resolve before updating state
+      
       setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
       if (selectedEvent?.id === id) {
         setSelectedEvent(updatedEvent);
@@ -107,6 +108,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     }
     
     try {
+      // Await the Promise to resolve before updating state
       const newEvent = await calendarService.createWorkflowEvent(
         workflowId,
         title,
@@ -114,7 +116,6 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
         associationId
       );
       
-      // Fixed: Now properly waiting for the Promise to resolve before updating state
       setEvents(prev => [...prev, newEvent]);
       toast.success('Workflow scheduled successfully');
       return newEvent;
