@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -20,7 +19,7 @@ interface FileUploadProps {
 const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { bucketReady, demoMode, errorMessage, retryCheck } = useDocumentsBucket();
+  const { bucketReady, demoMode, retryCheck } = useDocumentsBucket();
   
   const handleFileUpload = async () => {
     if (!file) {

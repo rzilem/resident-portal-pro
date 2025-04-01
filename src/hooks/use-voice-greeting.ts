@@ -11,7 +11,7 @@ import { useElevenLabs } from '@/hooks/use-elevenlabs';
 let hasGreetedGlobally = false;
 
 export const useVoiceGreeting = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { preferences } = useSettings();
   const { isElevenLabsConnected } = useElevenLabs();
   const [hasGreeted, setHasGreeted] = useState(false);
@@ -29,8 +29,8 @@ export const useVoiceGreeting = () => {
     
     // Only greet once per session and only if we have a user and greeting is enabled
     if (user && !hasGreeted && !isGreeting && isVoiceGreetingEnabled) {
-      // Get the name from the profile if available, otherwise use email
-      const name = profile?.first_name || user.email?.split('@')[0] || 'there';
+      // Get the name from the email if available
+      const name = user.email?.split('@')[0] || 'there';
       
       // Set both local and global greeting flags
       setIsGreeting(true);
@@ -65,7 +65,7 @@ export const useVoiceGreeting = () => {
         }
       }, 1000);
     }
-  }, [user, profile, hasGreeted, isGreeting, preferences, isElevenLabsConnected]);
+  }, [user, hasGreeted, isGreeting, preferences, isElevenLabsConnected]);
   
   // Add a function to reset greeting (for testing purposes)
   const resetGreeting = () => {
