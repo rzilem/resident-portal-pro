@@ -1,3 +1,4 @@
+
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { MergeTag } from '@/types/mergeTags';
 import { TemplateFormSetters } from '../types';
@@ -37,7 +38,7 @@ export const useMergeTagInsertion = (
     } else {
       // Otherwise insert the tag into the content editor
       if (contentEditorRef.current) {
-        contentEditorRef.current.insertAtCursor(tag.tag);
+        contentEditorRef.current.insertTextAtCursor(tag.tag);
       }
     }
   };

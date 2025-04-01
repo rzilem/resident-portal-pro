@@ -27,7 +27,8 @@ const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateConte
     isHtmlEnabled, 
     onHtmlToggle,
     onMergeTagsClick, 
-    onSaveTemplate 
+    onSaveTemplate,
+    onInsertMergeTag
   }, ref) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);

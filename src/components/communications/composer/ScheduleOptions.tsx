@@ -40,7 +40,8 @@ const ScheduleOptions: React.FC = () => {
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
-      setScheduledDate(format(selectedDate, 'yyyy-MM-dd'));
+      // Convert the Date object to a string in the format expected by setScheduledDate
+      setScheduledDate(selectedDate);
     }
   };
   
@@ -57,7 +58,7 @@ const ScheduleOptions: React.FC = () => {
     if (checked && !date) {
       const tomorrow = addDays(new Date(), 1);
       setDate(tomorrow);
-      setScheduledDate(format(tomorrow, 'yyyy-MM-dd'));
+      setScheduledDate(tomorrow);
     }
   };
   

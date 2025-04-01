@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface ComposerContextType {
@@ -27,7 +26,6 @@ interface ComposerContextType {
   messageType: 'email' | 'sms';
   setMessageType: (type: 'email' | 'sms') => void;
   previewProcessedContent: (content: string) => Promise<string>;
-  // Add missing properties
   recipientType: string;
   validateCanSend: () => { valid: boolean; error?: string };
 }
@@ -64,8 +62,6 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
   const [recipientType, setRecipientType] = useState('all');
 
   useEffect(() => {
-    // For the prototype, we'll just do a simple merge tag replacement
-    // In a real app, this would be more sophisticated
     let processedContent = content;
     processedContent = processedContent.replace(/{{resident\.first_name}}/g, 'John');
     processedContent = processedContent.replace(/{{resident\.name}}/g, 'John Smith');
@@ -78,9 +74,7 @@ export const ComposerProvider: React.FC<ComposerProviderProps> = ({
     setPreviewContent(processedContent);
   }, [content]);
 
-  // Add a function to process content for preview
   const previewProcessedContent = async (contentToProcess: string): Promise<string> => {
-    // For the prototype, we'll just do a simple merge tag replacement
     let processedContent = contentToProcess;
     processedContent = processedContent.replace(/{{resident\.first_name}}/g, 'John');
     processedContent = processedContent.replace(/{{resident\.name}}/g, 'John Smith');
