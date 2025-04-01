@@ -11,11 +11,13 @@ import { toast } from 'sonner';
 import AssociationHeader from '@/components/associations/AssociationHeader';
 import AssociationStats from '@/components/associations/AssociationStats';
 import AssociationPhotos from '@/components/associations/AssociationPhotos';
+import AssociationPhotoManager from '@/components/associations/photos/AssociationPhotoManager';
 import AssociationAmenities from '@/components/associations/AssociationAmenities';
 import AssociationTabs from '@/components/associations/AssociationTabs';
 import CalendarView from '@/components/calendar/CalendarView';
 import AssociationWorkflows from '@/components/associations/AssociationWorkflows';
 import { getAssociationById } from '@/services/associationService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +25,7 @@ const AssociationProfile = () => {
   const { associations, isLoading: associationsLoading } = useAssociations();
   const [association, setAssociation] = useState<Association | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activePhotoTab, setActivePhotoTab] = useState<string>('view');
 
   useEffect(() => {
     console.log('Association ID from URL:', id);
@@ -102,12 +105,6 @@ const AssociationProfile = () => {
   const properties = getPropertiesFromAssociations([association]);
   
   const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
-  
-  const propertyImages = [
-    'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-    'https://images.unsplash.com/photo-1523217582562-09d0def993a6',
-    'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6'
-  ];
 
   // Standard user ID and access level for calendar - same as in Calendar.tsx
   const userId = 'current-user';
@@ -125,7 +122,30 @@ const AssociationProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-6 lg:col-span-2">
             <AssociationStats association={association} />
-            <AssociationPhotos associationName={association.name} propertyImages={propertyImages} />
+            
+            <Tabs 
+              value={activePhotoTab} 
+              onValueChange={setActivePhotoTab}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="view">View Photos</TabsTrigger>
+                <TabsTrigger value="manage">Manage Photos</TabsTrigger>
+              </TabsList>
+              <TabsContent value="view" className="mt-0">
+                <AssociationPhotos 
+                  associationId={association.id} 
+                  associationName={association.name} 
+                />
+              </TabsContent>
+              <TabsContent value="manage" className="mt-0">
+                <AssociationPhotoManager 
+                  associationId={association.id} 
+                  associationName={association.name} 
+                />
+              </TabsContent>
+            </Tabs>
+            
             <AssociationAmenities association={association} />
           </div>
           <div className="space-y-6 lg:col-span-1">

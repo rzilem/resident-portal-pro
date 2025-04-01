@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      association_photos: {
+        Row: {
+          association_id: string
+          created_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          is_primary: boolean | null
+          updated_at: string | null
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          association_id: string
+          created_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id?: string
+          is_primary?: boolean | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          association_id?: string
+          created_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          is_primary?: boolean | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       association_settings: {
         Row: {
           association_id: string | null
