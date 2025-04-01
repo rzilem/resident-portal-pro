@@ -103,7 +103,14 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
   };
 
   const openPreview = (photoUrl: string) => {
-    setSelectedPhoto(photoUrl);
+    // Process URL to ensure it's a valid image URL
+    // For demo URLs, use a placeholder instead
+    const isDemo = photoUrl.includes('demo-storage.example.com');
+    const imageUrl = isDemo 
+      ? "https://placehold.co/800x600?text=Demo+Image" 
+      : photoUrl;
+      
+    setSelectedPhoto(imageUrl);
     setPreviewDialogOpen(true);
   };
 
@@ -217,53 +224,66 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
         ) : (
           <ScrollArea className="h-[400px] pr-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {photos.map((photo) => (
-                <div 
-                  key={photo.id} 
-                  className="relative group overflow-hidden rounded-md border"
-                >
+              {photos.map((photo) => {
+                // Process URL to ensure it's a valid image URL
+                // For demo URLs, use a placeholder instead
+                const isDemo = photo.url.includes('demo-storage.example.com');
+                const imageUrl = isDemo 
+                  ? "https://placehold.co/600x400?text=Demo+Image" 
+                  : photo.url;
+                  
+                return (
                   <div 
-                    className="aspect-square relative cursor-pointer"
-                    onClick={() => openPreview(photo.url)}
+                    key={photo.id} 
+                    className="relative group overflow-hidden rounded-md border"
                   >
-                    <img 
-                      src={photo.url} 
-                      alt={photo.description || 'Association photo'}
-                      className="w-full h-full object-cover"
-                    />
-                    {photo.is_primary && (
-                      <Badge 
-                        variant="secondary" 
-                        className="absolute top-2 left-2 bg-primary/80 hover:bg-primary/80"
-                      >
-                        <Star className="h-3 w-3 mr-1 fill-primary-foreground" />
-                        Primary
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="secondary" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {!photo.is_primary && (
-                          <DropdownMenuItem onClick={() => handlePrimaryClick(photo.id)}>
-                            <Star className="h-4 w-4 mr-2" />
-                            Set as primary
+                    <div 
+                      className="aspect-square relative cursor-pointer"
+                      onClick={() => openPreview(photo.url)}
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt={photo.description || 'Association photo'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error("Failed to load image thumbnail:", imageUrl);
+                          e.currentTarget.src = "https://placehold.co/300x300?text=Image+Not+Found";
+                        }}
+                      />
+                      {photo.is_primary && (
+                        <Badge 
+                          variant="secondary" 
+                          className="absolute top-2 left-2 bg-primary/80 hover:bg-primary/80"
+                        >
+                          <Star className="h-3 w-3 mr-1 fill-primary-foreground" />
+                          Primary
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="secondary" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {!photo.is_primary && (
+                            <DropdownMenuItem onClick={() => handlePrimaryClick(photo.id)}>
+                              <Star className="h-4 w-4 mr-2" />
+                              Set as primary
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleDeleteClick(photo.id)}>
+                            <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+                            <span className="text-destructive">Delete</span>
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={() => handleDeleteClick(photo.id)}>
-                          <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-                          <span className="text-destructive">Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         )}
@@ -277,6 +297,10 @@ const AssociationPhotoManager: React.FC<AssociationPhotoManagerProps> = ({
               src={selectedPhoto} 
               alt="Association photo preview" 
               className="w-full h-auto rounded-md"
+              onError={(e) => {
+                console.error("Failed to load preview image:", selectedPhoto);
+                e.currentTarget.src = "https://placehold.co/800x600?text=Image+Not+Found";
+              }}
             />
           )}
         </DialogContent>

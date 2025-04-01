@@ -94,24 +94,35 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
       <CardContent>
         <Carousel className="w-full">
           <CarouselContent>
-            {photos.map((photo) => (
-              <CarouselItem key={photo.id}>
-                <div className="overflow-hidden rounded-md">
-                  <img 
-                    src={photo.url} 
-                    alt={photo.description || `${associationName} property`} 
-                    className="h-[250px] w-full object-cover"
-                    onError={(e) => {
-                      console.error("Failed to load image:", photo.url);
-                      e.currentTarget.src = "https://placehold.co/600x400?text=Image+Not+Found";
-                    }}
-                  />
-                </div>
-                {photo.description && (
-                  <p className="text-sm text-center mt-2 text-muted-foreground">{photo.description}</p>
-                )}
-              </CarouselItem>
-            ))}
+            {photos.map((photo) => {
+              // Process URL to ensure it's a valid image URL
+              // For demo URLs, use a placeholder instead
+              const isDemo = photo.url.includes('demo-storage.example.com');
+              const imageUrl = isDemo 
+                ? "https://placehold.co/600x400?text=Demo+Image" 
+                : photo.url;
+                
+              console.log(`Rendering photo: ${photo.id} with URL: ${imageUrl} (original: ${photo.url})`);
+              
+              return (
+                <CarouselItem key={photo.id}>
+                  <div className="overflow-hidden rounded-md">
+                    <img 
+                      src={imageUrl} 
+                      alt={photo.description || `${associationName} property`} 
+                      className="h-[250px] w-full object-cover"
+                      onError={(e) => {
+                        console.error("Failed to load image:", imageUrl);
+                        e.currentTarget.src = "https://placehold.co/600x400?text=Image+Not+Found";
+                      }}
+                    />
+                  </div>
+                  {photo.description && (
+                    <p className="text-sm text-center mt-2 text-muted-foreground">{photo.description}</p>
+                  )}
+                </CarouselItem>
+              );
+            })}
           </CarouselContent>
           <CarouselPrevious className="-left-3" />
           <CarouselNext className="-right-3" />
