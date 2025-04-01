@@ -11,6 +11,12 @@ import { RefreshCw, Mail, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEmailToLead } from '@/hooks/use-email-to-lead';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 const LeadsManagement = () => {
   const [searchParams] = useSearchParams();
@@ -100,22 +106,42 @@ const LeadsManagement = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Lead Management</h1>
           <div className="flex space-x-2">
-            <Button onClick={handleTestEmailLead} variant="outline" size="sm" disabled={isProcessing}>
-              <Mail className="h-4 w-4 mr-2" />
-              {isProcessing ? 'Processing...' : 'Create Test Email Lead'}
-            </Button>
-            <Button onClick={handleRefresh} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleTestEmailLead} variant="outline" size="sm" disabled={isProcessing}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    {isProcessing ? 'Processing...' : 'Create Test Email Lead'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="z-50">
+                  <p>Generate a test lead from a sample email</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleRefresh} variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="z-50">
+                  <p>Refresh all lead data</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
+        
         <div className="flex justify-between items-center">
           <p className="text-muted-foreground">
             Track potential clients, create proposals, and manage client acquisition
           </p>
           <p className="text-xs text-muted-foreground">
-            Last refreshed: {lastRefreshed.toLocaleTimeString()}
+            Last refreshed: {lastRefreshed.toLocaleDateString()} {lastRefreshed.toLocaleTimeString()}
           </p>
         </div>
       </div>

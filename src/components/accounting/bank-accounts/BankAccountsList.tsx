@@ -10,6 +10,12 @@ import { Pencil, Plus, RefreshCw, Eye } from 'lucide-react';
 import BankAccountDialog from './BankAccountDialog';
 import { formatCurrency } from '@/utils/formatters';
 import BankAccountDetails from './BankAccountDetails';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface BankAccountsListProps {
   associationId: string;
@@ -75,23 +81,42 @@ const BankAccountsList: React.FC<BankAccountsListProps> = ({ associationId }) =>
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refreshAccounts()}
-            className="gap-1"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleCreateAccount}
-            className="gap-1"
-          >
-            <Plus className="h-4 w-4" />
-            Add Account
-          </Button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refreshAccounts()}
+                  className="gap-1"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="z-50">
+                <p>Refresh account data</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  onClick={handleCreateAccount}
+                  className="gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Account
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="z-50">
+                <p>Create a new bank account</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -208,20 +233,39 @@ const BankAccountsList: React.FC<BankAccountsListProps> = ({ associationId }) =>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewDetails(account)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditAccount(account)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleViewDetails(account)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="z-50">
+                                <p>View account details</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEditAccount(account)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="z-50">
+                                <p>Edit account</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -1,10 +1,15 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Download, User, UserPlus, DollarSign, LineChart, BarChart, Presentation } from "lucide-react";
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 const LeadAnalytics: React.FC = () => {
   const [dateRange, setDateRange] = useState('30d');
@@ -60,10 +65,19 @@ const LeadAnalytics: React.FC = () => {
           </Select>
         </div>
         
-        <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export Report
-        </Button>
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="z-50">
+              <p>Download analytics as CSV</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -132,7 +146,7 @@ const LeadAnalytics: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Bar dataKey="count" name="Number of Leads" fill="#8884d8" />
                 </RechartsBarChart>
@@ -166,7 +180,7 @@ const LeadAnalytics: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -199,7 +213,7 @@ const LeadAnalytics: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis unit="%" />
-                <Tooltip formatter={(value) => [`${value}%`, 'Conversion Rate']} />
+                <RechartsTooltip formatter={(value) => [`${value}%`, 'Conversion Rate']} />
                 <Legend />
                 <Bar dataKey="rate" name="Conversion Rate (%)" fill="#82ca9d" />
               </RechartsBarChart>

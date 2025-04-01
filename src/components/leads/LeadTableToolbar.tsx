@@ -7,6 +7,12 @@ import LeadColumnsSelector from './LeadColumnsSelector';
 import { LeadColumn } from './LeadColumnsSelector';
 import { LeadTableFilters } from './types';
 import LeadFormDialog from './LeadFormDialog';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface LeadTableToolbarProps {
   filters: LeadTableFilters;
@@ -63,21 +69,52 @@ const LeadTableToolbar: React.FC<LeadTableToolbarProps> = ({
         </div>
 
         <div className="flex items-center gap-2 justify-end">
-          <LeadFormDialog buttonText="Add Lead" buttonVariant="default" />
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <LeadFormDialog buttonText="Add Lead" buttonVariant="default" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="z-50">
+                <p>Create a new lead</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
-          <LeadColumnsSelector 
-            columns={columns} 
-            onChange={onColumnsChange} 
-          />
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <LeadColumnsSelector 
+                    columns={columns} 
+                    onChange={onColumnsChange} 
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="z-50">
+                <p>Customize visible columns</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onRefresh}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onRefresh}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="z-50">
+                <p>Refresh lead data</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>
