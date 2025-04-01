@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { toast } from 'sonner';
 
 interface ResidentData {
   first_name: string;
@@ -26,14 +27,17 @@ export const useAddResident = () => {
   const addResident = async (residentData: ResidentData) => {
     setIsLoading(true);
     try {
+      console.log('Adding resident with data:', residentData);
+      
       // First check if we have the resident_profiles table
       const { error: checkError } = await supabase
         .from('resident_profiles')
         .select('id')
         .limit(1);
       
-      // If the table exists, use it
+      // If the resident_profiles table exists, use it (this is our primary target)
       if (!checkError) {
+        console.log('Using resident_profiles table');
         const { data, error } = await supabase
           .from('resident_profiles')
           .insert([
@@ -60,19 +64,52 @@ export const useAddResident = () => {
         return data;
       } 
       
-      // Fallback to residents table if it exists
+      // Fallback to residents table if it exists (legacy support)
       const { error: residentsTableError } = await supabase
         .from('residents')
         .select('id')
         .limit(1);
 
       if (!residentsTableError) {
+        console.log('Falling back to residents table');
+        // First, try to find or create the property
+        let propertyId = null;
+        
+        if (residentData.property_address) {
+          const { data: propertyData } = await supabase
+            .from('properties')
+            .select('id')
+            .eq('address', residentData.property_address)
+            .maybeSingle();
+            
+          if (propertyData) {
+            propertyId = propertyData.id;
+          } else {
+            // Create the property if it doesn't exist
+            const { data: newProperty, error: propertyError } = await supabase
+              .from('properties')
+              .insert({
+                address: residentData.property_address,
+                unit_number: residentData.unit
+              })
+              .select()
+              .single();
+              
+            if (propertyError) {
+              console.error('Error creating property:', propertyError);
+            } else {
+              propertyId = newProperty.id;
+            }
+          }
+        }
+        
+        // Create the resident entry
         const { data, error } = await supabase
           .from('residents')
           .insert([
             {
               user_id: user?.id,
-              property_id: null, // This would need to be set properly
+              property_id: propertyId,
               resident_type: 'owner', // Default to owner
               move_in_date: residentData.move_in_date,
               move_out_date: residentData.move_out_date,

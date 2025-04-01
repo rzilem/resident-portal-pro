@@ -222,6 +222,65 @@ export const saveResidentData = async (
     let successCount = 0;
     let warningsCount = 0;
     
+    // First check if we have the resident_profiles table (preferred approach)
+    const { error: checkError } = await supabase
+      .from('resident_profiles')
+      .select('id')
+      .limit(1);
+      
+    if (!checkError) {
+      // Use resident_profiles table (primary target)
+      for (const residentData of data) {
+        try {
+          const resident = {
+            first_name: residentData.homeowner_first_name || residentData.first_name,
+            last_name: residentData.homeowner_last_name || residentData.last_name,
+            email: residentData.homeowner_email || residentData.email,
+            phone: residentData.phone || residentData.homeowner_phone,
+            unit: residentData.unit_number || residentData.unit,
+            property: residentData.property_name || residentData.property,
+            status: residentData.status || 'active',
+            move_in_date: residentData.move_in_date ? new Date(residentData.move_in_date) : new Date(),
+            move_out_date: residentData.move_out_date ? new Date(residentData.move_out_date) : null,
+            mailing_address: residentData.mailing_address,
+            property_address: residentData.property_address,
+            balance: parseFloat(residentData.balance || '0'),
+            payment_preference: residentData.payment_preference
+          };
+          
+          // Get user_id from session if available
+          const { data: sessionData } = await supabase.auth.getSession();
+          const userId = sessionData.session?.user?.id;
+          
+          const { error } = await supabase
+            .from('resident_profiles')
+            .insert({
+              ...resident,
+              user_id: userId
+            });
+            
+          if (error) {
+            console.error('Error inserting resident:', error);
+            warningsCount++;
+            continue;
+          }
+          
+          successCount++;
+        } catch (error) {
+          console.error('Error processing resident data:', error);
+          warningsCount++;
+        }
+      }
+      
+      return {
+        success: true,
+        recordsImported: successCount,
+        recordsWithWarnings: warningsCount,
+        recordsWithErrors: data.length - successCount - warningsCount
+      };
+    }
+    
+    // Fall back to legacy implementation if resident_profiles doesn't exist
     for (const residentData of data) {
       // First, find the property this resident belongs to
       let propertyId: string | null = null;
@@ -236,13 +295,27 @@ export const saveResidentData = async (
         
         if (propertyData) {
           propertyId = propertyData.id;
+        } else if (residentData.property_address) {
+          // Create property if not found
+          const { data: newProperty, error: propertyError } = await supabase
+            .from('properties')
+            .insert({
+              address: residentData.property_address,
+              unit_number: residentData.unit_number || '',
+              city: residentData.city,
+              state: residentData.state,
+              zip: residentData.zip
+            })
+            .select()
+            .single();
+            
+          if (propertyError) {
+            console.error('Error creating property:', propertyError);
+            warningsCount++;
+          } else if (newProperty) {
+            propertyId = newProperty.id;
+          }
         }
-      }
-      
-      if (!propertyId) {
-        console.warn('Property not found for resident:', residentData);
-        warningsCount++;
-        continue;
       }
       
       // First check if user exists in auth system

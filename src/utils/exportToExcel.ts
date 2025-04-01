@@ -1,234 +1,97 @@
-import { saveAs } from 'file-saver';
+
 import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
-/**
- * Export data to Excel file
- * @param data Array of objects to export
- * @param filename Filename for the downloaded file
- * @param sheetName Name for the worksheet (default: "Sheet1")
- */
-export const exportToExcel = (
-  data: Record<string, any>[],
-  filename: string,
-  sheetName: string = 'Sheet1'
-): void => {
-  // Create a new workbook and worksheet
-  const workbook = XLSX.utils.book_new();
+export const exportToExcel = (data: any[], filename: string) => {
   const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
   
-  // Add the worksheet to the workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  
-  // Generate Excel file and trigger download
+  // Generate Excel file
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   
-  // Save the file
-  saveAs(blob, `${filename}.xlsx`);
+  // Save file
+  saveAs(blob, filename);
 };
 
-/**
- * Generate and download a template for resident onboarding
- */
-export const generateOnboardingTemplate = (): void => {
-  // Create sample data with headers and an example row
-  const template = [
-    {
-      'First Name': '',
-      'Last Name': '',
-      'Email': '',
-      'Phone': '',
-      'Property Address': '',
-      'Unit Number': '',
-      'City': '',
-      'State': '',
-      'Zip': '',
-      'Move In Date': '',
-      'Resident Type': 'Owner', // Default value
-      'Is Primary': 'Yes', // Default value
-    },
-    {
-      'First Name': 'John',
-      'Last Name': 'Smith',
-      'Email': 'john.smith@example.com',
-      'Phone': '(555) 123-4567',
-      'Property Address': '123 Main Street',
-      'Unit Number': '101',
-      'City': 'Austin',
-      'State': 'TX',
-      'Zip': '78701',
-      'Move In Date': '2023-01-15',
-      'Resident Type': 'Owner',
-      'Is Primary': 'Yes',
-    }
-  ];
+export const generateOnboardingTemplate = (type: string) => {
+  let headers: string[] = [];
+  let sampleData: Record<string, string>[] = [];
   
-  // Export the template
-  exportToExcel(template, 'resident-onboarding-template', 'Residents');
-};
-
-/**
- * Generate and download a template for association data
- */
-export const generateAssociationTemplate = (): void => {
-  // Create sample data with headers and an example row
-  const template = [
-    {
-      'Association Name': '',
-      'Location': '',
-      'Units': '',
-      'Status': 'Active',
-      'Onboarding Date': '',
-      'Annual Fees': '',
-      'Assessment Frequency': 'Monthly',
-      'Has Pool': 'No',
-      'Has Gate': 'No',
-      'Has Pedestrian Gate': 'No',
-      'County': '',
-      'City': '',
-      'State': '',
-      'Zip': '',
-      'Address': '',
-      'Offsite Addresses': '',
-      'Leases': '',
-      'Service Type': '',
-      'Type': 'HOA',
-      'Founded Date': '',
-      'Contact Email': '',
-      'Contact Phone': '',
-      'Contact Website': '',
-    },
-    {
-      'Association Name': 'Oakwood Community Association',
-      'Location': '789 Oak Avenue, Austin, TX 78703',
-      'Units': '150',
-      'Status': 'Active',
-      'Onboarding Date': '2023-06-10',
-      'Annual Fees': '2400',
-      'Assessment Frequency': 'Monthly',
-      'Has Pool': 'Yes',
-      'Has Gate': 'Yes',
-      'Has Pedestrian Gate': 'No',
-      'County': 'Travis',
-      'City': 'Austin',
-      'State': 'TX',
-      'Zip': '78703',
-      'Address': '789 Oak Avenue',
-      'Offsite Addresses': '5',
-      'Leases': '12',
-      'Service Type': 'Full Service',
-      'Type': 'HOA',
-      'Founded Date': '2005-06-10',
-      'Contact Email': 'info@oakwoodcommunity.org',
-      'Contact Phone': '(512) 555-1234',
-      'Contact Website': 'www.oakwoodcommunity.org',
-    }
-  ];
+  switch (type) {
+    case 'association':
+      headers = ['association_name', 'address', 'city', 'state', 'zip', 'contact_phone', 'contact_email', 'contact_website', 'founded_date', 'units', 'type', 'status'];
+      sampleData = [
+        {
+          association_name: 'Example Association',
+          address: '123 Main St',
+          city: 'Anytown',
+          state: 'CA',
+          zip: '90210',
+          contact_phone: '555-123-4567',
+          contact_email: 'info@example.com',
+          contact_website: 'https://example.com',
+          founded_date: '2020-01-01',
+          units: '100',
+          type: 'HOA',
+          status: 'active'
+        }
+      ];
+      break;
+      
+    case 'property':
+      headers = ['association_name', 'property_address', 'unit_number', 'city', 'state', 'zip', 'property_type', 'bedrooms', 'bathrooms', 'square_feet'];
+      sampleData = [
+        {
+          association_name: 'Example Association',
+          property_address: '123 Main St',
+          unit_number: '101',
+          city: 'Anytown',
+          state: 'CA',
+          zip: '90210',
+          property_type: 'Condo',
+          bedrooms: '2',
+          bathrooms: '2',
+          square_feet: '1200'
+        }
+      ];
+      break;
+      
+    case 'resident':
+      headers = ['first_name', 'last_name', 'email', 'phone', 'property_address', 'unit_number', 'resident_type', 'move_in_date', 'move_out_date', 'status', 'balance', 'mailing_address', 'payment_preference'];
+      sampleData = [
+        {
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john.doe@example.com',
+          phone: '555-123-4567',
+          property_address: '123 Main St',
+          unit_number: '101',
+          resident_type: 'owner',
+          move_in_date: '2022-01-01',
+          move_out_date: '',
+          status: 'active',
+          balance: '0.00',
+          mailing_address: '',
+          payment_preference: 'Email'
+        }
+      ];
+      break;
+      
+    default:
+      headers = ['id', 'name', 'description'];
+      sampleData = [{ id: '1', name: 'Example', description: 'Sample data' }];
+  }
   
-  // Export the template
-  exportToExcel(template, 'association-template', 'Associations');
-};
-
-/**
- * Generate and download a template for property data
- */
-export const generatePropertyTemplate = (): void => {
-  // Create sample data with headers and an example row
-  const template = [
-    {
-      'Address': '',
-      'Unit Number': '',
-      'City': '',
-      'State': '',
-      'Zip': '',
-      'Bedrooms': '',
-      'Bathrooms': '',
-      'Square Feet': '',
-      'Property Type': '',
-      'Association Name': '',
-    },
-    {
-      'Address': '456 Pine Lane',
-      'Unit Number': '202',
-      'City': 'Austin',
-      'State': 'TX',
-      'Zip': '78704',
-      'Bedrooms': '2',
-      'Bathrooms': '2',
-      'Square Feet': '1200',
-      'Property Type': 'Condo',
-      'Association Name': 'Oakwood Community Association',
-    }
-  ];
+  const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
   
-  // Export the template
-  exportToExcel(template, 'property-template', 'Properties');
-};
-
-/**
- * Generate and download a template for vendor data
- */
-export const generateVendorTemplate = (): void => {
-  // Create sample data with headers and an example row
-  const template = [
-    {
-      'Provider Name': '',
-      'DBA': '',
-      'Check Name': '',
-      'Contact': '',
-      'Phone': '',
-      'eMail': '',
-      'Provider Type': '',
-      'Default Payment Method': '',
-      'Hold Payment': '',
-      'Hold Reason': '',
-      'Is 1099': '',
-      'Report 1099 Box': '',
-      'Is Preferred': '',
-      'Is Default': '',
-      'Is Compliant': '',
-      'Compliance Status': '',
-      'Compliance Group': '',
-      'Street No': '',
-      'Address1': '',
-      'Address2': '',
-      'City': '',
-      'State': '',
-      'Zip': '',
-      'TaxID': '',
-      'Service Provider ID': '',
-      'Notes': ''
-    },
-    {
-      'Provider Name': 'ABC Plumbing Services',
-      'DBA': 'ABC Plumbing',
-      'Check Name': 'ABC Plumbing LLC',
-      'Contact': 'John Smith',
-      'Phone': '(555) 123-4567',
-      'eMail': 'john@abcplumbing.com',
-      'Provider Type': 'Plumbing',
-      'Default Payment Method': 'Check',
-      'Hold Payment': 'No',
-      'Hold Reason': '',
-      'Is 1099': 'Yes',
-      'Report 1099 Box': '7',
-      'Is Preferred': 'Yes',
-      'Is Default': 'No',
-      'Is Compliant': 'Yes',
-      'Compliance Status': 'Approved',
-      'Compliance Group': 'Contractors',
-      'Street No': '123',
-      'Address1': 'Main Street',
-      'Address2': 'Suite 100',
-      'City': 'Anytown',
-      'State': 'CA',
-      'Zip': '12345',
-      'TaxID': '12-3456789',
-      'Service Provider ID': 'SP001',
-      'Notes': 'Reliable service provider for emergency plumbing repairs'
-    }
-  ];
+  // Generate Excel file
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   
-  // Export the template
-  exportToExcel(template, 'vendor-import-template', 'Vendors');
+  // Save file
+  saveAs(blob, `${type}_template.xlsx`);
 };
