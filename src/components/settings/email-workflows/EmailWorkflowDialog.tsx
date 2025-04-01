@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -46,7 +45,6 @@ const EmailWorkflowDialog = ({
     ocrSettings: defaultOcrSettings,
   });
 
-  // Reset form when dialog opens or editingRule changes
   useEffect(() => {
     if (editingRule) {
       const { id, createdAt, ...restRule } = editingRule;
@@ -114,7 +112,7 @@ const EmailWorkflowDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{editingRule ? 'Edit Email Workflow Rule' : 'Add Email Workflow Rule'}</DialogTitle>
@@ -202,7 +200,6 @@ const EmailWorkflowDialog = ({
               </div>
             </div>
 
-            {/* OCR Settings Section */}
             <div className="col-span-4 mt-2">
               <Separator />
             </div>
@@ -216,7 +213,7 @@ const EmailWorkflowDialog = ({
                   id="enableOcr" 
                   checked={formData.enableOcr || isInvoiceWorkflow} 
                   onCheckedChange={handleSwitchChange('enableOcr')}
-                  disabled={isInvoiceWorkflow} // Force enabled for Invoice type
+                  disabled={isInvoiceWorkflow}
                 />
                 <Label htmlFor="enableOcr" className="cursor-pointer">
                   {formData.enableOcr || isInvoiceWorkflow ? 'Enabled' : 'Disabled'}

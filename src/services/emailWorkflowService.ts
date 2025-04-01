@@ -1,4 +1,3 @@
-
 // Email workflow service types and interfaces
 
 export interface EmailWorkflowRule {
@@ -62,6 +61,7 @@ export const workflowTypes = [
   { value: 'General', label: 'General Inquiry' },
   { value: 'Document', label: 'Document Processing' },
   { value: 'Calendar', label: 'Calendar Event' },
+  { value: 'Lead Management', label: 'Lead Management' },
   { value: 'Custom', label: 'Custom Workflow' },
 ];
 
@@ -88,4 +88,36 @@ export const deleteEmailWorkflow = async (id: string): Promise<void> => {
   // In a real application, this would be an API call
   // For now, throw an error to indicate this is not implemented
   throw new Error('API not implemented');
+};
+
+// New function to handle lead creation from emails
+export const processLeadEmail = async (emailContent: { 
+  from: string; 
+  subject: string; 
+  body: string;
+}) => {
+  try {
+    // Extract potential lead information from email
+    const email = emailContent.from;
+    const name = email.split('@')[0]; // Simple extraction, can be enhanced
+    
+    // Create a new lead in the leads table
+    const { data, error } = await supabase.from('leads').insert([
+      {
+        name: name,
+        email: email,
+        status: 'new',
+        source: 'Email Workflow',
+        notes: `Subject: ${emailContent.subject}\n\nBody: ${emailContent.body}`,
+        createdAt: new Date().toISOString()
+      }
+    ]);
+    
+    if (error) throw error;
+    
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error processing lead email:', error);
+    return { success: false, error };
+  }
 };

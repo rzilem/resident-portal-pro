@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +40,19 @@ const EmailWorkflowSettings: React.FC = () => {
     }
   };
 
+  const createLeadWorkflow = () => {
+    createWorkflowRule({
+      name: 'Lead Management Workflow',
+      inboundEmail: 'lead@hoamanagersoftware.com',
+      workflowType: 'Lead Management',
+      forwardTo: 'sales@hoamanagersoftware.com',
+      isActive: true,
+      description: 'Automatically create new leads from incoming emails',
+      association: 'All',
+      enableOcr: false
+    });
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -54,6 +66,10 @@ const EmailWorkflowSettings: React.FC = () => {
           <Button variant="outline" size="sm" onClick={fetchWorkflowRules} disabled={isLoading}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={createLeadWorkflow}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Lead Workflow
           </Button>
           <Button size="sm" onClick={handleAddClick}>
             <Plus className="h-4 w-4 mr-2" />
