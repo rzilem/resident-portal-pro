@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
+import { 
   Table,
   TableBody,
   TableCell,
@@ -32,6 +31,7 @@ import { LeadStatus } from "@/types/lead";
 import { toast } from "sonner";
 import LeadColumnsSelector, { LeadColumn } from './LeadColumnsSelector';
 import { useSettings } from '@/hooks/use-settings';
+import { useCompanySettings } from '@/hooks/use-company-settings';
 
 interface Lead {
   id: string;
@@ -57,12 +57,12 @@ const LeadsTable: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const { preferences, updatePreference } = useSettings();
+  const { settings } = useCompanySettings();
   
-  // Define available columns
   const defaultColumns: LeadColumn[] = [
     { id: 'name', label: 'Name', checked: true },
     { id: 'email', label: 'Email', checked: true },
-    { id: 'company', label: 'Company', checked: true },
+    { id: 'company', label: settings.companyName || 'Company', checked: true },
     { id: 'phone', label: 'Phone', checked: false },
     { id: 'status', label: 'Status', checked: true },
     { id: 'association_name', label: 'Association', checked: true },
@@ -79,7 +79,6 @@ const LeadsTable: React.FC = () => {
   
   const [columns, setColumns] = useState<LeadColumn[]>(defaultColumns);
   
-  // Load user preferences for column visibility
   useEffect(() => {
     const savedColumns = preferences?.leadTableColumns as LeadColumn[] | undefined;
     if (savedColumns && savedColumns.length > 0) {
@@ -87,7 +86,6 @@ const LeadsTable: React.FC = () => {
     }
   }, [preferences]);
   
-  // Mock leads data with expanded fields
   const leads: Lead[] = [
     {
       id: '1',
@@ -295,7 +293,7 @@ const LeadsTable: React.FC = () => {
                     <TableCell>{lead.email}</TableCell>
                   )}
                   {columns.find(c => c.id === 'company')?.checked && (
-                    <TableCell>{lead.company || '-'}</TableCell>
+                    <TableCell>{lead.company || settings.companyName || '-'}</TableCell>
                   )}
                   {columns.find(c => c.id === 'phone')?.checked && (
                     <TableCell>{lead.phone || '-'}</TableCell>
