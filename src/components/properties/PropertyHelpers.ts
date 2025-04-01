@@ -1,4 +1,3 @@
-
 import { Association } from '@/types/association';
 
 export interface Property {
