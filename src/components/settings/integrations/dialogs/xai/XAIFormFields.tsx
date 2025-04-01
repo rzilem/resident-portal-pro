@@ -42,13 +42,14 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Input 
           id="apiKey" 
           type="text"
-          placeholder="Enter your X.AI API key" 
+          placeholder="Enter your X.AI API key (e.g., xai_abc123)" 
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           autoComplete="off"
+          className="bg-background"
         />
         <p className="text-xs text-muted-foreground">
-          Your X.AI API key will be securely stored and used for AI generations.
+          Obtain your API key from console.x.ai and paste it here.
         </p>
       </div>
       
@@ -56,11 +57,8 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Label htmlFor="model">Default Model</Label>
         <Select 
           value={defaultModel} 
-          onValueChange={(value) => {
-            console.log("Model selection changed to:", value);
-            setDefaultModel(value);
-          }}
-          defaultValue="grok-1"
+          onValueChange={setDefaultModel}
+          defaultValue="grok-2"
         >
           <SelectTrigger id="model" className="w-full bg-background">
             <SelectValue placeholder="Select a model" />
@@ -72,7 +70,7 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
-          The default model to use for AI generations.
+          Select the X.AI model for your application (Grok-2 recommended).
         </p>
       </div>
       
@@ -85,9 +83,10 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
           autoComplete="off"
+          className="bg-background"
         />
         <p className="text-xs text-muted-foreground">
-          If you're using an organizational account, enter your organization ID.
+          Required only for organizational X.AI accounts.
         </p>
       </div>
       

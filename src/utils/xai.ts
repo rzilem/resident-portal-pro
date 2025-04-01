@@ -10,8 +10,8 @@ export const testXAIAPI = async (apiKey: string): Promise<boolean> => {
   console.log('Testing X.AI API connection...');
   
   try {
-    // Note: Replace with actual X.AI API endpoint for key validation
-    const response = await fetch('https://api.x.ai/v1/test', {
+    // Testing with a minimal request to the models endpoint
+    const response = await fetch('https://api.x.ai/v1/models', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -19,9 +19,15 @@ export const testXAIAPI = async (apiKey: string): Promise<boolean> => {
       }
     });
 
-    return response.ok;
+    if (!response.ok) {
+      console.error('X.AI API test failed:', response.status, response.statusText);
+      return false;
+    }
+    
+    console.log('X.AI API test successful');
+    return true;
   } catch (error) {
-    console.error('X.AI API test failed:', error);
+    console.error('X.AI API test failed with exception:', error);
     return false;
   }
 };
@@ -38,7 +44,7 @@ export const generateWithXAI = async (
 ) => {
   console.log('Generating with X.AI:', {
     prompt,
-    model: options.model || 'grok-1',
+    model: options.model || 'grok-2',
     temperature: options.temperature || 0.7,
     maxTokens: options.maxTokens || 1000,
   });
@@ -51,7 +57,7 @@ export const generateWithXAI = async (
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: options.model || 'grok-1',
+        model: options.model || 'grok-2',
         messages: [
           { role: 'system', content: options.systemPrompt || 'You are a helpful AI assistant' },
           { role: 'user', content: prompt }
@@ -62,7 +68,9 @@ export const generateWithXAI = async (
     });
 
     if (!response.ok) {
-      throw new Error('X.AI API request failed');
+      const errorData = await response.text();
+      console.error('X.AI API request failed:', response.status, errorData);
+      throw new Error(`X.AI API request failed: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();

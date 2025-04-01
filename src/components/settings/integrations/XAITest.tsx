@@ -27,7 +27,8 @@ const XAITest = () => {
 
     setIsTesting(true);
     try {
-      const success = await testXAIConnection();
+      // Explicitly test with the current API key
+      const success = await testXAIConnection(settings.apiKey);
       
       if (success) {
         toast.success("X.AI API connection verified successfully!");
@@ -69,7 +70,7 @@ const XAITest = () => {
             {isXAIConnected && (
               <div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Using model: {settings.defaultModel || "grok-1"} 
+                  Using model: {settings.defaultModel || "grok-2"} 
                   {settings.organization && <span><br />Organization: {settings.organization}</span>}
                 </p>
               </div>

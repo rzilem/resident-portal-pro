@@ -8,7 +8,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
   
   // Form state
   const [apiKey, setApiKey] = useState('');
-  const [defaultModel, setDefaultModel] = useState('grok-1');
+  const [defaultModel, setDefaultModel] = useState('grok-2');
   const [organization, setOrganization] = useState('');
   const [isTesting, setIsTesting] = useState(false);
 
@@ -17,12 +17,12 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     if (open) {
       console.log('XAI Dialog opened, initializing with settings:', {
         apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-        defaultModel: settings.defaultModel || 'grok-1',
+        defaultModel: settings.defaultModel || 'grok-2',
         organization: settings.organization
       });
       
       setApiKey(settings.apiKey || '');
-      setDefaultModel(settings.defaultModel || 'grok-1');
+      setDefaultModel(settings.defaultModel || 'grok-2');
       setOrganization(settings.organization || '');
     }
   }, [open, settings]);
@@ -52,9 +52,9 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     
     try {
       const success = await saveXAISettings({
-        apiKey,
+        apiKey: apiKey.trim(),
         defaultModel,
-        organization
+        organization: organization.trim()
       });
       
       if (success) {
@@ -78,12 +78,12 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     setIsTesting(true);
     try {
       console.log('Testing X.AI API with key:', apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
-      const success = await testXAIConnection(apiKey);
+      const success = await testXAIConnection(apiKey.trim());
       
       if (success) {
         toast.success('X.AI API connection test successful');
       } else {
-        toast.error('X.AI API connection test failed');
+        toast.error('X.AI API connection test failed. Check your API key.');
       }
     } catch (error) {
       console.error('Error during X.AI API test:', error);
@@ -91,12 +91,6 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     } finally {
       setIsTesting(false);
     }
-  };
-
-  // Function to handle model change explicitly
-  const handleModelChange = (value: string) => {
-    console.log('Model changed to:', value);
-    setDefaultModel(value);
   };
 
   return {
@@ -107,7 +101,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     isLoading,
     isAuthenticated,
     setApiKey,
-    setDefaultModel: handleModelChange,
+    setDefaultModel,
     setOrganization,
     handleSave,
     handleTest
