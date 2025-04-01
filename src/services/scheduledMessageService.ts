@@ -54,13 +54,14 @@ const sendScheduledMessage = async (message: Communication): Promise<boolean> =>
     let success = false;
     
     if (message.message_type === 'email') {
-      // Send via email service
-      success = await emailService.sendEmail({
+      // Send via email service - make sure to capture the boolean result
+      const emailResult = await emailService.sendEmail({
         to: recipients.join(','),
         subject: message.subject,
         body: message.content,
         isHtml: message.format === 'html'
       });
+      success = emailResult;
     } else if (message.message_type === 'sms') {
       // For SMS, we'd have a different service here
       // This is just a placeholder

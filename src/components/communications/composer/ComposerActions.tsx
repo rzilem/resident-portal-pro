@@ -134,7 +134,7 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
       for (const recipient of selectedRecipients) {
         try {
           if (messageType === 'email') {
-            // Send email
+            // Send email - now returns a boolean
             const sent = await emailService.sendEmail({
               to: recipient,
               subject: subject,
