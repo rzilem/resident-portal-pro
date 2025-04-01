@@ -128,23 +128,22 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
       setDeleteError(null);
       console.log('Deleting lead:', lead.id);
       
+      // Delete documents first if there are any
       let deletionErrors = [];
       
-      // If there are documents, delete them first
       if (lead.uploaded_files && lead.uploaded_files.length > 0) {
         console.log('Deleting associated documents first');
         for (const doc of lead.uploaded_files) {
           if (doc.path) {
-            console.log('Deleting document:', doc.path);
             try {
+              console.log('Attempting to delete document:', doc.path);
               const { error: storageError } = await supabase.storage
                 .from('documents')
                 .remove([doc.path]);
                 
               if (storageError) {
-                console.warn('Error removing document from storage:', storageError);
+                console.error('Error removing document from storage:', storageError);
                 deletionErrors.push(`Could not delete document ${doc.name}: ${storageError.message}`);
-                // Continue with deletion even if some documents fail to delete
               } else {
                 console.log(`Successfully deleted document: ${doc.name}`);
               }
@@ -156,28 +155,46 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
         }
       }
       
-      // Delete the lead record with a direct SQL query via RPC to bypass potential RLS issues
-      console.log('Attempting to delete lead with RPC function call');
-      const { error: rpcError } = await supabase.rpc('delete_lead', {
-        lead_id: lead.id
-      });
-      
-      if (rpcError) {
-        console.error('RPC error deleting lead:', rpcError);
+      // First, try using the edge function
+      try {
+        const { data: edgeFnData, error: edgeFnError } = await supabase.functions
+          .invoke('delete_lead', {
+            body: { leadId: lead.id }
+          });
         
-        // Fall back to standard delete if RPC fails
-        console.log('Falling back to standard delete');
-        const { error } = await supabase
-          .from('leads')
-          .delete()
-          .eq('id', lead.id);
-          
-        if (error) {
-          console.error('Database error deleting lead:', error);
-          throw error;
+        if (edgeFnError) {
+          console.error('Edge function error deleting lead:', edgeFnError);
+          throw edgeFnError;
         }
+        
+        console.log('Edge function response:', edgeFnData);
+        
+        if (edgeFnData?.success) {
+          toast.success(`Lead "${lead.name}" deleted successfully`);
+          queryClient.invalidateQueries({ queryKey: ['leads'] });
+          setDeleteConfirmOpen(false);
+          return;
+        } else if (edgeFnData?.error) {
+          throw new Error(edgeFnData.error);
+        }
+      } catch (edgeFnError) {
+        console.error('Failed to use edge function, falling back to direct delete:', edgeFnError);
+        // Continue to fallback method
       }
       
+      // If edge function fails, directly delete the lead
+      console.log('Falling back to direct delete');
+      const { error: deleteError } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', lead.id);
+        
+      if (deleteError) {
+        console.error('Database error deleting lead:', deleteError);
+        throw deleteError;
+      }
+      
+      // Success case for fallback
       if (deletionErrors.length > 0) {
         toast.warning(`Lead deleted but with ${deletionErrors.length} document deletion issues`);
       } else {
@@ -190,7 +207,6 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
       console.error('Error deleting lead:', err);
       setDeleteError(err.message || 'Failed to delete lead. Please try again.');
       toast.error('Failed to delete lead. Please try again.');
-      // Don't close the dialog so user can see the error
     } finally {
       setIsDeleting(false);
     }

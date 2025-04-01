@@ -34,7 +34,8 @@ serve(async (req) => {
     );
 
     // Get the request body
-    const { leadId } = await req.json();
+    const requestData = await req.json();
+    const leadId = requestData.leadId;
     
     if (!leadId) {
       return new Response(
@@ -90,7 +91,7 @@ serve(async (req) => {
       console.log('No documents to delete');
     }
     
-    // Delete the lead
+    // Delete the lead using a direct delete operation
     console.log('Deleting lead record');
     const { error: deleteError } = await supabaseClient
       .from('leads')
