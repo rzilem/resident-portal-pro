@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash, Edit, FilePlus, ImagePlus, Video, FileText, Upload } from 'lucide-react';
@@ -10,9 +9,10 @@ import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { uploadFile } from '@/utils/supabase/storage/uploadFile';
 import { FileUploader } from '@/components/ui/file-uploader';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProposalSection {
   id: string;
@@ -31,6 +31,7 @@ const ProposalCreator: React.FC = () => {
   const [addSectionDialogOpen, setAddSectionDialogOpen] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({});
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -56,7 +57,6 @@ const ProposalCreator: React.FC = () => {
 
   const removeSection = (id: string) => {
     setSections(sections.filter(section => section.id !== id));
-    // Remove any uploaded file for this section
     const newUploadFiles = { ...uploadFiles };
     delete newUploadFiles[id];
     setUploadFiles(newUploadFiles);
@@ -73,15 +73,45 @@ const ProposalCreator: React.FC = () => {
       ...uploadFiles,
       [sectionId]: file
     });
+
+    if (file) {
+      setUploadProgress({
+        ...uploadProgress,
+        [sectionId]: 0
+      });
+    } else {
+      const newProgress = { ...uploadProgress };
+      delete newProgress[sectionId];
+      setUploadProgress(newProgress);
+    }
   };
 
   const handleFileUpload = async (sectionId: string) => {
     const file = uploadFiles[sectionId];
-    if (!file) return;
+    if (!file) {
+      toast.error("Please select a file first");
+      return;
+    }
 
     setUploading(sectionId);
+    setUploadProgress({
+      ...uploadProgress,
+      [sectionId]: 10
+    });
 
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast.error("You need to be logged in to upload files");
+        setUploading(null);
+        return;
+      }
+
+      setUploadProgress({
+        ...uploadProgress,
+        [sectionId]: 30
+      });
+
       const bucket = "proposals";
       const path = `sections/${sectionId}`;
       
@@ -90,12 +120,25 @@ const ProposalCreator: React.FC = () => {
       if (fileUrl) {
         updateSection(sectionId, { content: fileUrl });
         toast.success("File uploaded successfully");
+        
+        setUploadProgress({
+          ...uploadProgress,
+          [sectionId]: 100
+        });
       } else {
         toast.error("Failed to upload file");
+        setUploadProgress({
+          ...uploadProgress,
+          [sectionId]: 0
+        });
       }
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Error uploading file");
+      setUploadProgress({
+        ...uploadProgress,
+        [sectionId]: 0
+      });
     } finally {
       setUploading(null);
     }
@@ -112,8 +155,6 @@ const ProposalCreator: React.FC = () => {
       return;
     }
 
-    // Here you would save the proposal data to your database
-    // For now we'll just mock it with localStorage
     const proposal = {
       id: `proposal-${Date.now()}`,
       name: proposalName,
@@ -127,6 +168,20 @@ const ProposalCreator: React.FC = () => {
     
     toast.success('Proposal saved successfully');
     navigate('/leads?tab=proposals');
+  };
+
+  const renderProgressBar = (sectionId: string) => {
+    const progress = uploadProgress[sectionId] || 0;
+    if (progress === 0) return null;
+    
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+        <div 
+          className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+          style={{ width: `${progress}%` }} 
+        />
+      </div>
+    );
   };
 
   return (
@@ -208,8 +263,8 @@ const ProposalCreator: React.FC = () => {
                                 {section.type !== 'video' && (
                                   <div className="space-y-2">
                                     <Label>Upload File</Label>
-                                    <div className="flex gap-2">
-                                      <div className="flex-1">
+                                    <div className="flex flex-col gap-2">
+                                      <div className="w-full">
                                         <FileUploader
                                           file={uploadFiles[section.id] || null}
                                           setFile={(file) => handleFileChange(section.id, file)}
@@ -217,13 +272,27 @@ const ProposalCreator: React.FC = () => {
                                             "image/jpeg,image/png,image/gif" : 
                                             "application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
                                         />
+                                        {renderProgressBar(section.id)}
                                       </div>
                                       <Button 
                                         onClick={() => handleFileUpload(section.id)} 
                                         disabled={!uploadFiles[section.id] || uploading === section.id}
-                                        className="mt-auto"
+                                        className="w-full mt-2"
                                       >
-                                        {uploading === section.id ? 'Uploading...' : 'Upload'}
+                                        {uploading === section.id ? (
+                                          <span className="flex items-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Uploading...
+                                          </span>
+                                        ) : (
+                                          <span className="flex items-center gap-2">
+                                            <Upload className="h-4 w-4" />
+                                            Upload File
+                                          </span>
+                                        )}
                                       </Button>
                                     </div>
                                   </div>
@@ -276,6 +345,9 @@ const ProposalCreator: React.FC = () => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Add Proposal Section</DialogTitle>
+                    <DialogDescription>
+                      Choose the type of content you want to add to your proposal
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid grid-cols-2 gap-4 py-4">
                     <Button 

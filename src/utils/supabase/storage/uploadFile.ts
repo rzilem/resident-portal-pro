@@ -33,6 +33,36 @@ export const uploadFile = async (
     const fileName = `${Date.now()}-${file.name.split('.')[0]}.${fileExt}`;
     const filePath = path ? `${path}/${fileName}` : fileName;
     
+    // Check if bucket exists first to prevent errors
+    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+    
+    if (bucketError) {
+      errorLog(`Error checking storage buckets:`, bucketError);
+    } else {
+      const bucketExists = buckets.some(b => b.name === bucket);
+      
+      if (!bucketExists) {
+        console.log(`Bucket ${bucket} not found, attempting to create...`);
+        try {
+          const { error: createError } = await supabase.storage.createBucket(bucket, {
+            public: true
+          });
+          
+          if (createError) {
+            errorLog(`Error creating bucket ${bucket}:`, createError);
+            
+            // If bucket creation fails, show a more helpful message but still try to upload
+            // (the bucket might exist but the user might not have permissions to list/create buckets)
+            toast.warning(`Storage bucket "${bucket}" may need to be created in your Supabase dashboard`);
+          } else {
+            console.log(`Created bucket ${bucket} successfully`);
+          }
+        } catch (bucketError) {
+          console.error('Error creating bucket:', bucketError);
+        }
+      }
+    }
+    
     // Upload to Supabase
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -43,18 +73,6 @@ export const uploadFile = async (
       });
     
     if (error) {
-      // If bucket doesn't exist, try to create it (for development/demo purposes)
-      if (error.message.includes('bucket') && error.message.includes('not found')) {
-        console.log(`Bucket ${bucket} not found, attempting to create...`);
-        try {
-          // In a real implementation, you'd have a proper bucket creation flow
-          // This is simplified for demo purposes
-          toast.warning(`Storage bucket "${bucket}" may need to be created in your Supabase dashboard`);
-        } catch (bucketError) {
-          console.error('Error creating bucket:', bucketError);
-        }
-      }
-      
       errorLog(`Error uploading file to ${bucket}:`, error);
       toast.error('Failed to upload file');
       return null;
