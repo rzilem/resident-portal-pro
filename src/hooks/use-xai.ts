@@ -21,6 +21,11 @@ export function useXAI() {
     fetchIntegrations
   } = useIntegrations();
 
+  // Force refresh integrations on mount to ensure we have the latest data
+  useEffect(() => {
+    fetchIntegrations();
+  }, [fetchIntegrations]);
+
   // Log additional details when integration changes
   useEffect(() => {
     const xaiIntegration = getIntegration('XAI');
@@ -69,7 +74,6 @@ export function useXAI() {
       await fetchIntegrations();
       
       console.log('X.AI settings saved successfully:', result);
-      toast.success('X.AI settings saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving X.AI settings:', error);
@@ -83,6 +87,12 @@ export function useXAI() {
   const testXAIConnection = useCallback(async (apiKey: string = xaiIntegration?.apiKey) => {
     setIsLoading(true);
     try {
+      if (!apiKey) {
+        console.error('No API key provided for X.AI test');
+        toast.error('API key is required to test connection');
+        return false;
+      }
+      
       console.log('Testing X.AI API with key:', apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
       const result = await testXAIAPI(apiKey);
       console.log('X.AI API test result:', result);
@@ -107,7 +117,7 @@ export function useXAI() {
     setIsLoading(true);
     try {
       const result = await generateWithXAI(prompt, xaiIntegration.apiKey, {
-        model: xaiIntegration.defaultModel || 'grok-1',
+        model: xaiIntegration.defaultModel || 'grok-2',
         ...options
       });
       return result;
@@ -124,7 +134,7 @@ export function useXAI() {
     isXAIConnected,
     settings: {
       apiKey: xaiIntegration?.apiKey || '',
-      defaultModel: xaiIntegration?.defaultModel || 'grok-1',
+      defaultModel: xaiIntegration?.defaultModel || 'grok-2',
       organization: xaiIntegration?.organization || ''
     },
     saveXAISettings,

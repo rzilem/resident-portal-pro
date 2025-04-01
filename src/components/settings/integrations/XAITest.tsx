@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Bot, MessageSquare } from "lucide-react";
@@ -8,9 +8,17 @@ import { useXAI } from '@/hooks/use-xai';
 import XAIDialog from './dialogs/XAIDialog';
 
 const XAITest = () => {
-  const { isXAIConnected, settings, testXAIConnection } = useXAI();
+  const { isXAIConnected, settings, testXAIConnection, isLoading } = useXAI();
   const [isTesting, setIsTesting] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  
+  useEffect(() => {
+    console.log("XAITest - Current Connection Status:", { 
+      isConnected: isXAIConnected,
+      apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
+      model: settings.defaultModel
+    });
+  }, [isXAIConnected, settings]);
   
   const handleTestConnection = async () => {
     if (!isXAIConnected) {
@@ -79,13 +87,13 @@ const XAITest = () => {
               <Button 
                 variant={isXAIConnected ? "default" : "outline"}
                 onClick={isXAIConnected ? handleTestConnection : handleConfigureClick} 
-                disabled={isTesting}
+                disabled={isTesting || isLoading}
                 className="w-full"
               >
-                {isTesting ? (
+                {isTesting || isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Testing connection...
+                    {isTesting ? "Testing connection..." : "Loading..."}
                   </>
                 ) : isXAIConnected ? (
                   <>
@@ -104,6 +112,7 @@ const XAITest = () => {
                 <Button 
                   variant="outline"
                   onClick={handleConfigureClick}
+                  disabled={isLoading}
                   className="w-full"
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />

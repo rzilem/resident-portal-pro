@@ -19,11 +19,20 @@ export const testXAIAPI = async (apiKey: string): Promise<boolean> => {
       }
     });
 
-    const responseText = await response.text();
-    console.log('X.AI API response:', response.status, responseText.substring(0, 100));
+    const responseData = await response.text();
+    console.log('X.AI API response status:', response.status);
+    console.log('X.AI API response:', responseData.substring(0, 100) + (responseData.length > 100 ? '...' : ''));
 
     if (!response.ok) {
       console.error('X.AI API test failed:', response.status, response.statusText);
+      return false;
+    }
+    
+    // Try to parse the response to verify it's valid JSON
+    try {
+      JSON.parse(responseData);
+    } catch (e) {
+      console.error('X.AI API returned invalid JSON:', e);
       return false;
     }
     
@@ -45,6 +54,10 @@ export const generateWithXAI = async (
     systemPrompt?: string;
   } = {}
 ) => {
+  if (!apiKey) {
+    throw new Error('X.AI API key is required');
+  }
+
   console.log('Generating with X.AI:', {
     prompt,
     model: options.model || 'grok-2',

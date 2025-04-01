@@ -4,13 +4,14 @@ import { useXAI } from '@/hooks/use-xai';
 import { toast } from 'sonner';
 
 export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => void) {
-  const { settings, saveXAISettings, testXAIConnection, isLoading, isAuthenticated } = useXAI();
+  const { settings, saveXAISettings, testXAIConnection, isLoading: xaiLoading } = useXAI();
   
   // Form state with debug logging
   const [apiKey, setApiKey] = useState('');
   const [defaultModel, setDefaultModel] = useState('grok-2');
   const [organization, setOrganization] = useState('');
   const [isTesting, setIsTesting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Safe setter functions that include logging
   const handleSetApiKey = useCallback((value: string) => {
@@ -28,13 +29,13 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     setOrganization(value);
   }, []);
 
-  // Update local state when dialog opens or settings change
+  // Load settings when dialog opens or settings change
   useEffect(() => {
     if (open) {
       console.log('XAI Dialog opened, initializing with settings:', {
         apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
         defaultModel: settings.defaultModel || 'grok-2',
-        organization: settings.organization
+        organization: settings.organization || ''
       });
       
       handleSetApiKey(settings.apiKey || '');
@@ -45,12 +46,14 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
 
   // Debug state changes
   useEffect(() => {
-    console.log('X.AI Dialog State:', {
-      openStatus: open,
-      localApiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
-      localDefaultModel: defaultModel,
-      localOrganization: organization
-    });
+    if (open) {
+      console.log('X.AI Dialog State:', {
+        openStatus: open,
+        localApiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
+        localDefaultModel: defaultModel,
+        localOrganization: organization
+      });
+    }
   }, [open, apiKey, defaultModel, organization]);
 
   const handleSave = async () => {
@@ -65,6 +68,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
       organization
     });
     
+    setIsLoading(true);
     try {
       const success = await saveXAISettings({
         apiKey: apiKey.trim(),
@@ -81,6 +85,8 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     } catch (error) {
       console.error('Error saving X.AI settings:', error);
       toast.error('An error occurred while saving settings');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,8 +119,7 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     defaultModel,
     organization,
     isTesting,
-    isLoading,
-    isAuthenticated,
+    isLoading: isLoading || xaiLoading,
     setApiKey: handleSetApiKey,
     setDefaultModel: handleSetDefaultModel,
     setOrganization: handleSetOrganization,

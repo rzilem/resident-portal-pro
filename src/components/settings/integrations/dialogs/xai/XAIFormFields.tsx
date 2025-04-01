@@ -45,16 +45,6 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
     }
   }, []);
   
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("API key change event triggered:", e.target.value);
-    setApiKey(e.target.value);
-  };
-
-  const handleOrganizationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Organization change event triggered:", e.target.value);
-    setOrganization(e.target.value);
-  };
-  
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
@@ -65,7 +55,10 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           type="text"
           placeholder="Enter your X.AI API key (e.g., xai_abc123)" 
           value={apiKey}
-          onChange={handleApiKeyChange}
+          onChange={(e) => {
+            console.log("API key input changed:", e.target.value);
+            setApiKey(e.target.value);
+          }}
           autoComplete="off"
           className="bg-background focus:ring-offset-background border-input"
           required
@@ -79,7 +72,10 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
         <Label htmlFor="model">Default Model</Label>
         <Select 
           value={defaultModel} 
-          onValueChange={setDefaultModel}
+          onValueChange={(value) => {
+            console.log("Selected model changed:", value);
+            setDefaultModel(value);
+          }}
           defaultValue="grok-2"
         >
           <SelectTrigger id="model" className="w-full bg-background">
@@ -103,7 +99,10 @@ const XAIFormFields: React.FC<XAIFormFieldsProps> = ({
           type="text"
           placeholder="Enter your organization ID" 
           value={organization}
-          onChange={handleOrganizationChange}
+          onChange={(e) => {
+            console.log("Organization input changed:", e.target.value);
+            setOrganization(e.target.value);
+          }}
           autoComplete="off"
           className="bg-background focus:ring-offset-background border-input"
         />
