@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Workflow, WorkflowStep, WorkflowExecutionLog, StepExecutionLog, ApprovalStep } from '@/types/workflow';
+import { Workflow, WorkflowStep, WorkflowExecutionLog, StepExecutionLog, ApprovalStep, ApprovalRecord } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
 import { toast } from "sonner";
 import { useAuth } from '@/hooks/use-auth';
@@ -72,15 +72,21 @@ export function useWorkflowExecution() {
         // If step is an approval and is pending, pause workflow execution
         if (step.type === 'approval' && stepResult.output?.status === 'pending') {
           // Add to pending approvals
-          setPendingApprovals(prev => [...prev, { ...step as ApprovalStep, workflowId: workflow.id, executionId }]);
+          const approvalStep = { 
+            ...step as ApprovalStep, 
+            workflowId: workflow.id, 
+            executionId 
+          };
+          
+          setPendingApprovals(prev => [...prev, approvalStep]);
           
           // Pause execution and wait for approval
           toast.info(`Workflow "${workflow.name}" is awaiting approval from ${(step as ApprovalStep).requiredApprovals} approver(s)`);
           
           // Mark execution as pending
-          const pendingExecution = {
+          const pendingExecution: WorkflowExecutionLog = {
             ...newExecution,
-            status: 'pending' as const,
+            status: 'pending',
             pausedAt: new Date().toISOString()
           };
           
@@ -245,9 +251,9 @@ export function useWorkflowExecution() {
       // In a real implementation, this would update the approval status in the database
       
       // Create a new approval record
-      const approvalRecord = {
+      const approvalRecord: ApprovalRecord = {
         approverId: user.id,
-        approverName: user.name || user.email,
+        approverName: user.firstName ? `${user.firstName} ${user.lastName || ''}` : user.email,
         approverRole: user.role,
         status: action === 'approve' ? 'approved' : 'rejected',
         timestamp: new Date().toISOString(),
@@ -256,7 +262,7 @@ export function useWorkflowExecution() {
       
       // Update the approval step with the new record
       const updatedApprovals = [...(approvalStep.approvals || []), approvalRecord];
-      const updatedStep = {
+      const updatedStep: ApprovalStep = {
         ...approvalStep,
         approvals: updatedApprovals
       };

@@ -1,3 +1,4 @@
+
 export interface Workflow {
   id: string;
   name: string;
@@ -47,6 +48,8 @@ export interface ApprovalStep extends BaseWorkflowStep {
     approvedSteps: WorkflowStep[];
     rejectedSteps: WorkflowStep[];
   };
+  workflowId?: string; // Adding workflowId field for pending approvals
+  executionId?: string; // Adding execution ID for reference
 }
 
 export interface ApprovalRecord {
@@ -87,7 +90,8 @@ export interface WorkflowExecutionLog {
   workflowId: string;
   started: string;
   completed?: string;
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'pending'; // Adding 'pending' state
+  pausedAt?: string; // For when workflow is paused waiting for approval
   stepLogs: StepExecutionLog[];
 }
 

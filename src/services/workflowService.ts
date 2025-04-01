@@ -1,4 +1,5 @@
-import { Workflow, WorkflowStep, WorkflowTemplate, ApprovalStep } from '@/types/workflow';
+
+import { Workflow, WorkflowStep, WorkflowTemplate, ApprovalStep, ApprovalRecord } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
 import { checkWorkflowProgressForAlert } from '@/utils/alerts/alertSolutions';
 import { toast } from 'sonner';
@@ -89,7 +90,7 @@ export const workflowService = {
             if (!hasApproved) {
               pendingApprovals.push({
                 ...approvalStep,
-                workflowId: workflow.id
+                workflowId: workflow.id // Add workflow ID to the approval step
               });
             }
           }
@@ -116,11 +117,11 @@ export const workflowService = {
     const approvalStep = workflow.steps[stepIndex] as ApprovalStep;
     
     // Create approval record
-    const approvalRecord = {
+    const approvalRecord: ApprovalRecord = {
       approverId: userId,
       approverName: userName,
       approverRole: userRole,
-      status: action === 'approve' ? 'approved' as const : 'rejected' as const,
+      status: action === 'approve' ? 'approved' : 'rejected',
       timestamp: new Date().toISOString(),
       comments
     };
@@ -233,7 +234,7 @@ export const workflowService = {
 
   // Get a specific template
   getTemplateById: (id: string) => {
-    const template = workflowTemplates.find(t => t.id === id);
+    const template = workflowTemplates.find(t => t.id === templateId);
     if (!template) {
       return Promise.reject(new Error(`Template with id ${id} not found`));
     }

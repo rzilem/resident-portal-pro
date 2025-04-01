@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ApprovalStep, APPROVAL_TYPES, APPROVAL_ROLES } from './types';
 import { CheckSquare, FileText, Home, AlertTriangle, DollarSign } from 'lucide-react';
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Slider } from "@/components/ui/slider";
 
 interface ApprovalStepContentProps {
@@ -39,6 +38,18 @@ const ApprovalStepContent = ({ step, updateStep, readOnly = false }: ApprovalSte
     }
     
     updateStep(step.id, { approverRoles: updatedRoles });
+  };
+
+  const handleDueDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (readOnly) return;
+    
+    const newDueDate = event.target.value;
+    updateStep(step.id, { 
+      config: {
+        ...step.config,
+        dueDate: newDueDate ? new Date(newDueDate).toISOString() : undefined
+      }
+    });
   };
 
   return (
@@ -93,6 +104,16 @@ const ApprovalStepContent = ({ step, updateStep, readOnly = false }: ApprovalSte
       </div>
       
       <div className="space-y-2">
+        <Label>Due Date (Optional)</Label>
+        <Input
+          type="date"
+          onChange={handleDueDateChange}
+          value={step.config.dueDate ? new Date(step.config.dueDate).toISOString().split('T')[0] : ''}
+          disabled={readOnly}
+        />
+      </div>
+      
+      <div className="space-y-2">
         <Label>Who can approve?</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
           {APPROVAL_ROLES.map((role) => (
@@ -110,8 +131,6 @@ const ApprovalStepContent = ({ step, updateStep, readOnly = false }: ApprovalSte
           ))}
         </div>
       </div>
-      
-      {/* Add more settings for due dates, reminders etc. as needed */}
     </div>
   );
 };
