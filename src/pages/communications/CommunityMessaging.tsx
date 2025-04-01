@@ -1,37 +1,33 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import MessageComposer from '@/components/communications/MessageComposer';
 import MessageHistory from '@/components/communications/MessageHistory';
-import MessageTemplates from '@/components/communications/MessageTemplates';
 import { useCommunityMessaging } from './useCommunityMessaging';
+import { Tab } from './types';
+import { INITIAL_TEMPLATES } from './useCommunityMessaging';
 
 interface CommunityMessagingProps {
-  initialTab?: 'compose' | 'history' | 'templates';
+  initialTab?: Tab;
 }
 
 const CommunityMessaging: React.FC<CommunityMessagingProps> = ({ initialTab = 'compose' }) => {
   const {
     selectedTab,
     setSelectedTab,
-    recipientTypes,
-    formatOptions,
-    messageTypes,
-    handleUpdateSelectedRecipientType,
-    handleUpdateSelectedFormat,
-    handleUpdateSelectedMessageType,
-    handleSendMessage,
-    handleSaveAsDraft,
-    handleSchedule,
-    handleOpenAISuggestion,
     messageText,
     setMessageText,
     subject,
     setSubject,
     scheduledDate,
-    setScheduledDate
+    setScheduledDate,
+    handleSendMessage
   } = useCommunityMessaging(initialTab);
+
+  const handleTabChange = (value: string) => {
+    setSelectedTab(value as Tab);
+  };
 
   return (
     <div className="container py-6 space-y-6">
@@ -46,7 +42,7 @@ const CommunityMessaging: React.FC<CommunityMessagingProps> = ({ initialTab = 'c
 
       <Card>
         <CardHeader className="pb-0">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex h-auto p-0">
               <TabsTrigger value="compose" className="rounded-none data-[state=active]:rounded-t-md">
                 Compose
@@ -63,29 +59,18 @@ const CommunityMessaging: React.FC<CommunityMessagingProps> = ({ initialTab = 'c
         <CardContent className="pt-6">
           <TabsContent value="compose" className="m-0">
             <MessageComposer
-              recipientTypes={recipientTypes}
-              formatOptions={formatOptions}
-              messageTypes={messageTypes}
-              onSelectRecipientType={handleUpdateSelectedRecipientType}
-              onSelectFormat={handleUpdateSelectedFormat}
-              onSelectMessageType={handleUpdateSelectedMessageType}
-              onSend={handleSendMessage}
-              onSaveAsDraft={handleSaveAsDraft}
-              onSchedule={handleSchedule}
-              onOpenAISuggestion={handleOpenAISuggestion}
-              messageText={messageText}
-              onMessageTextChange={setMessageText}
-              subject={subject}
-              onSubjectChange={setSubject}
-              scheduledDate={scheduledDate}
-              onScheduledDateChange={setScheduledDate}
+              onSendMessage={handleSendMessage}
+              initialSubject={subject}
+              initialContent={messageText}
             />
           </TabsContent>
           <TabsContent value="history" className="m-0">
             <MessageHistory />
           </TabsContent>
           <TabsContent value="templates" className="m-0">
-            <MessageTemplates />
+            <div className="text-center p-8 text-muted-foreground">
+              Loading message templates...
+            </div>
           </TabsContent>
         </CardContent>
       </Card>

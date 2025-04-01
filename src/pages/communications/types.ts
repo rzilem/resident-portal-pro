@@ -63,3 +63,9 @@ export interface CompositionMessage {
   content: string;
   recipients: string[];
 }
+
+// Define Tab as a union type
+export type Tab = 'compose' | 'history' | 'templates';
+export type RecipientType = string;
+export type FormatOption = string;
+export type MessageType = string;

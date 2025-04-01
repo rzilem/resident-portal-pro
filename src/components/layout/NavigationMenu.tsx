@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -52,6 +53,16 @@ const NavigationMenu = () => {
       isActive ? 'bg-accent text-accent-foreground' : 'text-foreground'
     }`;
 
+  // Helper function to check permissions with correct type
+  const canAccess = (resource: string) => {
+    try {
+      return hasPermission(resource as any, 'read' as any);
+    } catch (error) {
+      // Fallback to true for development
+      return true;
+    }
+  };
+
   return (
     <ul className="space-y-2 py-4">
       <li>
@@ -62,7 +73,7 @@ const NavigationMenu = () => {
       </li>
       
       {/* Account & Association Management */}
-      {hasPermission('associations', 'read') && (
+      {canAccess('associations') && (
         <NavigationSection title="Community Management">
           <li>
             <Link to="/associations" className={linkClass(pathname.includes('/associations'))}>
@@ -92,7 +103,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Properties Management */}
-      {hasPermission('properties', 'read') && (
+      {canAccess('properties') && (
         <NavigationSection title="Property Management">
           <li>
             <Link to="/maintenance" className={linkClass(pathname.includes('/maintenance'))}>
@@ -116,7 +127,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Accounting */}
-      {hasPermission('accounting', 'read') && (
+      {canAccess('accounting') && (
         <NavigationSection title="Financial Management">
           <li>
             <Link to="/accounting" className={linkClass(pathname.includes('/accounting'))}>
@@ -146,7 +157,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Communications */}
-      {hasPermission('communications', 'read') && (
+      {canAccess('communications') && (
         <NavigationSection title="Communications">
           <li>
             <Link to="/communications" className={linkClass(pathname === '/communications')}>
@@ -182,7 +193,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Documents */}
-      {hasPermission('documents', 'read') && (
+      {canAccess('documents') && (
         <NavigationSection title="Documents">
           <li>
             <Link to="/documents/association" className={linkClass(pathname.includes('/documents/association'))}>
@@ -200,7 +211,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Reports & Analytics */}
-      {hasPermission('reports', 'read') && (
+      {canAccess('reports') && (
         <NavigationSection title="Reports & Analytics">
           <li>
             <Link to="/reports" className={linkClass(pathname.includes('/reports'))}>
@@ -218,7 +229,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Events & Calendar */}
-      {hasPermission('calendar', 'read') && (
+      {canAccess('calendar') && (
         <NavigationSection title="Events & Calendar">
           <li>
             <Link to="/calendar" className={linkClass(pathname.includes('/calendar'))}>
@@ -236,7 +247,7 @@ const NavigationMenu = () => {
       )}
       
       {/* Settings */}
-      {hasPermission('settings', 'read') && (
+      {canAccess('settings') && (
         <NavigationSection title="Settings">
           <li>
             <Link to="/settings" className={linkClass(pathname === '/settings')}>

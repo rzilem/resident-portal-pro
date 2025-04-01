@@ -2,8 +2,18 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Building, Users, Phone, Mail, MapPin, Calendar } from 'lucide-react';
-import { Association } from '@/types/supabase';
-import { formatDate, getDaySuffix } from '@/utils/formatters';
+import { formatDate } from '@/utils/formatters';
+
+interface Association {
+  id: string;
+  name: string;
+  type?: string;
+  units?: number;
+  founded_date?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  address?: string;
+}
 
 interface AssociationQuickReferenceProps {
   association: Association;
@@ -16,7 +26,7 @@ const AssociationQuickReference: React.FC<AssociationQuickReferenceProps> = ({
 }) => {
   // Format the founded_date if it exists
   const formattedEstablishedDate = association.founded_date 
-    ? formatDate(association.founded_date, 'medium')
+    ? formatDate(association.founded_date)
     : 'Not specified';
 
   // Calculate the number of years since establishment

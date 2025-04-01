@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { v4 as uuidv4 } from 'uuid';
-import { MessageTemplate } from '@/pages/communications/types';
+import { MessageTemplate } from './types';
 
 const templateSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -90,6 +90,9 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({
       category: values.category,
       createdAt: template?.createdAt || now,
       updatedAt: now,
+      type: 'email',
+      format: 'html',
+      lastUpdated: now
     };
 
     await onSave(savedTemplate);
