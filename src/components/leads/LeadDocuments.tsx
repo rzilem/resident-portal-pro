@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { LeadDocument } from './types';
-import { Button } from '@/components/ui/button';
-import { FileText, Download, Eye, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { FileText, Download, Eye, X, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -23,37 +22,104 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
     return <div className="text-sm text-muted-foreground">No documents attached</div>;
   }
 
-  const handleDownload = (doc: LeadDocument) => {
+  const handleDownload = async (doc: LeadDocument) => {
     try {
-      const link = document.createElement('a');
-      link.href = doc.url;
-      link.download = doc.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.log('Downloading document:', doc);
+      
+      // If it's a full URL, use it directly
+      if (doc.url && (doc.url.startsWith('http://') || doc.url.startsWith('https://'))) {
+        const link = document.createElement('a');
+        link.href = doc.url;
+        link.download = doc.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+      
+      // Otherwise, get from Supabase storage
+      if (doc.path) {
+        console.log('Downloading from path:', doc.path);
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .download(doc.path);
+          
+        if (error) {
+          console.error('Error downloading document:', error);
+          throw error;
+        }
+        
+        if (data) {
+          const url = URL.createObjectURL(data);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = doc.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }
     } catch (error) {
       console.error("Error downloading document:", error);
       toast.error("Failed to download document");
     }
   };
 
-  const handlePreview = (doc: LeadDocument) => {
-    window.open(doc.url, '_blank');
+  const handlePreview = async (doc: LeadDocument) => {
+    try {
+      console.log('Previewing document:', doc);
+      
+      // If it's a full URL, use it directly
+      if (doc.url && (doc.url.startsWith('http://') || doc.url.startsWith('https://'))) {
+        window.open(doc.url, '_blank');
+        return;
+      }
+      
+      // Otherwise, get a signed URL from Supabase storage
+      if (doc.path) {
+        console.log('Getting signed URL for path:', doc.path);
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .createSignedUrl(doc.path, 60); // 60 seconds expiry
+          
+        if (error) {
+          console.error('Error creating signed URL:', error);
+          throw error;
+        }
+        
+        if (data && data.signedUrl) {
+          window.open(data.signedUrl, '_blank');
+        }
+      }
+    } catch (error) {
+      console.error("Error previewing document:", error);
+      toast.error("Failed to preview document");
+    }
   };
 
   const handleDelete = async (doc: LeadDocument, index: number) => {
     if (!onDocumentsChange) return;
     
     try {
-      const { error } = await supabase.storage
-        .from('documents')
-        .remove([doc.path]);
+      console.log('Deleting document:', doc, 'at index:', index);
+      
+      if (doc.path) {
+        console.log('Deleting from storage path:', doc.path);
+        const { error } = await supabase.storage
+          .from('documents')
+          .remove([doc.path]);
 
-      if (error) throw error;
+        if (error) {
+          console.warn('Error removing from storage:', error);
+          // Continue with deletion from the lead record even if storage delete fails
+        }
+      }
 
       const updatedDocuments = [...documents];
       updatedDocuments.splice(index, 1);
       
+      console.log('Updating lead record with remaining documents:', updatedDocuments);
       const { error: updateError } = await supabase
         .from('leads')
         .update({
@@ -62,7 +128,10 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
         })
         .eq('id', leadId);
         
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating lead record:', updateError);
+        throw updateError;
+      }
       
       onDocumentsChange(updatedDocuments);
       toast.success("Document deleted successfully");
@@ -80,7 +149,7 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
             <FileText className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">{doc.name}</span>
             <span className="text-xs text-muted-foreground">
-              ({Math.round(doc.size / 1024)} KB)
+              ({doc.size ? Math.round(doc.size / 1024) : 'Unknown'} KB)
             </span>
           </div>
           <div className="flex items-center gap-1">

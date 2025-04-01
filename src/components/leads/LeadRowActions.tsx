@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,8 @@ import {
   Clock, 
   Trash2, 
   RefreshCw,
-  Paperclip 
+  Paperclip,
+  AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { LeadData } from './types';
@@ -31,9 +33,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import LeadDocuments from './LeadDocuments';
 import LeadFormDialog from './LeadFormDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface LeadRowActionsProps {
   lead: LeadData;
@@ -43,6 +47,8 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
   const queryClient = useQueryClient();
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [documents, setDocuments] = useState(lead.uploaded_files || []);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const updateLeadStatus = async (status: string) => {
     try {
@@ -91,33 +97,52 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
     }
   };
 
-  const deleteLead = async () => {
-    // Confirm deletion
-    if (!window.confirm(`Are you sure you want to delete ${lead.name}?`)) {
-      return;
-    }
+  const handleDeleteConfirm = () => {
+    setDeleteConfirmOpen(true);
+  };
 
+  const deleteLead = async () => {
     try {
+      setIsDeleting(true);
+      console.log('Deleting lead:', lead.id);
+      
       // If there are documents, delete them first
       if (lead.uploaded_files && lead.uploaded_files.length > 0) {
-        const paths = lead.uploaded_files.map(doc => doc.path);
-        await supabase.storage
-          .from('documents')
-          .remove(paths);
+        console.log('Deleting associated documents first');
+        for (const doc of lead.uploaded_files) {
+          if (doc.path) {
+            console.log('Deleting document:', doc.path);
+            const { error: storageError } = await supabase.storage
+              .from('documents')
+              .remove([doc.path]);
+              
+            if (storageError) {
+              console.warn('Error removing document from storage:', storageError);
+              // Continue with deletion even if some documents fail to delete
+            }
+          }
+        }
       }
-
+      
+      // Delete the lead record
       const { error } = await supabase
         .from('leads')
         .delete()
         .eq('id', lead.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Database error deleting lead:', error);
+        throw error;
+      }
       
-      toast.success(`Lead ${lead.name} deleted`);
+      toast.success(`Lead "${lead.name}" deleted successfully`);
       queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setDeleteConfirmOpen(false);
     } catch (err) {
       console.error('Error deleting lead:', err);
-      toast.error('Failed to delete lead');
+      toast.error('Failed to delete lead. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -174,7 +199,7 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
             <X className="h-4 w-4 mr-2" />
             Mark as Lost
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={deleteLead} className="text-destructive">
+          <DropdownMenuItem onClick={handleDeleteConfirm} className="text-destructive">
             <Trash2 className="h-4 w-4 mr-2" />
             Delete Lead
           </DropdownMenuItem>
@@ -199,6 +224,36 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this lead?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="flex items-start gap-2 text-amber-600 mb-3">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <span>
+                  This will permanently delete the lead "{lead.name}" and all associated documents. 
+                  This action cannot be undone.
+                </span>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                deleteLead();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Lead'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
