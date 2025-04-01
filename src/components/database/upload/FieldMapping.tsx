@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { 
   ColumnMapping, 
-  ValidationResult, 
+  ValidationResult,
   validateMappings 
 } from '@/utils/spreadsheets/mapping';
 import MappingHeader from './mapping/MappingHeader';
