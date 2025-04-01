@@ -34,6 +34,26 @@ export const useEmailWorkflows = () => {
     },
     {
       id: '3',
+      name: 'Invoice Processing',
+      inboundEmail: 'invoices@example.com',
+      workflowType: 'Invoice',
+      forwardTo: 'ap@example.com',
+      isActive: true,
+      createdAt: '2023-08-10T08:00:00Z',
+      description: 'Process incoming invoices with OCR',
+      enableOcr: true,
+      ocrSettings: {
+        extractVendor: true,
+        extractDate: true,
+        extractAmount: true,
+        extractInvoiceNumber: true,
+        extractLineItems: false,
+        suggestGlAccount: true,
+        confidence: 'medium'
+      }
+    },
+    {
+      id: '4',
       name: 'Violation Reports',
       inboundEmail: 'violations@example.com',
       workflowType: 'Compliance',

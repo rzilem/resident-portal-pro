@@ -2,10 +2,12 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { MoreHorizontal, Pencil, Trash2, FileText, Scan } from "lucide-react";
 import { EmailWorkflowRule } from '@/services/emailWorkflowService';
-import { Edit, Trash, Mail, ExternalLink } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface EmailWorkflowTableProps {
   workflowRules: EmailWorkflowRule[];
@@ -14,100 +16,114 @@ interface EmailWorkflowTableProps {
   onToggleStatus: (id: string) => void;
 }
 
-const EmailWorkflowTable = ({
+const EmailWorkflowTable: React.FC<EmailWorkflowTableProps> = ({
   workflowRules,
   onEdit,
   onDelete,
   onToggleStatus
-}: EmailWorkflowTableProps) => {
+}) => {
+  if (workflowRules.length === 0) {
+    return (
+      <div className="p-8 text-center border rounded-md bg-muted/20">
+        <FileText className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+        <h3 className="text-lg font-medium mb-1">No workflow rules yet</h3>
+        <p className="text-muted-foreground mb-4">
+          Create your first email workflow rule to start processing incoming emails.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email Address</TableHead>
-            <TableHead>Workflow Type</TableHead>
-            <TableHead>Forward To</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[180px]">Name</TableHead>
+          <TableHead>Email Address</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Forwards To</TableHead>
+          <TableHead className="w-[100px]">Status</TableHead>
+          <TableHead className="w-[100px]">OCR</TableHead>
+          <TableHead className="w-[80px] text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {workflowRules.map((rule) => (
+          <TableRow key={rule.id}>
+            <TableCell className="font-medium">{rule.name}</TableCell>
+            <TableCell>{rule.inboundEmail}</TableCell>
+            <TableCell>
+              <Badge variant={rule.workflowType === 'Invoice' ? 'destructive' : 'secondary'}>
+                {rule.workflowType}
+              </Badge>
+            </TableCell>
+            <TableCell>{rule.forwardTo}</TableCell>
+            <TableCell>
+              <Switch 
+                checked={rule.isActive} 
+                onCheckedChange={() => onToggleStatus(rule.id)}
+                aria-label={rule.isActive ? 'Active' : 'Inactive'}
+              />
+            </TableCell>
+            <TableCell>
+              {rule.enableOcr ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+                        <Scan className="h-3 w-3" />
+                        <span>Enabled</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-xs space-y-1 max-w-[200px]">
+                        <p className="font-medium">OCR Settings:</p>
+                        <ul className="list-disc pl-4 space-y-1">
+                          {rule.ocrSettings?.extractVendor && <li>Extract vendor information</li>}
+                          {rule.ocrSettings?.extractDate && <li>Extract invoice date</li>}
+                          {rule.ocrSettings?.extractAmount && <li>Extract amount</li>}
+                          {rule.ocrSettings?.extractInvoiceNumber && <li>Extract invoice number</li>}
+                          {rule.ocrSettings?.extractLineItems && <li>Extract line items</li>}
+                          {rule.ocrSettings?.suggestGlAccount && <li>Suggest GL account</li>}
+                        </ul>
+                        <p>Confidence: {rule.ocrSettings?.confidence || 'medium'}</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <Badge variant="outline" className="bg-gray-50 text-gray-500 border-gray-200">
+                  Disabled
+                </Badge>
+              )}
+            </TableCell>
+            <TableCell className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(rule)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => onDelete(rule.id)}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {workflowRules.length > 0 ? (
-            workflowRules.map((rule) => (
-              <TableRow key={rule.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-blue-500" />
-                    {rule.name || rule.inboundEmail}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <code className="rounded bg-muted px-1 py-0.5 text-sm">
-                      {rule.inboundEmail}
-                    </code>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="font-normal">
-                    {rule.workflowType}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm">{rule.forwardTo}</span>
-                    <ExternalLink className="h-3 w-3 text-gray-400" />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={rule.isActive}
-                      onCheckedChange={() => onToggleStatus(rule.id)}
-                    />
-                    <span className={rule.isActive ? "text-green-600" : "text-gray-500"}>
-                      {rule.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(rule)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (window.confirm(`Are you sure you want to delete "${rule.name || rule.inboundEmail}"?`)) {
-                          onDelete(rule.id);
-                        }
-                      }}
-                    >
-                      <Trash className="h-4 w-4 text-red-500" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
-                No workflow rules found. Create your first rule to get started.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 

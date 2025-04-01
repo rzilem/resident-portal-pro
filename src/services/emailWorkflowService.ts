@@ -12,6 +12,18 @@ export interface EmailWorkflowRule {
   description?: string;
   association?: string;
   forwardingEmail?: string;
+  enableOcr?: boolean;
+  ocrSettings?: OcrSettings;
+}
+
+export interface OcrSettings {
+  extractVendor: boolean;
+  extractDate: boolean;
+  extractAmount: boolean;
+  extractInvoiceNumber: boolean;
+  extractLineItems: boolean;
+  suggestGlAccount: boolean;
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export interface CreateEmailWorkflowParams {
@@ -23,6 +35,8 @@ export interface CreateEmailWorkflowParams {
   description?: string;
   association?: string;
   forwardingEmail?: string;
+  enableOcr?: boolean;
+  ocrSettings?: OcrSettings;
 }
 
 export interface UpdateEmailWorkflowParams {
@@ -34,12 +48,15 @@ export interface UpdateEmailWorkflowParams {
   description?: string;
   association?: string;
   forwardingEmail?: string;
+  enableOcr?: boolean;
+  ocrSettings?: Partial<OcrSettings>;
 }
 
 // Available workflow types
 export const workflowTypes = [
   { value: 'Maintenance Request', label: 'Maintenance Request' },
   { value: 'Accounting', label: 'Accounting' },
+  { value: 'Invoice', label: 'Invoice Processing' },
   { value: 'Compliance', label: 'Compliance' },
   { value: 'ARC', label: 'Architectural Review' },
   { value: 'General', label: 'General Inquiry' },
