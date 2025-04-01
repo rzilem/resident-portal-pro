@@ -39,7 +39,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           <Button
             variant="default"
             className={cn(
-              "flex-1 justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[210px]", // Reduced max-width
+              "flex-1 justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[225px]", // Updated max-width to 225px
               item.active ? "font-medium" : "font-normal"
             )}
             onClick={(e) => item.href && handleNavigate(item.href, e)}
@@ -77,7 +77,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
                   <SidebarMenuButton
                     variant="default"
                     className={cn(
-                      "w-full justify-start text-xs px-2 py-1 h-7 max-w-[200px]", // Added max-width
+                      "w-full justify-start text-xs px-2 py-1 h-7 max-w-[225px]", // Updated max-width to 225px for sub-items
                       subItem.active ? "bg-accent" : "hover:bg-accent/50"
                     )}
                     onClick={() => handleChildClick(subItem.href)}

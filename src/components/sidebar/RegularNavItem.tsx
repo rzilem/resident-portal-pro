@@ -16,7 +16,7 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
     <Button
       variant={item.active ? "default" : "ghost"}
       className={cn(
-        "w-full justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[210px]", // Added max-width to match
+        "w-full justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[225px]", // Updated max-width to 225px
         item.active ? "font-medium" : "font-normal"
       )}
       onClick={() => navigate(item.href)}
