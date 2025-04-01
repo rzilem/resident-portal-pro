@@ -15,7 +15,8 @@ import {
   FileText, 
   Phone, 
   Check, 
-  X, A
+  X, 
+  A,
   Edit, 
   Clock, 
   Trash2, 
