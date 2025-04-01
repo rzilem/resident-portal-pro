@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -39,7 +38,7 @@ import {
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Announcement } from '@/pages/communications/Announcements';
+import { Announcement } from '@/pages/communications/types';
 
 const announcementSchema = z.object({
   title: z.string().min(1, 'Title is required'),

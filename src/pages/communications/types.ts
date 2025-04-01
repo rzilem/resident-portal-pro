@@ -98,3 +98,8 @@ export interface CompositionMessage {
   scheduledFor?: Date | null;
   status: string;
 }
+
+export interface Tab {
+  id: string;
+  label: string;
+}

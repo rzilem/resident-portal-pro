@@ -1,79 +1,98 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import MessageComposer from '@/components/communications/MessageComposer';
+import CommunityTabsContent from './CommunityTabsContent';
+import { MessageComposer } from '@/components/communications/MessageComposer';
 import MessageHistory from '@/components/communications/MessageHistory';
-import { useCommunityMessaging } from './useCommunityMessaging';
+import MessageTemplates from '@/components/communications/MessageTemplates';
+import useCommunityMessaging from './useCommunityMessaging';
 import { Tab } from './types';
-import { INITIAL_TEMPLATES } from './useCommunityMessaging';
 
-interface CommunityMessagingProps {
-  initialTab?: Tab;
-}
-
-const CommunityMessaging: React.FC<CommunityMessagingProps> = ({ initialTab = 'compose' }) => {
+const CommunityMessaging: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<Tab>({ id: 'compose', label: 'Compose Message' });
   const {
-    selectedTab,
-    setSelectedTab,
-    messageText,
-    setMessageText,
+    recipientTypes,
+    formatOptions,
+    messageTypes,
+    selectedRecipientType,
+    selectedFormat,
+    selectedMessageType,
     subject,
-    setSubject,
+    content,
+    selectedRecipients,
     scheduledDate,
+    setSelectedRecipientType,
+    setSelectedFormat,
+    setSelectedMessageType,
+    setSubject,
+    setContent,
+    setSelectedRecipients,
     setScheduledDate,
-    handleSendMessage
-  } = useCommunityMessaging(initialTab);
+    handleSendMessage,
+    handleScheduleMessage,
+    templates,
+  } = useCommunityMessaging();
 
   const handleTabChange = (value: string) => {
-    setSelectedTab(value as Tab);
+    const tab = value === 'compose' 
+      ? { id: 'compose', label: 'Compose Message' }
+      : value === 'history'
+      ? { id: 'history', label: 'Message History' }
+      : { id: 'templates', label: 'Message Templates' };
+    
+    setActiveTab(tab);
   };
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Community Messaging</h1>
-          <p className="text-muted-foreground">
-            Create and send communications to your community members
-          </p>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-0">
-          <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex h-auto p-0">
-              <TabsTrigger value="compose" className="rounded-none data-[state=active]:rounded-t-md">
-                Compose
-              </TabsTrigger>
-              <TabsTrigger value="history" className="rounded-none data-[state=active]:rounded-t-md">
-                Message History
-              </TabsTrigger>
-              <TabsTrigger value="templates" className="rounded-none data-[state=active]:rounded-t-md">
-                Templates
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <TabsContent value="compose" className="m-0">
+    <div className="container mx-auto py-6">
+      <h1 className="text-3xl font-bold mb-6">Community Messaging</h1>
+      
+      <Tabs defaultValue="compose" className="w-full" onValueChange={handleTabChange}>
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="compose">Compose Message</TabsTrigger>
+          <TabsTrigger value="history">Message History</TabsTrigger>
+          <TabsTrigger value="templates">Message Templates</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="compose">
+          <CommunityTabsContent activeTab={activeTab}>
             <MessageComposer
+              subject={subject}
+              content={content}
+              selectedRecipients={selectedRecipients}
+              selectedRecipientType={selectedRecipientType}
+              selectedFormat={selectedFormat}
+              selectedMessageType={selectedMessageType}
+              scheduledDate={scheduledDate}
+              onSubjectChange={setSubject}
+              onContentChange={setContent}
+              onSelectRecipients={setSelectedRecipients}
+              onSelectRecipientType={setSelectedRecipientType}
+              onSelectFormat={setSelectedFormat}
+              onSelectMessageType={setSelectedMessageType}
+              onScheduledDateChange={setScheduledDate}
               onSendMessage={handleSendMessage}
-              initialSubject={subject}
-              initialContent={messageText}
+              onScheduleMessage={handleScheduleMessage}
+              recipientTypes={recipientTypes}
+              formatOptions={formatOptions}
+              messageTypes={messageTypes}
+              availableTemplates={templates}
             />
-          </TabsContent>
-          <TabsContent value="history" className="m-0">
+          </CommunityTabsContent>
+        </TabsContent>
+        
+        <TabsContent value="history">
+          <CommunityTabsContent activeTab={activeTab}>
             <MessageHistory />
-          </TabsContent>
-          <TabsContent value="templates" className="m-0">
-            <div className="text-center p-8 text-muted-foreground">
-              Loading message templates...
-            </div>
-          </TabsContent>
-        </CardContent>
-      </Card>
+          </CommunityTabsContent>
+        </TabsContent>
+        
+        <TabsContent value="templates">
+          <CommunityTabsContent activeTab={activeTab}>
+            <MessageTemplates />
+          </CommunityTabsContent>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

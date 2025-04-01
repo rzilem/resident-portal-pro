@@ -3,6 +3,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MessageTemplate, CompositionMessage } from '@/pages/communications/types';
 
+// Define the Communication type for internal API communication
+export interface Communication {
+  id: string;
+  subject: string;
+  content: string;
+  message_type: string;
+  format: string;
+  recipients: {
+    recipient_email: string;
+  }[];
+  scheduled_for?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Function to get all message templates
 export const getMessageTemplates = async (): Promise<MessageTemplate[]> => {
   try {
@@ -214,6 +230,32 @@ export const scheduleMessage = async (message: CompositionMessage): Promise<bool
   }
 };
 
+// Additional functions needed by the application
+
+// Get scheduled communications
+export const getScheduledCommunications = async (): Promise<Communication[]> => {
+  // This would typically fetch from the database
+  return [];
+};
+
+// Mark a communication as sent
+export const markAsSent = async (id: string): Promise<boolean> => {
+  // This would typically update the status in the database
+  return true;
+};
+
+// Cancel a scheduled communication
+export const cancelScheduledCommunication = async (id: string): Promise<boolean> => {
+  // This would typically delete or update the status in the database
+  return true;
+};
+
+// Get all communications (sent and scheduled)
+export const getCommunications = async (): Promise<Communication[]> => {
+  // This would typically fetch from the database
+  return [];
+};
+
 // Mock function to get sample templates for demo purposes
 export const getSampleTemplates = (): MessageTemplate[] => {
   return [
@@ -271,5 +313,9 @@ export const communicationService = {
   deleteMessageTemplate,
   sendMessage,
   scheduleMessage,
-  getSampleTemplates
+  getSampleTemplates,
+  getScheduledCommunications,
+  markAsSent,
+  cancelScheduledCommunication,
+  getCommunications
 };

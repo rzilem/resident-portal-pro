@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { TooltipButton } from '@/components/ui/tooltip-button';
-import { Announcement } from '@/pages/communications/Announcements';
+import { Announcement } from '@/pages/communications/types';
 
 interface AnnouncementCardProps {
   announcement: Announcement;

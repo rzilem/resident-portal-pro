@@ -2,116 +2,129 @@
 import { useState } from 'react';
 import { MessageTemplate } from './types';
 
-type Tab = 'compose' | 'history' | 'templates';
-type RecipientType = string;
-type FormatOption = string;
-type MessageType = string;
-
-// Sample data for templates
-export const INITIAL_TEMPLATES: MessageTemplate[] = [
-  {
-    id: '1',
-    name: 'Welcome Email',
-    description: 'Welcome message for new residents',
-    subject: 'Welcome to Our Community!',
-    content: 'Dear {{resident.name}},\n\nWelcome to {{association.name}}! We are delighted to have you as part of our community.',
-    type: 'email',
-    format: 'plain',
-    lastUpdated: new Date().toISOString(),
-    isDefault: true,
-    tags: ['welcome', 'residents']
-  },
-  {
-    id: '2',
-    name: 'Payment Reminder',
-    description: 'Reminder for upcoming payments',
-    subject: 'Payment Reminder',
-    content: 'Dear {{resident.name}},\n\nThis is a friendly reminder that your payment is due on the 1st of next month.',
-    type: 'email',
-    format: 'plain',
-    lastUpdated: new Date().toISOString(),
-    tags: ['payment', 'reminder']
-  }
-];
-
-// Define the hook
-export const useCommunityMessaging = (initialTab: Tab = 'compose') => {
-  const [selectedTab, setSelectedTab] = useState<Tab>(initialTab);
-  const [messageText, setMessageText] = useState('');
+const useCommunityMessaging = () => {
   const [subject, setSubject] = useState('');
-  const [scheduledDate, setScheduledDate] = useState('');
+  const [content, setContent] = useState('');
+  const [selectedRecipientType, setSelectedRecipientType] = useState('all');
+  const [selectedFormat, setSelectedFormat] = useState('html');
+  const [selectedMessageType, setSelectedMessageType] = useState('email');
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
 
-  // Sample data for recipient types
+  // Sample templates
+  const templates: MessageTemplate[] = [
+    {
+      id: '1',
+      name: 'Welcome Email',
+      description: 'Default welcome email for new residents',
+      subject: 'Welcome to Our Community!',
+      content: '<p>Dear [Resident Name],</p><p>Welcome to our community! We\'re delighted to have you join us.</p>',
+      category: 'Welcome',
+      type: 'email',
+      format: 'html',
+      lastUpdated: '2023-01-15T10:30:00Z',
+      createdAt: '2023-01-01T09:00:00Z',
+      updatedAt: '2023-01-15T10:30:00Z',
+      isDefault: true,
+      tags: ['welcome', 'new-resident']
+    },
+    {
+      id: '2',
+      name: 'Maintenance Notification',
+      description: 'Notification about scheduled maintenance',
+      subject: 'Upcoming Maintenance Work',
+      content: '<p>Dear [Resident Name],</p><p>We will be performing scheduled maintenance in your area on [Date].</p>',
+      category: 'Maintenance',
+      type: 'email',
+      format: 'html',
+      lastUpdated: '2023-02-10T15:20:00Z',
+      createdAt: '2023-02-01T11:45:00Z',
+      updatedAt: '2023-02-10T15:20:00Z',
+      tags: ['maintenance']
+    }
+  ];
+
+  // Sample recipient types
   const recipientTypes = [
     { id: 'all', label: 'All Residents' },
-    { id: 'homeowners', label: 'Homeowners' },
+    { id: 'owners', label: 'Property Owners' },
     { id: 'tenants', label: 'Tenants' },
-    { id: 'board', label: 'Board Members' }
+    { id: 'board', label: 'Board Members' },
+    { id: 'custom', label: 'Custom List' }
   ];
 
-  // Sample data for format options
+  // Sample format options
   const formatOptions = [
-    { id: 'plain', label: 'Plain Text' },
-    { id: 'html', label: 'HTML' }
+    { id: 'html', label: 'HTML' },
+    { id: 'plain', label: 'Plain Text' }
   ];
 
-  // Sample data for message types
+  // Sample message types
   const messageTypes = [
     { id: 'email', label: 'Email' },
-    { id: 'sms', label: 'SMS' }
+    { id: 'sms', label: 'SMS' },
+    { id: 'portal', label: 'Portal Notification' }
   ];
 
-  // Handler functions
-  const handleUpdateSelectedRecipientType = (type: RecipientType) => {
-    console.log('Selected recipient type:', type);
+  const handleSendMessage = async () => {
+    console.log('Sending message:', {
+      subject,
+      content,
+      recipients: selectedRecipients.length ? selectedRecipients : `All ${selectedRecipientType}`,
+      format: selectedFormat,
+      type: selectedMessageType
+    });
+    
+    // Reset form after sending
+    setTimeout(() => {
+      setSubject('');
+      setContent('');
+      setSelectedRecipients([]);
+    }, 1000);
   };
 
-  const handleUpdateSelectedFormat = (format: FormatOption) => {
-    console.log('Selected format:', format);
-  };
-
-  const handleUpdateSelectedMessageType = (type: MessageType) => {
-    console.log('Selected message type:', type);
-  };
-
-  const handleSendMessage = () => {
-    console.log('Sending message:', { subject, messageText });
-    // Implementation would go here
-  };
-
-  const handleSaveAsDraft = () => {
-    console.log('Saving as draft:', { subject, messageText });
-    // Implementation would go here
-  };
-
-  const handleSchedule = () => {
-    console.log('Scheduling message for:', scheduledDate);
-    // Implementation would go here
-  };
-
-  const handleOpenAISuggestion = () => {
-    console.log('Opening AI suggestion dialog');
-    // Implementation would go here
+  const handleScheduleMessage = async () => {
+    if (!scheduledDate) return;
+    
+    console.log('Scheduling message for:', scheduledDate, {
+      subject,
+      content,
+      recipients: selectedRecipients.length ? selectedRecipients : `All ${selectedRecipientType}`,
+      format: selectedFormat,
+      type: selectedMessageType
+    });
+    
+    // Reset form after scheduling
+    setTimeout(() => {
+      setSubject('');
+      setContent('');
+      setSelectedRecipients([]);
+      setScheduledDate(null);
+    }, 1000);
   };
 
   return {
-    selectedTab,
-    setSelectedTab,
+    subject,
+    content,
+    selectedRecipientType,
+    selectedFormat,
+    selectedMessageType,
+    selectedRecipients,
+    scheduledDate,
+    setSubject,
+    setContent,
+    setSelectedRecipientType,
+    setSelectedFormat,
+    setSelectedMessageType,
+    setSelectedRecipients,
+    setScheduledDate,
+    handleSendMessage,
+    handleScheduleMessage,
     recipientTypes,
     formatOptions,
     messageTypes,
-    handleUpdateSelectedRecipientType,
-    handleUpdateSelectedFormat,
-    handleUpdateSelectedMessageType,
-    handleSendMessage,
-    handleSaveAsDraft,
-    handleSchedule,
-    handleOpenAISuggestion,
-    messageText,
-    setMessageText,
-    subject,
-    setSubject,
-    scheduledDate,
-    setScheduledDate
+    templates
   };
 };
+
+export default useCommunityMessaging;

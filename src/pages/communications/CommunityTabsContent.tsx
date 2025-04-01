@@ -1,67 +1,55 @@
 
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import MessageComposer from '@/components/communications/MessageComposer';
-import MessageHistory from '@/components/communications/history/MessageHistory';
-import TemplateManager from '@/components/communications/templates/TemplateManager';
-import { MessageTemplate, CompositionMessage } from './types';
+import React, { useState } from 'react';
+import { CompositionMessage, Tab } from './types';
+import { Card } from '@/components/ui/card';
 
 interface CommunityTabsContentProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  templates: MessageTemplate[];
-  selectedTemplate: MessageTemplate | null;
-  composeKey: string;
-  onSendMessage: (message: CompositionMessage) => void;
-  onSelectTemplate: (template: MessageTemplate) => void;
-  onCreateTemplate: (template: MessageTemplate) => Promise<void>;
-  onUpdateTemplate: (template: MessageTemplate) => Promise<void>;
-  onDeleteTemplate: (templateId: string) => Promise<void>;
+  activeTab: Tab;
+  children: React.ReactNode;
 }
 
-const CommunityTabsContent: React.FC<CommunityTabsContentProps> = ({
-  activeTab,
-  setActiveTab,
-  templates,
-  selectedTemplate,
-  composeKey,
-  onSendMessage,
-  onSelectTemplate,
-  onCreateTemplate,
-  onUpdateTemplate,
-  onDeleteTemplate,
-}) => {
+const CommunityTabsContent: React.FC<CommunityTabsContentProps> = ({ activeTab, children }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSendMessage = async (message: CompositionMessage) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Simulating API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Message sent:', message);
+    } catch (err) {
+      setError('Failed to send message. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid grid-cols-1 sm:grid-cols-3 w-full">
-        <TabsTrigger value="compose">Compose</TabsTrigger>
-        <TabsTrigger value="history">Message History</TabsTrigger>
-        <TabsTrigger value="templates">Templates</TabsTrigger>
-      </TabsList>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">{activeTab.label}</h2>
+      </div>
       
-      <TabsContent value="compose" className="px-0 pt-4">
-        <MessageComposer 
-          key={composeKey}
-          onSendMessage={onSendMessage}
-          initialSubject={selectedTemplate?.subject}
-          initialContent={selectedTemplate?.content}
-        />
-      </TabsContent>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
       
-      <TabsContent value="history" className="px-0 pt-4">
-        <MessageHistory />
-      </TabsContent>
-      
-      <TabsContent value="templates" className="px-0 pt-4">
-        <TemplateManager
-          templates={templates}
-          onSelectTemplate={onSelectTemplate}
-          onCreateTemplate={onCreateTemplate}
-          onUpdateTemplate={onUpdateTemplate}
-          onDeleteTemplate={onDeleteTemplate}
-        />
-      </TabsContent>
-    </Tabs>
+      <Card className="p-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          children
+        )}
+      </Card>
+    </div>
   );
 };
 

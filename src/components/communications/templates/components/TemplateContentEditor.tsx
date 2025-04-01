@@ -18,10 +18,11 @@ export interface TemplateContentEditorProps {
 export interface TemplateContentEditorRef {
   insertMergeTag: (tag: MergeTag) => void;
   getContent: () => string;
+  insertAtCursor?: (content: string) => void;
 }
 
 const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateContentEditorProps>(
-  ({ content, onContentChange, onMergeTagsClick, onSaveTemplate, onInsertMergeTag }, ref) => {
+  ({ content, onContentChange, onMergeTagsClick, onSaveTemplate, onInsertMergeTag, onFormatChange }, ref) => {
     const editorRef = useRef<HtmlEditorRef>(null);
     const [mergeTags, setMergeTags] = useState<MergeTag[]>([]);
     const [isHtmlFormat, setIsHtmlFormat] = useState(true);
@@ -45,8 +46,10 @@ const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateConte
           // Insert tag in HTML editor
           if (editorRef.current) {
             const tagContent = `{{${tag.tag}}}`;
-            // Use appropriate method to insert content based on the HtmlEditorRef API
-            editorRef.current.setContent(editorRef.current.getContent() + tagContent);
+            // Use appropriate method to insert content
+            const currentContent = editorRef.current.getContent();
+            editorRef.current.getContent = () => currentContent + tagContent;
+            onContentChange(currentContent + tagContent);
             onInsertMergeTag(tag);
           }
         } else {
@@ -60,6 +63,13 @@ const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateConte
         }
         return content;
       },
+      insertAtCursor: (content: string) => {
+        if (isHtmlFormat && editorRef.current) {
+          const currentContent = editorRef.current.getContent();
+          // Simple append for now
+          onContentChange(currentContent + content);
+        }
+      }
     }));
 
     const handleFormatToggle = () => {
