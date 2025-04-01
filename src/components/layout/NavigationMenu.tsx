@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -26,8 +25,14 @@ import {
   Settings, 
   Building, 
   Lock,
-  Mail
+  Mail,
+  Puzzle, 
+  Sliders, 
+  Upload, 
+  Clock, 
+  Shield
 } from 'lucide-react';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useAuthRole } from '@/hooks/use-auth-role';
 
 interface NavigationSectionProps {
@@ -53,7 +58,6 @@ const NavigationMenu = () => {
       isActive ? 'bg-accent text-accent-foreground' : 'text-foreground'
     }`;
 
-  // Helper function to check permissions with correct type
   const canAccess = (resource: string) => {
     try {
       return hasPermission(resource as any, 'read' as any);
@@ -275,6 +279,116 @@ const NavigationMenu = () => {
           </li>
         </NavigationSection>
       )}
+  {/* System Section */}
+  {canAccess('settings') && (
+    <NavigationSection title="System">
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/integrations" className={linkClass(pathname === '/integrations')}>
+                <Puzzle size={iconSize} />
+                <span className="ml-3">Integrations</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Manage third-party integrations and API connections</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/settings" className={linkClass(pathname === '/settings')}>
+                <Sliders size={iconSize} />
+                <span className="ml-3">Settings</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Configure system-wide settings and preferences</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/email-workflows" className={linkClass(pathname === '/email-workflows')}>
+                <Mail size={iconSize} />
+                <span className="ml-3">Email Workflows</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Design and manage automated email communication flows</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/system-uploads" className={linkClass(pathname === '/system-uploads')}>
+                <Upload size={iconSize} />
+                <span className="ml-3">System Uploads</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Manage bulk data uploads and file imports</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/system/processes" className={linkClass(pathname === '/system/processes')}>
+                <Clock size={iconSize} />
+                <span className="ml-3">Process Scheduler</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Schedule and monitor system-wide background tasks</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/settings/associations" className={linkClass(pathname.startsWith('/settings/associations'))}>
+                <Building size={iconSize} />
+                <span className="ml-3">Associations</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Manage association-level configurations</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+      <li>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/settings/permissions" className={linkClass(pathname.startsWith('/settings/permissions'))}>
+                <Shield size={iconSize} />
+                <span className="ml-3">Permissions</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Configure user roles and access levels</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </li>
+    </NavigationSection>
+  )}
     </ul>
   );
 };
