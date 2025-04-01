@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
+import { IMAGE_CATEGORIES } from '../constants/imageCategories';
 
-// Mock data for now - would be replaced with actual API call
 export interface ImageItem {
   id: string;
   name: string;
@@ -11,33 +12,6 @@ export interface ImageItem {
   size: number;
   createdAt: string;
 }
-
-const mockImages: ImageItem[] = [
-  {
-    id: 'img1',
-    name: 'fence-installation.jpg',
-    url: 'https://images.unsplash.com/photo-1628784231135-e5c22ed4c8a2?q=80&w=2787&auto=format&fit=crop',
-    category: 'fencing',
-    size: 245678,
-    createdAt: '2023-09-15T12:00:00Z'
-  },
-  {
-    id: 'img2',
-    name: 'roof-repair.jpg',
-    url: 'https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?q=80&w=2940&auto=format&fit=crop',
-    category: 'roofing',
-    size: 345678,
-    createdAt: '2023-09-14T10:30:00Z'
-  },
-  {
-    id: 'img3',
-    name: 'garden-design.jpg',
-    url: 'https://images.unsplash.com/photo-1558904541-efa843a96f01?q=80&w=2940&auto=format&fit=crop',
-    category: 'landscaping',
-    size: 445678,
-    createdAt: '2023-09-13T09:15:00Z'
-  }
-];
 
 export const useProjectImages = () => {
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -48,15 +22,49 @@ export const useProjectImages = () => {
   const fetchImages = async () => {
     setLoading(true);
     try {
-      // This would be replaced with an actual API call
-      setTimeout(() => {
-        const filteredImages = mockImages.filter(img => img.category === category);
-        setImages(filteredImages);
-        setLoading(false);
-      }, 500);
+      // Fetch images from the project_images bucket for the selected category
+      const { data, error } = await supabase
+        .storage
+        .from('project_images')
+        .list(category, {
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        // Filter out folders and process only files
+        const fileData = data.filter(item => !item.id.endsWith('/'));
+        
+        // Map to ImageItem format
+        const imageItems: ImageItem[] = await Promise.all(
+          fileData.map(async (file) => {
+            const { data: urlData } = supabase.storage
+              .from('project_images')
+              .getPublicUrl(`${category}/${file.name}`);
+              
+            return {
+              id: file.id,
+              name: file.name,
+              url: urlData.publicUrl,
+              category: category,
+              size: file.metadata?.size || 0,
+              createdAt: file.created_at || new Date().toISOString()
+            };
+          })
+        );
+        
+        setImages(imageItems);
+      } else {
+        setImages([]);
+      }
     } catch (error) {
       console.error('Error fetching images:', error);
       toast.error('Failed to load images');
+      setImages([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -64,25 +72,79 @@ export const useProjectImages = () => {
   const fetchRecentUploads = async () => {
     setLoading(true);
     try {
-      // This would be replaced with an actual API call
-      setTimeout(() => {
-        // Sort by date descending
-        const sorted = [...mockImages].sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setRecentUploads(sorted.slice(0, 8)); // Get most recent 8
-        setLoading(false);
-      }, 500);
+      // Fetch recent uploads across all categories
+      const recentImages: ImageItem[] = [];
+      
+      // Loop through each category to get recent uploads
+      for (const categoryItem of IMAGE_CATEGORIES) {
+        const { data, error } = await supabase
+          .storage
+          .from('project_images')
+          .list(categoryItem.id, {
+            limit: 3,
+            sortBy: { column: 'created_at', order: 'desc' }
+          });
+          
+        if (error) {
+          console.error(`Error fetching ${categoryItem.id} images:`, error);
+          continue;
+        }
+        
+        if (data) {
+          // Filter out folders and process only files
+          const fileData = data.filter(item => !item.id.endsWith('/'));
+          
+          // Add to recent uploads
+          for (const file of fileData) {
+            const { data: urlData } = supabase.storage
+              .from('project_images')
+              .getPublicUrl(`${categoryItem.id}/${file.name}`);
+              
+            recentImages.push({
+              id: file.id,
+              name: file.name,
+              url: urlData.publicUrl,
+              category: categoryItem.id,
+              size: file.metadata?.size || 0,
+              createdAt: file.created_at || new Date().toISOString()
+            });
+          }
+        }
+      }
+      
+      // Sort by date and limit to 8 most recent
+      const sorted = recentImages.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setRecentUploads(sorted.slice(0, 8));
     } catch (error) {
       console.error('Error fetching recent uploads:', error);
       toast.error('Failed to load recent uploads');
+    } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteImage = async (imageId: string) => {
     try {
-      // This would be replaced with an actual API call
+      // Find the image to delete
+      const imageToDelete = images.find(img => img.id === imageId);
+      if (!imageToDelete) {
+        throw new Error('Image not found');
+      }
+      
+      // Delete from Supabase storage
+      const { error } = await supabase
+        .storage
+        .from('project_images')
+        .remove([`${imageToDelete.category}/${imageToDelete.name}`]);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update state
       setImages(prevImages => prevImages.filter(img => img.id !== imageId));
       toast.success('Image deleted successfully');
       return Promise.resolve();

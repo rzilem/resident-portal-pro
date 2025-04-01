@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PROJECT_TYPES } from '../data/project-types';
-import { getProjectImageUrl } from '@/utils/supabase/uploadProjectImage';
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { debugLog } from '@/utils/debug';
 
@@ -16,19 +16,53 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [projectImages, setProjectImages] = useState<Record<string, string>>({});
   
   // Sort project types alphabetically by name
   const sortedProjectTypes = [...PROJECT_TYPES].sort((a, b) => 
     a.name.localeCompare(b.name)
   );
 
-  // Simulate image loading
+  // Fetch project images from Supabase
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    const fetchProjectImages = async () => {
+      setLoading(true);
+      const images: Record<string, string> = {};
+      
+      try {
+        // Fetch images for each project type
+        for (const type of PROJECT_TYPES) {
+          const { data, error } = await supabase
+            .storage
+            .from('project_images')
+            .list(type.id, {
+              limit: 1,
+              sortBy: { column: 'created_at', order: 'desc' }
+            });
+            
+          if (error) {
+            console.error(`Error fetching images for ${type.id}:`, error);
+            continue;
+          }
+          
+          if (data && data.length > 0 && !data[0].id.endsWith('/')) {
+            const { data: urlData } = supabase.storage
+              .from('project_images')
+              .getPublicUrl(`${type.id}/${data[0].name}`);
+              
+            images[type.id] = urlData.publicUrl;
+          }
+        }
+        
+        setProjectImages(images);
+      } catch (error) {
+        console.error('Error fetching project images:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
+    fetchProjectImages();
   }, []);
 
   const handleImageError = (typeId: string) => {
@@ -40,6 +74,18 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   const renderProjectTypeImage = (type: any) => {
     if (loading) {
       return <Skeleton className="w-full h-full rounded-md" />;
+    }
+    
+    // Check if we have a Supabase image for this type
+    if (projectImages[type.id] && !imageErrors[type.id]) {
+      return (
+        <img 
+          src={projectImages[type.id]}
+          alt={type.name}
+          className="w-full h-full object-cover"
+          onError={() => handleImageError(type.id)}
+        />
+      );
     }
     
     // Specifically handle arborist image with direct path
@@ -68,7 +114,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
     // Use the uploaded image from Supabase or fallback
     return (
       <img 
-        src={getProjectImageUrl(type.imagePath)} 
+        src={type.imagePath} 
         alt={type.name}
         className="w-full h-full object-cover"
         onError={() => handleImageError(type.id)}
