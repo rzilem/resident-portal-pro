@@ -1,4 +1,6 @@
+
 // Email workflow service types and interfaces
+import { supabase } from "@/integrations/supabase/client";
 
 export interface EmailWorkflowRule {
   id: string;
