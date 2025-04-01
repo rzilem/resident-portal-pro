@@ -27,6 +27,13 @@ const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
     }
   };
 
+  // Determine if inspectionDate is a Date object
+  const inspectionDate = formData.inspectionDate 
+    ? (formData.inspectionDate instanceof Date 
+        ? formData.inspectionDate 
+        : new Date(formData.inspectionDate)) 
+    : undefined;
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground mb-4">
@@ -37,7 +44,7 @@ const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
         <div className="space-y-2">
           <Label htmlFor="inspectionDate">Preferred Inspection Date</Label>
           <DatePicker
-            date={formData.inspectionDate instanceof Date ? formData.inspectionDate : undefined}
+            date={inspectionDate}
             onDateChange={handleDateChange}
             disablePastDates={true}
           />
