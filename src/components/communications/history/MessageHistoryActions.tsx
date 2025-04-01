@@ -1,199 +1,246 @@
 
 import React, { useState } from 'react';
-import { MoreHorizontal, Eye, Calendar, Copy, Trash2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { 
+  MoreHorizontal, 
+  Copy, 
+  AlertCircle, 
+  Eye, 
+  Calendar, 
+  Trash2,
+  X,
+  Check
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Communication } from '@/services/communicationService';
-import { TooltipButton } from '@/components/ui/tooltip-button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { communicationService } from '@/services/communicationService';
+
+interface Message {
+  id: string;
+  subject: string;
+  content: string;
+  sentAt: string;
+  status: 'sent' | 'scheduled' | 'draft' | 'failed';
+  messageType: 'email' | 'sms';
+  recipientCount: number;
+  author: string;
+}
 
 interface MessageHistoryActionsProps {
-  message: Communication;
-  onCancelScheduled: (messageId: string) => Promise<void>;
+  message: Message;
   onRefresh: () => void;
 }
 
-const MessageHistoryActions: React.FC<MessageHistoryActionsProps> = ({ 
-  message, 
-  onCancelScheduled,
-  onRefresh
-}) => {
-  const [viewOpen, setViewOpen] = useState(false);
-  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+interface Recipient {
+  recipient_email: string;
+  id?: string;
+}
 
-  const handleCopy = () => {
-    // Clone to new message function would go here
-    toast.success('Message copied to new draft');
-    onRefresh();
+const MessageHistoryActions: React.FC<MessageHistoryActionsProps> = ({ message, onRefresh }) => {
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleViewMessage = async () => {
+    setIsLoading(true);
+    try {
+      const recipientData = await communicationService.getMessageRecipients(message.id);
+      setRecipients(recipientData);
+      setIsViewDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching recipients:', error);
+      toast.error('Failed to load message recipients');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleViewMessage = () => {
-    setViewOpen(true);
+  const handleDeleteMessage = async () => {
+    try {
+      await communicationService.deleteMessage(message.id);
+      toast.success('Message deleted successfully');
+      onRefresh();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
   };
-  
+
   const handleCancelScheduled = async () => {
-    await onCancelScheduled(message.id);
-    setConfirmCancelOpen(false);
+    try {
+      await communicationService.cancelScheduledMessage(message.id);
+      toast.success('Scheduled message canceled');
+      onRefresh();
+    } catch (error) {
+      console.error('Error canceling scheduled message:', error);
+      toast.error('Failed to cancel scheduled message');
+    } finally {
+      setIsCancelDialogOpen(false);
+    }
+  };
+
+  const handleDuplicate = () => {
+    // Implement duplicating the message for reuse
+    toast.success('Message duplicated');
+  };
+
+  const renderHtmlContent = (html: string) => {
+    return { __html: html };
   };
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleViewMessage}>
             <Eye className="mr-2 h-4 w-4" />
-            View Message
+            View Details
           </DropdownMenuItem>
-          
-          <DropdownMenuItem onClick={handleCopy}>
+          <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="mr-2 h-4 w-4" />
-            Copy to New
+            Duplicate
           </DropdownMenuItem>
-          
           {message.status === 'scheduled' && (
             <DropdownMenuItem 
-              onClick={() => setConfirmCancelOpen(true)}
-              className="text-destructive focus:text-destructive"
+              onClick={() => setIsCancelDialogOpen(true)}
+              className="text-amber-600"
             >
               <X className="mr-2 h-4 w-4" />
               Cancel Scheduled
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem 
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="text-red-600"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Message View Dialog */}
-      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      {/* View Message Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
           <DialogHeader>
-            <DialogTitle>{message.subject || 'SMS Message'}</DialogTitle>
-            <DialogDescription>
-              {message.message_type === 'email' ? 'Email' : 'SMS'} {message.status} on {new Date(message.created_at).toLocaleString()}
-            </DialogDescription>
+            <DialogTitle>{message.subject}</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="border rounded-md p-4 bg-muted/30">
-              <h4 className="text-sm font-medium mb-2">Recipients:</h4>
-              <div className="flex flex-wrap gap-2">
-                {message.recipients.map(recipient => (
-                  <span 
-                    key={recipient.id}
-                    className="px-2 py-1 bg-primary/10 rounded-full text-xs"
-                  >
-                    {recipient.recipient_email}
-                  </span>
-                ))}
+            <div className="grid grid-cols-2 gap-4 border-b pb-4">
+              <div>
+                <p className="text-sm font-medium">Status</p>
+                <p className="text-sm capitalize flex items-center">
+                  {message.status === 'sent' && <Check className="h-4 w-4 text-green-500 mr-1" />}
+                  {message.status === 'scheduled' && <Calendar className="h-4 w-4 text-blue-500 mr-1" />}
+                  {message.status === 'failed' && <AlertCircle className="h-4 w-4 text-red-500 mr-1" />}
+                  {message.status}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Type</p>
+                <p className="text-sm capitalize">{message.messageType}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Date</p>
+                <p className="text-sm">{new Date(message.sentAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Sent By</p>
+                <p className="text-sm">{message.author}</p>
               </div>
             </div>
-            
-            {message.message_type === 'email' && (
-              <div>
-                <h4 className="text-sm font-medium mb-2">Subject:</h4>
-                <p className="text-sm">{message.subject}</p>
-              </div>
-            )}
             
             <div>
-              <h4 className="text-sm font-medium mb-2">Content:</h4>
-              {message.format === 'html' ? (
-                <div 
-                  className="border rounded-md p-4 overflow-auto max-h-96"
-                  dangerouslySetInnerHTML={{ __html: message.content }} 
-                />
-              ) : (
-                <div className="border rounded-md p-4 whitespace-pre-wrap overflow-auto max-h-96">
-                  {message.content}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <DialogFooter className="flex sm:justify-between gap-2">
-            <div className="hidden sm:flex gap-2">
-              <TooltipButton
-                onClick={handleCopy}
-                tooltipText="Copy to new message"
-                variant="outline"
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy to New
-              </TooltipButton>
-              
-              {message.status === 'scheduled' && (
-                <TooltipButton
-                  onClick={() => {
-                    setViewOpen(false);
-                    setConfirmCancelOpen(true);
-                  }}
-                  tooltipText="Cancel scheduled message"
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel Scheduled
-                </TooltipButton>
-              )}
+              <p className="text-sm font-medium mb-2">Message Content:</p>
+              <div 
+                className="p-4 border rounded-md bg-gray-50 prose prose-sm max-w-none overflow-auto max-h-96"
+                dangerouslySetInnerHTML={renderHtmlContent(message.content)}
+              />
             </div>
             
-            <DialogClose asChild>
-              <TooltipButton
-                tooltipText="Close dialog"
-                variant="secondary"
-              >
-                Close
-              </TooltipButton>
-            </DialogClose>
-          </DialogFooter>
+            <div>
+              <p className="text-sm font-medium mb-2">Recipients ({recipients.length}):</p>
+              <div className="max-h-48 overflow-y-auto border rounded-md divide-y">
+                {recipients.length > 0 ? (
+                  recipients.map((recipient, index) => (
+                    <div key={recipient.id || index} className="p-2 text-sm">
+                      {recipient.recipient_email}
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    {isLoading ? 'Loading recipients...' : 'No recipients found'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
-      
-      {/* Confirm Cancel Dialog */}
-      <Dialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancel Scheduled Message</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel this scheduled message? This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmCancelOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleCancelScheduled}
-            >
-              Yes, Cancel Message
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this message?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the message
+              and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteMessage} className="bg-red-600">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Scheduled Dialog */}
+      <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Scheduled Message?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will cancel the scheduled message and prevent it from being sent.
+              You can reschedule it later if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Scheduled</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelScheduled} className="bg-amber-600">
+              Cancel Message
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

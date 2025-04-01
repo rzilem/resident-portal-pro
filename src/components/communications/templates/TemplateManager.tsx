@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageTemplate } from '@/pages/communications/types';
+import { MessageTemplate } from '../templates/types';
 import TemplateCard from './TemplateCard';
 import TemplateDialog from './TemplateDialog';
 import { TooltipButton } from '@/components/ui/tooltip-button';
@@ -40,7 +40,7 @@ const TemplateManager: React.FC<TemplateManagerProps> = ({
     const matchesSearch =
       searchQuery === '' ||
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (template.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
 
     const matchesCategory =
       selectedCategory === 'all' || template.category === selectedCategory;

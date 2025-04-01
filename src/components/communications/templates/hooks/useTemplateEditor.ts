@@ -31,6 +31,7 @@ export const useTemplateEditor = (
       return;
     }
 
+    const now = new Date().toISOString();
     const newTemplate: MessageTemplate = {
       id: Date.now().toString(),
       name: templateName,
@@ -39,8 +40,11 @@ export const useTemplateEditor = (
       content: templateContent,
       category: templateCategory,
       communities: selectedCommunities,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now,
+      type: 'email',
+      format: 'html',
+      lastUpdated: now
     };
 
     onCreateTemplate(newTemplate);
@@ -65,7 +69,8 @@ export const useTemplateEditor = (
       content: templateContent,
       category: templateCategory,
       communities: selectedCommunities,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString()
     };
 
     onUpdateTemplate(updatedTemplate);
@@ -76,12 +81,12 @@ export const useTemplateEditor = (
 
   const setupFormForTemplate = (template: MessageTemplate) => {
     setTemplateName(template.name);
-    setTemplateDescription(template.description);
+    setTemplateDescription(template.description || '');
     setTemplateSubject(template.subject);
     setTemplateContent(template.content);
     setTemplateCategory(template.category);
     setSelectedCommunities(template.communities || ['all']);
-    setIsHtmlFormat(true);
+    setIsHtmlFormat(template.format === 'html');
   };
 
   return {

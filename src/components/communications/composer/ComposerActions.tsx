@@ -1,262 +1,201 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Send, Clock, Calendar, Loader2 } from 'lucide-react';
 import { useComposer } from './ComposerContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Loader2, Send, Calendar, MessageSquare } from 'lucide-react';
-import { emailService } from '@/services/emailService';
 import { communicationService } from '@/services/communicationService';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ComposerActionsProps {
   onSendMessage: (message: { subject: string; content: string; recipients: string[] }) => void;
 }
 
 const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  
   const { 
     subject, 
     content, 
     selectedRecipients,
-    scheduledSend,
-    scheduledDate,
-    scheduledTime,
-    format: contentFormat,
+    selectedCommunity,
+    recipientType,
+    format,
     messageType,
-    setIsScheduled
+    scheduledDate,
+    setScheduledDate,
+    validateCanSend,
+    previewContent
   } = useComposer();
-  
-  const [isSending, setIsSending] = useState(false);
-
-  const validateMessage = () => {
-    // For SMS, subject is optional
-    if (messageType === 'email' && !subject.trim()) {
-      toast.error('Please add a subject');
-      return false;
-    }
-    
-    if (!content.trim()) {
-      toast.error(`Please add content to your ${messageType === 'email' ? 'email' : 'SMS message'}`);
-      return false;
-    }
-    
-    if (selectedRecipients.length === 0) {
-      toast.error('Please select at least one recipient');
-      return false;
-    }
-    
-    if (scheduledSend && !scheduledDate) {
-      toast.error('Please select a date for your scheduled message');
-      return false;
-    }
-    
-    if (scheduledSend && !scheduledTime) {
-      toast.error('Please select a time for your scheduled message');
-      return false;
-    }
-
-    // Check SMS character limits
-    if (messageType === 'sms' && content.length > 480) {
-      toast.error('SMS content exceeds maximum length (480 characters)');
-      return false;
-    }
-    
-    return true;
-  };
-
-  const scheduleMessage = async () => {
-    if (!scheduledDate) return false;
-    
-    try {
-      // Create a scheduled date by combining the date and time
-      const timeComponents = scheduledTime.split(':');
-      const hour = parseInt(timeComponents[0], 10);
-      const minute = parseInt(timeComponents[1], 10);
-      
-      const scheduledDateTime = new Date(scheduledDate);
-      scheduledDateTime.setHours(hour, minute, 0, 0);
-      
-      // Check if the scheduled time is in the past
-      if (scheduledDateTime <= new Date()) {
-        toast.error('Scheduled time cannot be in the past');
-        return false;
-      }
-      
-      // Save the message to the database as scheduled
-      const messageId = await communicationService.saveMessage(
-        { subject, content, recipients: selectedRecipients },
-        true,
-        scheduledDateTime
-      );
-      
-      if (!messageId) {
-        throw new Error('Failed to save scheduled message');
-      }
-      
-      setIsScheduled(true);
-      toast.success(
-        `${messageType.toUpperCase()} scheduled for ${scheduledDateTime.toLocaleString()}`,
-        {
-          description: `To ${selectedRecipients.length} recipient${selectedRecipients.length > 1 ? 's' : ''}`
-        }
-      );
-      
-      return true;
-    } catch (error) {
-      console.error('Error scheduling message:', error);
-      toast.error(`Failed to schedule ${messageType}`);
-      return false;
-    }
-  };
-
-  const sendImmediateMessage = async () => {
-    try {
-      // Check if the user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error('You must be logged in to send messages');
-        return false;
-      }
-      
-      // Save the message to the database
-      const messageId = await communicationService.saveMessage(
-        { subject, content, recipients: selectedRecipients },
-        false
-      );
-      
-      if (!messageId) {
-        throw new Error('Failed to save message');
-      }
-      
-      // Send the message to each recipient
-      let successCount = 0;
-      
-      for (const recipient of selectedRecipients) {
-        try {
-          if (messageType === 'email') {
-            // Send email - now returns a boolean
-            const sent = await emailService.sendEmail({
-              to: recipient,
-              subject: subject,
-              body: content,
-              isHtml: contentFormat === 'html'
-            });
-            
-            if (sent) successCount++;
-          } else {
-            // Send SMS - mock implementation using console.log
-            console.log(`Sending SMS to ${recipient}:`, content);
-            
-            // In a real implementation, this would use an SMS service API
-            // For demo purposes, we'll simulate success
-            successCount++;
-          }
-        } catch (recipientError) {
-          console.error(`Failed to send ${messageType} to ${recipient}:`, recipientError);
-        }
-      }
-      
-      // Update message status
-      if (successCount > 0) {
-        await communicationService.markAsSent(messageId);
-      }
-      
-      // Show appropriate toast based on success rate
-      if (successCount === selectedRecipients.length) {
-        toast.success(
-          `${messageType.toUpperCase()} sent successfully`, 
-          { description: `Sent to ${successCount} recipient${successCount > 1 ? 's' : ''}` }
-        );
-        return true;
-      } else if (successCount > 0) {
-        toast.warning(
-          `${messageType.toUpperCase()} partially sent`,
-          { description: `Sent to ${successCount} of ${selectedRecipients.length} recipients` }
-        );
-        return false;
-      } else {
-        toast.error(
-          `Failed to send ${messageType.toUpperCase()}`,
-          { description: 'No recipients received the message' }
-        );
-        return false;
-      }
-    } catch (error) {
-      console.error(`Error sending ${messageType}:`, error);
-      toast.error(`Failed to send ${messageType}`);
-      return false;
-    }
-  };
 
   const handleSend = async () => {
-    if (!validateMessage()) return;
-    
-    setIsSending(true);
+    const validationResult = validateCanSend();
+    if (!validationResult.valid) {
+      toast.error(validationResult.error || 'Please complete all required fields');
+      return;
+    }
     
     try {
-      if (scheduledSend) {
-        // Schedule the message for later
-        const scheduled = await scheduleMessage();
-        if (scheduled) {
-          // Reset the composer or navigate away
-          onSendMessage({ subject, content, recipients: selectedRecipients });
-        }
-      } else {
-        // Send the message immediately
-        const sent = await sendImmediateMessage();
-        if (sent) {
-          onSendMessage({ subject, content, recipients: selectedRecipients });
-        }
+      setIsLoading(true);
+      
+      // Call the onSendMessage function passed from parent
+      if (onSendMessage) {
+        onSendMessage({
+          subject,
+          content: previewContent || content,
+          recipients: selectedRecipients
+        });
       }
+      
+      // Use the communication service to send the message
+      await communicationService.sendMessage({
+        subject,
+        content: previewContent || content,
+        messageType,
+        format,
+        recipients: {
+          type: recipientType,
+          items: selectedRecipients
+        },
+        status: 'sent',
+        scheduledFor: null
+      });
+      
+      toast.success('Message sent successfully!');
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error(`Failed to send ${messageType}`);
+      toast.error('Failed to send message. Please try again.');
     } finally {
-      setIsSending(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleSchedule = async () => {
+    const validationResult = validateCanSend();
+    if (!validationResult.valid) {
+      toast.error(validationResult.error || 'Please complete all required fields');
+      return;
+    }
+    
+    if (!scheduledDate) {
+      toast.error('Please select a date and time to schedule this message');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      // Use the communication service to schedule the message
+      await communicationService.sendMessage({
+        subject,
+        content: previewContent || content,
+        messageType,
+        format,
+        recipients: {
+          type: recipientType,
+          items: selectedRecipients
+        },
+        status: 'scheduled',
+        scheduledFor: scheduledDate
+      });
+      
+      setIsScheduleDialogOpen(false);
+      toast.success('Message scheduled successfully!');
+    } catch (error) {
+      console.error('Error scheduling message:', error);
+      toast.error('Failed to schedule message. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openScheduleDialog = () => {
+    const validationResult = validateCanSend();
+    if (!validationResult.valid) {
+      toast.error(validationResult.error || 'Please complete all required fields');
+      return;
+    }
+    
+    setIsScheduleDialogOpen(true);
   };
 
   return (
-    <div className="flex justify-end space-x-4">
-      <Button 
-        type="button" 
-        variant="outline" 
-        onClick={() => {
-          // This would typically reset the form or navigate away
-          toast.info('Message discarded');
-        }}
-      >
-        Discard
-      </Button>
+    <>
+      <div className="flex justify-end gap-3 mt-6">
+        <Button
+          variant="outline"
+          onClick={openScheduleDialog}
+          disabled={isLoading}
+        >
+          <Clock className="h-4 w-4 mr-2" />
+          Schedule
+        </Button>
+        
+        <Button 
+          onClick={handleSend}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4 mr-2" />
+          )}
+          Send Now
+        </Button>
+      </div>
       
-      <Button 
-        type="submit"
-        onClick={handleSend}
-        disabled={isSending}
-        className="gap-2"
-      >
-        {isSending ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>
-              {scheduledSend ? 'Scheduling...' : 'Sending...'}
-            </span>
-          </>
-        ) : (
-          <>
-            {scheduledSend ? 
-              <Calendar className="h-4 w-4" /> : 
-              messageType === 'email' ? 
-                <Send className="h-4 w-4" /> : 
-                <MessageSquare className="h-4 w-4" />
-            }
-            <span>
-              {scheduledSend ? 'Schedule' : `Send ${messageType.toUpperCase()}`}
-            </span>
-          </>
-        )}
-      </Button>
-    </div>
+      <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Schedule Message</DialogTitle>
+            <DialogDescription>
+              Choose when you'd like this message to be sent.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <label htmlFor="schedule-date" className="text-sm font-medium">
+                  Date and Time
+                </label>
+                <input
+                  id="schedule-date"
+                  type="datetime-local"
+                  className="border rounded-md p-2"
+                  value={scheduledDate ? scheduledDate.toISOString().slice(0, 16) : ''}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setScheduledDate(new Date(e.target.value));
+                    } else {
+                      setScheduledDate(null);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              disabled={!scheduledDate || isLoading} 
+              onClick={handleSchedule}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Calendar className="h-4 w-4 mr-2" />
+              )}
+              Schedule
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

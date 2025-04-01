@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CommunityTabsContent from './CommunityTabsContent';
-import { MessageComposer } from '@/components/communications/MessageComposer';
+import MessageComposer from '@/components/communications/MessageComposer';
 import MessageHistory from '@/components/communications/MessageHistory';
-import MessageTemplates from '@/components/communications/MessageTemplates';
+import MessageTemplatesComponent from '@/components/communications/MessageTemplates';
 import useCommunityMessaging from './useCommunityMessaging';
 import { Tab } from './types';
 
@@ -89,7 +89,13 @@ const CommunityMessaging: React.FC = () => {
         
         <TabsContent value="templates">
           <CommunityTabsContent activeTab={activeTab}>
-            <MessageTemplates />
+            <MessageTemplatesComponent 
+              onSelectTemplate={() => {}}
+              templates={templates}
+              onCreateTemplate={async () => {}}
+              onUpdateTemplate={async () => {}}
+              onDeleteTemplate={async () => {}}
+            />
           </CommunityTabsContent>
         </TabsContent>
       </Tabs>

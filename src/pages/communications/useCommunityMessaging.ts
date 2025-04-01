@@ -2,6 +2,39 @@
 import { useState } from 'react';
 import { MessageTemplate } from './types';
 
+// Sample templates - now exported as INITIAL_TEMPLATES
+export const INITIAL_TEMPLATES: MessageTemplate[] = [
+  {
+    id: '1',
+    name: 'Welcome Email',
+    description: 'Default welcome email for new residents',
+    subject: 'Welcome to Our Community!',
+    content: '<p>Dear [Resident Name],</p><p>Welcome to our community! We\'re delighted to have you join us.</p>',
+    category: 'Welcome',
+    type: 'email',
+    format: 'html',
+    lastUpdated: '2023-01-15T10:30:00Z',
+    createdAt: '2023-01-01T09:00:00Z',
+    updatedAt: '2023-01-15T10:30:00Z',
+    isDefault: true,
+    tags: ['welcome', 'new-resident']
+  },
+  {
+    id: '2',
+    name: 'Maintenance Notification',
+    description: 'Notification about scheduled maintenance',
+    subject: 'Upcoming Maintenance Work',
+    content: '<p>Dear [Resident Name],</p><p>We will be performing scheduled maintenance in your area on [Date].</p>',
+    category: 'Maintenance',
+    type: 'email',
+    format: 'html',
+    lastUpdated: '2023-02-10T15:20:00Z',
+    createdAt: '2023-02-01T11:45:00Z',
+    updatedAt: '2023-02-10T15:20:00Z',
+    tags: ['maintenance']
+  }
+];
+
 const useCommunityMessaging = () => {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
@@ -11,38 +44,8 @@ const useCommunityMessaging = () => {
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
 
-  // Sample templates
-  const templates: MessageTemplate[] = [
-    {
-      id: '1',
-      name: 'Welcome Email',
-      description: 'Default welcome email for new residents',
-      subject: 'Welcome to Our Community!',
-      content: '<p>Dear [Resident Name],</p><p>Welcome to our community! We\'re delighted to have you join us.</p>',
-      category: 'Welcome',
-      type: 'email',
-      format: 'html',
-      lastUpdated: '2023-01-15T10:30:00Z',
-      createdAt: '2023-01-01T09:00:00Z',
-      updatedAt: '2023-01-15T10:30:00Z',
-      isDefault: true,
-      tags: ['welcome', 'new-resident']
-    },
-    {
-      id: '2',
-      name: 'Maintenance Notification',
-      description: 'Notification about scheduled maintenance',
-      subject: 'Upcoming Maintenance Work',
-      content: '<p>Dear [Resident Name],</p><p>We will be performing scheduled maintenance in your area on [Date].</p>',
-      category: 'Maintenance',
-      type: 'email',
-      format: 'html',
-      lastUpdated: '2023-02-10T15:20:00Z',
-      createdAt: '2023-02-01T11:45:00Z',
-      updatedAt: '2023-02-10T15:20:00Z',
-      tags: ['maintenance']
-    }
-  ];
+  // Use the exported INITIAL_TEMPLATES
+  const templates = INITIAL_TEMPLATES;
 
   // Sample recipient types
   const recipientTypes = [
