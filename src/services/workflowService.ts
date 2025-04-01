@@ -234,7 +234,7 @@ export const workflowService = {
 
   // Get a specific template
   getTemplateById: (id: string) => {
-    const template = workflowTemplates.find(t => t.id === templateId);
+    const template = workflowTemplates.find(t => t.id === id);
     if (!template) {
       return Promise.reject(new Error(`Template with id ${id} not found`));
     }

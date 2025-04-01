@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +8,7 @@ import { ApprovalStep } from '@/types/workflow';
 import { useWorkflowExecution } from '@/hooks/use-workflow-execution';
 import { useAuth } from '@/hooks/use-auth';
 import { roleService } from '@/services/roleService';
-
-interface ApprovalQueueProps {
-  className?: string;
-}
+import { adaptSupabaseUser } from '@/utils/user-helpers';
 
 // Helper function to get icon for approval type
 const getApprovalIcon = (type: string) => {
@@ -37,7 +33,8 @@ const getApprovalColor = (type: string) => {
 };
 
 const ApprovalQueue: React.FC<ApprovalQueueProps> = ({ className }) => {
-  const { user } = useAuth();
+  const { user: supabaseUser } = useAuth();
+  const user = adaptSupabaseUser(supabaseUser);
   const { pendingApprovals, processApproval } = useWorkflowExecution();
   const [comments, setComments] = React.useState<Record<string, string>>({});
   const [processing, setProcessing] = React.useState<Record<string, boolean>>({});

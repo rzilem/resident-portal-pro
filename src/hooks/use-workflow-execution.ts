@@ -1,12 +1,13 @@
-
 import { useState, useCallback } from 'react';
 import { Workflow, WorkflowStep, WorkflowExecutionLog, StepExecutionLog, ApprovalStep, ApprovalRecord } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
 import { toast } from "sonner";
 import { useAuth } from '@/hooks/use-auth';
+import { adaptSupabaseUser } from '@/utils/user-helpers';
 
 export function useWorkflowExecution() {
-  const { user } = useAuth();
+  const { user: supabaseUser } = useAuth();
+  const user = adaptSupabaseUser(supabaseUser);
   const [executionLogs, setExecutionLogs] = useState<WorkflowExecutionLog[]>([]);
   const [currentExecution, setCurrentExecution] = useState<WorkflowExecutionLog | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);

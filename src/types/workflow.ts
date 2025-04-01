@@ -90,7 +90,7 @@ export interface WorkflowExecutionLog {
   workflowId: string;
   started: string;
   completed?: string;
-  status: 'running' | 'completed' | 'failed' | 'pending'; // Adding 'pending' state
+  status: 'running' | 'completed' | 'failed' | 'pending'; // Added 'pending' state
   pausedAt?: string; // For when workflow is paused waiting for approval
   stepLogs: StepExecutionLog[];
 }
