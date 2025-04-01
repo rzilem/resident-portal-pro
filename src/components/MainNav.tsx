@@ -11,8 +11,7 @@ import {
   NavigationMenuLink,
   navigationMenuTriggerStyle 
 } from '@/components/ui/navigation-menu';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { useCompanySettings } from '@/hooks/use-company-settings';
 import { useLogout } from '@/hooks/use-logout';
 
@@ -69,11 +68,17 @@ const MainNav = () => {
       </NavigationMenu>
       
       {/* Mobile menu button */}
-      <Button variant="ghost" size="sm" className="md:hidden">
+      <TooltipButton 
+        variant="ghost" 
+        size="sm" 
+        className="md:hidden" 
+        tooltipText="User Menu"
+      >
         <UserCircle className="h-5 w-5" />
-      </Button>
+      </TooltipButton>
     </div>
   );
 }
 
 export default MainNav;
+

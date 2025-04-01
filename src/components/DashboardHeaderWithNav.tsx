@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 interface DashboardHeaderWithNavProps {
   toggleSidebar?: () => void;
@@ -26,20 +26,17 @@ const DashboardHeaderWithNav = ({
 }: DashboardHeaderWithNavProps) => {
   const location = useLocation();
   
-  // Derive page title from the current path if not provided as prop
   const getPageTitle = () => {
     if (title) return title;
     
     const path = location.pathname;
     
-    // HOA routes
     if (path === '/hoa/dashboard') return 'HOA Dashboard';
     if (path === '/hoa/finances') return 'HOA Finances';
     if (path === '/hoa/maintenance') return 'HOA Maintenance';
     if (path === '/hoa/members') return 'HOA Members';
     if (path === '/hoa/events') return 'HOA Events';
     
-    // Accounting routes
     if (path === '/accounting/dashboard') return 'Accounting Dashboard';
     if (path === '/accounting/transactions') return 'Transactions';
     if (path === '/accounting/payments') return 'Payments';
@@ -48,7 +45,6 @@ const DashboardHeaderWithNav = ({
     if (path === '/accounting/journal-entries') return 'Journal Entries';
     if (path === '/accounting/gl-accounts') return 'General Ledger Accounts';
     
-    // Main sections
     if (path === '/dashboard') return 'Dashboard';
     if (path === '/properties') return 'Properties';
     if (path === '/residents') return 'Residents';
@@ -62,14 +58,11 @@ const DashboardHeaderWithNav = ({
     if (path === '/database/records') return 'Database Records';
     if (path === '/system-uploads') return 'System Uploads';
     
-    // Communication routes
     if (path === '/communications/messaging') return 'Community Messaging';
     if (path === '/communications/announcements') return 'Announcements';
     
-    // Document routes
     if (path === '/documents/association') return 'Association Documents';
     
-    // Resale Management routes
     if (path === '/resale') return 'Resale Management';
     if (path === '/resale/certificate') return 'Resale Certificate';
     if (path === '/resale/questionnaire') return 'Condo Questionnaire';
@@ -82,14 +75,12 @@ const DashboardHeaderWithNav = ({
     if (path.match(/^\/resale\/bid-requests\/\d+$/)) return 'Bid Request Details';
     if (path === '/resale/admin/project-images') return 'Project Images';
     
-    // Settings section
     if (path === '/settings') return 'Settings';
     if (path === '/settings/associations') return 'Association Settings';
     if (path === '/settings/permissions') return 'User Permissions';
     if (path === '/settings/calendar') return 'Calendar Settings';
     if (path === '/email-workflows') return 'Email Workflows';
     
-    // If no specific match is found, extract a title from the URL
     const segments = path.split('/').filter(Boolean);
     if (segments.length > 0) {
       const lastSegment = segments[segments.length - 1];
@@ -130,19 +121,31 @@ const DashboardHeaderWithNav = ({
       </div>
       
       <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="icon" aria-label="Help">
+        <TooltipButton 
+          variant="ghost" 
+          size="icon" 
+          tooltipText="Help Center"
+        >
           <HelpCircle className="h-5 w-5" />
-        </Button>
+        </TooltipButton>
         
-        <Button variant="ghost" size="icon" aria-label="Notifications">
+        <TooltipButton 
+          variant="ghost" 
+          size="icon" 
+          tooltipText="Notifications"
+        >
           <Bell className="h-5 w-5" />
-        </Button>
+        </TooltipButton>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="User menu">
+            <TooltipButton 
+              variant="ghost" 
+              size="icon" 
+              tooltipText="User Menu"
+            >
               <User className="h-5 w-5" />
-            </Button>
+            </TooltipButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
