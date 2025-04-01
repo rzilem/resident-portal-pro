@@ -18,25 +18,17 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
   const navigate = useNavigate();
   const Icon = item.icon;
 
-  // Handle navigation to the default page of the section
   const handleNavigate = (href: string, e: React.MouseEvent) => {
-    // Prevent the event from bubbling to the toggle handler
     e.stopPropagation();
-    console.log('Navigating to:', href);
     navigate(href);
   };
 
-  // Handle the toggle action separately
   const handleToggle = (e: React.MouseEvent) => {
-    // Prevent event bubbling to parent components
     e.stopPropagation();
-    console.log(`Manual toggle for ${item.label}, current state:`, isOpen, 'new state:', !isOpen);
     onToggle();
   };
 
-  // Handle child item click
   const handleChildClick = (href: string) => {
-    console.log('Navigating to child item:', href);
     navigate(href);
   };
 
@@ -44,33 +36,31 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
     <Collapsible open={isOpen} className="w-full">
       <div className="flex flex-col w-full">
         <div className="flex w-full">
-          {/* Main section button for navigation */}
           <Button
             variant="default"
             className={cn(
-              "flex-1 justify-start font-normal",
+              "flex-1 justify-start font-normal px-3 py-1.5 h-9 text-sm", // Reduced padding and height
               item.active ? "font-medium" : "font-normal"
             )}
             onClick={(e) => item.href && handleNavigate(item.href, e)}
           >
             <span className="flex items-center">
-              {item.icon && <span className="mr-2"><Icon className="h-4 w-4" /></span>}
+              {item.icon && <span className="mr-2 opacity-70"><Icon className="h-4 w-4" /></span>}
               {item.label}
             </span>
           </Button>
 
-          {/* Toggle button at the end */}
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
-              size="icon"
-              className="px-2"
+              size="sm"
+              className="px-1.5 w-8 h-9" // Smaller button
               onClick={handleToggle}
               data-chevron="true"
             >
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 transition-transform",
+                  "h-4 w-4 transition-transform opacity-60",
                   isOpen ? "rotate-180" : ""
                 )}
               />
@@ -78,7 +68,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           </CollapsibleTrigger>
         </div>
 
-        <CollapsibleContent className="w-full pl-4 pt-1 space-y-1">
+        <CollapsibleContent className="w-full pl-3 pt-0.5 space-y-0.5"> {/* Reduced padding */}
           <SidebarMenu>
             {item.items?.map((subItem) => {
               const SubIcon = subItem.icon;
@@ -87,12 +77,12 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
                   <SidebarMenuButton
                     variant="default"
                     className={cn(
-                      "w-full justify-start text-sm px-2 py-1.5 h-8",
+                      "w-full justify-start text-xs px-2 py-1 h-7", // Smaller text and height
                       subItem.active ? "bg-accent" : "hover:bg-accent/50"
                     )}
                     onClick={() => handleChildClick(subItem.href)}
                   >
-                    {subItem.icon && <span className="mr-2"><SubIcon className="h-4 w-4" /></span>}
+                    {subItem.icon && <span className="mr-2 opacity-60"><SubIcon className="h-3.5 w-3.5" /></span>}
                     {subItem.label}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
