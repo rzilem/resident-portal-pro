@@ -39,14 +39,14 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           <Button
             variant="default"
             className={cn(
-              "flex-1 justify-start font-normal px-3 py-1.5 h-9 text-sm", // Reduced padding and height
+              "flex-1 justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[210px]", // Reduced max-width
               item.active ? "font-medium" : "font-normal"
             )}
             onClick={(e) => item.href && handleNavigate(item.href, e)}
           >
-            <span className="flex items-center">
-              {item.icon && <span className="mr-2 opacity-70"><Icon className="h-4 w-4" /></span>}
-              {item.label}
+            <span className="flex items-center truncate">
+              {item.icon && <span className="mr-2 opacity-70 shrink-0"><Icon className="h-4 w-4" /></span>}
+              <span className="truncate">{item.label}</span>
             </span>
           </Button>
 
@@ -54,13 +54,13 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
             <Button
               variant="ghost"
               size="sm"
-              className="px-1.5 w-8 h-9" // Smaller button
+              className="px-1 w-7 h-8" // Further reduced width
               onClick={handleToggle}
               data-chevron="true"
             >
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 transition-transform opacity-60",
+                  "h-3.5 w-3.5 transition-transform opacity-60",
                   isOpen ? "rotate-180" : ""
                 )}
               />
@@ -68,7 +68,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
           </CollapsibleTrigger>
         </div>
 
-        <CollapsibleContent className="w-full pl-3 pt-0.5 space-y-0.5"> {/* Reduced padding */}
+        <CollapsibleContent className="w-full pl-3 pt-0.5 space-y-0.5">
           <SidebarMenu>
             {item.items?.map((subItem) => {
               const SubIcon = subItem.icon;
@@ -77,13 +77,15 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
                   <SidebarMenuButton
                     variant="default"
                     className={cn(
-                      "w-full justify-start text-xs px-2 py-1 h-7", // Smaller text and height
+                      "w-full justify-start text-xs px-2 py-1 h-7 max-w-[200px]", // Added max-width
                       subItem.active ? "bg-accent" : "hover:bg-accent/50"
                     )}
                     onClick={() => handleChildClick(subItem.href)}
                   >
-                    {subItem.icon && <span className="mr-2 opacity-60"><SubIcon className="h-3.5 w-3.5" /></span>}
-                    {subItem.label}
+                    <span className="flex items-center truncate">
+                      {subItem.icon && <span className="mr-2 opacity-60 shrink-0"><SubIcon className="h-3.5 w-3.5" /></span>}
+                      <span className="truncate">{subItem.label}</span>
+                    </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );
