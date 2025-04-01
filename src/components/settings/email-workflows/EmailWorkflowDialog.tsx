@@ -310,20 +310,21 @@ const EmailWorkflowDialog = ({
                           <Label htmlFor="ocrConfidence" className="text-left">
                             OCR Confidence Level
                           </Label>
-                          <Select 
-                            value={formData.ocrSettings?.confidence || 'medium'} 
-                            onValueChange={(value: 'high' | 'medium' | 'low') => handleOcrConfidenceChange(value)}
-                            className="col-span-3"
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="high">High (Strict matching)</SelectItem>
-                              <SelectItem value="medium">Medium (Balanced)</SelectItem>
-                              <SelectItem value="low">Low (More suggestions)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="col-span-3">
+                            <Select 
+                              value={formData.ocrSettings?.confidence || 'medium'} 
+                              onValueChange={(value: 'high' | 'medium' | 'low') => handleOcrConfidenceChange(value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="high">High (Strict matching)</SelectItem>
+                                <SelectItem value="medium">Medium (Balanced)</SelectItem>
+                                <SelectItem value="low">Low (More suggestions)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                         
                         <div className="pt-2 text-xs text-muted-foreground bg-muted p-3 rounded-md">
