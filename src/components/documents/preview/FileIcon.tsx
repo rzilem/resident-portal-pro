@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, FileImage, FilePdf, FileSpreadsheet, FileCode } from 'lucide-react';
+import { FileText, FileImage, File, FileSpreadsheet, FileCode } from 'lucide-react';
 
 interface FileIconProps {
   fileType: string;
@@ -11,7 +11,7 @@ const FileIcon: React.FC<FileIconProps> = ({ fileType, className = "h-10 w-10" }
   const type = fileType.toLowerCase();
   
   if (type.includes('pdf')) {
-    return <FilePdf className={`${className} text-red-500`} />;
+    return <File className={`${className} text-red-500`} />;
   } else if (
     type.includes('image') || 
     type.includes('jpg') || 

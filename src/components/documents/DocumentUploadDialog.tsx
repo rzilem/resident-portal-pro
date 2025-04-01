@@ -17,6 +17,9 @@ interface DocumentUploadDialogProps {
   onSuccess?: () => void;
   associationId?: string;
   category?: string;
+  // Add the missing props
+  refreshDocuments?: () => void;
+  categoryId?: string;
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
@@ -24,7 +27,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   setOpen,
   onSuccess,
   associationId = '00000000-0000-0000-0000-000000000000',
-  category = 'general'
+  category = 'general',
+  refreshDocuments,
+  categoryId
 }) => {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
@@ -32,6 +37,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [tags, setTags] = useState('');
+
+  // Use categoryId if provided (for backward compatibility)
+  const effectiveCategory = categoryId || category;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -77,7 +85,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 
       const result = await uploadDocument({
         file,
-        category,
+        category: effectiveCategory,
         description,
         tags: tagsArray,
         associationId
@@ -87,7 +95,9 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         toast.success('Document uploaded successfully');
         resetForm();
         setOpen(false);
+        // Call both callbacks if provided
         onSuccess?.();
+        refreshDocuments?.();
       } else {
         toast.error(result.error || 'Upload failed');
       }

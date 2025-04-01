@@ -35,3 +35,18 @@ export const errorLog = (message: string, error?: any) => {
   console.error(`[ERROR] ${message}`, error ? error : '');
 };
 
+/**
+ * General debug log
+ */
+export const debugLog = (message: string, data?: any) => {
+  if (DEBUG_CONFIG.general) {
+    console.log(`[DEBUG] ${message}`, data ? data : '');
+  }
+};
+
+/**
+ * Info log
+ */
+export const infoLog = (message: string, data?: any) => {
+  console.log(`[INFO] ${message}`, data ? data : '');
+};

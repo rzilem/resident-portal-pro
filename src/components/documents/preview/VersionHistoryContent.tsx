@@ -3,7 +3,7 @@ import React from 'react';
 import { DocumentFile } from '@/types/documents';
 import { formatBytes } from '@/utils/documents/fileUtils';
 import { Button } from '@/components/ui/button';
-import { Download, Clock, Restore } from 'lucide-react';
+import { Download, Clock, RefreshCw } from 'lucide-react';
 
 interface VersionHistoryContentProps {
   document: DocumentFile;
@@ -72,7 +72,7 @@ const VersionHistoryContent: React.FC<VersionHistoryContentProps> = ({ document 
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Restore this version">
-                      <Restore className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
                 </td>
