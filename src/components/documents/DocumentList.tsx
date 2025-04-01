@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { documentService, DocumentMetadata } from '@/services/documentService';
 import { 
@@ -26,7 +25,7 @@ import {
   File,
   FileImage,
   FileSpreadsheet,
-  FilePdf
+  FileIcon
 } from 'lucide-react';
 import DocumentUploadButton from './DocumentUploadButton';
 import { formatBytes, formatDate } from '@/utils/formatters';
@@ -85,7 +84,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
     if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(type)) {
       return <FileImage className="h-5 w-5 text-blue-500" />;
     } else if (['pdf'].includes(type)) {
-      return <FilePdf className="h-5 w-5 text-red-500" />;
+      return <FileText className="h-5 w-5 text-red-500" />;
     } else if (['xls', 'xlsx', 'csv'].includes(type)) {
       return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
     } else if (['doc', 'docx', 'txt', 'rtf'].includes(type)) {

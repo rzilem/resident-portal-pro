@@ -5,13 +5,15 @@ import Announcements from '../pages/communications/Announcements';
 import HtmlTemplatesPage from '../pages/communications/HtmlTemplatesPage';
 import CommunityMessaging from '../pages/communications/CommunityMessaging';
 import EmailWorkflows from '../pages/settings/EmailWorkflows';
+import MessageTemplates from '../pages/communications/MessageTemplates';
+import Messaging from '../pages/communications/Messaging';
 
 export const communicationRoutes = [
   {
     path: '/communications',
     element: (
       <ProtectedRoute>
-        <CommunityMessaging />
+        <Messaging />
       </ProtectedRoute>
     ),
   },
@@ -19,7 +21,7 @@ export const communicationRoutes = [
     path: '/communications/templates',
     element: (
       <ProtectedRoute>
-        <CommunityMessaging initialTab="templates" />
+        <MessageTemplates />
       </ProtectedRoute>
     ),
   },

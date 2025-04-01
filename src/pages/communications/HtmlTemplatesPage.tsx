@@ -1,34 +1,25 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import HtmlTemplates from '@/components/communications/html-templates/HtmlTemplates';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { htmlTemplateService } from '@/services/htmlTemplateService';
 
 const HtmlTemplatesPage: React.FC = () => {
-  const navigate = useNavigate();
-  
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold">HTML Templates</h1>
-          <p className="text-muted-foreground">
-            Create and manage reusable HTML templates for your communications
-          </p>
-        </div>
-        
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/communications')}
-          className="gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Communications
-        </Button>
+    <div className="container mx-auto py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold">HTML Templates</h1>
+        <p className="text-muted-foreground">
+          Create and manage HTML templates for your communications and documents
+        </p>
       </div>
       
-      <HtmlTemplates />
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-center text-muted-foreground py-8">
+            HTML Templates management is coming soon
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };

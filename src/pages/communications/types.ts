@@ -10,6 +10,10 @@ export interface MessageTemplate {
   lastUpdated: string;
   isDefault?: boolean;
   tags?: string[];
+  category?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  communities?: string[];
 }
 
 export interface Message {
@@ -52,4 +56,10 @@ export interface HtmlTemplate {
   isGlobal: boolean;
   associationId?: string;
   tags?: string[];
+}
+
+export interface CompositionMessage {
+  subject: string;
+  content: string;
+  recipients: string[];
 }

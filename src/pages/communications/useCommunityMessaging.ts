@@ -1,115 +1,98 @@
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
+import { MessageTemplate } from './types';
 
 type Tab = 'compose' | 'history' | 'templates';
-type RecipientType = 'all' | 'homeowners' | 'board' | 'custom';
-type FormatOption = 'email' | 'sms' | 'both';
-type MessageType = 'announcement' | 'reminder' | 'newsletter' | 'alert' | 'general';
+type RecipientType = string;
+type FormatOption = string;
+type MessageType = string;
 
+// Sample data for templates
+export const INITIAL_TEMPLATES: MessageTemplate[] = [
+  {
+    id: '1',
+    name: 'Welcome Email',
+    description: 'Welcome message for new residents',
+    subject: 'Welcome to Our Community!',
+    content: 'Dear {{resident.name}},\n\nWelcome to {{association.name}}! We are delighted to have you as part of our community.',
+    type: 'email',
+    format: 'plain',
+    lastUpdated: new Date().toISOString(),
+    isDefault: true,
+    tags: ['welcome', 'residents']
+  },
+  {
+    id: '2',
+    name: 'Payment Reminder',
+    description: 'Reminder for upcoming payments',
+    subject: 'Payment Reminder',
+    content: 'Dear {{resident.name}},\n\nThis is a friendly reminder that your payment is due on the 1st of next month.',
+    type: 'email',
+    format: 'plain',
+    lastUpdated: new Date().toISOString(),
+    tags: ['payment', 'reminder']
+  }
+];
+
+// Define the hook
 export const useCommunityMessaging = (initialTab: Tab = 'compose') => {
   const [selectedTab, setSelectedTab] = useState<Tab>(initialTab);
-  const [selectedRecipientType, setSelectedRecipientType] = useState<RecipientType>('all');
-  const [selectedFormat, setSelectedFormat] = useState<FormatOption>('email');
-  const [selectedMessageType, setSelectedMessageType] = useState<MessageType>('general');
   const [messageText, setMessageText] = useState('');
   const [subject, setSubject] = useState('');
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [scheduledDate, setScheduledDate] = useState('');
 
+  // Sample data for recipient types
   const recipientTypes = [
     { id: 'all', label: 'All Residents' },
-    { id: 'homeowners', label: 'Homeowners Only' },
-    { id: 'board', label: 'Board Members' },
-    { id: 'custom', label: 'Custom Selection' },
+    { id: 'homeowners', label: 'Homeowners' },
+    { id: 'tenants', label: 'Tenants' },
+    { id: 'board', label: 'Board Members' }
   ];
 
+  // Sample data for format options
   const formatOptions = [
-    { id: 'email', label: 'Email' },
-    { id: 'sms', label: 'SMS Text' },
-    { id: 'both', label: 'Email & SMS' },
+    { id: 'plain', label: 'Plain Text' },
+    { id: 'html', label: 'HTML' }
   ];
 
+  // Sample data for message types
   const messageTypes = [
-    { id: 'announcement', label: 'Announcement' },
-    { id: 'reminder', label: 'Reminder' },
-    { id: 'newsletter', label: 'Newsletter' },
-    { id: 'alert', label: 'Alert' },
-    { id: 'general', label: 'General Message' },
+    { id: 'email', label: 'Email' },
+    { id: 'sms', label: 'SMS' }
   ];
 
-  const handleUpdateSelectedRecipientType = useCallback((type: RecipientType) => {
-    setSelectedRecipientType(type);
-  }, []);
+  // Handler functions
+  const handleUpdateSelectedRecipientType = (type: RecipientType) => {
+    console.log('Selected recipient type:', type);
+  };
 
-  const handleUpdateSelectedFormat = useCallback((format: FormatOption) => {
-    setSelectedFormat(format);
-  }, []);
+  const handleUpdateSelectedFormat = (format: FormatOption) => {
+    console.log('Selected format:', format);
+  };
 
-  const handleUpdateSelectedMessageType = useCallback((type: MessageType) => {
-    setSelectedMessageType(type);
-  }, []);
+  const handleUpdateSelectedMessageType = (type: MessageType) => {
+    console.log('Selected message type:', type);
+  };
 
-  const handleSendMessage = useCallback(() => {
-    console.log('Sending message:', {
-      recipientType: selectedRecipientType,
-      format: selectedFormat,
-      messageType: selectedMessageType,
-      subject,
-      messageText,
-    });
-    // TODO: Implement actual send logic
-    alert('Message sent!');
-    setMessageText('');
-    setSubject('');
-  }, [selectedRecipientType, selectedFormat, selectedMessageType, subject, messageText]);
+  const handleSendMessage = () => {
+    console.log('Sending message:', { subject, messageText });
+    // Implementation would go here
+  };
 
-  const handleSaveAsDraft = useCallback(() => {
-    console.log('Saving draft:', {
-      recipientType: selectedRecipientType,
-      format: selectedFormat,
-      messageType: selectedMessageType,
-      subject,
-      messageText,
-    });
-    // TODO: Implement draft saving logic
-    alert('Draft saved!');
-  }, [selectedRecipientType, selectedFormat, selectedMessageType, subject, messageText]);
+  const handleSaveAsDraft = () => {
+    console.log('Saving as draft:', { subject, messageText });
+    // Implementation would go here
+  };
 
-  const handleSchedule = useCallback(() => {
-    if (!scheduledDate) {
-      alert('Please select a date to schedule this message');
-      return;
-    }
-    
-    console.log('Scheduling message:', {
-      recipientType: selectedRecipientType,
-      format: selectedFormat,
-      messageType: selectedMessageType,
-      subject,
-      messageText,
-      scheduledDate,
-    });
-    
-    // TODO: Implement scheduling logic
-    alert(`Message scheduled for ${scheduledDate.toLocaleString()}!`);
-    setMessageText('');
-    setSubject('');
-    setScheduledDate(undefined);
-  }, [selectedRecipientType, selectedFormat, selectedMessageType, subject, messageText, scheduledDate]);
+  const handleSchedule = () => {
+    console.log('Scheduling message for:', scheduledDate);
+    // Implementation would go here
+  };
 
-  const handleOpenAISuggestion = useCallback(() => {
-    // This would integrate with an AI service to suggest message content
-    console.log('Getting AI suggestion for:', {
-      messageType: selectedMessageType,
-      subject,
-    });
-    
-    // Simulate AI response
-    setTimeout(() => {
-      setMessageText(prev => 
-        prev + "\n\nDear Community Members,\n\nWe hope this message finds you well. [AI-generated content would appear here based on your message type and subject].\n\nThank you,\nCommunity Management"
-      );
-    }, 1000);
-  }, [selectedMessageType, subject]);
+  const handleOpenAISuggestion = () => {
+    console.log('Opening AI suggestion dialog');
+    // Implementation would go here
+  };
 
   return {
     selectedTab,
