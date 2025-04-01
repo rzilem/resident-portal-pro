@@ -10,29 +10,31 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import EmailWorkflowTable from './EmailWorkflowTable';
+import EmailWorkflowDialog from './EmailWorkflowDialog';
 
 const EmailWorkflowSettings: React.FC = () => {
   const { workflowRules, isLoading, error, fetchWorkflowRules, createWorkflowRule, updateWorkflowRule, deleteWorkflowRule, toggleWorkflowRuleStatus } = useEmailWorkflows();
   const { processEmailAsLead, isProcessing } = useEmailToLead();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState(null);
+  const [editingRule, setEditingRule] = useState<any>(null);
   const [debugDialogOpen, setDebugDialogOpen] = useState(false);
-  const [recentEmails, setRecentEmails] = useState([]);
+  const [recentEmails, setRecentEmails] = useState<Array<{id: string, time: string, status: string}>>([]);
   const [debugEmail, setDebugEmail] = useState({
     from: "Test Lead <test@example.com>",
     subject: "Inquiry about your services",
     body: "Hello, I'm interested in learning more...",
     received_at: new Date().toISOString()
   });
-  const [processingStatus, setProcessingStatus] = useState(null);
+  const [processingStatus, setProcessingStatus] = useState<string | null>(null);
   const [monitoringActive, setMonitoringActive] = useState(false);
 
   const fetchRecentEmails = async () => {
     try {
       const response = await fetch('https://your-app.com/api/recent-emails');
       const data = await response.json();
-      setRecentEmails(data.map(email => ({
+      setRecentEmails(data.map((email: any) => ({
         id: email.id,
         time: new Date(email.received_at).toLocaleTimeString(),
         status: email.status
@@ -73,7 +75,7 @@ const EmailWorkflowSettings: React.FC = () => {
     const testEmails = localStorage.getItem('testEmails');
     if (testEmails) {
       const emails = JSON.parse(testEmails);
-      const emailEntries = emails.map(email => ({
+      const emailEntries = emails.map((email: any) => ({
         id: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         time: new Date().toLocaleTimeString(),
         status: 'processing'
@@ -122,7 +124,7 @@ const EmailWorkflowSettings: React.FC = () => {
     }
   };
 
-  const recordProcessedEmail = (id, success) => {
+  const recordProcessedEmail = (id: string, success: boolean) => {
     setRecentEmails(prev => prev.map(email => email.id === id ? { ...email, status: success ? 'success' : 'failed' } : email));
   };
 
@@ -135,6 +137,21 @@ const EmailWorkflowSettings: React.FC = () => {
   const handleAddClick = () => {
     setEditingRule(null);
     setDialogOpen(true);
+  };
+
+  // Handler for editing a workflow rule
+  const handleEditRule = (rule: any) => {
+    setEditingRule(rule);
+    setDialogOpen(true);
+  };
+
+  // Handler for saving a workflow rule
+  const handleSaveRule = (ruleData: any) => {
+    if (editingRule) {
+      updateWorkflowRule(editingRule.id, ruleData);
+    } else {
+      createWorkflowRule(ruleData);
+    }
   };
 
   return (
@@ -176,6 +193,18 @@ const EmailWorkflowSettings: React.FC = () => {
               </div>
             </div>
           )}
+          
+          {workflowRules && workflowRules.length > 0 && (
+            <div className="mt-6">
+              <EmailWorkflowTable 
+                workflowRules={workflowRules}
+                onEdit={handleEditRule}
+                onDelete={deleteWorkflowRule}
+                onToggleStatus={toggleWorkflowRuleStatus}
+              />
+            </div>
+          )}
+          
           <Button 
             variant="outline" 
             size="sm" 
@@ -186,6 +215,14 @@ const EmailWorkflowSettings: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Email Workflow Dialog for creating/editing rules */}
+      <EmailWorkflowDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSave={handleSaveRule}
+        editingRule={editingRule}
+      />
 
       {/* Debug Email Dialog */}
       <Dialog open={debugDialogOpen} onOpenChange={setDebugDialogOpen}>
