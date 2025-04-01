@@ -1,159 +1,123 @@
 
-import React, { useEffect, useState, useRef } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Editor as TinyMCEEditor } from 'tinymce';
-import { mergeTagService } from '@/services/mergeTagService';
-import { Tag } from 'lucide-react';
+import React, { forwardRef, useImperativeHandle, useRef, useEffect, useState } from 'react';
 import HtmlEditor, { HtmlEditorRef } from '@/components/communications/HtmlEditor';
+import { mergeTagService } from '@/services/mergeTagService';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { MergeTag } from '@/types/mergeTags';
 
-interface TemplateContentEditorProps {
+export interface TemplateContentEditorProps {
   content: string;
-  onContentChange: (content: string) => void;
-  subject: string;
-  onSubjectChange: (subject: string) => void;
+  onContentChange: (value: string) => void;
+  onFormatChange?: (value: any) => void;
+  onMergeTagsClick: () => void;
+  onSaveTemplate: () => void;
+  onInsertMergeTag: (tag: MergeTag) => void;
 }
 
-const TemplateContentEditor: React.FC<TemplateContentEditorProps> = ({
-  content,
-  onContentChange,
-  subject,
-  onSubjectChange
-}) => {
-  const [activeTab, setActiveTab] = useState<string>('visual');
-  const [htmlContent, setHtmlContent] = useState<string>(content);
-  const [mergeTags, setMergeTags] = useState<{ tag: string; description: string }[]>([]);
-  const editorRef = useRef<HtmlEditorRef | null>(null);
+export interface TemplateContentEditorRef {
+  insertMergeTag: (tag: MergeTag) => void;
+  getContent: () => string;
+}
 
-  useEffect(() => {
-    // Load merge tags from service
-    const loadMergeTags = async () => {
-      const tags = await mergeTagService.getMergeTags();
-      setMergeTags(tags);
-    };
-    
-    loadMergeTags();
-  }, []);
+const TemplateContentEditor = forwardRef<TemplateContentEditorRef, TemplateContentEditorProps>(
+  ({ content, onContentChange, onMergeTagsClick, onSaveTemplate, onInsertMergeTag }, ref) => {
+    const editorRef = useRef<HtmlEditorRef>(null);
+    const [mergeTags, setMergeTags] = useState<MergeTag[]>([]);
+    const [isHtmlFormat, setIsHtmlFormat] = useState(true);
 
-  useEffect(() => {
-    setHtmlContent(content);
-  }, [content]);
+    useEffect(() => {
+      const loadMergeTags = async () => {
+        try {
+          const tags = await mergeTagService.getAllMergeTags();
+          setMergeTags(tags);
+        } catch (error) {
+          console.error('Failed to load merge tags:', error);
+        }
+      };
 
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    if (value === 'visual' && activeTab === 'html') {
-      // When switching from HTML to Visual, update the editor content
-      onContentChange(htmlContent);
-    }
-    
-    setActiveTab(value);
-  };
+      loadMergeTags();
+    }, []);
 
-  // Handle HTML content change in source mode
-  const handleHtmlContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    setHtmlContent(newContent);
-    onContentChange(newContent);
-  };
+    useImperativeHandle(ref, () => ({
+      insertMergeTag: (tag: MergeTag) => {
+        if (isHtmlFormat) {
+          // Insert tag in HTML editor
+          if (editorRef.current) {
+            const tagContent = `{{${tag.tag}}}`;
+            // Use appropriate method to insert content based on the HtmlEditorRef API
+            editorRef.current.setContent(editorRef.current.getContent() + tagContent);
+            onInsertMergeTag(tag);
+          }
+        } else {
+          // For plain text, we'll need to handle this differently
+          onInsertMergeTag(tag);
+        }
+      },
+      getContent: () => {
+        if (isHtmlFormat && editorRef.current) {
+          return editorRef.current.getContent();
+        }
+        return content;
+      },
+    }));
 
-  // Insert merge tag into content
-  const insertMergeTag = (tag: string) => {
-    if (activeTab === 'visual' && editorRef.current) {
-      // For visual editor
-      if (editorRef.current && editorRef.current.insertContent) {
-        editorRef.current.insertContent(`{${tag}}`);
+    const handleFormatToggle = () => {
+      setIsHtmlFormat(!isHtmlFormat);
+      if (onFormatChange) {
+        onFormatChange(!isHtmlFormat);
       }
-    } else {
-      // For HTML source editor
-      setHtmlContent(prev => {
-        const newContent = prev + `{${tag}}`;
-        onContentChange(newContent);
-        return newContent;
-      });
-    }
-  };
+    };
 
-  // Insert merge tag into subject
-  const insertMergeTagInSubject = (tag: string) => {
-    const newSubject = subject + `{${tag}}`;
-    onSubjectChange(newSubject);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="subject">Subject</Label>
-        <div className="flex mt-1.5 space-x-2">
-          <div className="flex-1">
-            <Textarea
-              id="subject"
-              value={subject}
-              onChange={(e) => onSubjectChange(e.target.value)}
-              placeholder="Email subject line"
-              className="resize-none"
-            />
-          </div>
-          <div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                // Show merge tags dropdown for subject
-              }}
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={handleFormatToggle}
             >
-              <Tag className="h-4 w-4 mr-1" />
-              Insert Tag
+              {isHtmlFormat ? 'Switch to Plain Text' : 'Switch to HTML'}
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={onMergeTagsClick}
+            >
+              Insert Merge Tag
             </Button>
           </div>
+          <Button 
+            type="button" 
+            onClick={onSaveTemplate}
+          >
+            Save Template
+          </Button>
         </div>
-      </div>
-      
-      <div>
-        <Label>Content</Label>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-1.5">
-          <div className="flex justify-between items-center mb-2">
-            <TabsList>
-              <TabsTrigger value="visual">Visual Editor</TabsTrigger>
-              <TabsTrigger value="html">HTML Source</TabsTrigger>
-            </TabsList>
-            
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                // Show merge tags dropdown for content
-              }}
-            >
-              <Tag className="h-4 w-4 mr-1" />
-              Insert Tag
-            </Button>
-          </div>
-          
-          <TabsContent value="visual" className="mt-0">
+
+        <div className="min-h-[300px] border rounded-md">
+          {isHtmlFormat ? (
             <HtmlEditor
-              ref={editorRef as React.RefObject<HtmlEditorRef>}
+              ref={editorRef}
               value={content}
               onChange={onContentChange}
-              height={350}
             />
-          </TabsContent>
-          
-          <TabsContent value="html" className="mt-0">
+          ) : (
             <Textarea
-              value={htmlContent}
-              onChange={handleHtmlContentChange}
-              placeholder="Enter HTML content"
-              className="min-h-[350px] font-mono text-sm"
+              value={content}
+              onChange={(e) => onContentChange(e.target.value)}
+              className="w-full h-[300px] p-2"
             />
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+TemplateContentEditor.displayName = 'TemplateContentEditor';
 
 export default TemplateContentEditor;
