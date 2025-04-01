@@ -17,7 +17,7 @@ interface AssociationPhotosProps {
 }
 
 const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, associationName }) => {
-  const { photos, isLoading } = useAssociationPhotos(associationId);
+  const { photos, isLoading, error } = useAssociationPhotos(associationId);
 
   // If loading, show a loading state
   if (isLoading) {
@@ -39,8 +39,29 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
     );
   }
 
+  // If error, show error state
+  if (error) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Image className="h-5 w-5" />
+            Property Photos
+          </CardTitle>
+          <CardDescription>{associationName} property images</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[250px] flex items-center justify-center flex-col text-center gap-2 bg-muted/30 rounded-md">
+            <Image className="h-12 w-12 text-destructive opacity-70" />
+            <p className="text-destructive">Error loading photos: {error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // If no photos, show a placeholder
-  if (photos.length === 0) {
+  if (!photos || photos.length === 0) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -80,8 +101,15 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
                     src={photo.url} 
                     alt={photo.description || `${associationName} property`} 
                     className="h-[250px] w-full object-cover"
+                    onError={(e) => {
+                      console.error("Failed to load image:", photo.url);
+                      e.currentTarget.src = "https://placehold.co/600x400?text=Image+Not+Found";
+                    }}
                   />
                 </div>
+                {photo.description && (
+                  <p className="text-sm text-center mt-2 text-muted-foreground">{photo.description}</p>
+                )}
               </CarouselItem>
             ))}
           </CarouselContent>

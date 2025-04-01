@@ -1,13 +1,18 @@
 
+/**
+ * Type definitions for spreadsheet mapping functionality
+ */
+
 export interface ColumnMapping {
-  sourceField: string;
+  sourceColumn: string;
   targetField: string;
+  sourceIndex?: number;
 }
 
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
-  message?: string;
+  message: string;
   validationResults?: {
     total: number;
     valid: number;
@@ -17,7 +22,9 @@ export interface ValidationResult {
 }
 
 export interface FieldOption {
-  name: string;
   label: string;
+  value: string;
+  required?: boolean;
+  category?: string;
   description?: string;
 }

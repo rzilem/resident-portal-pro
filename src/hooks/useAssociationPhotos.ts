@@ -21,11 +21,13 @@ export const useAssociationPhotos = (associationId: string) => {
     setError(null);
     
     try {
+      console.log(`Fetching photos for association: ${associationId}`);
       const data = await getAssociationPhotos(associationId);
+      console.log(`Fetched ${data.length} photos`, data);
       setPhotos(data);
     } catch (err) {
+      console.error('Error fetching association photos:', err);
       setError('Failed to load association photos');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -49,8 +51,8 @@ export const useAssociationPhotos = (associationId: string) => {
       }
       return null;
     } catch (err) {
+      console.error('Error uploading photo:', err);
       setError('Failed to upload photo');
-      console.error(err);
       return null;
     } finally {
       setIsUploading(false);
@@ -60,12 +62,17 @@ export const useAssociationPhotos = (associationId: string) => {
   const deletePhoto = useCallback(async (photoId: string) => {
     setError(null);
     
-    const success = await deleteAssociationPhoto(photoId);
-    if (success) {
-      setPhotos(prev => prev.filter(photo => photo.id !== photoId));
+    try {
+      const success = await deleteAssociationPhoto(photoId);
+      if (success) {
+        setPhotos(prev => prev.filter(photo => photo.id !== photoId));
+      }
+      return success;
+    } catch (err) {
+      console.error('Error deleting photo:', err);
+      setError('Failed to delete photo');
+      return false;
     }
-    
-    return success;
   }, []);
 
   const setPrimary = useCallback(async (photoId: string) => {
@@ -73,15 +80,20 @@ export const useAssociationPhotos = (associationId: string) => {
     
     setError(null);
     
-    const success = await setPrimaryPhoto(photoId, associationId);
-    if (success) {
-      setPhotos(prev => prev.map(photo => ({
-        ...photo,
-        is_primary: photo.id === photoId
-      })));
+    try {
+      const success = await setPrimaryPhoto(photoId, associationId);
+      if (success) {
+        setPhotos(prev => prev.map(photo => ({
+          ...photo,
+          is_primary: photo.id === photoId
+        })));
+      }
+      return success;
+    } catch (err) {
+      console.error('Error setting primary photo:', err);
+      setError('Failed to update primary photo');
+      return false;
     }
-    
-    return success;
   }, [associationId]);
 
   return {
