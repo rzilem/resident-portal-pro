@@ -221,22 +221,41 @@ export const processLeadEmail = async (emailContent: {
       ? emailParts[0].split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
       : emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1);
     
-    // Parse the email body for additional information
-    // This is a simple implementation - in a production environment, 
-    // you'd use more sophisticated parsing, possibly with AI
-    const associationName = extractFromEmail(emailContent.body, 'association', 'community');
-    const associationType = extractFromEmail(emailContent.body, 'type', 'hoa', 'condo', 'community');
-    const currentManagement = extractFromEmail(emailContent.body, 'management', 'manager');
-    const unitCountMatch = emailContent.body.match(/(\d+)\s*(units|homes|properties)/i);
-    const unitCount = unitCountMatch ? parseInt(unitCountMatch[1]) : null;
-    const address = extractFromEmail(emailContent.body, 'address', 'location', 'located');
-    const city = extractFromEmail(emailContent.body, 'city', 'town');
-    const state = extractFromEmail(emailContent.body, 'state');
+    // Find relevant workflow
+    const { data: workflows } = await supabase
+      .from('email_workflows')
+      .select('*')
+      .eq('workflow_type', 'Lead Management')
+      .eq('inbound_email', 'lead@hoamanagersoftware.com')
+      .limit(1);
+    
+    const workflow = workflows && workflows.length > 0 ? workflows[0] : null;
+    const useOcr = workflow?.enable_ocr || false;
+    
+    // Parse the email body for additional information using OCR if enabled
+    let extractedData: Record<string, any> = {};
+    
+    if (useOcr && emailContent.attachments && emailContent.attachments.length > 0) {
+      // In a real implementation, we would send the attachment to an OCR service
+      // For demonstration, we'll simulate OCR extraction
+      extractedData = await simulateOcrExtraction(emailContent.attachments[0].content);
+      console.log('OCR extracted data:', extractedData);
+    }
+    
+    // Combine OCR data with regular email parsing
+    const associationName = extractedData.associationName || extractFromEmail(emailContent.body, 'association', 'community');
+    const associationType = extractedData.associationType || extractFromEmail(emailContent.body, 'type', 'hoa', 'condo', 'community');
+    const currentManagement = extractedData.currentManagement || extractFromEmail(emailContent.body, 'management', 'manager');
+    const unitCountMatch = extractedData.unitCount || emailContent.body.match(/(\d+)\s*(units|homes|properties)/i);
+    const unitCount = extractedData.unitCount || (unitCountMatch ? parseInt(unitCountMatch[1]) : null);
+    const address = extractedData.address || extractFromEmail(emailContent.body, 'address', 'location', 'located');
+    const city = extractedData.city || extractFromEmail(emailContent.body, 'city', 'town');
+    const state = extractedData.state || extractFromEmail(emailContent.body, 'state');
     
     // Extract boolean information
-    const hasPool = checkForKeywords(emailContent.body, 'pool', 'swimming');
-    const hasGate = checkForKeywords(emailContent.body, 'gate', 'gated', 'secured');
-    const hasOnsite = checkForKeywords(emailContent.body, 'onsite', 'on-site', 'on site', 'manager');
+    const hasPool = extractedData.hasPool !== undefined ? extractedData.hasPool : checkForKeywords(emailContent.body, 'pool', 'swimming');
+    const hasGate = extractedData.hasGate !== undefined ? extractedData.hasGate : checkForKeywords(emailContent.body, 'gate', 'gated', 'secured');
+    const hasOnsite = extractedData.hasOnsite !== undefined ? extractedData.hasOnsite : checkForKeywords(emailContent.body, 'onsite', 'on-site', 'on site', 'manager');
     
     // Handle attachments if any
     const uploadedFiles = emailContent.attachments ? 
@@ -278,6 +297,31 @@ export const processLeadEmail = async (emailContent: {
     return { success: false, error };
   }
 };
+
+// Simulate OCR extraction (in a real implementation, this would call an OCR service)
+async function simulateOcrExtraction(base64Content: string): Promise<Record<string, any>> {
+  try {
+    // In a real implementation, we would send the base64 content to an OCR service
+    // For demonstration, we'll return simulated extracted data
+    console.log('Simulating OCR extraction from document...');
+    
+    // In a real scenario, the following would be determined by OCR analysis
+    return {
+      associationName: null, // Would be extracted from document
+      associationType: null,
+      unitCount: null,
+      address: null,
+      city: null,
+      state: null,
+      hasPool: null,
+      hasGate: null,
+      hasOnsite: null
+    };
+  } catch (error) {
+    console.error('Error in OCR extraction:', error);
+    return {};
+  }
+}
 
 // Helper function to extract information from email body
 function extractFromEmail(body: string, ...keywords: string[]): string | null {

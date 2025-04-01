@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PlusCircle, Search, MoreHorizontal, Mail, FileText, Phone, Check, X } from "lucide-react";
+import { PlusCircle, Search, MoreHorizontal, Mail, FileText, Phone, Check, X, Building, Users, Map } from "lucide-react";
 import { 
   Select,
   SelectContent,
@@ -30,6 +30,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { LeadStatus } from "@/types/lead";
 import { toast } from "sonner";
+import LeadColumnsSelector, { LeadColumn } from './LeadColumnsSelector';
+import { useSettings } from '@/hooks/use-settings';
 
 interface Lead {
   id: string;
@@ -40,13 +42,52 @@ interface Lead {
   status: LeadStatus;
   lastContactedAt?: string;
   createdAt: string;
+  source?: string;
+  association_name?: string;
+  association_type?: string;
+  unit_count?: number;
+  city?: string;
+  state?: string;
+  has_pool?: boolean;
+  has_gate?: boolean;
+  has_onsite_management?: boolean;
 }
 
 const LeadsTable: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { getPreference, updatePreference } = useSettings();
   
-  // Mock leads data
+  // Define available columns
+  const defaultColumns: LeadColumn[] = [
+    { id: 'name', label: 'Name', checked: true },
+    { id: 'email', label: 'Email', checked: true },
+    { id: 'company', label: 'Company', checked: true },
+    { id: 'phone', label: 'Phone', checked: false },
+    { id: 'status', label: 'Status', checked: true },
+    { id: 'association_name', label: 'Association', checked: true },
+    { id: 'association_type', label: 'Type', checked: false },
+    { id: 'unit_count', label: 'Units', checked: false },
+    { id: 'city', label: 'City', checked: false },
+    { id: 'state', label: 'State', checked: false },
+    { id: 'has_pool', label: 'Pool', checked: false },
+    { id: 'has_gate', label: 'Gate', checked: false },
+    { id: 'has_onsite_management', label: 'Onsite Mgmt', checked: false },
+    { id: 'lastContacted', label: 'Last Contacted', checked: true },
+    { id: 'source', label: 'Source', checked: false },
+  ];
+  
+  const [columns, setColumns] = useState<LeadColumn[]>(defaultColumns);
+  
+  // Load user preferences for column visibility
+  useEffect(() => {
+    const savedColumns = getPreference<LeadColumn[]>('leadTableColumns');
+    if (savedColumns && savedColumns.length > 0) {
+      setColumns(savedColumns);
+    }
+  }, [getPreference]);
+  
+  // Mock leads data with expanded fields
   const leads: Lead[] = [
     {
       id: '1',
@@ -57,6 +98,15 @@ const LeadsTable: React.FC = () => {
       status: 'new',
       createdAt: '2023-08-01T09:30:00Z',
       lastContactedAt: null,
+      source: 'Email Workflow',
+      association_name: 'Riverdale HOA',
+      association_type: 'HOA',
+      unit_count: 75,
+      city: 'Austin',
+      state: 'TX',
+      has_pool: true,
+      has_gate: false,
+      has_onsite_management: false
     },
     {
       id: '2',
@@ -67,6 +117,15 @@ const LeadsTable: React.FC = () => {
       status: 'contacted',
       createdAt: '2023-07-25T14:45:00Z',
       lastContactedAt: '2023-07-26T10:15:00Z',
+      source: 'Website',
+      association_name: 'Lakeside Condos',
+      association_type: 'Condo',
+      unit_count: 120,
+      city: 'Denver',
+      state: 'CO',
+      has_pool: true,
+      has_gate: true,
+      has_onsite_management: true
     },
     {
       id: '3',
@@ -77,6 +136,15 @@ const LeadsTable: React.FC = () => {
       status: 'qualified',
       createdAt: '2023-07-15T11:20:00Z',
       lastContactedAt: '2023-07-28T13:30:00Z',
+      source: 'Referral',
+      association_name: 'Highland Community',
+      association_type: 'Community',
+      unit_count: 220,
+      city: 'Seattle',
+      state: 'WA',
+      has_pool: false,
+      has_gate: false,
+      has_onsite_management: false
     },
     {
       id: '4',
@@ -87,6 +155,15 @@ const LeadsTable: React.FC = () => {
       status: 'proposal',
       createdAt: '2023-07-10T16:00:00Z',
       lastContactedAt: '2023-07-30T09:45:00Z',
+      source: 'Email Workflow',
+      association_name: 'Oceanview Villas',
+      association_type: 'HOA',
+      unit_count: 85,
+      city: 'Miami',
+      state: 'FL',
+      has_pool: true,
+      has_gate: true,
+      has_onsite_management: false
     },
     {
       id: '5',
@@ -97,14 +174,24 @@ const LeadsTable: React.FC = () => {
       status: 'negotiation',
       createdAt: '2023-07-05T08:15:00Z',
       lastContactedAt: '2023-07-29T15:20:00Z',
+      source: 'LinkedIn',
+      association_name: 'Mountain View Estates',
+      association_type: 'Community',
+      unit_count: 150,
+      city: 'Portland',
+      state: 'OR',
+      has_pool: false,
+      has_gate: true,
+      has_onsite_management: true
     },
   ];
   
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = 
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.email.toLowerCase().includes(search.toLowerCase()) ||
-      (lead.company && lead.company.toLowerCase().includes(search.toLowerCase()));
+      (lead.name?.toLowerCase().includes(search.toLowerCase()) || false) ||
+      (lead.email?.toLowerCase().includes(search.toLowerCase()) || false) ||
+      (lead.company?.toLowerCase().includes(search.toLowerCase()) || false) ||
+      (lead.association_name?.toLowerCase().includes(search.toLowerCase()) || false);
     
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     
@@ -128,6 +215,16 @@ const LeadsTable: React.FC = () => {
       <div className={`px-2 py-1 rounded-full text-xs inline-block ${config.class}`}>
         {config.label}
       </div>
+    );
+  };
+
+  const getBooleanBadge = (value: boolean | undefined) => {
+    if (value === undefined) return '-';
+    
+    return value ? (
+      <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-200">Yes</Badge>
+    ) : (
+      <Badge variant="secondary" className="bg-gray-100 text-gray-800 hover:bg-gray-200">No</Badge>
     );
   };
   
@@ -162,37 +259,84 @@ const LeadsTable: React.FC = () => {
           </Select>
         </div>
         
-        <Button>
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Add Lead
-        </Button>
+        <div className="flex gap-2">
+          <LeadColumnsSelector 
+            columns={columns} 
+            onChange={setColumns} 
+          />
+          
+          <Button>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add Lead
+          </Button>
+        </div>
       </div>
       
       {filteredLeads.length > 0 ? (
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Contacted</TableHead>
+                {columns.filter(col => col.checked).map(column => (
+                  <TableHead key={column.id}>
+                    {column.label}
+                  </TableHead>
+                ))}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredLeads.map((lead) => (
                 <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.name}</TableCell>
-                  <TableCell>{lead.email}</TableCell>
-                  <TableCell>{lead.company || '-'}</TableCell>
-                  <TableCell>{getStatusBadge(lead.status)}</TableCell>
-                  <TableCell>
-                    {lead.lastContactedAt 
-                      ? new Date(lead.lastContactedAt).toLocaleDateString() 
-                      : 'Never'}
-                  </TableCell>
+                  {columns.find(c => c.id === 'name')?.checked && (
+                    <TableCell className="font-medium">{lead.name}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'email')?.checked && (
+                    <TableCell>{lead.email}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'company')?.checked && (
+                    <TableCell>{lead.company || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'phone')?.checked && (
+                    <TableCell>{lead.phone || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'status')?.checked && (
+                    <TableCell>{getStatusBadge(lead.status)}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'association_name')?.checked && (
+                    <TableCell>{lead.association_name || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'association_type')?.checked && (
+                    <TableCell>{lead.association_type || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'unit_count')?.checked && (
+                    <TableCell>{lead.unit_count || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'city')?.checked && (
+                    <TableCell>{lead.city || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'state')?.checked && (
+                    <TableCell>{lead.state || '-'}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'has_pool')?.checked && (
+                    <TableCell>{getBooleanBadge(lead.has_pool)}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'has_gate')?.checked && (
+                    <TableCell>{getBooleanBadge(lead.has_gate)}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'has_onsite_management')?.checked && (
+                    <TableCell>{getBooleanBadge(lead.has_onsite_management)}</TableCell>
+                  )}
+                  {columns.find(c => c.id === 'lastContacted')?.checked && (
+                    <TableCell>
+                      {lead.lastContactedAt 
+                        ? new Date(lead.lastContactedAt).toLocaleDateString() 
+                        : 'Never'}
+                    </TableCell>
+                  )}
+                  {columns.find(c => c.id === 'source')?.checked && (
+                    <TableCell>{lead.source || '-'}</TableCell>
+                  )}
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
