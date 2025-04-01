@@ -29,9 +29,9 @@ const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
 
   // Determine if inspectionDate is a Date object
   const inspectionDate = formData.inspectionDate 
-    ? (formData.inspectionDate instanceof Date 
-        ? formData.inspectionDate 
-        : new Date(formData.inspectionDate)) 
+    ? (typeof formData.inspectionDate === 'string'
+        ? new Date(formData.inspectionDate) 
+        : formData.inspectionDate) 
     : undefined;
 
   return (

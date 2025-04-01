@@ -6,13 +6,13 @@ export const getCommunicationSection = (currentPath: string): NavItem => ({
   label: "Communications",
   icon: MessageSquare,
   active: currentPath.startsWith("/communications"),
-  href: "/communications/messaging", // Default href
+  href: "/communications", // Default href
   items: [
     {
       label: "Messaging",
       icon: Send,
-      href: "/communications/messaging",
-      active: currentPath === "/communications/messaging"
+      href: "/communications",
+      active: currentPath === "/communications" || currentPath === "/communications/messaging"
     },
     {
       label: "Announcements",
