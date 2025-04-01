@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ColumnMapping, validateMappings } from '@/utils/spreadsheets/mapping';
+import { ColumnMapping, ValidationResult, validateMappings } from '@/utils/spreadsheets/mapping';
 import MappingHeader from './mapping/MappingHeader';
 import MappingFieldsList from './mapping/MappingFieldsList';
 import MappingFooter from './mapping/MappingFooter';
@@ -52,7 +52,8 @@ const FieldMapping: React.FC<FieldMappingProps> = ({
   }, [fileData, mappings, importType]);
 
   const handleContinueToValidation = () => {
-    const validationResult = validateMappings(mappings, fileData);
+    // Pass importType instead of fileData to validateMappings
+    const validationResult = validateMappings(mappings, importType);
     
     if (!validationResult.isValid) {
       toast.error(validationResult.message);

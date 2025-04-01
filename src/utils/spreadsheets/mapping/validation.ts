@@ -7,13 +7,16 @@ import { ColumnMapping, ValidationResult } from './types';
 /**
  * Validate mappings against file data
  * @param mappings Array of column mappings
- * @param importType Import type string ('association', 'property', 'resident')
+ * @param fileData File data object or import type string
  * @returns Validation result object
  */
 export const validateMappings = (
   mappings: ColumnMapping[],
-  importType: string
+  fileData: { headers: string[]; rows: Record<string, any>[]; } | string
 ): ValidationResult => {
+  // Handle either a fileData object or a string importType
+  const importType = typeof fileData === 'string' ? fileData : 'association';
+  
   const errors: string[] = [];
   const requiredFields: Record<string, string[]> = {
     association: ['association_name', 'city', 'state'],

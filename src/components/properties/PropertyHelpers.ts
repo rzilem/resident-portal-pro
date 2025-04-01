@@ -1,6 +1,8 @@
+
 import { Association } from '@/types/association';
 
 export interface Property {
+  id?: string;
   name: string;
   location: string;
   units: number;
@@ -17,6 +19,7 @@ export interface Property {
   leases?: number;
   serviceType?: string;
   associationId?: string;
+  address?: string;
 }
 
 export const getDefaultProperties = (): Property[] => [
@@ -98,6 +101,7 @@ export const getDefaultColumns = () => {
 
 export const getPropertiesFromAssociations = (associations: Association[]): Property[] => {
   return associations.map(association => ({
+    id: association.id, // Add id mapping
     name: association.name,
     location: `${association.address.city}, ${association.address.state}`,
     units: association.units,
@@ -115,6 +119,7 @@ export const getPropertiesFromAssociations = (associations: Association[]): Prop
     hasPool: association.settings?.hasPool,
     hasGate: association.settings?.hasGate,
     hasPedestrianGate: association.settings?.hasPedestrianGate,
-    associationId: association.id
+    associationId: association.id,
+    address: association.address.street // Add address mapping
   }));
 };
