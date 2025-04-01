@@ -1,4 +1,7 @@
-import { ColumnMapping, ValidationResult } from './mapping/types';
+// src/utils/spreadsheets/mapping.ts
+import { ColumnMapping, ValidationResult } from './types';
+
+export { ColumnMapping, ValidationResult } from './types';
 
 /**
  * Generate automatic mappings based on spreadsheet headers
