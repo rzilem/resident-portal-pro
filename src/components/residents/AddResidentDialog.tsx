@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useAddResident } from './useAddResident';
+import { useParams } from 'react-router-dom';
 
 const residentFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -36,6 +37,7 @@ interface AddResidentDialogProps {
 
 const AddResidentDialog = ({ open, onOpenChange, onResidentAdded }: AddResidentDialogProps) => {
   const { addResident, isLoading } = useAddResident();
+  const { id: associationId } = useParams<{ id: string }>();
   
   const form = useForm<ResidentFormValues>({
     resolver: zodResolver(residentFormSchema),
@@ -57,6 +59,8 @@ const AddResidentDialog = ({ open, onOpenChange, onResidentAdded }: AddResidentD
 
   const onSubmit = async (data: ResidentFormValues) => {
     try {
+      console.log('Submitting resident form with data:', data);
+      
       await addResident({
         first_name: data.firstName,
         last_name: data.lastName,
@@ -66,10 +70,12 @@ const AddResidentDialog = ({ open, onOpenChange, onResidentAdded }: AddResidentD
         property: data.property || '',
         status: data.status,
         move_in_date: data.moveInDate ? new Date(data.moveInDate) : new Date(),
+        move_out_date: undefined,
         mailing_address: data.mailingAddress || '',
         property_address: data.propertyAddress || '',
         balance: parseFloat(data.balance || '0'),
         payment_preference: data.paymentPreference || '',
+        association_id: associationId,
       });
       
       toast.success('Resident added successfully');

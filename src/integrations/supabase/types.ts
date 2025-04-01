@@ -1434,6 +1434,66 @@ export type Database = {
           },
         ]
       }
+      resident_profiles: {
+        Row: {
+          balance: number | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          mailing_address: string | null
+          move_in_date: string
+          move_out_date: string | null
+          payment_preference: string | null
+          phone: string | null
+          property: string | null
+          property_address: string | null
+          status: string
+          unit: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          mailing_address?: string | null
+          move_in_date: string
+          move_out_date?: string | null
+          payment_preference?: string | null
+          phone?: string | null
+          property?: string | null
+          property_address?: string | null
+          status: string
+          unit?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          mailing_address?: string | null
+          move_in_date?: string
+          move_out_date?: string | null
+          payment_preference?: string | null
+          phone?: string | null
+          property?: string | null
+          property_address?: string | null
+          status?: string
+          unit?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       residents: {
         Row: {
           created_at: string | null
