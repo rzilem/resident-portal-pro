@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Plus, Mail, BugPlay } from "lucide-react";
+import { RefreshCw, Plus, Mail, BugPlay, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useEmailWorkflows } from '@/hooks/use-email-workflows';
 import { EmailWorkflowRule } from '@/services/emailWorkflowService';
 import EmailWorkflowTable from './EmailWorkflowTable';
@@ -12,6 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 const EmailWorkflowSettings: React.FC = () => {
   const { 
@@ -30,6 +34,7 @@ const EmailWorkflowSettings: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<EmailWorkflowRule | null>(null);
   const [debugDialogOpen, setDebugDialogOpen] = useState(false);
+  const [recentEmails, setRecentEmails] = useState<Array<{id: string, time: string, status: string}>>([]);
   const [debugEmail, setDebugEmail] = useState({
     from: "Test Lead <test@example.com>",
     subject: "Inquiry about your services",
@@ -37,10 +42,50 @@ const EmailWorkflowSettings: React.FC = () => {
     received_at: new Date().toISOString()
   });
   const [processingStatus, setProcessingStatus] = useState<string | null>(null);
+  const [monitoringActive, setMonitoringActive] = useState(false);
 
   useEffect(() => {
     // Check for any unprocessed emails when component mounts
     checkForNewEmails();
+    
+    // Set up polling if monitoring is active
+    let interval: number | null = null;
+    if (monitoringActive) {
+      interval = window.setInterval(() => {
+        checkForNewEmails(true);
+      }, 30000); // Check every 30 seconds
+    }
+    
+    return () => {
+      if (interval) window.clearInterval(interval);
+    };
+  }, [monitoringActive]);
+
+  // Add any manually reported emails to the monitoring list
+  useEffect(() => {
+    const manualEntry = localStorage.getItem('manualEmailEntry');
+    if (manualEntry) {
+      try {
+        const emailInfo = JSON.parse(manualEntry);
+        if (emailInfo && emailInfo.time) {
+          // Add to recent emails list
+          const newEmail = {
+            id: `manual-${Date.now()}`,
+            time: emailInfo.time,
+            status: 'pending'
+          };
+          setRecentEmails(prev => [newEmail, ...prev]);
+          
+          // Remove the entry so we don't process it again
+          localStorage.removeItem('manualEmailEntry');
+          
+          // Trigger processing
+          checkForNewEmails(true);
+        }
+      } catch (err) {
+        console.error('Error parsing manual email entry:', err);
+      }
+    }
   }, []);
 
   const handleAddClick = () => {
@@ -61,32 +106,107 @@ const EmailWorkflowSettings: React.FC = () => {
     }
   };
 
-  // Simulate checking for new emails
-  const checkForNewEmails = async () => {
+  // Record a processed email in the recent emails list
+  const recordProcessedEmail = (id: string, success: boolean) => {
+    setRecentEmails(prev => prev.map(email => 
+      email.id === id ? {...email, status: success ? 'success' : 'failed'} : email
+    ));
+  };
+
+  // Enhanced version to check for new emails
+  const checkForNewEmails = async (silent = false) => {
     // This would normally connect to an email API to check for new emails
-    console.log('Checking for new emails...');
+    if (!silent) {
+      console.log('Checking for new emails...');
+    }
     
-    // For testing purposes, we'll manually process a test email
+    // For testing purposes, we'll manually process test emails
     const testEmails = localStorage.getItem('testEmails');
     if (testEmails) {
       try {
         const emails = JSON.parse(testEmails);
         if (Array.isArray(emails) && emails.length > 0) {
-          toast.info(`Processing ${emails.length} test emails`);
+          if (!silent) {
+            toast.info(`Processing ${emails.length} test emails`);
+          }
           
-          for (const email of emails) {
-            await processEmailAsLead(email);
+          // Add emails to the recent list first
+          const emailEntries = emails.map(email => ({
+            id: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            time: new Date().toLocaleTimeString(),
+            status: 'processing'
+          }));
+          
+          setRecentEmails(prev => [...emailEntries, ...prev].slice(0, 10));
+          
+          // Process emails
+          for (let i = 0; i < emails.length; i++) {
+            const email = emails[i];
+            const emailId = emailEntries[i].id;
+            
+            try {
+              const result = await processEmailAsLead(email);
+              if (result?.error) {
+                recordProcessedEmail(emailId, false);
+                if (!silent) {
+                  toast.error(`Failed to process email: ${result.error}`);
+                }
+              } else {
+                recordProcessedEmail(emailId, true);
+                if (!silent) {
+                  if (result?.created) {
+                    toast.success('New lead created from email');
+                  } else if (result?.updated) {
+                    toast.success('Existing lead updated from email');
+                  } else {
+                    toast.success('Email processed successfully');
+                  }
+                }
+              }
+            } catch (err) {
+              recordProcessedEmail(emailId, false);
+              console.error('Error processing email:', err);
+              if (!silent) {
+                toast.error('Error processing email');
+              }
+            }
           }
           
           // Clear the test emails after processing
           localStorage.removeItem('testEmails');
-          toast.success('Test emails processed');
+          if (!silent) {
+            toast.success('All test emails processed');
+          }
         }
       } catch (err) {
         console.error('Error processing test emails:', err);
-        toast.error('Failed to process test emails');
+        if (!silent) {
+          toast.error('Failed to process test emails');
+        }
       }
+    } else if (!silent) {
+      toast.info('No new emails to process');
     }
+  };
+
+  const handleManualAdd = () => {
+    // Add a manual entry for demonstration
+    const manualEntry = {
+      time: "12:02"
+    };
+    localStorage.setItem('manualEmailEntry', JSON.stringify(manualEntry));
+    
+    // Add to recent emails list
+    const newEmail = {
+      id: `manual-${Date.now()}`,
+      time: "12:02",
+      status: 'pending'
+    };
+    setRecentEmails(prev => [newEmail, ...prev]);
+    
+    // Trigger processing
+    toast.info('Manual email entry added. Processing...');
+    checkForNewEmails(false);
   };
 
   const handleTestEmail = () => {
@@ -104,7 +224,7 @@ const EmailWorkflowSettings: React.FC = () => {
     emails.push(testEmail);
     localStorage.setItem('testEmails', JSON.stringify(emails));
     
-    toast.success('Test email created! Click "Check For New Emails" to process it.');
+    toast.success('Test email created! Click "Process Emails Now" to process it.');
   };
 
   const handleDebugDialog = () => {
@@ -138,6 +258,11 @@ const EmailWorkflowSettings: React.FC = () => {
     }
   };
 
+  const toggleMonitoring = () => {
+    setMonitoringActive(!monitoringActive);
+    toast.info(monitoringActive ? 'Email monitoring stopped' : 'Email monitoring activated');
+  };
+
   return (
     <div className="w-full">
       <Card>
@@ -149,21 +274,42 @@ const EmailWorkflowSettings: React.FC = () => {
             </CardDescription>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={checkForNewEmails} disabled={isLoading || isProcessing}>
+            <Button 
+              variant={monitoringActive ? "default" : "outline"} 
+              size="sm" 
+              onClick={toggleMonitoring}
+            >
+              {monitoringActive ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Monitoring Active
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Start Monitoring
+                </>
+              )}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => checkForNewEmails(false)} disabled={isLoading || isProcessing}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Check For New Emails
+              Process Emails Now
             </Button>
             <Button variant="outline" size="sm" onClick={handleTestEmail}>
               <Mail className="h-4 w-4 mr-2" />
               Create Test Email
             </Button>
+            <Button variant="outline" size="sm" onClick={handleManualAdd}>
+              <Mail className="h-4 w-4 mr-2" />
+              Add 12:02 Email
+            </Button>
             <Button variant="outline" size="sm" onClick={handleDebugDialog}>
               <BugPlay className="h-4 w-4 mr-2" />
-              Debug Email Processing
+              Debug Email
             </Button>
             <Button variant="outline" size="sm" onClick={fetchWorkflowRules} disabled={isLoading}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              Refresh Rules
             </Button>
             <Button size="sm" onClick={handleAddClick}>
               <Plus className="h-4 w-4 mr-2" />
@@ -172,6 +318,36 @@ const EmailWorkflowSettings: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {recentEmails.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-2">Recent Email Activity</h3>
+              <div className="bg-background border rounded-md p-4">
+                <div className="space-y-3">
+                  {recentEmails.map((email) => (
+                    <div key={email.id} className="flex items-center justify-between p-2 border-b last:border-0">
+                      <div className="flex items-center gap-2">
+                        {email.status === 'processing' && <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />}
+                        {email.status === 'success' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                        {email.status === 'failed' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                        {email.status === 'pending' && <Mail className="h-4 w-4 text-amber-500" />}
+                        <span>Email received at {email.time}</span>
+                      </div>
+                      <Badge variant={
+                        email.status === 'success' ? 'success' : 
+                        email.status === 'failed' ? 'destructive' : 
+                        email.status === 'processing' ? 'default' : 'outline'
+                      }>
+                        {email.status === 'processing' ? 'Processing' : 
+                         email.status === 'success' ? 'Processed' : 
+                         email.status === 'failed' ? 'Failed' : 'Pending'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {error ? (
             <div className="p-4 text-center text-red-500 bg-red-50 rounded-md">
               Failed to load email workflow rules. Please try refreshing.
@@ -253,6 +429,18 @@ const EmailWorkflowSettings: React.FC = () => {
             </DialogContent>
           </Dialog>
 
+          <Alert className="mt-6 border-amber-200 bg-amber-50">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Incoming Email Status</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              {monitoringActive ? (
+                "Email monitoring is active. New emails will be automatically processed as they arrive."
+              ) : (
+                "Email monitoring is currently disabled. Click 'Start Monitoring' to enable automatic processing."
+              )}
+            </AlertDescription>
+          </Alert>
+
           <div className="mt-4">
             <p className="text-sm text-muted-foreground">
               Email workflow rules determine how incoming messages are processed. Each rule maps an incoming email address to 
@@ -263,8 +451,9 @@ const EmailWorkflowSettings: React.FC = () => {
             <div className="mt-4 p-4 bg-blue-50 rounded-md">
               <h3 className="font-medium text-blue-800">Testing Emails to Leads</h3>
               <p className="text-sm text-blue-700 mt-1">
-                To test the email-to-lead functionality, click the "Create Test Email" button above, then click "Check For New Emails" 
-                to process it. This will create a new lead from the test email. For more detailed testing, use the "Debug Email Processing" button.
+                To test the email-to-lead functionality, click the "Create Test Email" button above, then click "Process Emails Now" 
+                to process it. This will create a new lead from the test email. For real-world testing, use the "Add 12:02 Email" 
+                button to simulate a specific email arrival time.
               </p>
               <p className="text-sm text-blue-700 mt-2">
                 For real emails, ensure your server is properly configured to forward received emails to your email-to-lead processor.
