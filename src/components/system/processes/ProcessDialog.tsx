@@ -13,8 +13,9 @@ import { toast } from 'sonner';
 
 interface ProcessDialogProps {
   open: boolean;
-  onClose: (refresh?: boolean) => void;
+  onOpenChange: (open: boolean) => void; // Changed from onClose to onOpenChange
   process: ScheduledProcess | null;
+  onSave: () => Promise<void>; // Changed to match what ProcessScheduler is passing
 }
 
 interface FormValues {
@@ -28,7 +29,7 @@ interface FormValues {
   parameters: Record<string, any>;
 }
 
-const ProcessDialog: React.FC<ProcessDialogProps> = ({ open, onClose, process }) => {
+const ProcessDialog: React.FC<ProcessDialogProps> = ({ open, onOpenChange, process, onSave }) => {
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
     defaultValues: {
       name: process?.name || '',
@@ -66,7 +67,8 @@ const ProcessDialog: React.FC<ProcessDialogProps> = ({ open, onClose, process })
         // Create new process
         await processSchedulerService.createProcess(data);
       }
-      onClose(true);
+      onSave();
+      onOpenChange(false); // Use onOpenChange instead of onClose
     } catch (error) {
       console.error('Error saving process:', error);
       toast.error('Failed to save process');
@@ -74,7 +76,7 @@ const ProcessDialog: React.FC<ProcessDialogProps> = ({ open, onClose, process })
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{process ? 'Edit Process' : 'Schedule New Process'}</DialogTitle>
@@ -217,7 +219,7 @@ const ProcessDialog: React.FC<ProcessDialogProps> = ({ open, onClose, process })
           </div>
           
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onClose()}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

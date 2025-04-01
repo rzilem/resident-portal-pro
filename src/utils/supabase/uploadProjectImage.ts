@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
@@ -123,5 +122,25 @@ export const associateImageWithBidRequest = async (
   } catch (error) {
     console.error('Error in associateImageWithBidRequest:', error);
     return false;
+  }
+};
+
+/**
+ * Gets the public URL for a project image
+ * @param path The path to the image in the storage bucket
+ * @returns Public URL of the image
+ */
+export const getProjectImageUrl = (path: string): string => {
+  if (!path) return '';
+  
+  try {
+    const { data } = supabase.storage
+      .from('bid_request_images')
+      .getPublicUrl(path);
+      
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Error getting project image URL:', error);
+    return '';
   }
 };

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { PROJECT_TYPES } from './wizard/bid-request-data';
 import { TooltipButton } from '@/components/ui/tooltip-button';
+import { supabase } from '@/lib/supabase';
 
 const BidRequests: React.FC = () => {
   const navigate = useNavigate();
