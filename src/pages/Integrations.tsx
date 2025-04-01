@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
 import ElevenLabsTest from '@/components/settings/integrations/ElevenLabsTest';
 import XAITest from '@/components/settings/integrations/XAITest';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const Integrations = () => {
   useEffect(() => {

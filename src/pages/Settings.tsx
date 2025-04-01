@@ -8,6 +8,9 @@ import SecuritySettings from '@/components/settings/SecuritySettings';
 import AssociationSettings from '@/components/settings/AssociationSettings';
 import PermissionSettings from '@/components/settings/PermissionSettings';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { Save, RefreshCw } from 'lucide-react';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const Settings = () => {
   const isMobile = useIsMobile();
@@ -23,6 +26,25 @@ const Settings = () => {
   
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-semibold">Settings</h1>
+        <div className="flex gap-2">
+          <TooltipButton
+            variant="outline"
+            tooltipText="Reset to defaults"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reset
+          </TooltipButton>
+          <TooltipButton
+            tooltipText="Save all settings"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </TooltipButton>
+        </div>
+      </div>
+      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-6'} mb-4`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>

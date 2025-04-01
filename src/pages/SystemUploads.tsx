@@ -10,6 +10,7 @@ import TemplatesTab from '@/components/database/upload/TemplatesTab';
 import UploadDataTab from '@/components/database/upload/UploadDataTab';
 import VendorUploadTab from '@/components/database/upload/VendorUploadTab';
 import SuccessState from '@/components/database/upload/SuccessState';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const SystemUploads = () => {
   const [activeTab, setActiveTab] = useState('upload');
@@ -99,9 +100,14 @@ const SystemUploads = () => {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">Data Upload</CardTitle>
-              <Button variant="ghost" size="icon" className="text-blue-500">
+              <TooltipButton 
+                variant="ghost" 
+                size="icon" 
+                className="text-blue-500" 
+                tooltipText="Upload data files"
+              >
                 <Upload className="h-5 w-5" />
-              </Button>
+              </TooltipButton>
             </div>
             <CardDescription>
               Import resident and property data
@@ -111,12 +117,16 @@ const SystemUploads = () => {
             <p className="text-sm text-muted-foreground">
               Import bulk data from Excel or CSV files. Update existing records or add new ones.
             </p>
-            <Button className="w-full mt-4" onClick={() => {
-              setActiveTab('upload');
-              setUploadStep('initial');
-            }}>
+            <TooltipButton 
+              className="w-full mt-4" 
+              tooltipText="Import data from files"
+              onClick={() => {
+                setActiveTab('upload');
+                setUploadStep('initial');
+              }}
+            >
               Start Data Upload
-            </Button>
+            </TooltipButton>
           </CardContent>
         </Card>
         
@@ -124,9 +134,14 @@ const SystemUploads = () => {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">Vendor Import</CardTitle>
-              <Button variant="ghost" size="icon" className="text-indigo-500">
+              <TooltipButton 
+                variant="ghost" 
+                size="icon" 
+                className="text-indigo-500" 
+                tooltipText="Import vendor data"
+              >
                 <Users className="h-5 w-5" />
-              </Button>
+              </TooltipButton>
             </div>
             <CardDescription>
               Import vendor data
@@ -136,12 +151,13 @@ const SystemUploads = () => {
             <p className="text-sm text-muted-foreground">
               Bulk import vendor information from spreadsheets. Add new vendors or update existing ones.
             </p>
-            <Button 
+            <TooltipButton 
               className="w-full mt-4" 
+              tooltipText="Import vendor information"
               onClick={() => setActiveTab('vendors')}
             >
               Import Vendors
-            </Button>
+            </TooltipButton>
           </CardContent>
         </Card>
         
@@ -149,9 +165,14 @@ const SystemUploads = () => {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">Templates</CardTitle>
-              <Button variant="ghost" size="icon" className="text-purple-500">
+              <TooltipButton 
+                variant="ghost" 
+                size="icon" 
+                className="text-purple-500" 
+                tooltipText="Access and download templates"
+              >
                 <FileDown className="h-5 w-5" />
-              </Button>
+              </TooltipButton>
             </div>
             <CardDescription>
               Download data templates
@@ -161,13 +182,14 @@ const SystemUploads = () => {
             <p className="text-sm text-muted-foreground">
               Get standardized templates for data import. Follow these formats for seamless data uploads.
             </p>
-            <Button 
+            <TooltipButton 
               variant="outline" 
               className="w-full mt-4"
+              tooltipText="View available templates"
               onClick={() => setActiveTab('templates')}
             >
               Browse Templates
-            </Button>
+            </TooltipButton>
           </CardContent>
         </Card>
         
@@ -175,9 +197,14 @@ const SystemUploads = () => {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">Document Structure</CardTitle>
-              <Button variant="ghost" size="icon" className="text-green-500">
+              <TooltipButton 
+                variant="ghost" 
+                size="icon" 
+                className="text-green-500" 
+                tooltipText="Configure document categories"
+              >
                 <Database className="h-5 w-5" />
-              </Button>
+              </TooltipButton>
             </div>
             <CardDescription>
               Configure document organization
@@ -187,13 +214,14 @@ const SystemUploads = () => {
             <p className="text-sm text-muted-foreground">
               Set up your document categories and structure. Organize your filing system for maximum efficiency.
             </p>
-            <Button 
+            <TooltipButton 
               variant="outline" 
               className="w-full mt-4"
+              tooltipText="Configure document structure"
               onClick={() => setActiveTab('structure')}
             >
               Manage Structure
-            </Button>
+            </TooltipButton>
           </CardContent>
         </Card>
       </div>

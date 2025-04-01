@@ -1,193 +1,109 @@
 
 import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Plus, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { ScheduledProcess } from '@/types/process';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import ProcessList from '@/components/system/processes/ProcessList';
+import ProcessDialog from '@/components/system/processes/ProcessDialog';
+import ProcessHistory from '@/components/system/processes/ProcessHistory';
 import EmptyState from '@/components/system/processes/EmptyState';
-import { supabase } from '@/integrations/supabase/client';
+import { processSchedulerService } from '@/services/processSchedulerService';
+import { ScheduledProcess } from '@/types/process';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
-const ProcessScheduler = () => {
+const ProcessScheduler: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('active');
   const [processes, setProcesses] = useState<ScheduledProcess[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('all');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    fetchProcesses();
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProcess, setSelectedProcess] = useState<ScheduledProcess | null>(null);
 
   const fetchProcesses = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('scheduled_processes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setProcesses(data || []);
+      const data = await processSchedulerService.getProcesses();
+      setProcesses(data);
     } catch (error) {
       console.error('Error fetching processes:', error);
-      toast.error('Failed to load scheduled processes');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getFilteredProcesses = () => {
-    if (activeTab === 'all') return processes;
-    if (activeTab === 'enabled') return processes.filter(p => p.enabled);
-    if (activeTab === 'disabled') return processes.filter(p => !p.enabled);
-    if (activeTab === 'daily') return processes.filter(p => p.frequency === 'daily');
-    if (activeTab === 'weekly') return processes.filter(p => p.frequency === 'weekly');
-    if (activeTab === 'monthly') return processes.filter(p => p.frequency === 'monthly');
-    return processes;
-  };
-
-  const handleRefresh = () => {
+  useEffect(() => {
     fetchProcesses();
-    toast.success('Process list refreshed');
+  }, []);
+
+  const handleCreateNew = () => {
+    setSelectedProcess(null);
+    setIsDialogOpen(true);
   };
 
-  const renderFrequencyBadge = (frequency: string) => {
-    let color = 'bg-blue-100 text-blue-800';
-    switch (frequency) {
-      case 'hourly':
-        color = 'bg-purple-100 text-purple-800';
-        break;
-      case 'daily':
-        color = 'bg-blue-100 text-blue-800';
-        break;
-      case 'weekly':
-        color = 'bg-green-100 text-green-800';
-        break;
-      case 'monthly':
-        color = 'bg-amber-100 text-amber-800';
-        break;
-      case 'custom':
-        color = 'bg-gray-100 text-gray-800';
-        break;
-    }
-    return <Badge variant="outline" className={color}>{frequency}</Badge>;
+  const handleEditProcess = (process: ScheduledProcess) => {
+    setSelectedProcess(process);
+    setIsDialogOpen(true);
   };
-
-  const renderStatusBadge = (enabled: boolean) => {
-    return enabled ? 
-      <Badge variant="outline" className="bg-green-100 text-green-800">active</Badge> : 
-      <Badge variant="outline" className="bg-gray-100 text-gray-800">disabled</Badge>;
-  };
-
-  const filteredProcesses = getFilteredProcesses();
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Process Scheduler</h1>
-        <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
-          <Button onClick={handleRefresh} size="sm" variant="outline" className="flex items-center">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-          <Button size="sm" className="flex items-center">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Process
-          </Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold">Process Scheduler</h1>
+          <p className="text-muted-foreground">
+            Schedule and manage recurring system processes
+          </p>
         </div>
+        <TooltipButton 
+          tooltipText="Create a new scheduled process"
+          onClick={handleCreateNew}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Process
+        </TooltipButton>
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Process Manager</CardTitle>
+        <CardHeader>
+          <CardTitle>Scheduled Processes</CardTitle>
           <CardDescription>
-            Manage scheduled processes and background tasks.
+            Manage automated tasks and background processes
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="px-6 py-2 border-b">
-              <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="enabled">Enabled</TabsTrigger>
-                <TabsTrigger value="disabled">Disabled</TabsTrigger>
-                <TabsTrigger value="daily">Daily</TabsTrigger>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value={activeTab} className="p-0">
+        <CardContent>
+          <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="active">Active Processes</TabsTrigger>
+              <TabsTrigger value="history">Execution History</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="active">
               {isLoading ? (
-                <div className="flex items-center justify-center p-12">
-                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : filteredProcesses.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Frequency</TableHead>
-                        <TableHead>Next Run</TableHead>
-                        <TableHead>Last Run</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredProcesses.map((process) => (
-                        <TableRow key={process.id}>
-                          <TableCell className="font-medium">{process.name}</TableCell>
-                          <TableCell>{process.process_type}</TableCell>
-                          <TableCell>{renderFrequencyBadge(process.frequency)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                              {process.start_date} {process.run_time}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {process.last_run ? (
-                              format(new Date(process.last_run), 'MMM d, h:mm a')
-                            ) : (
-                              <span className="text-muted-foreground text-sm">Never</span>
-                            )}
-                          </TableCell>
-                          <TableCell>{renderStatusBadge(process.enabled)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Button size="icon" variant="ghost" className="h-8 w-8">
-                                <Clock className="h-4 w-4" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8">
-                                <AlertCircle className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <EmptyState 
-                  title="No processes found" 
-                  description="There are no scheduled processes in this category. Click the button below to add a new process."
-                  actionLabel="Add Process"
+                <div className="py-8 text-center text-muted-foreground">Loading processes...</div>
+              ) : processes.length > 0 ? (
+                <ProcessList 
+                  processes={processes} 
+                  onEdit={handleEditProcess}
+                  onRefresh={fetchProcesses}
                 />
+              ) : (
+                <EmptyState onCreateNew={handleCreateNew} />
               )}
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <ProcessHistory />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      <ProcessDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+        process={selectedProcess}
+        onSave={fetchProcesses}
+      />
     </div>
   );
 };

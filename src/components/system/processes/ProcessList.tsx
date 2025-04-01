@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ScheduledProcess } from '@/types/process';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 interface ProcessListProps {
   processes: ScheduledProcess[];
@@ -108,9 +110,9 @@ const ProcessList: React.FC<ProcessListProps> = ({ processes, onEdit, onRefresh 
             <div className="flex gap-2 mt-3 sm:mt-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <TooltipButton variant="ghost" size="icon" tooltipText="More options">
                     <MoreHorizontal className="h-5 w-5" />
-                  </Button>
+                  </TooltipButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(process)}>
@@ -139,13 +141,14 @@ const ProcessList: React.FC<ProcessListProps> = ({ processes, onEdit, onRefresh 
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="outline" size="sm" onClick={() => onEdit(process)}>
+              <TooltipButton variant="outline" size="sm" tooltipText="Edit process details" onClick={() => onEdit(process)}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
-              </Button>
-              <Button
+              </TooltipButton>
+              <TooltipButton
                 variant={process.enabled ? "destructive" : "default"}
                 size="sm"
+                tooltipText={process.enabled ? "Disable process" : "Enable process"}
                 onClick={() => handleToggleEnabled(process.id, process.enabled)}
               >
                 {process.enabled ? (
@@ -159,7 +162,7 @@ const ProcessList: React.FC<ProcessListProps> = ({ processes, onEdit, onRefresh 
                     Enable
                   </>
                 )}
-              </Button>
+              </TooltipButton>
             </div>
           </div>
         </div>
