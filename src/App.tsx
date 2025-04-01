@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -79,6 +78,10 @@ function ScrollToTop() {
   return null;
 }
 
+const ProcessScheduler = () => {
+  return <div>Process Scheduler Page</div>;
+};
+
 const App = () => {
   const AppRoutes = () => {
     const location = useLocation();
@@ -148,6 +151,12 @@ const App = () => {
           <Route path="/resale/bid-requests" element={<BidRequests />} />
           <Route path="/resale/bid-requests/:id" element={<BidRequestDetail />} />
           <Route path="/resale/admin/project-images" element={<div>Project Images Page</div>} />
+          
+          <Route path="/system/processes" element={
+            <ProtectedRoute>
+              <ProcessScheduler />
+            </ProtectedRoute>
+          } />
           
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/associations" element={<Associations />} />
