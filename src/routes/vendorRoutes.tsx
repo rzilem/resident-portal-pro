@@ -4,6 +4,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import Vendors from '../pages/vendors/Vendors';
 import VendorProfile from '../pages/vendors/VendorProfile';
 import SystemUploads from '../pages/SystemUploads';
+import ProcessScheduler from '../pages/system/ProcessScheduler';
 
 export const vendorRoutes = [
   {
@@ -27,6 +28,14 @@ export const vendorRoutes = [
     element: (
       <ProtectedRoute>
         <SystemUploads />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/system/processes',
+    element: (
+      <ProtectedRoute>
+        <ProcessScheduler />
       </ProtectedRoute>
     ),
   },

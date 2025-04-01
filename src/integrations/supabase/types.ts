@@ -1010,6 +1010,57 @@ export type Database = {
           },
         ]
       }
+      scheduled_processes: {
+        Row: {
+          association_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          frequency: string
+          id: string
+          last_end: string | null
+          last_run: string | null
+          name: string
+          parameters: Json | null
+          process_type: string
+          run_time: string
+          start_date: string
+        }
+        Insert: {
+          association_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          frequency?: string
+          id?: string
+          last_end?: string | null
+          last_run?: string | null
+          name: string
+          parameters?: Json | null
+          process_type: string
+          run_time: string
+          start_date: string
+        }
+        Update: {
+          association_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          frequency?: string
+          id?: string
+          last_end?: string | null
+          last_run?: string | null
+          name?: string
+          parameters?: Json | null
+          process_type?: string
+          run_time?: string
+          start_date?: string
+        }
+        Relationships: []
+      }
       user_integrations: {
         Row: {
           created_at: string
