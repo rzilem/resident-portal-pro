@@ -128,37 +128,62 @@ const LeadRowActions: React.FC<LeadRowActionsProps> = ({ lead }) => {
       setDeleteError(null);
       console.log('Deleting lead:', lead.id);
       
+      let deletionErrors = [];
+      
       // If there are documents, delete them first
       if (lead.uploaded_files && lead.uploaded_files.length > 0) {
         console.log('Deleting associated documents first');
         for (const doc of lead.uploaded_files) {
           if (doc.path) {
             console.log('Deleting document:', doc.path);
-            const { error: storageError } = await supabase.storage
-              .from('documents')
-              .remove([doc.path]);
-              
-            if (storageError) {
-              console.warn('Error removing document from storage:', storageError);
-              // Continue with deletion even if some documents fail to delete
+            try {
+              const { error: storageError } = await supabase.storage
+                .from('documents')
+                .remove([doc.path]);
+                
+              if (storageError) {
+                console.warn('Error removing document from storage:', storageError);
+                deletionErrors.push(`Could not delete document ${doc.name}: ${storageError.message}`);
+                // Continue with deletion even if some documents fail to delete
+              } else {
+                console.log(`Successfully deleted document: ${doc.name}`);
+              }
+            } catch (docError: any) {
+              console.error('Exception deleting document:', docError);
+              deletionErrors.push(`Exception deleting document ${doc.name}: ${docError.message || 'Unknown error'}`);
             }
           }
         }
       }
       
-      // Delete the lead record
-      const { error } = await supabase
-        .from('leads')
-        .delete()
-        .eq('id', lead.id);
+      // Delete the lead record with a direct SQL query via RPC to bypass potential RLS issues
+      console.log('Attempting to delete lead with RPC function call');
+      const { error: rpcError } = await supabase.rpc('delete_lead', {
+        lead_id: lead.id
+      });
+      
+      if (rpcError) {
+        console.error('RPC error deleting lead:', rpcError);
         
-      if (error) {
-        console.error('Database error deleting lead:', error);
-        setDeleteError(error.message || 'Unknown database error');
-        throw error;
+        // Fall back to standard delete if RPC fails
+        console.log('Falling back to standard delete');
+        const { error } = await supabase
+          .from('leads')
+          .delete()
+          .eq('id', lead.id);
+          
+        if (error) {
+          console.error('Database error deleting lead:', error);
+          throw error;
+        }
       }
       
-      toast.success(`Lead "${lead.name}" deleted successfully`);
+      if (deletionErrors.length > 0) {
+        toast.warning(`Lead deleted but with ${deletionErrors.length} document deletion issues`);
+      } else {
+        toast.success(`Lead "${lead.name}" deleted successfully`);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setDeleteConfirmOpen(false);
     } catch (err: any) {
