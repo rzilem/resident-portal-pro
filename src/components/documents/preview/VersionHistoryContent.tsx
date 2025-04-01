@@ -1,58 +1,87 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Eye, Download } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
-import { formatDate } from '@/utils/documents/documentUtils';
+import { formatBytes } from '@/utils/documents/fileUtils';
+import { Button } from '@/components/ui/button';
+import { Download, Clock, Restore } from 'lucide-react';
 
 interface VersionHistoryContentProps {
   document: DocumentFile;
 }
 
 const VersionHistoryContent: React.FC<VersionHistoryContentProps> = ({ document }) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString();
+  };
+
+  if (!document.previousVersions || document.previousVersions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium">No previous versions</h3>
+        <p className="text-sm text-muted-foreground">
+          This document doesn't have any previous versions
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <h3 className="text-sm font-medium text-muted-foreground mb-3">Version History</h3>
-        <div className="space-y-4">
-          <div className="p-3 border rounded-md bg-primary/5">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-medium">Current Version (v{document.version})</p>
-                <p className="text-sm text-muted-foreground">
-                  Modified: {document.lastModified ? formatDate(document.lastModified) : 'N/A'}
-                </p>
-              </div>
-              <Button variant="outline" size="sm">View</Button>
-            </div>
-          </div>
-          
-          {document.previousVersions?.map(version => (
-            <div key={version.version} className="p-3 border rounded-md">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Version {version.version}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Modified: {formatDate(version.lastModified)} by {version.modifiedBy}
-                  </p>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium mb-4">Version History</h3>
+      
+      <div className="rounded-md border overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-muted/50">
+              <th className="text-left px-4 py-3 text-sm font-medium">Version</th>
+              <th className="text-left px-4 py-3 text-sm font-medium">Modified</th>
+              <th className="text-left px-4 py-3 text-sm font-medium">Modified By</th>
+              <th className="text-left px-4 py-3 text-sm font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-t">
+              <td className="px-4 py-3 text-sm">
+                <div className="flex items-center">
+                  <span className="font-medium">{document.version} (Current)</span>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+              </td>
+              <td className="px-4 py-3 text-sm">{formatDate(document.lastModified)}</td>
+              <td className="px-4 py-3 text-sm">{document.uploadedBy || 'Unknown'}</td>
+              <td className="px-4 py-3 text-sm">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Download">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </td>
+            </tr>
+            
+            {document.previousVersions.map((version, index) => (
+              <tr key={index} className="border-t">
+                <td className="px-4 py-3 text-sm">
+                  <div className="flex items-center">
+                    <span>{version.version}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-sm">{formatDate(version.lastModified)}</td>
+                <td className="px-4 py-3 text-sm">{version.modifiedBy || 'Unknown'}</td>
+                <td className="px-4 py-3 text-sm">
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Download">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Restore this version">
+                      <Restore className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 

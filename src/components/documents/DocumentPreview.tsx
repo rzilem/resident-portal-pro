@@ -70,7 +70,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       <DialogContent className="max-w-4xl max-h-[80vh] h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileIcon fileType={document.fileType} />
+            <FileIcon fileType={document.fileType} className="h-5 w-5" />
             <span className="truncate">{document.name}</span>
           </DialogTitle>
           <DialogDescription>

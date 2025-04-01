@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import DocumentList from '@/components/documents/DocumentList';
@@ -11,6 +10,7 @@ import { Search, FolderPlus, Folder } from 'lucide-react';
 import { associationService } from '@/services/associationService';
 import { Association } from '@/types/association';
 import HtmlTemplates from '@/components/communications/html-templates/HtmlTemplates';
+import { useDocumentList } from '@/hooks/use-document-list';
 
 const DOCUMENT_CATEGORIES = [
   { id: 'all', name: 'All Documents' },
@@ -31,7 +31,6 @@ const AssociationDocuments: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('documents');
   
-  // Fetch associations
   useEffect(() => {
     const fetchAssociations = async () => {
       setIsLoading(true);
@@ -39,7 +38,6 @@ const AssociationDocuments: React.FC = () => {
         const fetchedAssociations = await associationService.getAssociations();
         setAssociations(fetchedAssociations);
         
-        // If no association is selected and we have associations, select the first one
         if (!selectedAssociationId && fetchedAssociations.length > 0) {
           setSelectedAssociationId(fetchedAssociations[0].id);
         }
@@ -53,7 +51,6 @@ const AssociationDocuments: React.FC = () => {
     fetchAssociations();
   }, []);
   
-  // Update selected association when URL ID changes
   useEffect(() => {
     if (urlId && urlId !== selectedAssociationId) {
       setSelectedAssociationId(urlId);
@@ -62,6 +59,11 @@ const AssociationDocuments: React.FC = () => {
   
   const selectedAssociation = associations.find(a => a.id === selectedAssociationId);
   
+  const { documents, loading, searchQuery: filteredSearchQuery, setSearchQuery: setFilteredSearchQuery, fetchDocuments, deleteDocument } = useDocumentList({
+    associationId: selectedAssociationId,
+    category: activeCategory !== 'all' ? activeCategory : undefined
+  });
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
@@ -72,7 +74,6 @@ const AssociationDocuments: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardContent className="pt-6">
@@ -101,8 +102,8 @@ const AssociationDocuments: React.FC = () => {
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search categories..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        value={filteredSearchQuery}
+                        onChange={(e) => setFilteredSearchQuery(e.target.value)}
                         className="pl-8"
                       />
                     </div>
@@ -147,7 +148,6 @@ const AssociationDocuments: React.FC = () => {
           </Card>
         </div>
         
-        {/* Main Content */}
         <div className="lg:col-span-3 space-y-6">
           {selectedAssociationId ? (
             <>

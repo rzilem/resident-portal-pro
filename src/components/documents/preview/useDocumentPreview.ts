@@ -1,122 +1,87 @@
 
 import { useState, useEffect } from 'react';
 import { DocumentFile } from '@/types/documents';
-import { canUseOfficeViewer, sanitizeDocumentUrl } from '@/utils/documents/documentUtils';
-import { documentPreviewLog, errorLog } from '@/utils/debug';
 import { toast } from 'sonner';
 
-export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolean) => {
+interface UseDocumentPreviewResult {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  isLoading: boolean;
+  previewError: string | null;
+  useOfficeViewer: boolean;
+  previewUrl: string | null;
+  handleLoadError: () => void;
+  handleLoadSuccess: () => void;
+  handleDownload: () => void;
+}
+
+export const useDocumentPreview = (
+  document: DocumentFile | null,
+  isOpen: boolean
+): UseDocumentPreviewResult => {
   const [activeTab, setActiveTab] = useState('preview');
   const [isLoading, setIsLoading] = useState(true);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [useOfficeViewer, setUseOfficeViewer] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  
-  // Reset state when dialog closes
+  const [useOfficeViewer, setUseOfficeViewer] = useState(false);
+
+  // Reset state when document changes or dialog opens
   useEffect(() => {
-    if (!isOpen) {
-      setPreviewUrl(null);
-      setPreviewError(null);
-    }
-  }, [isOpen]);
-  
-  useEffect(() => {
-    documentPreviewLog('isOpen or document changed', { 
-      isOpen, 
-      documentName: document?.name, 
-      documentId: document?.id 
-    });
-  }, [isOpen, document]);
-  
-  useEffect(() => {
-    documentPreviewLog('Dialog open state', { isOpen });
-    
-    if (document && isOpen) {
+    if (isOpen && document) {
       setIsLoading(true);
       setPreviewError(null);
       
-      documentPreviewLog('Processing document', {
-        name: document.name,
-        id: document.id,
-        fileType: document.fileType,
-        url: document.url
-      });
-      
-      const shouldUseOfficeViewer = document.fileType && canUseOfficeViewer(document.fileType);
+      // Determine if we should use Microsoft Office Online Viewer
+      const shouldUseOfficeViewer = determineIfUseOfficeViewer(document.fileType);
       setUseOfficeViewer(shouldUseOfficeViewer);
-      documentPreviewLog('Office viewer decision', { useOfficeViewer: shouldUseOfficeViewer });
       
-      updatePreviewUrl(document);
+      // Set the preview URL (in this case, same as document URL)
+      setPreviewUrl(document.url);
+      
+      // For images, we can mark as loaded immediately
+      if (document.fileType.startsWith('image/')) {
+        setIsLoading(false);
+      }
     }
   }, [document, isOpen]);
-  
-  const updatePreviewUrl = async (doc: DocumentFile) => {
-    if (!doc.url) {
-      setPreviewError("Document URL is not available");
-      setIsLoading(false);
-      errorLog("Document URL is not available", { docId: doc.id, docName: doc.name });
-      return;
-    }
+
+  const determineIfUseOfficeViewer = (fileType: string): boolean => {
+    const type = fileType.toLowerCase();
     
-    documentPreviewLog('Processing URL', { originalUrl: doc.url });
-    
-    try {
-      // Ensure we have a valid URL
-      const cleanUrl = sanitizeDocumentUrl(doc.url);
-      documentPreviewLog('Using sanitized URL', { cleanUrl });
-      
-      if (!cleanUrl) {
-        throw new Error("Invalid document URL");
-      }
-      
-      setPreviewUrl(cleanUrl);
-      setIsLoading(false);
-    } catch (error) {
-      errorLog('Error processing document URL:', error);
-      setPreviewError("Failed to process document URL");
-      setIsLoading(false);
-    }
+    return (
+      type.includes('word') ||
+      type.includes('excel') ||
+      type.includes('spreadsheet') ||
+      type.includes('powerpoint') ||
+      type.includes('presentation') ||
+      type.includes('msword') ||
+      type.includes('officedocument') ||
+      type.match(/\.(docx?|xlsx?|pptx?|csv)$/i) !== null
+    );
   };
-  
-  const handleLoadError = () => {
-    setIsLoading(false);
-    setPreviewError("Failed to load document preview");
-    errorLog("Failed to load document preview for:", document?.name);
-  };
-  
+
   const handleLoadSuccess = () => {
+    console.log('Document preview loaded successfully');
     setIsLoading(false);
     setPreviewError(null);
-    documentPreviewLog('Preview loaded successfully');
   };
-  
+
+  const handleLoadError = () => {
+    console.error('Error loading document preview');
+    setIsLoading(false);
+    setPreviewError('Failed to load document preview. The document may be inaccessible or in an unsupported format.');
+  };
+
   const handleDownload = () => {
-    if (!document || !document.url) {
-      toast.error("Document URL is not available");
-      return;
-    }
+    if (!document) return;
     
-    try {
-      // Create a direct download via anchor tag
-      const downloadUrl = document.url;
-      documentPreviewLog('Downloading document', { url: downloadUrl });
-      
-      const link = window.document.createElement('a');
-      link.href = downloadUrl;
-      link.download = document.name;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      
-      toast.success(`Downloading ${document.name}`);
-    } catch (error) {
-      errorLog('Download error:', error);
-      toast.error(`Failed to download document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    if (document.url) {
+      window.open(document.url, '_blank');
+    } else {
+      toast.error('Document URL is not available for download');
     }
   };
-  
+
   return {
     activeTab,
     setActiveTab,

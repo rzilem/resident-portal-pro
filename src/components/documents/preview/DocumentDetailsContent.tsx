@@ -1,96 +1,90 @@
 
 import React from 'react';
+import { DocumentFile } from '@/types/documents';
+import { formatBytes } from '@/utils/documents/fileUtils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, User, Clock, Info, Tag } from 'lucide-react';
-import { DocumentFile } from '@/types/documents';
-import { formatFileSize, formatDate } from '@/utils/documents/documentUtils';
+import { CalendarDays, Clock, User, Tag, FileType, HardDrive } from 'lucide-react';
 
 interface DocumentDetailsContentProps {
   document: DocumentFile;
 }
 
 const DocumentDetailsContent: React.FC<DocumentDetailsContentProps> = ({ document }) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString();
+  };
+
   return (
-    <div className="space-y-4 flex-1 overflow-auto">
+    <div className="space-y-6">
       <Card>
-        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
+        <CardContent className="pt-6">
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                <Calendar className="h-4 w-4 mr-2" />
-                Upload Date
-              </h3>
-              <p>{formatDate(document.uploadedDate)}</p>
+              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Uploaded Date
+              </dt>
+              <dd className="mt-1">{formatDate(document.uploadedDate)}</dd>
             </div>
             
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                <User className="h-4 w-4 mr-2" />
-                Uploaded By
-              </h3>
-              <p>{document.uploadedBy}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                <Clock className="h-4 w-4 mr-2" />
+              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="h-4 w-4" />
                 Last Modified
-              </h3>
-              <p>{document.lastModified ? formatDate(document.lastModified) : 'N/A'}</p>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                <Info className="h-4 w-4 mr-2" />
-                File Size
-              </h3>
-              <p>{formatFileSize(document.fileSize)}</p>
+              </dt>
+              <dd className="mt-1">{formatDate(document.lastModified)}</dd>
             </div>
             
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                <Info className="h-4 w-4 mr-2" />
+              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <FileType className="h-4 w-4" />
                 File Type
-              </h3>
-              <p>{document.fileType}</p>
+              </dt>
+              <dd className="mt-1">{document.fileType || 'Unknown'}</dd>
             </div>
             
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                <Info className="h-4 w-4 mr-2" />
-                Version
-              </h3>
-              <p>v{document.version}</p>
+              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <HardDrive className="h-4 w-4" />
+                File Size
+              </dt>
+              <dd className="mt-1">{formatBytes(document.fileSize)}</dd>
             </div>
             
-            {document.expirationDate && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Expiration Date
-                </h3>
-                <p>{formatDate(document.expirationDate)}</p>
-              </div>
-            )}
-          </div>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Uploaded By
+              </dt>
+              <dd className="mt-1">{document.uploadedBy || 'Unknown'}</dd>
+            </div>
+            
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                Tags
+              </dt>
+              <dd className="mt-1 flex flex-wrap gap-1">
+                {document.tags && document.tags.length > 0 ? (
+                  document.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary">{tag}</Badge>
+                  ))
+                ) : (
+                  <span className="text-muted-foreground">No tags</span>
+                )}
+              </dd>
+            </div>
+          </dl>
         </CardContent>
       </Card>
       
-      {document.tags && document.tags.length > 0 && (
+      {document.description && (
         <Card>
           <CardContent className="pt-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center">
-              <Tag className="h-4 w-4 mr-2" />
-              Tags
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {document.tags.map(tag => (
-                <Badge key={tag} variant="outline">{tag}</Badge>
-              ))}
-            </div>
+            <h3 className="text-sm font-medium mb-2">Description</h3>
+            <p className="text-sm">{document.description}</p>
           </CardContent>
         </Card>
       )}

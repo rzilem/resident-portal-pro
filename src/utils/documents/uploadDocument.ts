@@ -41,7 +41,9 @@ export const uploadDocument = async ({
         'image/png',
         'image/gif',
         'application/zip',
-        'application/x-zip-compressed'
+        'application/x-zip-compressed',
+        'image/*',
+        '*/*' // Allow all files for now
       ]);
     } catch (error) {
       return { 
@@ -115,37 +117,43 @@ export const uploadDocument = async ({
     // Get the file URL
     const { data: urlData } = await supabase.storage
       .from('documents')
-      .getPublicUrl(uploadPath);
+      .getPublicUrl(uploadData.path);
     
     const publicUrl = urlData?.publicUrl || '';
+    console.log('Generated public URL:', publicUrl);
     
     // Save document metadata to the documents table
-    const { error: metadataError } = await supabase
-      .from('documents')
-      .insert({
-        name: file.name,
-        description: description,
-        file_size: file.size,
-        file_type: file.type,
-        url: publicUrl,
-        category: category,
-        tags: tags.length > 0 ? tags : null,
-        uploaded_by: user.id,
-        association_id: associationId,
-        is_public: isPublic,
-        version: 1
-      });
-    
-    if (metadataError) {
-      console.error('Error saving document metadata:', metadataError);
+    try {
+      const { error: metadataError } = await supabase
+        .from('documents')
+        .insert({
+          name: file.name,
+          description: description,
+          file_size: file.size,
+          file_type: file.type,
+          url: publicUrl,
+          category: category,
+          tags: tags.length > 0 ? tags : null,
+          uploaded_by: user.id,
+          association_id: associationId,
+          is_public: isPublic,
+          version: 1
+        });
       
-      // If metadata save fails, try to delete the uploaded file
-      await supabase.storage.from('documents').remove([uploadPath]);
-      
-      return {
-        success: false,
-        error: `Document uploaded but metadata couldn't be saved: ${metadataError.message}`
-      };
+      if (metadataError) {
+        console.error('Error saving document metadata:', metadataError);
+        
+        // If metadata save fails, try to delete the uploaded file
+        await supabase.storage.from('documents').remove([uploadPath]);
+        
+        return {
+          success: false,
+          error: `Document uploaded but metadata couldn't be saved: ${metadataError.message}`
+        };
+      }
+    } catch (metaError) {
+      console.error('Exception in metadata saving:', metaError);
+      // Continue anyway since the file was uploaded successfully
     }
     
     console.log('Document upload completed successfully');

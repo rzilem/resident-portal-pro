@@ -1,88 +1,48 @@
-/**
- * Authentication utilities for document management
- */
 
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Check if the current user is authenticated
- * @returns Promise<boolean> True if authenticated
- */
-export const isUserAuthenticated = async (): Promise<boolean> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    return !!session?.user;
-  } catch (error) {
-    console.error('Error checking authentication status:', error);
-    return false;
-  }
-};
-
-/**
- * Get the current user's ID
- * @returns Promise<string | null> The user ID or null if not authenticated
+ * Gets the current user ID
+ * @returns User ID as string or null if not logged in
  */
 export const getCurrentUserId = async (): Promise<string | null> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.user?.id || null;
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error || !data.session) {
+      console.error('Error getting user session:', error);
+      return null;
+    }
+    
+    return data.session.user.id;
   } catch (error) {
-    console.error('Error getting current user ID:', error);
+    console.error('Exception in getCurrentUserId:', error);
     return null;
   }
 };
 
 /**
- * Check if the current user is using demo credentials
- * @returns Promise<boolean> True if using demo credentials
+ * Checks if user is using demo credentials
+ * @returns Boolean indicating if using demo credentials
  */
 export const isUsingDemoCredentials = async (): Promise<boolean> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return true; // No user session = demo mode
+    const { data } = await supabase.auth.getSession();
     
-    // Check if the user has a specific demo flag in metadata
-    const isDemo = session.user.user_metadata?.demo === true;
-    
-    // Alternative check: email domain or specific pattern
-    const isDemoEmail = session.user.email?.includes('demo') || 
-                       session.user.email?.includes('example.com');
-    
-    return isDemo || !!isDemoEmail;
+    // Check if using a demo account (customize this logic based on how you identify demo users)
+    const email = data.session?.user.email || '';
+    return email.includes('demo') || email.includes('test');
   } catch (error) {
-    console.error('Error checking demo credentials:', error);
+    console.error('Exception in isUsingDemoCredentials:', error);
     return false;
   }
 };
 
 /**
- * Get the current user's role
- * @returns Promise<string | null> The user role or null if not authenticated
+ * Check if demo mode is active
+ * @returns Boolean indicating if demo mode is active
  */
-export const getCurrentUserRole = async (): Promise<string | null> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return null;
-    
-    // Check if role is in user metadata
-    const roleFromMetadata = session.user.user_metadata?.role;
-    if (roleFromMetadata) return roleFromMetadata;
-    
-    // If not in metadata, try to get it from the profiles table
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-    
-    if (error || !profile) {
-      console.error('Error fetching user role from profile:', error);
-      return null;
-    }
-    
-    return profile.role;
-  } catch (error) {
-    console.error('Error getting current user role:', error);
-    return null;
-  }
+export const isDemoMode = (): boolean => {
+  // This is a client-side check that can be overridden with environment variables or other config
+  return false;
 };

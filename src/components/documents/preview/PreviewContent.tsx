@@ -3,7 +3,6 @@ import React from 'react';
 import PreviewError from './PreviewError';
 import NoPreviewAvailable from './NoPreviewAvailable';
 import FileIcon from './FileIcon';
-import { documentPreviewLog } from '@/utils/debug';
 
 interface PreviewContentProps {
   isLoading: boolean;
@@ -82,8 +81,8 @@ const PreviewContent: React.FC<PreviewContentProps> = ({
   const fileType = document.fileType.toLowerCase();
   const previewUrlToUse = getPreviewUrl();
   
-  documentPreviewLog('Final Preview URL being used:', { previewUrl: previewUrlToUse });
-  documentPreviewLog('File type being previewed:', { fileType });
+  console.log('Final Preview URL being used:', { previewUrl: previewUrlToUse });
+  console.log('File type being previewed:', { fileType });
   
   if (fileType.includes('pdf')) {
     return (
