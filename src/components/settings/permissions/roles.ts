@@ -1,5 +1,13 @@
 
-export const roles = [
+import { UserRole } from '@/types/user';
+
+interface RoleOption {
+  value: UserRole;
+  label: string;
+  description?: string;
+}
+
+export const roles: RoleOption[] = [
   { value: "admin", label: "Administrator" },
   { value: "manager", label: "Property Manager" },
   { value: "staff", label: "Staff Member" },
@@ -10,7 +18,7 @@ export const roles = [
 ];
 
 // Administrative roles with descriptions (for UI display)
-export const administrativeRoles = [
+export const administrativeRoles: RoleOption[] = [
   { 
     value: "admin", 
     label: "Administrator",

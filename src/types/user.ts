@@ -1,5 +1,5 @@
 
-export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member' | 'board' | 'vendor' | 'committee' | 'guest';
+export type UserRole = 'admin' | 'manager' | 'staff' | 'resident' | 'board_member' | 'board' | 'vendor' | 'committee' | 'guest' | 'invoice_approver';
 export type UserStatus = 'active' | 'inactive' | 'pending' | 'blocked';
 export type SecurityLevel = 
   | 'basic' 

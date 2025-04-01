@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { User } from '@/types/user';
+import { User, UserRole } from '@/types/user';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,7 +16,7 @@ interface FormData {
   id?: string;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 export const useUserForm = ({ 
@@ -50,7 +50,8 @@ export const useUserForm = ({
   
   // Handle role selection
   const handleRoleChange = (value: string) => {
-    setFormData(prev => ({ ...prev, role: value }));
+    // Cast the string value to UserRole type since we know it comes from our valid roles
+    setFormData(prev => ({ ...prev, role: value as UserRole }));
   };
   
   // Check if email is already used

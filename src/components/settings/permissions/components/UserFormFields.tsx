@@ -8,17 +8,15 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { roles } from '../roles';
+import { administrativeRoles } from '../roles';
 import { Label } from '@/components/ui/label';
-
-// Filter out the 'resident' role from the available options
-const administrativeRoles = roles.filter(role => role.value !== 'resident');
+import { UserRole } from '@/types/user';
 
 interface UserFormData {
   id?: string;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 interface UserFormFieldsProps {
