@@ -7,7 +7,8 @@
 const DEBUG_CONFIG = {
   documentPreview: true,
   documentUpload: true,
-  general: false,
+  general: true,            // Changed to true for general debugging
+  projectImages: true,      // Added for project images
 };
 
 /**
@@ -39,7 +40,7 @@ export const errorLog = (message: string, error?: any) => {
  * General debug log
  */
 export const debugLog = (message: string, data?: any) => {
-  if (DEBUG_CONFIG.general) {
+  if (DEBUG_CONFIG.general || DEBUG_CONFIG.projectImages) {
     console.log(`[DEBUG] ${message}`, data ? data : '');
   }
 };

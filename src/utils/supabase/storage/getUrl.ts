@@ -14,6 +14,7 @@ export const getFileUrl = (bucket: string, path: string): string => {
       .from(bucket)
       .getPublicUrl(path);
     
+    debugLog(`Generated URL for ${path} in ${bucket}: ${data.publicUrl}`);
     return data.publicUrl;
   } catch (error) {
     errorLog(`Error generating URL for path: ${path} in bucket: ${bucket}`, error);

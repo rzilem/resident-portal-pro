@@ -4,6 +4,7 @@ import { PROJECT_TYPES } from '../data/project-types';
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { debugLog } from '@/utils/debug';
+import { getFileUrl } from '@/utils/supabase/storage/getUrl';
 
 interface ProjectTypeSlideProps {
   selectedType: string;
@@ -32,29 +33,34 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       try {
         // Fetch images for each project type
         for (const type of PROJECT_TYPES) {
-          const { data, error } = await supabase
-            .storage
-            .from('project_images')
-            .list(type.id, {
-              limit: 1,
-              sortBy: { column: 'created_at', order: 'desc' }
-            });
-            
-          if (error) {
-            console.error(`Error fetching images for ${type.id}:`, error);
-            continue;
-          }
-          
-          if (data && data.length > 0 && !data[0].id.endsWith('/')) {
-            const { data: urlData } = supabase.storage
+          try {
+            const { data, error } = await supabase
+              .storage
               .from('project_images')
-              .getPublicUrl(`${type.id}/${data[0].name}`);
+              .list(type.id, {
+                limit: 1,
+                sortBy: { column: 'created_at', order: 'desc' }
+              });
               
-            images[type.id] = urlData.publicUrl;
+            if (error) {
+              console.error(`Error fetching images for ${type.id}:`, error);
+              continue;
+            }
+            
+            if (data && data.length > 0 && !data[0].id.endsWith('/')) {
+              const fileUrl = getFileUrl('project_images', `${type.id}/${data[0].name}`);
+              if (fileUrl) {
+                images[type.id] = fileUrl;
+                debugLog(`Loaded image for ${type.id}: ${fileUrl}`);
+              }
+            }
+          } catch (imgError) {
+            console.error(`Error processing image for ${type.id}:`, imgError);
           }
         }
         
         setProjectImages(images);
+        debugLog('Loaded project images:', images);
       } catch (error) {
         console.error('Error fetching project images:', error);
       } finally {
