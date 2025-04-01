@@ -41,7 +41,7 @@ const VendorHeader = ({ columns, onColumnsChange }: VendorHeaderProps) => {
         
         <VendorColumnsSelector 
           columns={columns} 
-          onColumnsChange={onColumnsChange} 
+          onChange={onColumnsChange} 
         />
         
         <Button size="sm">

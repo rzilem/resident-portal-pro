@@ -12,7 +12,7 @@ export type VendorColumn = {
   checked: boolean;
 }
 
-interface VendorColumnsSelectorProps {
+export interface VendorColumnsSelectorProps {
   columns: VendorColumn[];
   onChange: (columns: VendorColumn[]) => void;
 }
