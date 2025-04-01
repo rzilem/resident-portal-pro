@@ -112,6 +112,7 @@ export interface ModuleFeature {
   [key: string]: FeaturePermission[];
 }
 
+// Make sure moduleFeatures is properly exported
 export const moduleFeatures: ModuleFeature = {
   properties: [
     { id: 'add_property', name: 'Add Property', description: 'Create new properties', enabled: true },

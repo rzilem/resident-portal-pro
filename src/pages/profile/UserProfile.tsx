@@ -34,6 +34,7 @@ const mockUser: User = {
   createdAt: "2023-01-15T10:30:00Z",
   lastLogin: "2023-06-10T08:45:00Z",
   status: "active",
+  securityLevel: "basic", // Added the required securityLevel property
   type: "homeowner",
   associationIds: ["assoc-1"],
   committees: ["landscaping"],
