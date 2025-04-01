@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/hooks/use-settings';
@@ -11,8 +10,8 @@ import {
   getPropertiesFromAssociations, 
   getDefaultProperties, 
   getDefaultColumns, 
-  Property
 } from '@/components/properties/PropertyHelpers';
+import type { Property } from '@/types/property';
 import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
 import PropertyListReport from '@/components/reports/property/PropertyListReport';
 

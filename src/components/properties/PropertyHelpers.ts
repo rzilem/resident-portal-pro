@@ -1,6 +1,8 @@
+
 import { Property } from '@/types/property';
 
-export { Property };
+// Use 'export type' for re-exporting types when isolatedModules is enabled
+export type { Property };
 
 export const getDefaultProperties = (): Property[] => [
   {
