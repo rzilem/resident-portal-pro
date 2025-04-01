@@ -15,22 +15,38 @@ export const useEmailToLead = () => {
     received_at?: string;
   }) => {
     setIsProcessing(true);
+    console.log("Starting email-to-lead processing for:", emailData.from);
     
     try {
       // Extract potential lead information from email
       const name = extractNameFromEmail(emailData.from);
       const email = extractEmailFromEmail(emailData.from);
       
+      console.log("Extracted name:", name, "and email:", email);
+      
+      if (!email) {
+        console.error("Could not extract valid email address from:", emailData.from);
+        setIsProcessing(false);
+        return { error: "Invalid email format" };
+      }
+      
       // Check if the lead already exists
+      console.log("Checking if lead exists with email:", email);
       const { data: existingLeads, error: checkError } = await supabase
         .from('leads')
         .select('id, notes')
         .eq('email', email);
         
-      if (checkError) throw checkError;
+      if (checkError) {
+        console.error("Database error checking for existing lead:", checkError);
+        throw checkError;
+      }
+      
+      console.log("Existing leads check result:", existingLeads);
       
       if (existingLeads && existingLeads.length > 0) {
         // Update existing lead with new contact
+        console.log("Updating existing lead:", existingLeads[0].id);
         const { error: updateError } = await supabase
           .from('leads')
           .update({
@@ -40,18 +56,23 @@ export const useEmailToLead = () => {
           })
           .eq('id', existingLeads[0].id);
           
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Error updating existing lead:", updateError);
+          throw updateError;
+        }
         
         // Handle attachments if any
         if (emailData.attachments && emailData.attachments.length > 0) {
           await processAttachments(emailData.attachments, existingLeads[0].id);
         }
         
+        console.log("Successfully updated existing lead");
         toast.success('Existing lead updated from email');
         setIsProcessing(false);
         return { updated: true, id: existingLeads[0].id };
       } else {
         // Create new lead
+        console.log("Creating new lead for:", email);
         const newLead = {
           name: name || 'Unknown',
           email: email,
@@ -63,12 +84,18 @@ export const useEmailToLead = () => {
           notes: `Email received: ${emailData.subject}\n\n${emailData.body}`
         };
         
+        console.log("New lead data:", newLead);
         const { data: createdLead, error: createError } = await supabase
           .from('leads')
           .insert([newLead])
           .select();
           
-        if (createError) throw createError;
+        if (createError) {
+          console.error("Error creating new lead:", createError);
+          throw createError;
+        }
+        
+        console.log("New lead created with ID:", createdLead?.[0]?.id);
         
         // Handle attachments if any
         if (emailData.attachments && emailData.attachments.length > 0 && createdLead && createdLead.length > 0) {
@@ -83,21 +110,27 @@ export const useEmailToLead = () => {
       console.error('Error processing email as lead:', error);
       toast.error('Failed to process email as lead');
       setIsProcessing(false);
-      return { error: true };
+      return { error: error.message || "Unknown error" };
     }
   };
   
   // Helper functions
   const extractNameFromEmail = (from: string): string => {
+    console.log("Extracting name from:", from);
     // Extract name from format: "John Doe <john@example.com>"
     const match = from.match(/"?(.*?)"?\s*<.*>/);
-    return match ? match[1].trim() : '';
+    const result = match ? match[1].trim() : '';
+    console.log("Extracted name:", result);
+    return result;
   };
   
   const extractEmailFromEmail = (from: string): string => {
+    console.log("Extracting email from:", from);
     // Extract email from format: "John Doe <john@example.com>"
     const match = from.match(/<([^>]+)>/) || from.match(/([^\s<]+@[^\s>]+)/);
-    return match ? match[1].trim() : from;
+    const result = match ? match[1].trim() : from;
+    console.log("Extracted email:", result);
+    return result;
   };
   
   const appendToNotes = (existingNotes: string = '', subject: string, body: string): string => {
@@ -107,6 +140,7 @@ export const useEmailToLead = () => {
   };
   
   const processAttachments = async (attachments: any[], leadId: string) => {
+    console.log("Processing attachments for lead:", leadId);
     // Process attachments and link them to the lead
     // Simplified for this implementation
     const processedFiles = attachments.map(attachment => ({
@@ -124,6 +158,8 @@ export const useEmailToLead = () => {
         uploaded_files: processedFiles
       })
       .eq('id', leadId);
+      
+    console.log("Attachments processed:", processedFiles.length);
   };
   
   return {
