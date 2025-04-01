@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,11 @@ import { useWorkflowExecution } from '@/hooks/use-workflow-execution';
 import { useAuth } from '@/hooks/use-auth';
 import { roleService } from '@/services/roleService';
 import { adaptSupabaseUser } from '@/utils/user-helpers';
+
+// Define the missing interface
+interface ApprovalQueueProps {
+  className?: string;
+}
 
 // Helper function to get icon for approval type
 const getApprovalIcon = (type: string) => {
