@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import DocumentList from '@/components/documents/DocumentList';
@@ -5,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Search, FolderPlus, Folder } from 'lucide-react';
 import { associationService } from '@/services/associationService';
 import { Association } from '@/types/association';
@@ -115,9 +116,10 @@ const AssociationDocuments: React.FC = () => {
                           category.name.toLowerCase().includes(searchQuery.toLowerCase())
                         ).map((category) => (
                           <li key={category.id}>
-                            <Button
+                            <TooltipButton
                               variant={activeCategory === category.id ? "secondary" : "ghost"}
                               className="w-full justify-start"
+                              tooltipText={`View ${category.name} documents`}
                               onClick={() => {
                                 setActiveCategory(category.id);
                                 setActiveTab('documents');
@@ -125,22 +127,23 @@ const AssociationDocuments: React.FC = () => {
                             >
                               <Folder className="h-4 w-4 mr-2" />
                               {category.name}
-                            </Button>
+                            </TooltipButton>
                           </li>
                         ))}
                       </ul>
                     </div>
                     
-                    <Button 
+                    <TooltipButton 
                       variant="outline" 
                       className="w-full gap-2"
+                      tooltipText="Create a new document category"
                       onClick={() => {
                         // Logic to create new category would go here
                       }}
                     >
                       <FolderPlus className="h-4 w-4" />
                       Create Category
-                    </Button>
+                    </TooltipButton>
                   </>
                 )}
               </div>

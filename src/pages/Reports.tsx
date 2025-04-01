@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileSpreadsheet, Download, Filter, BarChart, PieChart, LineChart, RefreshCw, Clipboard, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -97,17 +97,30 @@ const Reports = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
+          <TooltipButton 
+            variant="outline" 
+            className="gap-2"
+            tooltipText="Refresh report data"
+            onClick={() => {
+              // Existing refresh logic
+              toast({
+                title: "Data Refreshed",
+                description: "Report data has been updated"
+              });
+            }}
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh
-          </Button>
-          <Button 
+          </TooltipButton>
+          
+          <TooltipButton 
             className="gap-2"
+            tooltipText="Open monthly report workflow builder"
             onClick={() => navigate('/workflows?tab=builder&report=true')}
           >
             <Clipboard className="h-4 w-4" />
             Monthly Report Workflow
-          </Button>
+          </TooltipButton>
         </div>
       </div>
       

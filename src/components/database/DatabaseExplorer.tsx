@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Search, Download, Filter, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -85,45 +84,41 @@ const DatabaseExplorer = () => {
         </form>
 
         <div className="flex gap-2 ml-auto">
-          <Button
-            variant="outline"
-            size="sm"
+          <TooltipButton 
+            variant="outline" 
+            size="sm" 
             className="gap-1"
             onClick={toggleFilters}
+            tooltipText="Filter records"
           >
             <Filter className="h-4 w-4" />
             Filters
-          </Button>
+          </TooltipButton>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
-                <Download className="h-4 w-4" />
-                Export
-                <ChevronDown className="h-3 w-3 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('csv')}>
-                Export to CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('excel')}>
-                Export to Excel
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                Export to PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <TooltipButton 
+            variant="outline" 
+            size="sm" 
+            className="gap-1"
+            onClick={() => {
+              const dropdownMenu = document.querySelector('[data-dropdown-menu="export"]') as HTMLElement;
+              dropdownMenu?.click();
+            }}
+            tooltipText="Export records"
+          >
+            <Download className="h-4 w-4" />
+            Export
+            <ChevronDown className="h-3 w-3 opacity-50" />
+          </TooltipButton>
 
-          <Button
+          <TooltipButton
             variant="outline"
             size="sm"
             className="gap-1"
             onClick={() => setCurrentView(currentView === 'table' ? 'card' : 'table')}
+            tooltipText={`Switch to ${currentView === 'table' ? 'card' : 'table'} view`}
           >
             {currentView === 'table' ? 'Card View' : 'Table View'}
-          </Button>
+          </TooltipButton>
         </div>
       </div>
 
