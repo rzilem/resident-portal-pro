@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Table,
@@ -89,7 +90,7 @@ const LeadsTable: React.FC = () => {
           filters={filters}
           onFilterChange={handleFilterChange}
           columns={columns}
-          onChange={handleColumnsChange}
+          onColumnsChange={handleColumnsChange}
           onRefresh={handleRefresh}
         />
         <LeadsTableLoading />
@@ -104,7 +105,7 @@ const LeadsTable: React.FC = () => {
           filters={filters}
           onFilterChange={handleFilterChange}
           columns={columns}
-          onChange={handleColumnsChange}
+          onColumnsChange={handleColumnsChange}
           onRefresh={handleRefresh}
         />
         <LeadErrorAlert 
@@ -120,7 +121,7 @@ const LeadsTable: React.FC = () => {
         filters={filters}
         onFilterChange={handleFilterChange}
         columns={columns}
-        onChange={handleColumnsChange}
+        onColumnsChange={handleColumnsChange}
         onRefresh={handleRefresh}
       />
       

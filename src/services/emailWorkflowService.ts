@@ -1,6 +1,16 @@
 
 import { toast } from 'sonner';
 
+export interface OcrSettings {
+  extractVendor?: boolean;
+  extractDate?: boolean;
+  extractAmount?: boolean;
+  extractInvoiceNumber?: boolean;
+  extractLineItems?: boolean;
+  suggestGlAccount?: boolean;
+  confidence?: 'low' | 'medium' | 'high';
+}
+
 export interface EmailWorkflowRule {
   id: string;
   name: string;
@@ -11,16 +21,19 @@ export interface EmailWorkflowRule {
   createdAt: string;
   description?: string;
   enableOcr?: boolean;
-  ocrSettings?: {
-    extractVendor?: boolean;
-    extractDate?: boolean;
-    extractAmount?: boolean;
-    extractInvoiceNumber?: boolean;
-    extractLineItems?: boolean;
-    suggestGlAccount?: boolean;
-    confidence?: 'low' | 'medium' | 'high';
-  };
+  ocrSettings?: OcrSettings;
+  association?: string;
 }
+
+export const workflowTypes = [
+  { value: 'General Inquiry', label: 'General Inquiry' },
+  { value: 'Lead', label: 'Lead Management' },
+  { value: 'Support', label: 'Support Ticket' },
+  { value: 'Invoice', label: 'Invoice Processing' },
+  { value: 'Maintenance Request', label: 'Maintenance Request' },
+  { value: 'Accounting', label: 'Accounting' },
+  { value: 'Compliance', label: 'Compliance' }
+];
 
 export const emailWorkflowService = {
   async getWorkflowRules(): Promise<EmailWorkflowRule[]> {
@@ -74,7 +87,8 @@ export const emailWorkflowService = {
       forwardTo: updates.forwardTo,
       description: updates.description,
       enableOcr: updates.enableOcr,
-      ocrSettings: updates.ocrSettings
+      ocrSettings: updates.ocrSettings,
+      association: updates.association
     };
     
     toast.success('Workflow rule updated');

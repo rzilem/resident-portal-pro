@@ -24,7 +24,7 @@ export const useEmailToLead = () => {
       // Check if the lead already exists
       const { data: existingLeads, error: checkError } = await supabase
         .from('leads')
-        .select('id')
+        .select('id, notes')
         .eq('email', email);
         
       if (checkError) throw checkError;
@@ -35,9 +35,8 @@ export const useEmailToLead = () => {
           .from('leads')
           .update({
             lastcontactedat: new Date().toISOString(),
-            lastcontacttype: 'email',
             updatedat: new Date().toISOString(),
-            notes: appendToNotes(existingLeads[0].notes, emailData.subject, emailData.body)
+            notes: appendToNotes(existingLeads[0].notes || '', emailData.subject, emailData.body)
           })
           .eq('id', existingLeads[0].id);
           
@@ -61,7 +60,6 @@ export const useEmailToLead = () => {
           createdat: new Date().toISOString(),
           updatedat: new Date().toISOString(),
           lastcontactedat: new Date().toISOString(),
-          lastcontacttype: 'email',
           notes: `Email received: ${emailData.subject}\n\n${emailData.body}`
         };
         
