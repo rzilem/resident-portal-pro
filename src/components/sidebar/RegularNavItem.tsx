@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { NavItem } from "@/data/navigation";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RegularNavItemProps {
   item: NavItem;
@@ -13,7 +12,7 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
   const navigate = useNavigate();
   const Icon = item.icon;
 
-  const button = (
+  return (
     <Button
       variant={item.active ? "default" : "ghost"}
       className={cn(
@@ -28,21 +27,4 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
       </span>
     </Button>
   );
-
-  if (item.tooltip) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {button}
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>{item.tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  return button;
 }
