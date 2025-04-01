@@ -1,28 +1,10 @@
+// src/components/properties/PropertyHelpers.ts
 import { Association } from '@/types/association';
-
-export interface Property {
-  id?: string; // Make id optional to match the type expected in PropertyListReport
-  name: string;
-  location: string;
-  units: number;
-  status: string;
-  onboardingDate: string;
-  annualFees: number;
-  assessmentFrequency: string;
-  hasPool?: boolean;
-  hasGate?: boolean;
-  hasPedestrianGate?: boolean;
-  county?: string;
-  city?: string;
-  offsiteAddresses?: number;
-  leases?: number;
-  serviceType?: string;
-  associationId?: string;
-  address?: string;
-}
+import { Property } from '@/types/property';
 
 export const getDefaultProperties = (): Property[] => [
   {
+    id: '1',
     name: 'Sunset Heights HOA',
     location: 'Los Angeles, CA',
     units: 48,
@@ -41,6 +23,7 @@ export const getDefaultProperties = (): Property[] => [
     associationId: '1'
   },
   {
+    id: '2',
     name: 'Ocean View Condos',
     location: 'Miami, FL',
     units: 120,
@@ -59,6 +42,7 @@ export const getDefaultProperties = (): Property[] => [
     associationId: '2'
   },
   {
+    id: '3',
     name: 'Mountain Valley Association',
     location: 'Denver, CO',
     units: 75,
@@ -84,7 +68,7 @@ export const getDefaultColumns = () => {
     { id: 'location', label: 'Location', checked: true },
     { id: 'units', label: 'Units', checked: true },
     { id: 'status', label: 'Status', checked: true },
-    { id: 'foundedDate', label: 'Onboarding Date', checked: true },
+    { id: 'onboardingDate', label: 'Onboarding Date', checked: true }, // Updated to match Property field
     { id: 'annualFees', label: 'Annual Fees', checked: false },
     { id: 'assessmentFrequency', label: 'Assessment Frequency', checked: true },
     { id: 'hasPool', label: 'Has Pool', checked: false },
@@ -100,7 +84,7 @@ export const getDefaultColumns = () => {
 
 export const getPropertiesFromAssociations = (associations: Association[]): Property[] => {
   return associations.map(association => ({
-    id: association.id, // Add id mapping
+    id: association.id,
     name: association.name,
     location: `${association.address.city}, ${association.address.state}`,
     units: association.units,
@@ -119,6 +103,6 @@ export const getPropertiesFromAssociations = (associations: Association[]): Prop
     hasGate: association.settings?.hasGate,
     hasPedestrianGate: association.settings?.hasPedestrianGate,
     associationId: association.id,
-    address: association.address.street // Add address mapping
+    address: association.address.street
   }));
 };
