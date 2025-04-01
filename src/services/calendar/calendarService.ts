@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
 import { v4 as uuid } from 'uuid';
@@ -10,6 +11,8 @@ export const calendarEventService = {
   // Get all calendar events based on user's access level
   getAllEvents: async (userId: string, userAccessLevel: CalendarAccessLevel, associationId?: string) => {
     try {
+      console.log(`Fetching all events for user ${userId}, access level ${userAccessLevel}, association ${associationId || 'global'}`);
+      
       // For global calendar view, we don't filter by association
       let query = supabase
         .from('calendar_events')
@@ -28,8 +31,10 @@ export const calendarEventService = {
         return mockEvents;
       }
       
+      console.log(`Fetched ${data?.length || 0} events from database`);
+      
       // Map database fields to CalendarEvent type
-      const formattedEvents = data.map(event => ({
+      const formattedEvents = data?.map(event => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -45,7 +50,7 @@ export const calendarEventService = {
         recurring: event.recurring_pattern,
         workflowId: event.workflow_id,
         metadata: event.metadata
-      }));
+      })) || [];
       
       return formattedEvents as CalendarEvent[];
     } catch (error) {
@@ -64,6 +69,8 @@ export const calendarEventService = {
     associationId?: string
   ) => {
     try {
+      console.log(`Fetching events from ${start.toISOString()} to ${end.toISOString()}`);
+      
       // For global calendar view, we don't filter by association
       let query = supabase
         .from('calendar_events')
@@ -87,8 +94,10 @@ export const calendarEventService = {
         });
       }
       
+      console.log(`Fetched ${data?.length || 0} events for date range`);
+      
       // Map database fields to CalendarEvent type
-      const formattedEvents = data.map(event => ({
+      const formattedEvents = data?.map(event => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -104,7 +113,7 @@ export const calendarEventService = {
         recurring: event.recurring_pattern,
         workflowId: event.workflow_id,
         metadata: event.metadata
-      }));
+      })) || [];
       
       return formattedEvents as CalendarEvent[];
     } catch (error) {
@@ -139,7 +148,7 @@ export const calendarEventService = {
       if (error) throw error;
       
       // Map database fields to CalendarEvent type
-      const formattedEvents = data.map(event => ({
+      const formattedEvents = data?.map(event => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -155,7 +164,7 @@ export const calendarEventService = {
         recurring: event.recurring_pattern,
         workflowId: event.workflow_id,
         metadata: event.metadata
-      }));
+      })) || [];
       
       return formattedEvents as CalendarEvent[];
     } catch (error) {
@@ -260,23 +269,25 @@ export const calendarEventService = {
         return mockEvent as CalendarEvent;
       }
       
+      console.log('Event created successfully:', data?.[0]);
+      
       // Map database response back to CalendarEvent type
       const formattedEvent = {
-        id: data[0].id,
-        title: data[0].title,
-        description: data[0].description,
-        start: new Date(data[0].start_time),
-        end: data[0].end_time ? new Date(data[0].end_time) : undefined,
-        allDay: data[0].all_day,
-        location: data[0].location,
-        type: data[0].event_type as CalendarEventType,
-        associationId: data[0].association_id,
-        createdBy: data[0].created_by,
-        accessLevel: data[0].access_level as CalendarAccessLevel,
-        color: data[0].color,
-        recurring: data[0].recurring_pattern,
-        workflowId: data[0].workflow_id,
-        metadata: data[0].metadata
+        id: data?.[0].id,
+        title: data?.[0].title,
+        description: data?.[0].description,
+        start: new Date(data?.[0].start_time),
+        end: data?.[0].end_time ? new Date(data?.[0].end_time) : undefined,
+        allDay: data?.[0].all_day,
+        location: data?.[0].location,
+        type: data?.[0].event_type as CalendarEventType,
+        associationId: data?.[0].association_id,
+        createdBy: data?.[0].created_by,
+        accessLevel: data?.[0].access_level as CalendarAccessLevel,
+        color: data?.[0].color,
+        recurring: data?.[0].recurring_pattern,
+        workflowId: data?.[0].workflow_id,
+        metadata: data?.[0].metadata
       };
       
       return formattedEvent as CalendarEvent;
@@ -392,10 +403,28 @@ export const calendarEventService = {
   createWorkflowEvent: async (workflowId: string, title: string, start: Date, associationId: string) => {
     try {
       const eventId = uuid();
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const userResponse = await supabase.auth.getUser();
+      const userId = userResponse.data.user?.id;
       
       if (!userId) {
-        throw new Error('User not authenticated');
+        console.log('User not authenticated, using demo mode');
+        // Use demo mode with a mock user ID
+        const mockEvent = {
+          id: eventId,
+          title,
+          description: `Automated workflow: ${title}`,
+          start,
+          allDay: true,
+          type: 'workflow' as CalendarEventType,
+          associationId,
+          createdBy: 'demo-user',
+          accessLevel: 'admin' as CalendarAccessLevel,
+          workflowId
+        };
+        
+        mockEvents.push(mockEvent as CalendarEvent);
+        toast.success('Workflow scheduled in demo mode');
+        return mockEvent as CalendarEvent;
       }
       
       const event = {
@@ -403,12 +432,12 @@ export const calendarEventService = {
         title,
         description: `Automated workflow: ${title}`,
         start_time: start.toISOString(),
+        all_day: true,
         event_type: 'workflow',
         association_id: associationId,
         workflow_id: workflowId,
         created_by: userId,
-        access_level: 'admin',
-        all_day: true
+        access_level: 'admin'
       };
 
       console.log('Creating workflow event:', event);
@@ -465,7 +494,7 @@ export const calendarEventService = {
       
       // Create a mock event in case of error
       const eventId = uuid();
-      const userId = (await supabase.auth.getUser()).data.user?.id || 'unknown';
+      const userId = 'demo-user';
       
       const mockEvent = {
         id: eventId,

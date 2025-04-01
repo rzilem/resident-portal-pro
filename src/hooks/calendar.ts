@@ -18,8 +18,10 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log(`Fetching calendar events for ${associationId ? `association ${associationId}` : 'global view'}`);
       // Await the Promise to resolve before setting state
       const allEvents = await calendarService.getAllEvents(userId, userAccessLevel, associationId);
+      console.log(`Fetched ${allEvents.length} events`);
       setEvents(allEvents);
     } catch (error) {
       console.error('Error fetching calendar events:', error);
@@ -32,10 +34,12 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const fetchEventsByDateRange = useCallback(async (start: Date, end: Date) => {
     try {
       setIsLoading(true);
+      console.log(`Fetching events by date range for ${associationId ? `association ${associationId}` : 'global view'}`);
       // Await the Promise to resolve before setting state
       const rangeEvents = await calendarService.getEventsByDateRange(
         start, end, userId, userAccessLevel, associationId
       );
+      console.log(`Fetched ${rangeEvents.length} events for date range`);
       setEvents(rangeEvents);
     } catch (error) {
       console.error('Error fetching events by date range:', error);
@@ -47,12 +51,14 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   
   const createEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
     try {
+      console.log('Creating event:', event);
       // Await the Promise to resolve before updating state
       const newEvent = await calendarService.createEvent({
         ...event,
         createdBy: userId // Fixed property name
       });
       
+      console.log('Event created successfully:', newEvent);
       setEvents(prev => [...prev, newEvent]);
       toast.success('Event created successfully');
       return newEvent;
@@ -65,9 +71,11 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
     try {
+      console.log('Updating event:', id, updates);
       // Await the Promise to resolve before updating state
       const updatedEvent = await calendarService.updateEvent(id, updates);
       
+      console.log('Event updated successfully:', updatedEvent);
       setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
       if (selectedEvent?.id === id) {
         setSelectedEvent(updatedEvent);
@@ -83,7 +91,9 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   
   const deleteEvent = useCallback(async (id: string) => {
     try {
+      console.log('Deleting event:', id);
       await calendarService.deleteEvent(id);
+      console.log('Event deleted successfully');
       setEvents(prev => prev.filter(event => event.id !== id));
       if (selectedEvent?.id === id) {
         setSelectedEvent(null);
@@ -108,6 +118,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     }
     
     try {
+      console.log('Creating workflow event:', workflowId, title, scheduledDateTime);
       // Await the Promise to resolve before updating state
       const newEvent = await calendarService.createWorkflowEvent(
         workflowId,
@@ -116,6 +127,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
         associationId
       );
       
+      console.log('Workflow event created successfully:', newEvent);
       setEvents(prev => [...prev, newEvent]);
       toast.success('Workflow scheduled successfully');
       return newEvent;

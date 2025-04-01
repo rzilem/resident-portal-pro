@@ -51,7 +51,7 @@ export const uploadFile = async (
       console.log(`Bucket ${bucket} not found, attempting to create...`);
       try {
         const { error: createError } = await supabase.storage.createBucket(bucket, {
-          public: true // Make sure bucket is public
+          public: true // Make bucket public to ensure images are accessible
         });
         
         if (createError) {

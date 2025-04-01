@@ -403,6 +403,66 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          access_level: string
+          all_day: boolean | null
+          association_id: string | null
+          color: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_time: string | null
+          event_type: string
+          id: string
+          location: string | null
+          metadata: Json | null
+          recurring_pattern: Json | null
+          start_time: string
+          title: string
+          updated_at: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          access_level?: string
+          all_day?: boolean | null
+          association_id?: string | null
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_type: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          recurring_pattern?: Json | null
+          start_time: string
+          title: string
+          updated_at?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          access_level?: string
+          all_day?: boolean | null
+          association_id?: string | null
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_type?: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          recurring_pattern?: Json | null
+          start_time?: string
+          title?: string
+          updated_at?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: []
+      }
       communication_recipients: {
         Row: {
           communication_id: string | null
