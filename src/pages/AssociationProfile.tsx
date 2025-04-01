@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Building } from 'lucide-react';
@@ -102,7 +101,7 @@ const AssociationProfile = () => {
     );
   }
 
-  const properties = getPropertiesFromAssociations([association]);
+  const properties = association ? getPropertiesFromAssociations([association]) : [];
   
   const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
 

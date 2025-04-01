@@ -22,6 +22,7 @@ const Properties = () => {
   const isMobile = useIsMobile();
   const { id } = useParams();
   
+  // Use getPropertiesFromAssociations with proper type checking
   const properties: Property[] = associations && associations.length > 0 
     ? getPropertiesFromAssociations(associations) 
     : getDefaultProperties();

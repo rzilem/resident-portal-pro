@@ -1,5 +1,7 @@
 import { Property } from '@/types/property';
 
+export { Property };
+
 export const getDefaultProperties = (): Property[] => [
   {
     id: '1',
@@ -80,20 +82,20 @@ export const getDefaultColumns = () => {
   ];
 };
 
-export const getPropertiesFromAssociations = (associations: Property[]): Property[] => {
+export const getPropertiesFromAssociations = (associations: any[]): Property[] => {
   return associations.map(association => ({
     id: association.id,
     name: association.name,
-    location: `${association.address.city}, ${association.address.state}`,
+    location: `${association.address?.city}, ${association.address?.state}`,
     units: association.units,
     status: association.status === 'active' ? 'Active' : 'Inactive',
-    onboardingDate: association.foundedDate,
+    onboardingDate: association.foundedDate || association.onboardingDate,
     annualFees: Number(association.settings?.annualFees || 0),
     assessmentFrequency: association.settings?.feesFrequency 
       ? association.settings.feesFrequency.charAt(0).toUpperCase() + association.settings.feesFrequency.slice(1)
       : 'Not set',
     county: association.settings?.county,
-    city: association.address.city,
+    city: association.address?.city,
     offsiteAddresses: association.settings?.offsiteAddresses ? Number(association.settings.offsiteAddresses) : undefined,
     leases: association.settings?.leases ? Number(association.settings.leases) : undefined,
     serviceType: association.settings?.serviceType,
@@ -101,6 +103,6 @@ export const getPropertiesFromAssociations = (associations: Property[]): Propert
     hasGate: association.settings?.hasGate,
     hasPedestrianGate: association.settings?.hasPedestrianGate,
     associationId: association.id,
-    address: association.address.street
+    address: association.address?.street
   }));
 };
