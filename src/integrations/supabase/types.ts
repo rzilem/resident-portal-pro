@@ -627,6 +627,54 @@ export type Database = {
         }
         Relationships: []
       }
+      email_workflows: {
+        Row: {
+          association: string | null
+          created_at: string | null
+          description: string | null
+          enable_ocr: boolean | null
+          forward_to: string | null
+          forwarding_email: string | null
+          id: string
+          inbound_email: string
+          is_active: boolean | null
+          name: string
+          ocr_settings: Json | null
+          updated_at: string | null
+          workflow_type: string
+        }
+        Insert: {
+          association?: string | null
+          created_at?: string | null
+          description?: string | null
+          enable_ocr?: boolean | null
+          forward_to?: string | null
+          forwarding_email?: string | null
+          id?: string
+          inbound_email: string
+          is_active?: boolean | null
+          name: string
+          ocr_settings?: Json | null
+          updated_at?: string | null
+          workflow_type: string
+        }
+        Update: {
+          association?: string | null
+          created_at?: string | null
+          description?: string | null
+          enable_ocr?: boolean | null
+          forward_to?: string | null
+          forwarding_email?: string | null
+          id?: string
+          inbound_email?: string
+          is_active?: boolean | null
+          name?: string
+          ocr_settings?: Json | null
+          updated_at?: string | null
+          workflow_type?: string
+        }
+        Relationships: []
+      }
       gl_accounts: {
         Row: {
           association_id: string | null
@@ -733,10 +781,19 @@ export type Database = {
       }
       leads: {
         Row: {
+          address: string | null
+          address_line2: string | null
           assignedto: string | null
+          association_name: string | null
+          association_type: string | null
+          city: string | null
           company: string | null
           createdat: string
+          current_management: string | null
           email: string
+          has_gate: boolean | null
+          has_onsite_management: boolean | null
+          has_pool: boolean | null
           id: string
           lastcontactedat: string | null
           name: string | null
@@ -744,15 +801,28 @@ export type Database = {
           phone: string | null
           proposalids: string[] | null
           source: string | null
+          state: string | null
           status: string
           tags: string[] | null
+          unit_count: number | null
           updatedat: string | null
+          uploaded_files: Json | null
+          zip: string | null
         }
         Insert: {
+          address?: string | null
+          address_line2?: string | null
           assignedto?: string | null
+          association_name?: string | null
+          association_type?: string | null
+          city?: string | null
           company?: string | null
           createdat?: string
+          current_management?: string | null
           email: string
+          has_gate?: boolean | null
+          has_onsite_management?: boolean | null
+          has_pool?: boolean | null
           id?: string
           lastcontactedat?: string | null
           name?: string | null
@@ -760,15 +830,28 @@ export type Database = {
           phone?: string | null
           proposalids?: string[] | null
           source?: string | null
+          state?: string | null
           status?: string
           tags?: string[] | null
+          unit_count?: number | null
           updatedat?: string | null
+          uploaded_files?: Json | null
+          zip?: string | null
         }
         Update: {
+          address?: string | null
+          address_line2?: string | null
           assignedto?: string | null
+          association_name?: string | null
+          association_type?: string | null
+          city?: string | null
           company?: string | null
           createdat?: string
+          current_management?: string | null
           email?: string
+          has_gate?: boolean | null
+          has_onsite_management?: boolean | null
+          has_pool?: boolean | null
           id?: string
           lastcontactedat?: string | null
           name?: string | null
@@ -776,9 +859,13 @@ export type Database = {
           phone?: string | null
           proposalids?: string[] | null
           source?: string | null
+          state?: string | null
           status?: string
           tags?: string[] | null
+          unit_count?: number | null
           updatedat?: string | null
+          uploaded_files?: Json | null
+          zip?: string | null
         }
         Relationships: []
       }
