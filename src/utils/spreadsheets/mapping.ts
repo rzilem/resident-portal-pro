@@ -1,5 +1,5 @@
 
-import { ColumnMapping } from './mapping/types';
+import { ColumnMapping, ValidationResult } from './mapping/types';
 
 /**
  * Generate automatic mappings based on spreadsheet headers
@@ -172,4 +172,31 @@ export const getFieldDescription = (field: string): string => {
   };
   
   return descriptions[field] || 'No description available';
+};
+
+/**
+ * Validate column mappings
+ */
+export const validateMappings = (mappings: ColumnMapping[], importType: string): ValidationResult => {
+  const errors: string[] = [];
+  const requiredFields: Record<string, string[]> = {
+    association: ['association_name', 'city', 'state'],
+    property: ['property_address', 'association_name'],
+    resident: ['first_name', 'last_name', 'email']
+  };
+  
+  const requiredForType = requiredFields[importType] || [];
+  const mappedFields = mappings.map(m => m.targetField);
+  
+  // Check if all required fields are mapped
+  requiredForType.forEach(field => {
+    if (!mappedFields.includes(field)) {
+      errors.push(`Required field "${field}" is not mapped.`);
+    }
+  });
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };

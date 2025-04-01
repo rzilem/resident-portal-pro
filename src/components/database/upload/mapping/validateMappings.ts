@@ -1,17 +1,14 @@
 
-import { validateMappings as validateMappingsUtility } from '@/utils/spreadsheets/mapping';
-import { ColumnMapping } from '@/utils/spreadsheets/mapping';
+import { ValidationResult } from '@/utils/spreadsheets/mapping/types';
+import { validateMappings } from '@/utils/spreadsheets/mapping';
+import { ColumnMapping } from '@/utils/spreadsheets/mapping/types';
 
 /**
- * Validate mappings and prepare validation results
- * @param mappings Array of column mappings
- * @param fileData File data with headers and rows
- * @returns Validation result object
+ * Perform validation for field mappings 
  */
-export const validateMappings = (
+export const validateFieldMappings = (
   mappings: ColumnMapping[],
-  fileData: { headers: string[]; rows: Record<string, any>[] } | null
-) => {
-  return validateMappingsUtility(mappings, fileData);
+  importType: string
+): ValidationResult => {
+  return validateMappings(mappings, importType);
 };
-

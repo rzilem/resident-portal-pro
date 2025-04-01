@@ -18,7 +18,7 @@ const SampleTemplatePreview = () => {
 
   const handleDownloadTemplate = () => {
     // Generate and download the Excel template
-    generateOnboardingTemplate();
+    generateOnboardingTemplate('association');
     
     toast({
       title: "Template downloaded",

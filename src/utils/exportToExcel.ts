@@ -15,7 +15,7 @@ export const exportToExcel = (data: any[], filename: string) => {
   saveAs(blob, filename);
 };
 
-export const generateOnboardingTemplate = (type: string) => {
+export const generateOnboardingTemplate = (type: string = 'association') => {
   let headers: string[] = [];
   let sampleData: Record<string, string>[] = [];
   
@@ -94,4 +94,118 @@ export const generateOnboardingTemplate = (type: string) => {
   
   // Save file
   saveAs(blob, `${type}_template.xlsx`);
+};
+
+// Add the missing template generators
+export const generateAssociationTemplate = () => {
+  const templateData = [{
+    association_name: 'Oakwood Heights HOA',
+    address: '123 Main Street',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78701',
+    contact_phone: '555-123-4567',
+    contact_email: 'info@oakwoodheights.com',
+    contact_website: 'https://oakwoodheights.com',
+    founded_date: '2010-01-15',
+    units: '120',
+    type: 'HOA',
+    status: 'active',
+    annual_fees: '2400',
+    assessment_frequency: 'Monthly'
+  }];
+  
+  // Add 49 more blank rows for the template
+  for (let i = 0; i < 49; i++) {
+    templateData.push({
+      association_name: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      contact_phone: '',
+      contact_email: '',
+      contact_website: '',
+      founded_date: '',
+      units: '',
+      type: '',
+      status: '',
+      annual_fees: '',
+      assessment_frequency: ''
+    });
+  }
+  
+  exportToExcel(templateData, 'Association_Template.xlsx');
+};
+
+export const generatePropertyTemplate = () => {
+  const templateData = [{
+    property_name: 'Oakwood Unit 101',
+    address: '123 Main Street',
+    unit_number: '101',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78701',
+    property_type: 'Condo',
+    bedrooms: '2',
+    bathrooms: '2',
+    square_feet: '1200',
+    association_name: 'Oakwood Heights HOA'
+  }];
+  
+  // Add 49 more blank rows for the template
+  for (let i = 0; i < 49; i++) {
+    templateData.push({
+      property_name: '',
+      address: '',
+      unit_number: '',
+      city: '',
+      state: '',
+      zip: '',
+      property_type: '',
+      bedrooms: '',
+      bathrooms: '',
+      square_feet: '',
+      association_name: ''
+    });
+  }
+  
+  exportToExcel(templateData, 'Property_Template.xlsx');
+};
+
+export const generateVendorTemplate = () => {
+  const templateData = [{
+    vendor_name: 'Example Vendor LLC',
+    contact_name: 'Jane Smith',
+    email: 'jane@examplevendor.com',
+    phone: '555-987-6543',
+    address: '456 Business Ave',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78702',
+    services: 'Landscaping, Pool Maintenance',
+    tax_id: '12-3456789',
+    website: 'https://examplevendor.com',
+    status: 'active'
+  }];
+  
+  // Add 49 more blank rows for the template
+  for (let i = 0; i < 49; i++) {
+    templateData.push({
+      vendor_name: '',
+      contact_name: '',
+      email: '',
+      phone: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      services: '',
+      tax_id: '',
+      website: '',
+      status: ''
+    });
+  }
+  
+  exportToExcel(templateData, 'Vendor_Template.xlsx');
 };

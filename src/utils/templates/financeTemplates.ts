@@ -1,7 +1,4 @@
 
-/**
- * Finance and accounting related templates
- */
 import { exportToExcel } from '../exportToExcel';
 
 /**
@@ -18,26 +15,6 @@ export const generateFinancialTemplate = () => {
   }];
   
   exportToExcel(templateData, 'Financial_Accounts_Template');
-};
-
-/**
- * Generate and download a template for vendor information
- */
-export const generateVendorTemplate = () => {
-  const templateData = [{
-    vendor_name: '',
-    contact_name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    services: '',
-    tax_id: ''
-  }];
-  
-  exportToExcel(templateData, 'Vendor_Information_Template');
 };
 
 /**

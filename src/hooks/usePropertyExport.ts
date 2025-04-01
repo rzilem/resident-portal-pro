@@ -1,90 +1,81 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { exportToExcel, generateOnboardingTemplate } from '@/utils/exportToExcel';
-import { Property } from '@/components/properties/PropertyHelpers';
-import { PropertyColumn } from '@/components/properties/PropertyColumnsSelector';
+import { generateOnboardingTemplate } from '@/utils/exportToExcel';
 
-export const usePropertyExport = (properties: Property[]) => {
-  const [isExporting, setIsExporting] = useState(false);
+interface Property {
+  id: string;
+  address: string;
+  unit_number?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  property_type?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  square_feet?: number;
+  association_id?: string;
+  association_name?: string;
+}
 
-  const handleExport = () => {
-    setIsExporting(true);
+export const usePropertyExport = () => {
+  const [loading, setLoading] = useState(false);
+  
+  const exportPropertyList = async (properties: Property[]) => {
     try {
-      const visibleColumns = properties.length > 0 
-        ? Object.keys(properties[0]).map(key => ({ id: key, label: key })) 
-        : [];
+      setLoading(true);
       
-      const exportData = properties.map(property => {
-        const exportObj: Record<string, any> = {};
+      // Format data for Excel export
+      const data = properties.map(property => ({
+        address: property.address || '',
+        unit_number: property.unit_number || '',
+        city: property.city || '',
+        state: property.state || '',
+        zip: property.zip || '',
+        property_type: property.property_type || '',
+        bedrooms: property.bedrooms?.toString() || '',
+        bathrooms: property.bathrooms?.toString() || '',
+        square_feet: property.square_feet?.toString() || '',
+        association_name: property.association_name || ''
+      }));
+      
+      // Use xlsx to generate and download the Excel file
+      import('xlsx').then(XLSX => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Properties');
         
-        visibleColumns.forEach(col => {
-          let value = property[col.id as keyof typeof property];
-          
-          if (typeof value === 'boolean') {
-            value = value ? 'Yes' : 'No';
-          }
-          
-          exportObj[col.label] = value;
-        });
+        // Write to Excel file
+        XLSX.writeFile(workbook, 'property_list.xlsx');
         
-        return exportObj;
+        toast.success('Property list exported successfully');
       });
-      
-      exportToExcel(exportData, 'Property_Report');
-      toast.success('Property report exported successfully');
     } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Failed to export properties');
+      console.error('Failed to export properties:', error);
+      toast.error('Failed to export property list');
     } finally {
-      setIsExporting(false);
+      setLoading(false);
     }
   };
   
-  const handleVisibleColumnsExport = (columns: PropertyColumn[]) => {
-    setIsExporting(true);
+  const downloadPropertyTemplate = () => {
     try {
-      const visibleColumns = columns.filter(col => col.checked);
-      const exportData = properties.map(property => {
-        const exportObj: Record<string, any> = {};
-        
-        visibleColumns.forEach(col => {
-          let value = property[col.id as keyof typeof property];
-          
-          if (typeof value === 'boolean') {
-            value = value ? 'Yes' : 'No';
-          }
-          
-          exportObj[col.label] = value;
-        });
-        
-        return exportObj;
-      });
-      
-      exportToExcel(exportData, 'Property_Report');
-      toast.success('Property report exported successfully');
+      setLoading(true);
+      generateOnboardingTemplate('property');
+      toast.success('Property template downloaded successfully');
     } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Failed to export properties');
+      console.error('Failed to download template:', error);
+      toast.error('Failed to download property template');
     } finally {
-      setIsExporting(false);
-    }
-  };
-  
-  const handleTemplateDownload = () => {
-    try {
-      generateOnboardingTemplate();
-      toast.success('Onboarding template downloaded');
-    } catch (error) {
-      console.error('Template download error:', error);
-      toast.error('Failed to download onboarding template');
+      setLoading(false);
     }
   };
   
   return {
-    isExporting,
-    handleExport,
-    handleVisibleColumnsExport,
-    handleTemplateDownload
+    exportPropertyList,
+    downloadPropertyTemplate,
+    loading
   };
 };
+
+export default usePropertyExport;
