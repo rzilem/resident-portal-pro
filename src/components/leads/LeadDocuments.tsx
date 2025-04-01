@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LeadDocument } from './types';
 import { Button } from '@/components/ui/button';
@@ -25,13 +24,12 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
 
   const handleDownload = (document: LeadDocument) => {
     try {
-      // Create an anchor element and trigger the download
-      const a = document.createElement('a');
-      a.href = document.url;
-      a.download = document.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const link = document.createElement('a');
+      link.href = document.url;
+      link.download = document.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading document:", error);
       toast.error("Failed to download document");
@@ -46,18 +44,15 @@ const LeadDocuments: React.FC<LeadDocumentsProps> = ({
     if (!onDocumentsChange) return;
     
     try {
-      // Delete the file from storage
       const { error } = await supabase.storage
         .from('documents')
         .remove([document.path]);
 
       if (error) throw error;
 
-      // Update the documents array
       const updatedDocuments = [...documents];
       updatedDocuments.splice(index, 1);
       
-      // Update the lead record
       const { error: updateError } = await supabase
         .from('leads')
         .update({

@@ -1,4 +1,3 @@
-
 import { LeadStatus } from "@/types/lead";
 
 export interface LeadData {
@@ -21,6 +20,7 @@ export interface LeadData {
   has_onsite_management?: boolean;
   documents?: LeadDocument[];
   uploaded_files?: LeadDocument[];
+  notes?: string;  // Added optional notes property
 }
 
 export interface LeadDocument {
