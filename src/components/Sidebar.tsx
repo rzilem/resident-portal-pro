@@ -49,7 +49,7 @@ export function Sidebar({
   };
 
   return <SidebarProvider defaultOpen={true}>
-      <div className={cn("pb-12 border-r min-h-screen bg-background w-[250px]", className)}>
+      <div className={cn("pb-12 border-r min-h-screen bg-background w-[260px]", className)}>
         <SidebarContent className="space-y-2 py-3">
           <SidebarHeader className="py-1 px-4 my-0">
             <div className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group" onClick={handleLogoClick}>

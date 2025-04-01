@@ -64,7 +64,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
         <div 
           className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
+          } w-[260px]`}
         >
           <HoaSidebar 
             collapsed={!sidebarOpen} 
@@ -75,9 +75,9 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
         <div 
           className={`fixed md:static inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out transform ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          } w-[250px]`}
+          } w-[260px]`}
         >
-          <Sidebar className="min-h-screen w-[250px]"/>
+          <Sidebar className="min-h-screen w-[260px]"/>
         </div>
       )}
       

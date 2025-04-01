@@ -48,7 +48,7 @@ export const HoaSidebar = ({
     <aside 
       className={cn(
         "fixed top-0 left-0 h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 z-30",
-        collapsed ? "w-20" : "w-[250px]",
+        collapsed ? "w-20" : "w-[260px]",
         className
       )} 
       {...props}
