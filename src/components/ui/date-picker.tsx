@@ -24,6 +24,7 @@ interface DatePickerProps {
   className?: string;
   showTooltip?: boolean;
   tooltipText?: string;
+  disablePastDates?: boolean;
 }
 
 export function DatePicker({ 
@@ -31,7 +32,8 @@ export function DatePicker({
   onDateChange, 
   className,
   showTooltip = false,
-  tooltipText = "Select a date" 
+  tooltipText = "Select a date",
+  disablePastDates = false
 }: DatePickerProps) {
   const buttonContent = (
     <Button
@@ -46,6 +48,10 @@ export function DatePicker({
       {date ? format(date, "PPP") : <span>Pick a date</span>}
     </Button>
   );
+
+  // Determine the current day start to allow selecting today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   return (
     <Popover>
@@ -74,6 +80,7 @@ export function DatePicker({
           onSelect={onDateChange}
           initialFocus
           className="p-3 pointer-events-auto"
+          disabled={disablePastDates ? (date) => date < today : undefined}
         />
       </PopoverContent>
     </Popover>

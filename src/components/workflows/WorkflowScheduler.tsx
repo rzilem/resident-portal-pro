@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -72,6 +71,10 @@ const WorkflowScheduler = ({
     }
   };
   
+  // Get today's date with time set to 00:00:00
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -107,6 +110,9 @@ const WorkflowScheduler = ({
                     selected={date}
                     onSelect={setDate}
                     initialFocus
+                    className="pointer-events-auto"
+                    // Allow selection of today and future dates
+                    disabled={(date) => date < today}
                   />
                 </PopoverContent>
               </Popover>

@@ -40,7 +40,7 @@ const ScheduleOptions: React.FC = () => {
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
-      // Convert the Date object to a string in the format expected by setScheduledDate
+      // Convert the Date object to a Date object expected by setScheduledDate
       setScheduledDate(selectedDate);
     }
   };
@@ -106,7 +106,9 @@ const ScheduleOptions: React.FC = () => {
                   selected={date}
                   onSelect={handleDateSelect}
                   initialFocus
-                  disabled={[{ before: new Date() }]}
+                  className="pointer-events-auto"
+                  // Allow selection of today and future dates
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                 />
               </PopoverContent>
             </Popover>

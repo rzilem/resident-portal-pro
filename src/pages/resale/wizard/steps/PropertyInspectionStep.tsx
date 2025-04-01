@@ -4,19 +4,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormData } from '../types';
 
 interface PropertyInspectionStepProps {
   formData: FormData;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (name: string, value: string) => void;
+  onDateChange?: (name: string, value: Date | undefined) => void;
 }
 
 const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
   formData,
   onInputChange,
-  onSelectChange
+  onSelectChange,
+  onDateChange
 }) => {
+  // Handler for date picker
+  const handleDateChange = (date: Date | undefined) => {
+    if (onDateChange) {
+      onDateChange('inspectionDate', date);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground mb-4">
@@ -26,13 +36,10 @@ const PropertyInspectionStep: React.FC<PropertyInspectionStepProps> = ({
       <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
           <Label htmlFor="inspectionDate">Preferred Inspection Date</Label>
-          <Input 
-            id="inspectionDate"
-            name="inspectionDate" 
-            type="date" 
-            min={new Date().toISOString().split('T')[0]}
-            value={typeof formData.inspectionDate === 'string' ? formData.inspectionDate : ''}
-            onChange={onInputChange}
+          <DatePicker
+            date={formData.inspectionDate instanceof Date ? formData.inspectionDate : undefined}
+            onDateChange={handleDateChange}
+            disablePastDates={true}
           />
         </div>
         
