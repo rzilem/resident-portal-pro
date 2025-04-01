@@ -1,106 +1,107 @@
 
-import { calendarEventService } from './calendarEventService';
+import { supabase } from '@/lib/supabase';
 import { CalendarEvent } from '@/types/calendar';
-import { workflowService } from '@/services/workflowService';
-import { toast } from 'sonner';
 
 export const workflowEventService = {
-  // Create a workflow event
-  createWorkflowEvent: async (workflowId: string, title: string, start: Date, associationId: string) => {
+  // Get all scheduled workflows
+  getScheduledWorkflows: async (associationId?: string) => {
     try {
-      // Get workflow details - need to await the Promise
-      const workflow = await workflowService.getWorkflowById(workflowId);
+      let query = supabase
+        .from('calendar_events')
+        .select('*')
+        .eq('event_type', 'workflow');
       
-      // Create calendar event for the workflow
-      const event = calendarEventService.createEvent({
-        title: title || `Scheduled: ${workflow.name}`,
-        description: `Scheduled workflow: ${workflow.name}`,
-        start,
-        type: 'workflow',
-        associationId,
-        accessLevel: 'admin',
-        workflowId,
-        color: '#8b5cf6' // Purple color for workflow events
-      });
+      if (associationId) {
+        query = query.eq('association_id', associationId);
+      }
       
-      // Log the workflow schedule
-      console.log(`Workflow "${workflow.name}" scheduled for ${start.toLocaleString()}`);
+      const { data, error } = await query;
       
-      return event;
+      if (error) throw error;
+      return data as CalendarEvent[];
+    } catch (error) {
+      console.error('Error fetching scheduled workflows:', error);
+      throw error;
+    }
+  },
+  
+  // Create a new workflow event
+  createWorkflowEvent: async (
+    workflowId: string, 
+    title: string, 
+    scheduledDateTime: Date,
+    associationId: string
+  ) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      const event = {
+        title,
+        description: `Automated workflow: ${title}`,
+        start_time: scheduledDateTime.toISOString(),
+        event_type: 'workflow',
+        association_id: associationId,
+        workflow_id: workflowId,
+        created_by: user.user?.id,
+        access_level: 'admin',
+        all_day: true
+      };
+      
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .insert([event])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as CalendarEvent;
     } catch (error) {
       console.error('Error creating workflow event:', error);
       throw error;
     }
   },
   
-  // Get all scheduled workflow events
-  getScheduledWorkflows: (associationId?: string) => {
-    try {
-      // Get all calendar events
-      const events = calendarEventService.getAllEvents('admin', 'admin', associationId);
-      
-      // Filter for workflow events
-      return events.filter(event => event.type === 'workflow' && event.workflowId);
-    } catch (error) {
-      console.error('Error getting scheduled workflows:', error);
-      return [];
-    }
-  },
-  
-  // Execute a scheduled workflow
-  executeScheduledWorkflow: (eventId: string) => {
-    try {
-      // Get the event
-      const event = calendarEventService.getEventById(eventId);
-      
-      if (!event.workflowId) {
-        throw new Error('No workflow associated with this event');
-      }
-      
-      // In a real implementation, this would trigger the workflow execution
-      // For now, we'll just log it and update the event
-      console.log(`Executing workflow: ${event.workflowId}`);
-      
-      // Update event to mark it as executed
-      calendarEventService.updateEvent(eventId, {
-        description: `${event.description} (Executed at ${new Date().toLocaleString()})`,
-        metadata: { 
-          ...event.metadata,
-          executed: true,
-          executedAt: new Date().toISOString()
-        }
-      });
-      
-      toast.success(`Workflow "${event.title}" executed successfully`);
-      
-      return true;
-    } catch (error) {
-      console.error('Error executing scheduled workflow:', error);
-      toast.error(`Failed to execute workflow: ${error.message}`);
-      return false;
-    }
-  },
-  
   // Cancel a scheduled workflow
-  cancelScheduledWorkflow: (eventId: string) => {
+  cancelScheduledWorkflow: async (eventId: string) => {
     try {
-      // Get the event
-      const event = calendarEventService.getEventById(eventId);
+      const { error } = await supabase
+        .from('calendar_events')
+        .delete()
+        .eq('id', eventId)
+        .eq('event_type', 'workflow');
       
-      if (!event.workflowId) {
-        throw new Error('No workflow associated with this event');
-      }
-      
-      // Delete the calendar event
-      calendarEventService.deleteEvent(eventId);
-      
-      toast.success(`Scheduled workflow "${event.title}" has been canceled`);
-      
+      if (error) throw error;
       return true;
     } catch (error) {
       console.error('Error canceling scheduled workflow:', error);
-      toast.error(`Failed to cancel workflow: ${error.message}`);
-      return false;
+      throw error;
+    }
+  },
+  
+  // Execute a scheduled workflow (placeholder implementation)
+  executeScheduledWorkflow: async (eventId: string) => {
+    try {
+      // In a real implementation, this would trigger the workflow execution
+      // For now, we'll just mark it as executed in metadata
+      
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .update({
+          metadata: {
+            executed: true,
+            executed_at: new Date().toISOString()
+          }
+        })
+        .eq('id', eventId)
+        .eq('event_type', 'workflow')
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as CalendarEvent;
+    } catch (error) {
+      console.error('Error executing scheduled workflow:', error);
+      throw error;
     }
   }
 };

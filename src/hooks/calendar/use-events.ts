@@ -17,10 +17,10 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   const [error, setError] = useState<string | null>(null);
   
   // Fetch all events
-  const fetchEvents = useCallback(() => {
+  const fetchEvents = useCallback(async () => {
     setIsLoading(true);
     try {
-      const allEvents = calendarService.getAllEvents(userId, userAccessLevel, associationId);
+      const allEvents = await calendarService.getAllEvents(userId, userAccessLevel, associationId);
       setEvents(allEvents);
       setError(null);
     } catch (err) {
@@ -32,10 +32,10 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   }, [userId, userAccessLevel, associationId]);
   
   // Fetch events by date range
-  const fetchEventsByDateRange = useCallback((start: Date, end: Date) => {
+  const fetchEventsByDateRange = useCallback(async (start: Date, end: Date) => {
     setIsLoading(true);
     try {
-      const rangeEvents = calendarService.getEventsByDateRange(
+      const rangeEvents = await calendarService.getEventsByDateRange(
         start, end, userId, userAccessLevel, associationId
       );
       setEvents(rangeEvents);
@@ -49,10 +49,10 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   }, [userId, userAccessLevel, associationId]);
   
   // Fetch events by type
-  const fetchEventsByType = useCallback((type: CalendarEventType) => {
+  const fetchEventsByType = useCallback(async (type: CalendarEventType) => {
     setIsLoading(true);
     try {
-      const typeEvents = calendarService.getEventsByType(
+      const typeEvents = await calendarService.getEventsByType(
         type, userId, userAccessLevel, associationId
       );
       setEvents(typeEvents);
@@ -66,9 +66,9 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   }, [userId, userAccessLevel, associationId]);
   
   // Get event by ID
-  const getEventById = useCallback((id: string) => {
+  const getEventById = useCallback(async (id: string) => {
     try {
-      const event = calendarService.getEventById(id);
+      const event = await calendarService.getEventById(id);
       return event;
     } catch (err) {
       console.error('Error fetching event by ID:', err);
@@ -78,9 +78,12 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   }, []);
   
   // Create a new event
-  const createEvent = useCallback((event: Omit<CalendarEvent, 'id'>) => {
+  const createEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
     try {
-      const newEvent = calendarService.createEvent(event);
+      const newEvent = await calendarService.createEvent({
+        ...event,
+        created_by: userId
+      });
       setEvents(prev => [...prev, newEvent]);
       toast.success('Event created successfully');
       return newEvent;
@@ -89,12 +92,12 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
       toast.error('Failed to create event');
       throw err;
     }
-  }, []);
+  }, [userId]);
   
   // Update an existing event
-  const updateEvent = useCallback((id: string, updates: Partial<CalendarEvent>) => {
+  const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
     try {
-      const updatedEvent = calendarService.updateEvent(id, updates);
+      const updatedEvent = await calendarService.updateEvent(id, updates);
       setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
       
       if (selectedEvent?.id === id) {
@@ -111,9 +114,9 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
   }, [selectedEvent]);
   
   // Delete an event
-  const deleteEvent = useCallback((id: string) => {
+  const deleteEvent = useCallback(async (id: string) => {
     try {
-      calendarService.deleteEvent(id);
+      await calendarService.deleteEvent(id);
       setEvents(prev => prev.filter(event => event.id !== id));
       
       if (selectedEvent?.id === id) {

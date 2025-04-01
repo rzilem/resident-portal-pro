@@ -1,4 +1,5 @@
 
+import { supabase } from '@/lib/supabase';
 import { AssociationCalendarSettings } from '@/types/calendar';
 
 // Sample association calendar settings

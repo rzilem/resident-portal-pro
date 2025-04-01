@@ -1,6 +1,5 @@
 
 import { useState, useCallback } from 'react';
-import { workflowEventService } from '@/services/calendar/workflowEventService';
 import { toast } from 'sonner';
 import { CalendarEvent } from '@/types/calendar';
 import { calendarService } from '@/services/calendar';
@@ -19,7 +18,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
-      const allEvents = workflowEventService.getScheduledWorkflows(associationId);
+      const allEvents = await calendarService.getAllEvents(userId, userAccessLevel, associationId);
       setEvents(allEvents);
     } catch (error) {
       console.error('Error fetching calendar events:', error);
@@ -32,7 +31,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const fetchEventsByDateRange = useCallback(async (start: Date, end: Date) => {
     try {
       setIsLoading(true);
-      const events = calendarService.getEventsByDateRange(
+      const events = await calendarService.getEventsByDateRange(
         start, end, userId, userAccessLevel, associationId
       );
       setEvents(events);
@@ -44,17 +43,71 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     }
   }, [associationId, userId, userAccessLevel]);
   
+  const createEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
+    try {
+      const newEvent = await calendarService.createEvent({
+        ...event,
+        created_by: userId
+      });
+      
+      setEvents(prev => [...prev, newEvent]);
+      toast.success('Event created successfully');
+      return newEvent;
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast.error('Failed to create event');
+      throw error;
+    }
+  }, [userId]);
+  
+  const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
+    try {
+      const updatedEvent = await calendarService.updateEvent(id, updates);
+      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      if (selectedEvent?.id === id) {
+        setSelectedEvent(updatedEvent);
+      }
+      toast.success('Event updated successfully');
+      return updatedEvent;
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast.error('Failed to update event');
+      throw error;
+    }
+  }, [selectedEvent]);
+  
+  const deleteEvent = useCallback(async (id: string) => {
+    try {
+      await calendarService.deleteEvent(id);
+      setEvents(prev => prev.filter(event => event.id !== id));
+      if (selectedEvent?.id === id) {
+        setSelectedEvent(null);
+      }
+      toast.success('Event deleted successfully');
+      return true;
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event');
+      return false;
+    }
+  }, [selectedEvent]);
+  
   const createWorkflowEvent = useCallback(async (
     workflowId: string,
     title: string,
     scheduledDateTime: Date
   ) => {
+    if (!associationId) {
+      toast.error('Association ID is required to create a workflow event');
+      return null;
+    }
+    
     try {
-      const newEvent = await workflowEventService.createWorkflowEvent(
+      const newEvent = await calendarService.createWorkflowEvent(
         workflowId,
         title,
         scheduledDateTime,
-        associationId || 'default'
+        associationId
       );
       
       setEvents(prev => [...prev, newEvent]);
@@ -67,75 +120,42 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     }
   }, [associationId]);
   
-  const cancelWorkflowEvent = useCallback(async (eventId: string) => {
+  const uploadEventDocument = useCallback(async (
+    eventId: string,
+    file: File
+  ) => {
     try {
-      await workflowEventService.cancelScheduledWorkflow(eventId);
-      setEvents(prev => prev.filter(event => event.id !== eventId));
-      toast.success('Scheduled workflow canceled');
+      const document = await calendarService.uploadEventDocument(eventId, file);
+      toast.success('Document uploaded successfully');
+      return document;
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast.error('Failed to upload document');
+      throw error;
+    }
+  }, []);
+  
+  const getEventDocuments = useCallback(async (eventId: string) => {
+    try {
+      return await calendarService.getEventDocuments(eventId);
+    } catch (error) {
+      console.error('Error fetching event documents:', error);
+      toast.error('Failed to load event documents');
+      throw error;
+    }
+  }, []);
+  
+  const deleteEventDocument = useCallback(async (documentId: string) => {
+    try {
+      await calendarService.deleteEventDocument(documentId);
+      toast.success('Document deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error canceling workflow event:', error);
-      toast.error('Failed to cancel workflow');
+      console.error('Error deleting document:', error);
+      toast.error('Failed to delete document');
       return false;
     }
   }, []);
-  
-  const executeWorkflowEvent = useCallback(async (eventId: string) => {
-    try {
-      const result = await workflowEventService.executeScheduledWorkflow(eventId);
-      if (result) {
-        fetchEvents();
-      }
-      return result;
-    } catch (error) {
-      console.error('Error executing workflow event:', error);
-      toast.error('Failed to execute workflow');
-      return false;
-    }
-  }, [fetchEvents]);
-  
-  // Add missing functions from calendarService
-  const createEvent = useCallback((event: Omit<CalendarEvent, 'id'>) => {
-    try {
-      const newEvent = calendarService.createEvent(event);
-      setEvents(prev => [...prev, newEvent]);
-      return newEvent;
-    } catch (error) {
-      console.error('Error creating event:', error);
-      toast.error('Failed to create event');
-      throw error;
-    }
-  }, []);
-  
-  const updateEvent = useCallback((id: string, updates: Partial<CalendarEvent>) => {
-    try {
-      const updatedEvent = calendarService.updateEvent(id, updates);
-      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
-      if (selectedEvent?.id === id) {
-        setSelectedEvent(updatedEvent);
-      }
-      return updatedEvent;
-    } catch (error) {
-      console.error('Error updating event:', error);
-      toast.error('Failed to update event');
-      throw error;
-    }
-  }, [selectedEvent]);
-  
-  const deleteEvent = useCallback((id: string) => {
-    try {
-      calendarService.deleteEvent(id);
-      setEvents(prev => prev.filter(event => event.id !== id));
-      if (selectedEvent?.id === id) {
-        setSelectedEvent(null);
-      }
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      toast.error('Failed to delete event');
-      throw error;
-    }
-  }, [selectedEvent]);
   
   return {
     events,
@@ -148,7 +168,8 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     updateEvent,
     deleteEvent,
     createWorkflowEvent,
-    cancelWorkflowEvent,
-    executeWorkflowEvent
+    uploadEventDocument,
+    getEventDocuments,
+    deleteEventDocument
   };
 }
