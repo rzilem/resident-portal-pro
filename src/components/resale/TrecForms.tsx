@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { FileBadge, Plus, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,10 +17,13 @@ const TrecForms: React.FC = () => {
             <CardTitle className="text-xl">TREC Forms</CardTitle>
             <CardDescription>Manage Texas Real Estate Commission forms for property transactions</CardDescription>
           </div>
-          <Button className="gap-2">
+          <TooltipButton 
+            tooltipText="Create a new TREC form"
+            className="gap-2"
+          >
             <Plus className="h-4 w-4" />
             New TREC Form
-          </Button>
+          </TooltipButton>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <FileBadge className="h-20 w-20 text-muted-foreground mb-4" />
@@ -29,14 +33,21 @@ const TrecForms: React.FC = () => {
             required for property transactions and resales.
           </p>
           <div className="flex gap-3">
-            <Button className="gap-2">
+            <TooltipButton 
+              tooltipText="Create a new TREC form"
+              className="gap-2"
+            >
               <Plus className="h-4 w-4" />
               New TREC Form
-            </Button>
-            <Button variant="outline" className="gap-2">
+            </TooltipButton>
+            <TooltipButton 
+              tooltipText="Download TREC form templates"
+              variant="outline" 
+              className="gap-2"
+            >
               <Download className="h-4 w-4" />
               Download Form Templates
-            </Button>
+            </TooltipButton>
           </div>
         </CardContent>
       </Card>

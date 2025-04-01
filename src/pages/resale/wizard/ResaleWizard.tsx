@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Stepper, Step } from '@/components/ui/stepper';
 import { ArrowLeft, ArrowRight, Check, Save, FileClock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Import necessary wizard steps
 import PropertyDetailsStep from './steps/PropertyDetailsStep';
@@ -172,50 +174,55 @@ const ResaleWizard = () => {
         <CardFooter className="flex justify-between">
           <div>
             {currentStep > 0 && (
-              <Button 
+              <TooltipButton 
+                tooltipText="Go back to previous step"
                 variant="outline" 
                 onClick={handleBack}
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
-              </Button>
+              </TooltipButton>
             )}
           </div>
           
           <div className="flex gap-2">
-            <Button 
+            <TooltipButton 
+              tooltipText="Cancel and return to dashboard"
               variant="outline" 
               onClick={handleCancel}
             >
               Cancel
-            </Button>
+            </TooltipButton>
             
-            <Button 
+            <TooltipButton 
+              tooltipText="Save progress as draft"
               variant="outline" 
               onClick={handleSaveAsDraft}
               className="gap-2"
             >
               <Save className="h-4 w-4" />
               Save as Draft
-            </Button>
+            </TooltipButton>
             
             {currentStep < steps.length - 1 ? (
-              <Button 
+              <TooltipButton 
+                tooltipText="Continue to next step"
                 onClick={handleNext}
                 className="gap-2"
               >
                 Next
                 <ArrowRight className="h-4 w-4" />
-              </Button>
+              </TooltipButton>
             ) : (
-              <Button 
+              <TooltipButton 
+                tooltipText="Submit completed request"
                 onClick={handleSubmit}
                 className="gap-2"
               >
                 <Check className="h-4 w-4" />
                 Submit Request
-              </Button>
+              </TooltipButton>
             )}
           </div>
         </CardFooter>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
@@ -11,6 +12,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { generateResaleCertificate } from '@/utils/pdfGenerator';
 
 // Mock data
@@ -207,10 +209,14 @@ const ResaleOrderQueue: React.FC<OrderQueueProps> = () => {
               Past Due
             </TabsTrigger>
           </TabsList>
-          <Button variant="outline" className="gap-2">
+          <TooltipButton
+            tooltipText="Export order data" 
+            variant="outline" 
+            className="gap-2"
+          >
             <Download className="h-4 w-4" />
             Export
-          </Button>
+          </TooltipButton>
         </div>
 
         {/* Filters */}
@@ -264,10 +270,14 @@ const ResaleOrderQueue: React.FC<OrderQueueProps> = () => {
               </SelectContent>
             </Select>
             
-            <Button variant="outline" className="gap-2">
+            <TooltipButton
+              tooltipText="Apply additional filters"
+              variant="outline" 
+              className="gap-2"
+            >
               <Filter className="h-4 w-4" />
               More Filters
-            </Button>
+            </TooltipButton>
           </div>
         </div>
 
@@ -313,31 +323,57 @@ const ResaleOrderQueue: React.FC<OrderQueueProps> = () => {
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => {}} 
-                              title="View Order Details"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleGenerateDocument(order)} 
-                              title="Generate Document"
-                            >
-                              <FileText className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => {}}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>View order details</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => handleGenerateDocument(order)}
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Generate document</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
                             {order.status !== 'Completed' && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => {}} 
-                                title="Edit Order"
-                              >
-                                <FilePen className="h-4 w-4" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      onClick={() => {}}
+                                    >
+                                      <FilePen className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Edit order</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
                           </div>
                         </TableCell>

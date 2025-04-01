@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { FileCheck, Download, Plus, Filter, Search, Eye, FileText, Edit, Trash } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { generateResaleCertificate, ResaleCertificateData } from '@/utils/pdfGenerator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Sample data for resale certificates
 const sampleCertificates = [
@@ -112,10 +114,14 @@ const ResaleCertificate: React.FC = () => {
             <CardTitle className="text-xl">Resale Certificates</CardTitle>
             <CardDescription>Generate and manage resale certificates for property transfers</CardDescription>
           </div>
-          <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
+          <TooltipButton
+            tooltipText="Create a new resale certificate"
+            className="gap-2"
+            onClick={() => navigate('/resale/wizard')}
+          >
             <Plus className="h-4 w-4" />
             New Certificate
-          </Button>
+          </TooltipButton>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -141,15 +147,23 @@ const ResaleCertificate: React.FC = () => {
                 </SelectContent>
               </Select>
               
-              <Button variant="outline" className="gap-2">
+              <TooltipButton
+                tooltipText="Apply additional filters"
+                variant="outline" 
+                className="gap-2"
+              >
                 <Filter className="h-4 w-4" />
                 More Filters
-              </Button>
+              </TooltipButton>
 
-              <Button variant="outline" className="gap-2">
+              <TooltipButton
+                tooltipText="Export certificate data"
+                variant="outline" 
+                className="gap-2"
+              >
                 <Download className="h-4 w-4" />
                 Export
-              </Button>
+              </TooltipButton>
             </div>
           </div>
 
@@ -191,38 +205,73 @@ const ResaleCertificate: React.FC = () => {
                     <TableCell>{cert.createdAt}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => {}} 
-                          title="View Certificate Details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleGeneratePdf(cert)} 
-                          title="Download PDF"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => {}} 
-                          title="Edit Certificate"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDeleteCertificate(cert.id)} 
-                          title="Delete Certificate"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => {}}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View certificate details</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleGeneratePdf(cert)}
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Download PDF</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => {}}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit certificate</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleDeleteCertificate(cert.id)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete certificate</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </TableCell>
                   </TableRow>

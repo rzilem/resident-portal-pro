@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { Plus, FileCheck, FileQuestion, FileSearch, FileText, FileBadge, ListOrdered } from 'lucide-react';
 import ResaleCertificate from '@/components/resale/ResaleCertificate';
 import CondoQuestionnaire from '@/components/resale/CondoQuestionnaire';
@@ -54,10 +55,14 @@ const ResaleDashboard = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button className="gap-2" onClick={() => navigate('/resale/wizard')}>
+          <TooltipButton 
+            tooltipText="Create a new resale documentation request"
+            className="gap-2" 
+            onClick={() => navigate('/resale/wizard')}
+          >
             <Plus className="h-4 w-4" />
             New Resale Request
-          </Button>
+          </TooltipButton>
         </div>
       </div>
       

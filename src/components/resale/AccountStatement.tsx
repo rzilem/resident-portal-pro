@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 import { FileText, Plus, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,10 +17,13 @@ const AccountStatement: React.FC = () => {
             <CardTitle className="text-xl">Account Statements</CardTitle>
             <CardDescription>Generate and manage account statements for property closings</CardDescription>
           </div>
-          <Button className="gap-2">
+          <TooltipButton 
+            tooltipText="Generate a new account statement"
+            className="gap-2"
+          >
             <Plus className="h-4 w-4" />
             New Statement
-          </Button>
+          </TooltipButton>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <FileText className="h-20 w-20 text-muted-foreground mb-4" />
@@ -29,14 +33,21 @@ const AccountStatement: React.FC = () => {
             Create, manage, and distribute statements to owners and title companies.
           </p>
           <div className="flex gap-3">
-            <Button className="gap-2">
+            <TooltipButton 
+              tooltipText="Generate a new account statement"
+              className="gap-2"
+            >
               <Plus className="h-4 w-4" />
               New Statement
-            </Button>
-            <Button variant="outline" className="gap-2">
+            </TooltipButton>
+            <TooltipButton 
+              tooltipText="Download statement templates"
+              variant="outline" 
+              className="gap-2"
+            >
               <Download className="h-4 w-4" />
               Download Templates
-            </Button>
+            </TooltipButton>
           </div>
         </CardContent>
       </Card>
