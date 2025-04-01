@@ -12,7 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { uploadFile } from '@/utils/supabase/storage/uploadFile';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ProposalSection {
   id: string;
@@ -32,6 +33,7 @@ const ProposalCreator: React.FC = () => {
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({});
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [saving, setSaving] = useState(false);
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -144,7 +146,7 @@ const ProposalCreator: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!proposalName) {
       toast.error('Please enter a proposal name');
       return;
@@ -155,19 +157,46 @@ const ProposalCreator: React.FC = () => {
       return;
     }
 
-    const proposal = {
-      id: `proposal-${Date.now()}`,
-      name: proposalName,
-      description: proposalDescription,
-      sections,
-      createdAt: new Date().toISOString()
-    };
+    setSaving(true);
     
-    const savedProposals = JSON.parse(localStorage.getItem('proposals') || '[]');
-    localStorage.setItem('proposals', JSON.stringify([...savedProposals, proposal]));
-    
-    toast.success('Proposal saved successfully');
-    navigate('/leads?tab=proposals');
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast.error("You need to be logged in to save proposals");
+        setSaving(false);
+        return;
+      }
+      
+      const proposalId = uuidv4();
+      
+      const { data, error } = await supabase
+        .from('proposals')
+        .insert({
+          id: proposalId,
+          name: proposalName,
+          description: proposalDescription,
+          sections: sections,
+          createdat: new Date().toISOString(),
+          createdby: session.session.user.id
+        })
+        .select();
+      
+      if (error) {
+        console.error('Error saving proposal:', error);
+        toast.error('Failed to save proposal: ' + error.message);
+        setSaving(false);
+        return;
+      }
+      
+      toast.success('Proposal saved successfully');
+      
+      navigate('/leads?tab=proposals');
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+      toast.error('An unexpected error occurred while saving the proposal');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const renderProgressBar = (sectionId: string) => {
@@ -506,8 +535,16 @@ const ProposalCreator: React.FC = () => {
         <Button variant="outline" onClick={() => navigate('/leads?tab=proposals')}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          Save Proposal
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Saving...
+            </span>
+          ) : 'Save Proposal'}
         </Button>
       </div>
     </div>
