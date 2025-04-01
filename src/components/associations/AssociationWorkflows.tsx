@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Zap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useWorkflows } from '@/hooks/use-workflows';
 import { useNavigate } from 'react-router-dom';
 import { workflowEventService } from '@/services/calendar/workflowEventService';
 import { toast } from 'sonner';
+import { CalendarEvent } from '@/types/calendar';
 
 // Date picker components
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -30,9 +31,26 @@ const AssociationWorkflows: React.FC<AssociationWorkflowsProps> = ({ association
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>("12:00");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [scheduledWorkflows, setScheduledWorkflows] = useState<CalendarEvent[]>([]);
+  const [loadingWorkflows, setLoadingWorkflows] = useState(false);
   
-  // Get scheduled workflows from the calendar
-  const scheduledWorkflows = workflowEventService.getScheduledWorkflows(associationId);
+  // Fetch scheduled workflows from the calendar
+  useEffect(() => {
+    const fetchScheduledWorkflows = async () => {
+      setLoadingWorkflows(true);
+      try {
+        const workflows = await workflowEventService.getScheduledWorkflows(associationId);
+        setScheduledWorkflows(workflows);
+      } catch (error) {
+        console.error('Error fetching scheduled workflows:', error);
+        toast.error('Failed to load scheduled workflows');
+      } finally {
+        setLoadingWorkflows(false);
+      }
+    };
+    
+    fetchScheduledWorkflows();
+  }, [associationId]);
   
   const handleScheduleWorkflow = async () => {
     if (!selectedWorkflow || !date) {
@@ -51,12 +69,15 @@ const AssociationWorkflows: React.FC<AssociationWorkflowsProps> = ({ association
       const workflowName = workflow ? workflow.name : 'Selected Workflow';
       
       // Create calendar event for the workflow
-      await workflowEventService.createWorkflowEvent(
+      const newEvent = await workflowEventService.createWorkflowEvent(
         selectedWorkflow,
         `Run: ${workflowName}`,
         scheduledDate,
         associationId
       );
+      
+      // Update local state with the new workflow
+      setScheduledWorkflows(prev => [...prev, newEvent]);
       
       toast.success(`Workflow scheduled for ${format(scheduledDate, 'PPp')}`);
       setDialogOpen(false);
@@ -68,6 +89,36 @@ const AssociationWorkflows: React.FC<AssociationWorkflowsProps> = ({ association
     } catch (error) {
       console.error('Error scheduling workflow:', error);
       toast.error('Failed to schedule workflow');
+    }
+  };
+  
+  const handleCancelWorkflow = async (eventId: string) => {
+    if (window.confirm('Are you sure you want to cancel this scheduled workflow?')) {
+      try {
+        await workflowEventService.cancelScheduledWorkflow(eventId);
+        // Remove the workflow from the local state
+        setScheduledWorkflows(prev => prev.filter(w => w.id !== eventId));
+        toast.success('Workflow cancelled successfully');
+      } catch (error) {
+        console.error('Error cancelling workflow:', error);
+        toast.error('Failed to cancel workflow');
+      }
+    }
+  };
+  
+  const handleRunWorkflow = async (eventId: string) => {
+    try {
+      await workflowEventService.executeScheduledWorkflow(eventId);
+      // Update the workflow in the local state to show it's been executed
+      setScheduledWorkflows(prev => 
+        prev.map(w => w.id === eventId ? 
+          { ...w, metadata: { executed: true, executed_at: new Date().toISOString() } } : w
+        )
+      );
+      toast.success('Workflow executed successfully');
+    } catch (error) {
+      console.error('Error executing workflow:', error);
+      toast.error('Failed to execute workflow');
     }
   };
   
@@ -181,7 +232,7 @@ const AssociationWorkflows: React.FC<AssociationWorkflowsProps> = ({ association
             </Dialog>
           </div>
           
-          {isLoading ? (
+          {isLoading || loadingWorkflows ? (
             <div className="text-center py-4">
               <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
               <p className="text-sm text-muted-foreground">Loading workflows...</p>
@@ -203,9 +254,7 @@ const AssociationWorkflows: React.FC<AssociationWorkflowsProps> = ({ association
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => {
-                        workflowEventService.executeScheduledWorkflow(event.id);
-                      }}
+                      onClick={() => handleRunWorkflow(event.id)}
                     >
                       <Zap className="h-4 w-4" />
                       Run Now
@@ -213,11 +262,7 @@ const AssociationWorkflows: React.FC<AssociationWorkflowsProps> = ({ association
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to cancel this scheduled workflow?')) {
-                          workflowEventService.cancelScheduledWorkflow(event.id);
-                        }
-                      }}
+                      onClick={() => handleCancelWorkflow(event.id)}
                     >
                       Cancel
                     </Button>

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { CalendarEvent, CalendarAccessLevel, CalendarEventType } from '@/types/calendar';
 import { v4 as uuid } from 'uuid';
 
-export const calendarService = {
+export const calendarEventService = {
   // Get all calendar events based on user's access level
   getAllEvents: async (userId: string, userAccessLevel: CalendarAccessLevel, associationId?: string) => {
     try {
@@ -19,7 +19,27 @@ export const calendarService = {
       const { data, error } = await query;
       
       if (error) throw error;
-      return data as CalendarEvent[];
+      
+      // Map database fields to CalendarEvent type
+      const formattedEvents = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        start: new Date(event.start_time),
+        end: event.end_time ? new Date(event.end_time) : undefined,
+        allDay: event.all_day,
+        location: event.location,
+        type: event.event_type as CalendarEventType,
+        associationId: event.association_id,
+        createdBy: event.created_by,
+        accessLevel: event.access_level as CalendarAccessLevel,
+        color: event.color,
+        recurring: event.recurring_pattern,
+        workflowId: event.workflow_id,
+        metadata: event.metadata
+      }));
+      
+      return formattedEvents as CalendarEvent[];
     } catch (error) {
       console.error('Error fetching calendar events:', error);
       throw error;
@@ -48,7 +68,27 @@ export const calendarService = {
       const { data, error } = await query;
       
       if (error) throw error;
-      return data as CalendarEvent[];
+      
+      // Map database fields to CalendarEvent type
+      const formattedEvents = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        start: new Date(event.start_time),
+        end: event.end_time ? new Date(event.end_time) : undefined,
+        allDay: event.all_day,
+        location: event.location,
+        type: event.event_type as CalendarEventType,
+        associationId: event.association_id,
+        createdBy: event.created_by,
+        accessLevel: event.access_level as CalendarAccessLevel,
+        color: event.color,
+        recurring: event.recurring_pattern,
+        workflowId: event.workflow_id,
+        metadata: event.metadata
+      }));
+      
+      return formattedEvents as CalendarEvent[];
     } catch (error) {
       console.error('Error fetching calendar events by date range:', error);
       throw error;
@@ -75,7 +115,27 @@ export const calendarService = {
       const { data, error } = await query;
       
       if (error) throw error;
-      return data as CalendarEvent[];
+      
+      // Map database fields to CalendarEvent type
+      const formattedEvents = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        start: new Date(event.start_time),
+        end: event.end_time ? new Date(event.end_time) : undefined,
+        allDay: event.all_day,
+        location: event.location,
+        type: event.event_type as CalendarEventType,
+        associationId: event.association_id,
+        createdBy: event.created_by,
+        accessLevel: event.access_level as CalendarAccessLevel,
+        color: event.color,
+        recurring: event.recurring_pattern,
+        workflowId: event.workflow_id,
+        metadata: event.metadata
+      }));
+      
+      return formattedEvents as CalendarEvent[];
     } catch (error) {
       console.error('Error fetching events by type:', error);
       throw error;
@@ -92,7 +152,27 @@ export const calendarService = {
         .single();
       
       if (error) throw error;
-      return data as CalendarEvent;
+      
+      // Map database fields to CalendarEvent type
+      const formattedEvent = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        start: new Date(data.start_time),
+        end: data.end_time ? new Date(data.end_time) : undefined,
+        allDay: data.all_day,
+        location: data.location,
+        type: data.event_type as CalendarEventType,
+        associationId: data.association_id,
+        createdBy: data.created_by,
+        accessLevel: data.access_level as CalendarAccessLevel,
+        color: data.color,
+        recurring: data.recurring_pattern,
+        workflowId: data.workflow_id,
+        metadata: data.metadata
+      };
+      
+      return formattedEvent as CalendarEvent;
     } catch (error) {
       console.error('Error fetching event by ID:', error);
       throw error;
@@ -102,18 +182,52 @@ export const calendarService = {
   // Create a new event
   createEvent: async (event: Omit<CalendarEvent, 'id'>) => {
     try {
+      // Convert from CalendarEvent type to database schema
+      const dbEvent = {
+        title: event.title,
+        description: event.description,
+        start_time: event.start instanceof Date ? event.start.toISOString() : event.start,
+        end_time: event.end ? (event.end instanceof Date ? event.end.toISOString() : event.end) : null,
+        all_day: event.allDay,
+        location: event.location,
+        event_type: event.type,
+        association_id: event.associationId,
+        created_by: event.createdBy,
+        access_level: event.accessLevel,
+        color: event.color,
+        recurring_pattern: event.recurring,
+        workflow_id: event.workflowId,
+        metadata: event.metadata
+      };
+      
       const { data, error } = await supabase
         .from('calendar_events')
-        .insert([{
-          ...event,
-          start_time: new Date(event.start).toISOString(),
-          end_time: event.end ? new Date(event.end).toISOString() : null
-        }])
+        .insert([dbEvent])
         .select()
         .single();
       
       if (error) throw error;
-      return data as CalendarEvent;
+      
+      // Map database response back to CalendarEvent type
+      const formattedEvent = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        start: new Date(data.start_time),
+        end: data.end_time ? new Date(data.end_time) : undefined,
+        allDay: data.all_day,
+        location: data.location,
+        type: data.event_type as CalendarEventType,
+        associationId: data.association_id,
+        createdBy: data.created_by,
+        accessLevel: data.access_level as CalendarAccessLevel,
+        color: data.color,
+        recurring: data.recurring_pattern,
+        workflowId: data.workflow_id,
+        metadata: data.metadata
+      };
+      
+      return formattedEvent as CalendarEvent;
     } catch (error) {
       console.error('Error creating event:', error);
       throw error;
@@ -123,26 +237,60 @@ export const calendarService = {
   // Update an existing event
   updateEvent: async (id: string, updates: Partial<CalendarEvent>) => {
     try {
-      // Format dates if present
-      const formattedUpdates = { ...updates };
-      if (updates.start) {
-        formattedUpdates.start_time = new Date(updates.start).toISOString();
-        delete formattedUpdates.start;
+      // Convert from CalendarEvent type to database schema
+      const dbUpdates: any = {};
+      
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.start !== undefined) {
+        dbUpdates.start_time = updates.start instanceof Date 
+          ? updates.start.toISOString() 
+          : updates.start;
       }
-      if (updates.end) {
-        formattedUpdates.end_time = new Date(updates.end).toISOString();
-        delete formattedUpdates.end;
+      if (updates.end !== undefined) {
+        dbUpdates.end_time = updates.end instanceof Date 
+          ? updates.end.toISOString() 
+          : updates.end;
       }
+      if (updates.allDay !== undefined) dbUpdates.all_day = updates.allDay;
+      if (updates.location !== undefined) dbUpdates.location = updates.location;
+      if (updates.type !== undefined) dbUpdates.event_type = updates.type;
+      if (updates.associationId !== undefined) dbUpdates.association_id = updates.associationId;
+      if (updates.accessLevel !== undefined) dbUpdates.access_level = updates.accessLevel;
+      if (updates.color !== undefined) dbUpdates.color = updates.color;
+      if (updates.recurring !== undefined) dbUpdates.recurring_pattern = updates.recurring;
+      if (updates.workflowId !== undefined) dbUpdates.workflow_id = updates.workflowId;
+      if (updates.metadata !== undefined) dbUpdates.metadata = updates.metadata;
 
       const { data, error } = await supabase
         .from('calendar_events')
-        .update(formattedUpdates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
       
       if (error) throw error;
-      return data as CalendarEvent;
+      
+      // Map database response back to CalendarEvent type
+      const formattedEvent = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        start: new Date(data.start_time),
+        end: data.end_time ? new Date(data.end_time) : undefined,
+        allDay: data.all_day,
+        location: data.location,
+        type: data.event_type as CalendarEventType,
+        associationId: data.association_id,
+        createdBy: data.created_by,
+        accessLevel: data.access_level as CalendarAccessLevel,
+        color: data.color,
+        recurring: data.recurring_pattern,
+        workflowId: data.workflow_id,
+        metadata: data.metadata
+      };
+      
+      return formattedEvent as CalendarEvent;
     } catch (error) {
       console.error('Error updating event:', error);
       throw error;
@@ -161,113 +309,6 @@ export const calendarService = {
       return { success: true };
     } catch (error) {
       console.error('Error deleting event:', error);
-      throw error;
-    }
-  },
-
-  // Upload a document for an event
-  uploadEventDocument: async (eventId: string, file: File) => {
-    try {
-      const fileName = `${uuid()}-${file.name}`;
-      const filePath = `${eventId}/${fileName}`;
-      
-      // Upload file to storage
-      const { error: uploadError } = await supabase.storage
-        .from('calendar_attachments')
-        .upload(filePath, file);
-      
-      if (uploadError) throw uploadError;
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('calendar_attachments')
-        .getPublicUrl(filePath);
-      
-      // Add record to calendar_event_documents
-      const { data, error } = await supabase
-        .from('calendar_event_documents')
-        .insert([{
-          event_id: eventId,
-          file_name: file.name,
-          file_path: filePath,
-          file_type: file.type,
-          file_size: file.size,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      return {
-        ...data,
-        publicUrl
-      };
-    } catch (error) {
-      console.error('Error uploading event document:', error);
-      throw error;
-    }
-  },
-
-  // Get documents for an event
-  getEventDocuments: async (eventId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('calendar_event_documents')
-        .select('*')
-        .eq('event_id', eventId);
-      
-      if (error) throw error;
-      
-      // Add public URLs to documents
-      const docsWithUrls = await Promise.all(data.map(async (doc) => {
-        const { data: { publicUrl } } = supabase.storage
-          .from('calendar_attachments')
-          .getPublicUrl(doc.file_path);
-        
-        return {
-          ...doc,
-          publicUrl
-        };
-      }));
-      
-      return docsWithUrls;
-    } catch (error) {
-      console.error('Error fetching event documents:', error);
-      throw error;
-    }
-  },
-
-  // Delete a document
-  deleteEventDocument: async (documentId: string) => {
-    try {
-      // First get document to get file path
-      const { data: doc, error: fetchError } = await supabase
-        .from('calendar_event_documents')
-        .select('file_path')
-        .eq('id', documentId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('calendar_attachments')
-        .remove([doc.file_path]);
-      
-      if (storageError) throw storageError;
-      
-      // Delete record
-      const { error } = await supabase
-        .from('calendar_event_documents')
-        .delete()
-        .eq('id', documentId);
-      
-      if (error) throw error;
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting event document:', error);
       throw error;
     }
   },
@@ -294,7 +335,27 @@ export const calendarService = {
         .single();
       
       if (error) throw error;
-      return data as CalendarEvent;
+      
+      // Map database response back to CalendarEvent type
+      const formattedEvent = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        start: new Date(data.start_time),
+        end: data.end_time ? new Date(data.end_time) : undefined,
+        allDay: data.all_day,
+        location: data.location,
+        type: data.event_type as CalendarEventType,
+        associationId: data.association_id,
+        createdBy: data.created_by,
+        accessLevel: data.access_level as CalendarAccessLevel,
+        color: data.color,
+        recurring: data.recurring_pattern,
+        workflowId: data.workflow_id,
+        metadata: data.metadata
+      };
+      
+      return formattedEvent as CalendarEvent;
     } catch (error) {
       console.error('Error creating workflow event:', error);
       throw error;

@@ -82,7 +82,7 @@ export function useEvents({ userId, userAccessLevel, associationId }: UseEventsP
     try {
       const newEvent = await calendarService.createEvent({
         ...event,
-        created_by: userId
+        createdBy: userId // Fixed property name
       });
       setEvents(prev => [...prev, newEvent]);
       toast.success('Event created successfully');
