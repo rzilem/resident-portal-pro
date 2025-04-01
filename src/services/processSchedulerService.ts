@@ -1,6 +1,26 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ScheduledProcess } from '@/types/process';
+import { ScheduledProcess, ProcessType, ProcessFrequency } from '@/types/process';
+
+// Define process types with labels for the UI
+const processTypes = [
+  { type: 'email-notification', label: 'Email Notification' },
+  { type: 'data-sync', label: 'Data Synchronization' },
+  { type: 'report-generation', label: 'Report Generation' },
+  { type: 'data-cleanup', label: 'Data Cleanup' },
+  { type: 'invoice-processing', label: 'Invoice Processing' },
+  { type: 'payment-processing', label: 'Payment Processing' },
+  { type: 'custom', label: 'Custom Process' }
+];
+
+// Define frequency options with labels for the UI
+const frequencyOptions = [
+  { value: 'hourly', label: 'Hourly' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'custom', label: 'Custom Schedule' }
+];
 
 export const processSchedulerService = {
   /**
@@ -91,17 +111,35 @@ export const processSchedulerService = {
   },
 
   /**
+   * Toggle a process's enabled status - alias for toggleProcessStatus for compatibility
+   */
+  toggleProcessEnabled: async (id: string, enabled: boolean): Promise<boolean> => {
+    try {
+      await processSchedulerService.toggleProcessStatus(id, enabled);
+      return true;
+    } catch (error) {
+      console.error('Error toggling process enabled status:', error);
+      return false;
+    }
+  },
+
+  /**
    * Delete a process
    */
-  deleteProcess: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from('scheduled_processes')
-      .delete()
-      .eq('id', id);
+  deleteProcess: async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('scheduled_processes')
+        .delete()
+        .eq('id', id);
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+      return true;
+    } catch (error) {
       console.error('Error deleting process:', error);
-      throw error;
+      return false;
     }
   },
 
@@ -135,6 +173,20 @@ export const processSchedulerService = {
       console.error('Error updating last end time:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get available process types
+   */
+  getProcessTypes: () => {
+    return processTypes;
+  },
+
+  /**
+   * Get available frequency options
+   */
+  getFrequencyOptions: () => {
+    return frequencyOptions;
   }
 };
 

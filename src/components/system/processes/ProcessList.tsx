@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ScheduledProcess } from '@/types/process';
 import { Button } from '@/components/ui/button';
@@ -40,17 +39,33 @@ const ProcessList: React.FC<ProcessListProps> = ({ processes, onEdit, onRefresh 
   };
 
   const handleToggleEnabled = async (id: string, currentlyEnabled: boolean) => {
-    const result = await processSchedulerService.toggleProcessEnabled(id, !currentlyEnabled);
-    if (result) {
-      onRefresh();
+    try {
+      const success = await processSchedulerService.toggleProcessEnabled(id, !currentlyEnabled);
+      if (success) {
+        toast.success(`Process ${!currentlyEnabled ? 'enabled' : 'disabled'} successfully`);
+        onRefresh();
+      } else {
+        toast.error(`Failed to ${!currentlyEnabled ? 'enable' : 'disable'} process`);
+      }
+    } catch (error) {
+      console.error('Error toggling process status:', error);
+      toast.error(`Failed to ${!currentlyEnabled ? 'enable' : 'disable'} process`);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this process? This action cannot be undone.')) {
-      const result = await processSchedulerService.deleteProcess(id);
-      if (result) {
-        onRefresh();
+      try {
+        const success = await processSchedulerService.deleteProcess(id);
+        if (success) {
+          toast.success('Process deleted successfully');
+          onRefresh();
+        } else {
+          toast.error('Failed to delete process');
+        }
+      } catch (error) {
+        console.error('Error deleting process:', error);
+        toast.error('Failed to delete process');
       }
     }
   };
