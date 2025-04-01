@@ -14,6 +14,7 @@ import Reports from '../pages/Reports';
 import Integrations from '../pages/Integrations';
 import SystemUploads from '../pages/SystemUploads';
 import AssociationProfile from '../pages/AssociationProfile';
+import LeadsManagement from '../pages/leads/LeadsManagement';
 
 export const mainRoutes = [
   {
@@ -145,6 +146,14 @@ export const mainRoutes = [
     element: (
       <ProtectedRoute>
         <SystemUploads />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/leads',
+    element: (
+      <ProtectedRoute>
+        <LeadsManagement />
       </ProtectedRoute>
     ),
   },

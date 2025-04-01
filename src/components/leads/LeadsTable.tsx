@@ -16,6 +16,9 @@ import LeadBooleanBadge from './LeadBooleanBadge';
 import LeadTableToolbar from './LeadTableToolbar';
 import LeadEmptyState from './LeadEmptyState';
 import LeadRowActions from './LeadRowActions';
+import LeadsTableLoading from './LeadsTableLoading';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { useLeadsData } from './useLeadsData';
 import { LeadTableFilters } from './types';
 
@@ -27,12 +30,12 @@ const LeadsTable: React.FC = () => {
   
   const { preferences, updatePreference } = useSettings();
   const { settings } = useCompanySettings();
-  const { leads, filterLeads } = useLeadsData();
+  const { leads, isLoading, error, filterLeads } = useLeadsData();
   
   const defaultColumns: LeadColumn[] = [
     { id: 'name', label: 'Name', checked: true },
     { id: 'email', label: 'Email', checked: true },
-    { id: 'company', label: settings.companyName || 'Company', checked: true },
+    { id: 'company', label: settings.companyName || 'Association', checked: true },
     { id: 'phone', label: 'Phone', checked: false },
     { id: 'status', label: 'Status', checked: true },
     { id: 'association_name', label: 'Association', checked: true },
@@ -65,7 +68,41 @@ const LeadsTable: React.FC = () => {
   
   const handleColumnsChange = (newColumns: LeadColumn[]) => {
     setColumns(newColumns);
+    updatePreference('leadTableColumns', newColumns);
   };
+  
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <LeadTableToolbar 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          columns={columns}
+          onColumnsChange={handleColumnsChange}
+        />
+        <LeadsTableLoading />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <LeadTableToolbar 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          columns={columns}
+          onColumnsChange={handleColumnsChange}
+        />
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Error loading leads: {error.message}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-4">
@@ -99,7 +136,7 @@ const LeadsTable: React.FC = () => {
                     <TableCell>{lead.email}</TableCell>
                   )}
                   {columns.find(c => c.id === 'company')?.checked && (
-                    <TableCell>{lead.company || settings.companyName || '-'}</TableCell>
+                    <TableCell>{lead.company || lead.association_name || settings.companyName || '-'}</TableCell>
                   )}
                   {columns.find(c => c.id === 'phone')?.checked && (
                     <TableCell>{lead.phone || '-'}</TableCell>
