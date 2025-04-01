@@ -1,61 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { BidRequestFormData } from '@/pages/resale/wizard/types';
-import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
+import { associateImageWithBidRequest } from '@/utils/supabase/uploadProjectImage';
 
 /**
- * Save a new bid request to the database
+ * Creates a new bid request in the database
+ * @param formData The bid request form data
+ * @returns The ID of the created bid request
  */
-export async function createBidRequest(formData: BidRequestFormData): Promise<string | null> {
+export const createBidRequest = async (formData: BidRequestFormData): Promise<string> => {
   try {
-    // Get the currently authenticated user
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-      toast.error('You must be logged in to create a bid request');
-      return null;
+    const { data: session } = await supabase.auth.getSession();
+    const userId = session?.session?.user?.id;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
     }
-
+    
+    // Format due date if it exists
+    let dueDate = null;
+    if (formData.dueDate) {
+      dueDate = new Date(formData.dueDate).toISOString().split('T')[0];
+    }
+    
     // Create the bid request
     const { data: bidRequest, error } = await supabase
       .from('bid_requests')
       .insert({
-        user_id: session.user.id,
         project_type: formData.projectType,
-        notes: formData.notes || null,
-        due_date: formData.dueDate ? formData.dueDate.toISOString() : null,
-        answers: formData.answers
+        answers: formData.answers,
+        notes: formData.notes,
+        due_date: dueDate,
+        user_id: userId,
+        status: 'pending'
       })
-      .select('id')
+      .select()
       .single();
-
+    
     if (error) {
       console.error('Error creating bid request:', error);
-      toast.error('Failed to create bid request');
-      return null;
+      throw error;
     }
-
-    // Add selected vendors
-    if (formData.vendors.length > 0) {
-      const vendorInserts = formData.vendors.map(vendorId => ({
+    
+    // Create vendor assignments
+    if (formData.vendors && formData.vendors.length > 0) {
+      const vendorRecords = formData.vendors.map(vendorId => ({
+        id: uuidv4(),
         bid_request_id: bidRequest.id,
-        vendor_id: vendorId
+        vendor_id: vendorId,
+        status: 'pending',
+        created_at: new Date().toISOString()
       }));
-
+      
       const { error: vendorError } = await supabase
         .from('bid_request_vendors')
-        .insert(vendorInserts);
-
+        .insert(vendorRecords);
+      
       if (vendorError) {
-        console.error('Error adding vendors to bid request:', vendorError);
-        toast.warning('Bid request created, but failed to add all vendors');
+        console.error('Error creating vendor assignments:', vendorError);
+        // Continue anyway
       }
     }
-
-    toast.success('Bid request created successfully');
+    
     return bidRequest.id;
   } catch (error) {
-    console.error('Unexpected error creating bid request:', error);
-    toast.error('An unexpected error occurred');
-    return null;
+    console.error('Error in createBidRequest:', error);
+    throw error;
   }
-}
+};

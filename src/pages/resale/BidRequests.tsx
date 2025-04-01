@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,12 +19,14 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { PROJECT_TYPES } from './wizard/bid-request-data';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const BidRequests: React.FC = () => {
   const navigate = useNavigate();
   const [bidRequests, setBidRequests] = useState<BidRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [requestImages, setRequestImages] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     loadBidRequests();
@@ -36,6 +37,25 @@ const BidRequests: React.FC = () => {
     try {
       const requests = await bidRequestService.getBidRequests();
       setBidRequests(requests);
+      
+      const imageMap: Record<string, string[]> = {};
+      for (const request of requests) {
+        const { data, error } = await supabase
+          .from('bid_request_images')
+          .select('file_path')
+          .eq('bid_request_id', request.id)
+          .limit(1);
+        
+        if (!error && data && data.length > 0) {
+          const { data: urlData } = supabase.storage
+            .from('bid_request_images')
+            .getPublicUrl(data[0].file_path);
+          
+          imageMap[request.id] = [urlData.publicUrl];
+        }
+      }
+      
+      setRequestImages(imageMap);
     } catch (error) {
       console.error('Error loading bid requests:', error);
       toast.error('Failed to load bid requests');
@@ -88,10 +108,13 @@ const BidRequests: React.FC = () => {
             Manage your project bid requests and vendor responses
           </p>
         </div>
-        <Button onClick={() => navigate('/resale/bid-request')}>
+        <TooltipButton 
+          onClick={() => navigate('/resale/bid-request')} 
+          tooltipText="Create a new bid request"
+        >
           <PlusCircle className="mr-2 h-4 w-4" />
           New Request
-        </Button>
+        </TooltipButton>
       </div>
 
       {loading ? (
@@ -108,9 +131,12 @@ const BidRequests: React.FC = () => {
             <p className="text-muted-foreground text-center max-w-md mb-6">
               Create your first bid request to get quotes from vendors for your project
             </p>
-            <Button onClick={() => navigate('/resale/bid-request')}>
+            <TooltipButton 
+              onClick={() => navigate('/resale/bid-request')}
+              tooltipText="Create your first bid request"
+            >
               Create Bid Request
-            </Button>
+            </TooltipButton>
           </CardContent>
         </Card>
       ) : (
@@ -127,6 +153,16 @@ const BidRequests: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {requestImages[request.id] && requestImages[request.id].length > 0 && (
+                  <div className="mb-4">
+                    <img 
+                      src={requestImages[request.id][0]} 
+                      alt="Project thumbnail" 
+                      className="w-full h-32 object-cover rounded-md mb-4"
+                    />
+                  </div>
+                )}
+                
                 {request.due_date && (
                   <div className="flex items-center text-sm text-muted-foreground mb-4">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -141,10 +177,11 @@ const BidRequests: React.FC = () => {
               <CardFooter className="flex justify-between">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button 
+                    <TooltipButton 
                       variant="outline" 
                       size="sm"
                       disabled={deletingId === request.id}
+                      tooltipText="Delete this bid request"
                     >
                       {deletingId === request.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -152,7 +189,7 @@ const BidRequests: React.FC = () => {
                         <Trash2 className="h-4 w-4 mr-2" />
                       )}
                       Delete
-                    </Button>
+                    </TooltipButton>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -171,14 +208,15 @@ const BidRequests: React.FC = () => {
                   </AlertDialogContent>
                 </AlertDialog>
 
-                <Button 
+                <TooltipButton 
                   variant="default" 
                   size="sm"
                   onClick={() => navigate(`/resale/bid-requests/${request.id}`)}
+                  tooltipText="View bid request details"
                 >
                   View Details
                   <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
+                </TooltipButton>
               </CardFooter>
             </Card>
           ))}

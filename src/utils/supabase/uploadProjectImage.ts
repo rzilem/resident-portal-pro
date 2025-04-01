@@ -1,112 +1,127 @@
 
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { debugLog, errorLog } from "@/utils/debug";
-import { uploadFile } from "./storage/uploadFile";
-import { getFileUrl, checkFileExists } from "./storage/getUrl";
-import { validateFileSize, validateFileType } from "./storage/validators";
-
-const PROJECT_IMAGES_BUCKET = 'project_images';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Upload an image to the project_images bucket
- * @param file The file to upload
- * @param path Optional path within the bucket
+ * Uploads a project image to the bid_request_images bucket
+ * @param file The image file to upload
+ * @param category The category of the image (e.g., 'fencing', 'roofing')
  * @returns URL of the uploaded image or null if upload failed
  */
 export const uploadProjectImage = async (
-  file: File, 
-  path: string = 'project_images'
+  file: File,
+  category: string = 'general'
 ): Promise<string | null> => {
   try {
-    // Validate file
-    if (!validateFileType(file, ['image/'])) {
+    // Check file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`File size exceeds 10MB limit`);
       return null;
     }
     
-    if (!validateFileSize(file, 2)) { // 2MB limit
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed');
       return null;
     }
     
-    // Upload file
-    const imageUrl = await uploadFile(file, PROJECT_IMAGES_BUCKET, path);
+    // Get user ID for folder structure
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user.id;
     
-    if (imageUrl) {
-      toast.success('Image uploaded successfully');
+    if (!userId) {
+      toast.error('You must be logged in to upload images');
+      return null;
     }
     
-    return imageUrl;
+    // Generate a unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${userId}/${category}/${fileName}`;
+    
+    // Show upload toast
+    toast.loading('Uploading image...');
+    
+    // Upload the file to Supabase storage
+    const { data, error } = await supabase.storage
+      .from('bid_request_images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+    
+    if (error) {
+      console.error('Error uploading image:', error);
+      toast.dismiss();
+      toast.error(`Upload failed: ${error.message}`);
+      return null;
+    }
+    
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('bid_request_images')
+      .getPublicUrl(data.path);
+    
+    // Dismiss loading toast and show success
+    toast.dismiss();
+    toast.success('Image uploaded successfully');
+    
+    // Store image metadata in the database
+    try {
+      await supabase.from('bid_request_images').insert({
+        file_path: data.path,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        created_by: userId,
+        category: category,
+        bid_request_id: '00000000-0000-0000-0000-000000000000' // This will be updated later when the bid request is created
+      });
+    } catch (dbError) {
+      console.error('Error storing image metadata:', dbError);
+      // Continue anyway since the image upload succeeded
+    }
+    
+    return publicUrlData.publicUrl;
   } catch (error) {
-    errorLog('Exception in uploadProjectImage:', error);
-    toast.error('An unexpected error occurred while uploading the image');
+    console.error('Error in uploadProjectImage:', error);
+    toast.dismiss();
+    toast.error('An unexpected error occurred');
     return null;
   }
 };
 
 /**
- * Bulk upload images to the project_images bucket
- * @param files Array of files to upload
- * @param path Optional path within the bucket
- * @returns Array of uploaded image URLs
+ * Saves image metadata to the bid_request_images table
+ * @param imageUrl URL of the uploaded image
+ * @param bidRequestId ID of the bid request
  */
-export const bulkUploadProjectImages = async (
-  files: File[], 
-  path: string = 'project_images'
-): Promise<string[]> => {
-  const uploadPromises = files.map(file => uploadProjectImage(file, path));
-  return (await Promise.all(uploadPromises)).filter(url => url !== null) as string[];
-};
-
-/**
- * Get the public URL for an image in the project_images bucket
- * @param path Path to the image within the bucket
- * @returns Public URL of the image
- */
-export const getProjectImageUrl = (path: string): string => {
-  // Check if it's already a fully qualified URL or a lovable-uploads path
-  if (path.startsWith('http') || path.startsWith('/lovable-uploads/')) {
-    return path;
-  }
-  
-  // Handle UUIDs that are direct paths to lovable-uploads
-  if (path.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|jpeg|gif)$/i)) {
-    return `/lovable-uploads/${path}`;
-  }
-  
-  debugLog(`Getting image URL for path: ${path}`);
-  
+export const associateImageWithBidRequest = async (
+  imageUrl: string,
+  bidRequestId: string
+): Promise<boolean> => {
   try {
-    // Special case for arborist
-    if (path === 'arborist.jpg' || path === 'f882aa65-6796-4e85-85b6-1d4961276334.png') {
-      return `/lovable-uploads/f882aa65-6796-4e85-85b6-1d4961276334.png`;
+    // Extract the file path from the URL
+    const urlObj = new URL(imageUrl);
+    const pathParts = urlObj.pathname.split('/');
+    const filePath = pathParts.slice(pathParts.indexOf('bid_request_images') + 1).join('/');
+    
+    // Find the image record by file path
+    const { data, error } = await supabase
+      .from('bid_request_images')
+      .update({ bid_request_id: bidRequestId })
+      .eq('file_path', filePath);
+    
+    if (error) {
+      console.error('Error associating image with bid request:', error);
+      return false;
     }
     
-    // For images in the maintenance-types folder
-    if (path.includes('maintenance-types/')) {
-      return `/lovable-uploads/${path.split('/').pop() || path}`;
-    }
-    
-    // For development or when Supabase storage is not properly set up
-    // Use the fallback image
-    return `/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`;
-    
-    // The following code is commented out as it's not working properly
-    // but can be uncommented once Supabase storage is properly set up
-    
-    /*
-    // Create and return the public URL
-    return getFileUrl(PROJECT_IMAGES_BUCKET, path);
-    */
+    return true;
   } catch (error) {
-    errorLog(`Error generating URL for path: ${path}`, error);
-    return `/lovable-uploads/72c3f90f-d218-4c0e-bc9e-48a04496044f.png`; // Fallback to provided image
+    console.error('Error in associateImageWithBidRequest:', error);
+    return false;
   }
-};
-
-/**
- * Check if an image exists in the project_images bucket
- * @param path Path to the image within the bucket
- * @returns True if the image exists, false otherwise
- */
-export const checkImageExists = async (path: string): Promise<boolean> => {
-  return await checkFileExists(PROJECT_IMAGES_BUCKET, path);
 };

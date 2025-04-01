@@ -323,6 +323,50 @@ export type Database = {
           },
         ]
       }
+      bid_request_images: {
+        Row: {
+          bid_request_id: string
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+        }
+        Insert: {
+          bid_request_id: string
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+        }
+        Update: {
+          bid_request_id?: string
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_request_images_bid_request_id_fkey"
+            columns: ["bid_request_id"]
+            isOneToOne: false
+            referencedRelation: "bid_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bid_request_vendors: {
         Row: {
           bid_amount: number | null

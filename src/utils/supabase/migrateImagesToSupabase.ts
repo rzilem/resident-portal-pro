@@ -1,144 +1,198 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { bulkUploadProjectImages, getProjectImageUrl } from "./uploadProjectImage";
-import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { uploadProjectImage } from './uploadProjectImage';
 
-// List of image URLs from fencing-questions.tsx
-const FENCING_IMAGES = [
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/maintenance-repair.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/service-contract.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/construction.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/wood.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/metal.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/vinyl.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/chain-link.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/stone.png',
-  'https://eqbbnewrorxilukaocjx.supabase.co/storage/v1/object/public/project_images/fencing/horizontal-wood.png',
+const SAMPLE_IMAGES = [
+  {
+    url: 'https://images.unsplash.com/photo-1605146768851-eda79da39897?q=80&w=1000',
+    category: 'fencing',
+    name: 'wooden-fence.jpg'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1618764400608-9e7115eede74?q=80&w=1000',
+    category: 'roofing',
+    name: 'metal-roof.jpg'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000',
+    category: 'painting',
+    name: 'house-painting.jpg'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1604096323185-d96289e1055c?q=80&w=1000',
+    category: 'landscaping',
+    name: 'garden-landscaping.jpg'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1000',
+    category: 'plumbing',
+    name: 'plumbing-work.jpg'
+  }
 ];
 
 /**
- * Ensure all category folders exist in the project_images bucket
+ * Migrate sample images to Supabase storage
  */
-export const ensureCategoryFolders = async () => {
-  const categories = ['fencing', 'roofing', 'landscaping', 'hvac', 'plumbing', 'electrical'];
+export const migrateImagesToSupabase = async (): Promise<{ 
+  success: boolean; 
+  uploadedCount: number;
+  errors?: string[];
+}> => {
+  const errors: string[] = [];
+  let uploadedCount = 0;
   
   try {
-    for (const category of categories) {
-      // Create a placeholder file to ensure the folder exists
-      await supabase.storage
-        .from('project_images')
-        .upload(`${category}/.emptyFolderPlaceholder`, new Blob([''], { type: 'text/plain' }), {
-          cacheControl: '3600',
-          upsert: true
-        });
-    }
-    return true;
-  } catch (error) {
-    console.error('Error creating category folders:', error);
-    return false;
-  }
-};
-
-/**
- * Fetch an image from a URL and convert it to a File object
- */
-const fetchImageAsFile = async (url: string): Promise<File | null> => {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      return {
+        success: false,
+        uploadedCount: 0,
+        errors: ['User not authenticated. Please log in to migrate images.']
+      };
     }
     
-    const blob = await response.blob();
-    const filename = url.split('/').pop() || 'image.png';
+    // Check if bucket exists
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketExists = buckets?.some(bucket => bucket.name === 'bid_request_images');
     
-    return new File([blob], filename, { type: blob.type });
-  } catch (error) {
-    console.error('Error fetching image:', error);
-    return null;
-  }
-};
-
-/**
- * Check if images in Supabase are accessible
- */
-export const checkImages = async () => {
-  const missingImages = [];
-  
-  for (const imageUrl of FENCING_IMAGES) {
-    try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        missingImages.push(imageUrl);
+    if (!bucketExists) {
+      return {
+        success: false,
+        uploadedCount: 0,
+        errors: ['The bid_request_images bucket does not exist. Please run the SQL migration first.']
+      };
+    }
+    
+    // Check existing images
+    const { data: existingImages } = await supabase.storage
+      .from('bid_request_images')
+      .list(session.session.user.id);
+    
+    const existingImageNames = existingImages
+      ?.filter(item => !item.id.endsWith('/'))
+      ?.map(item => item.name) || [];
+    
+    // Process each sample image
+    for (const image of SAMPLE_IMAGES) {
+      // Check if image exists
+      if (existingImageNames.some(name => name.includes(image.name.split('.')[0]))) {
+        console.log(`Image ${image.name} already exists, skipping...`);
+        continue;
       }
-    } catch (error) {
-      missingImages.push(imageUrl);
-    }
-  }
-  
-  return {
-    allImagesAccessible: missingImages.length === 0,
-    missingImages
-  };
-};
-
-/**
- * Upload images to Supabase that don't already exist
- */
-export const migrateImagesToSupabase = async () => {
-  try {
-    // First ensure all category folders exist
-    await ensureCategoryFolders();
-    
-    // Check if images are already accessible
-    const { allImagesAccessible, missingImages } = await checkImages();
-    
-    if (allImagesAccessible) {
-      toast.success('All images are already accessible in Supabase');
-      return { success: true, uploadedCount: 0 };
-    }
-    
-    // If some images are missing, let's try to upload them
-    toast.info(`Uploading ${missingImages.length} missing images to Supabase...`);
-    
-    // Create a mapping of demo images to upload
-    const demoImages = [
-      { name: 'maintenance-repair.png', url: '/images/fencing/maintenance-repair.png' },
-      { name: 'service-contract.png', url: '/images/fencing/service-contract.png' },
-      { name: 'construction.png', url: '/images/fencing/construction.png' },
-      { name: 'wood.png', url: '/images/fencing/wood.png' },
-      { name: 'metal.png', url: '/images/fencing/metal.png' },
-      { name: 'vinyl.png', url: '/images/fencing/vinyl.png' },
-      { name: 'chain-link.png', url: '/images/fencing/chain-link.png' },
-      { name: 'stone.png', url: '/images/fencing/stone.png' },
-      { name: 'horizontal-wood.png', url: '/images/fencing/horizontal-wood.png' },
-    ];
-    
-    // Fetch all image files
-    const files: File[] = [];
-    
-    for (const image of demoImages) {
-      const file = await fetchImageAsFile(image.url);
-      if (file) {
-        // Rename the file to match the expected name in Supabase
-        const renamedFile = new File([file], image.name, { type: file.type });
-        files.push(renamedFile);
+      
+      try {
+        // Fetch the image
+        const response = await fetch(image.url);
+        const blob = await response.blob();
+        
+        // Create a File object
+        const file = new File([blob], image.name, { type: blob.type });
+        
+        // Upload to Supabase
+        const imageUrl = await uploadProjectImage(file, image.category);
+        
+        if (imageUrl) {
+          uploadedCount++;
+        } else {
+          errors.push(`Failed to upload ${image.name}`);
+        }
+      } catch (error) {
+        console.error(`Error uploading ${image.name}:`, error);
+        errors.push(`Error processing ${image.name}: ${error}`);
       }
     }
     
-    if (files.length === 0) {
-      toast.error('Failed to fetch any images for upload');
-      return { success: false, uploadedCount: 0 };
+    return {
+      success: errors.length === 0,
+      uploadedCount,
+      errors: errors.length > 0 ? errors : undefined
+    };
+  } catch (error) {
+    console.error('Error in migrateImagesToSupabase:', error);
+    return {
+      success: false,
+      uploadedCount,
+      errors: [`Unexpected error: ${error}`]
+    };
+  }
+};
+
+/**
+ * Check if images are accessible in Supabase
+ */
+export const checkImages = async (): Promise<{
+  allImagesAccessible: boolean;
+  missingImages: string[];
+}> => {
+  const missingImages: string[] = [];
+  
+  try {
+    // Check bucket exists
+    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+    
+    if (bucketError) {
+      console.error('Error checking buckets:', bucketError);
+      return {
+        allImagesAccessible: false,
+        missingImages: ['Error checking storage buckets']
+      };
     }
     
-    // Upload the files to Supabase
-    const uploadedUrls = await bulkUploadProjectImages(files, 'fencing');
+    const bucketExists = buckets?.some(bucket => bucket.name === 'bid_request_images');
     
-    toast.success(`Successfully uploaded ${uploadedUrls.length} images to Supabase`);
-    return { success: true, uploadedCount: uploadedUrls.length };
+    if (!bucketExists) {
+      return {
+        allImagesAccessible: false,
+        missingImages: ['The bid_request_images bucket does not exist']
+      };
+    }
+    
+    // Get images from the database
+    const { data: imageRecords, error: imageError } = await supabase
+      .from('bid_request_images')
+      .select('file_path, file_name');
+    
+    if (imageError) {
+      console.error('Error fetching image records:', imageError);
+      return {
+        allImagesAccessible: false,
+        missingImages: ['Error fetching image records from database']
+      };
+    }
+    
+    if (!imageRecords || imageRecords.length === 0) {
+      // No images to check
+      return {
+        allImagesAccessible: true,
+        missingImages: []
+      };
+    }
+    
+    // Check each image
+    for (const record of imageRecords) {
+      try {
+        const { data } = await supabase.storage
+          .from('bid_request_images')
+          .createSignedUrl(record.file_path, 60);
+        
+        if (!data || !data.signedUrl) {
+          missingImages.push(record.file_name);
+        }
+      } catch (error) {
+        console.error(`Error checking image ${record.file_name}:`, error);
+        missingImages.push(record.file_name);
+      }
+    }
+    
+    return {
+      allImagesAccessible: missingImages.length === 0,
+      missingImages
+    };
   } catch (error) {
-    console.error('Error migrating images to Supabase:', error);
-    toast.error('Failed to migrate images to Supabase');
-    return { success: false, uploadedCount: 0 };
+    console.error('Error in checkImages:', error);
+    return {
+      allImagesAccessible: false,
+      missingImages: [`Unexpected error: ${error}`]
+    };
   }
 };
