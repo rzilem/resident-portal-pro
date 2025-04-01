@@ -46,7 +46,7 @@ const EmailWorkflowSettings: React.FC = () => {
 
   useEffect(() => {
     fetchRecentEmails();
-    let interval = null;
+    let interval: number | null = null;
     if (monitoringActive) {
       interval = window.setInterval(fetchRecentEmails, 30000);
     }
