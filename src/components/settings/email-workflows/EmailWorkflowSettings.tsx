@@ -208,7 +208,7 @@ const EmailWorkflowSettings: React.FC = () => {
             
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="email-from">From (format: "Name <email@example.com>")</Label>
+                <Label htmlFor="email-from">From (format: "Name &lt;email@example.com&gt;")</Label>
                 <Input 
                   id="email-from" 
                   value={debugEmail.from}
