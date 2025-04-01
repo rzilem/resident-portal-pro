@@ -1,4 +1,3 @@
-
 import { User, UserRole, SecurityLevel } from '@/types/user';
 import { Profile } from '@/types/supabase';
 
@@ -68,14 +67,12 @@ const getSecurityLevelForRole = (role: UserRole): SecurityLevel => {
     case 'board_member':
     case 'board':
       return 'elevated';
-    case 'committee':
-      return 'moderate_access';
     case 'staff':
       return 'limited_access';
     case 'resident':
       return 'basic';
-    case 'guest':
-      return 'restricted';
+    case 'vendor':
+      return 'limited_access';
     default:
       return 'basic';
   }

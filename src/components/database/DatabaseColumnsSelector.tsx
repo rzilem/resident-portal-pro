@@ -37,8 +37,8 @@ export const DatabaseColumnsSelector = ({ columns, onChange, type }: DatabaseCol
       // Create a properly typed key for user preferences
       const preferenceKey = `database${type.charAt(0).toUpperCase() + type.slice(1)}Columns` as keyof UserPreferences;
       
-      // Save to user preferences based on type
-      updatePreference(preferenceKey, updatedColumns);
+      // Fix: Ensure the key is a string when passed to updatePreference
+      updatePreference(preferenceKey.toString(), updatedColumns);
     }
   };
 

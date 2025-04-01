@@ -1,121 +1,93 @@
-
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from 'react';
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Info } from "lucide-react";
 import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
 } from "@/components/ui/tooltip";
-import { moduleFeatures, FeaturePermission, UserRole } from '@/types/user';
-import { roleService, Permission } from '@/services/roleService';
+import { Info } from "lucide-react";
+import { UserRole, moduleFeatures, FeaturePermission } from '@/types/user';
 
 interface FeaturePermissionsTabProps {
-  rolePermissions: Record<UserRole, any>;
-  onPermissionChange?: (role: UserRole, module: string, permission: string, enabled: boolean) => void;
+  rolePermissions: Record<string, { 
+    securityLevel: string; 
+    globalPermission: string; 
+    modules: Record<string, string> 
+  }>;
+  onPermissionChange: (role: UserRole, module: string, permission: string, enabled: boolean) => void;
 }
 
-const FeaturePermissionsTab: React.FC<FeaturePermissionsTabProps> = ({ rolePermissions, onPermissionChange }) => {
-  const [activeModule, setActiveModule] = useState<string>("calendar");
-  const moduleTabs = Object.keys(moduleFeatures);
-  
-  // Check if a role has permission for a specific feature
-  const hasFeaturePermission = (role: UserRole, module: string, feature: FeaturePermission): boolean => {
-    const permissions = roleService.getRolePermissions(role)[module];
-    if (!permissions) return false;
+const FeaturePermissionsTab = ({ rolePermissions, onPermissionChange }: FeaturePermissionsTabProps) => {
+  const getRolePermissions = (role: string, module: string) => {
+    const permissions = rolePermissions[role]?.modules[module];
     
-    // Check if the role has the specific permission needed for this feature
-    // Make sure we're only using valid Permission types
-    const requiredPermission = feature.requiredPermission as Permission;
-    return permissions.includes(requiredPermission) || permissions.includes('admin');
-  };
-  
-  const handlePermissionToggle = (role: UserRole, module: string, feature: FeaturePermission, checked: boolean) => {
-    if (onPermissionChange) {
-      // Convert the requiredPermission to a valid Permission type
-      const permissionValue = feature.requiredPermission as Permission;
-      onPermissionChange(role, module, permissionValue, checked);
+    if (permissions === 'admin') {
+      return { canView: true, canCreate: true, canEdit: true, canDelete: true, canApprove: true };
+    } else if (permissions === 'edit') {
+      return { canView: true, canCreate: true, canEdit: true, canDelete: false, canApprove: false };
+    } else if (permissions === 'create') {
+      return { canView: true, canCreate: true, canEdit: false, canDelete: false, canApprove: false };
+    } else if (permissions === 'view') {
+      return { canView: true, canCreate: false, canEdit: false, canDelete: false, canApprove: false };
+    } else if (permissions === 'approve') {
+      return { canView: true, canCreate: false, canEdit: false, canDelete: false, canApprove: true };
+    } else {
+      return { canView: false, canCreate: false, canEdit: false, canDelete: false, canApprove: false };
     }
   };
-  
+
   return (
-    <div className="space-y-4">
-      <Tabs value={activeModule} onValueChange={setActiveModule}>
-        <TabsList className="mb-4 flex flex-wrap">
-          {moduleTabs.map((module) => (
-            <TabsTrigger key={module} value={module} className="capitalize">
-              {module}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        
-        {moduleTabs.map((module) => (
-          <TabsContent key={module} value={module}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="capitalize">{module} Feature Permissions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[300px]">Feature</TableHead>
-                      {Object.keys(rolePermissions).map((role) => (
-                        <TableHead key={role} className="text-center capitalize">{role.replace('_', ' ')}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {moduleFeatures[module].map((feature) => (
-                      <TableRow key={feature.feature}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {feature.feature}
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Info className="h-4 w-4 text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{feature.description}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Required permission: 
-                                    <Badge variant="outline" className="ml-1">
-                                      {feature.requiredPermission}
-                                    </Badge>
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </TableCell>
-                        
-                        {Object.keys(rolePermissions).map((role) => (
-                          <TableCell key={role} className="text-center">
-                            <Checkbox 
-                              checked={hasFeaturePermission(role as UserRole, module, feature)}
-                              onCheckedChange={(checked) => 
-                                handlePermissionToggle(role as UserRole, module, feature, checked as boolean)
-                              }
-                              disabled={role === 'admin'} // Admin role always has all permissions
-                            />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Feature</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead>Enabled</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Object.entries(moduleFeatures).map(([module, features]) => (
+          <React.Fragment key={module}>
+            <TableRow>
+              <TableCell colSpan={3} className="font-semibold text-sm uppercase">
+                {module}
+              </TableCell>
+            </TableRow>
+            {features.map((feature: FeaturePermission) => (
+              <TableRow key={feature.id}>
+                <TableCell className="font-medium">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="flex items-center gap-2">
+                        {feature.name}
+                        <Info className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {feature.description}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+                <TableCell>{feature.description}</TableCell>
+                <TableCell>
+                  <Switch 
+                    checked={feature.enabled}
+                    onCheckedChange={(enabled) => onPermissionChange(
+                      'admin', // Replace with actual role
+                      module,
+                      feature.id,
+                      enabled
+                    )}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </React.Fragment>
         ))}
-      </Tabs>
-    </div>
+      </TableBody>
+    </Table>
   );
 };
 
