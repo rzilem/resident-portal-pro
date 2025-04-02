@@ -26,6 +26,10 @@ const MainNav = () => {
   const { handleLogout } = useLogout();
   const navigate = useNavigate();
   
+  const goToProfile = () => {
+    navigate('/profile/user');
+  };
+  
   return (
     <div className="flex items-center justify-between w-full">
       <NavigationMenu className="hidden md:flex">
@@ -39,7 +43,7 @@ const MainNav = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48">
-                <DropdownMenuItem onClick={() => navigate('/profile/user')}>
+                <DropdownMenuItem onClick={goToProfile}>
                   <UserCircle className="h-4 w-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
@@ -78,7 +82,7 @@ const MainNav = () => {
           </TooltipButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => navigate('/profile/user')}>
+          <DropdownMenuItem onClick={goToProfile}>
             <UserCircle className="h-4 w-4 mr-2" />
             Profile
           </DropdownMenuItem>

@@ -20,6 +20,14 @@ import UserProfile from '../pages/profile/UserProfile';
 
 export const mainRoutes = [
   {
+    path: '/',
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/dashboard',
     element: (
       <ProtectedRoute>
@@ -159,7 +167,15 @@ export const mainRoutes = [
       </ProtectedRoute>
     ),
   },
-  // Add profile route
+  // User Profile routes
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <UserProfile />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: '/profile/user',
     element: (
