@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, RefreshCw, ImageIcon, Info } from 'lucide-react';
+import { Upload, RefreshCw } from 'lucide-react';
 import ProjectImagesManager from '../wizard/components/admin/ProjectImagesManager';
 import { migrateImagesToSupabase, checkImages } from '@/utils/supabase/migrateImagesToSupabase';
 import { toast } from 'sonner';
@@ -10,7 +10,6 @@ import { useAuthRole } from '@/hooks/use-auth-role';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
 import ResaleRbacWrapper from '@/components/resale/ResaleRbacWrapper';
-import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const ProjectImagesPage = () => {
   const [isMigrating, setIsMigrating] = useState(false);
@@ -64,50 +63,28 @@ const ProjectImagesPage = () => {
             Manage images used in project bid requests
           </p>
 
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-xl">Image Management Tools</CardTitle>
-              <CardDescription>
-                Tools for maintaining and checking image storage
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                <TooltipButton
-                  onClick={handleMigrateImages}
-                  disabled={isMigrating}
-                  className="flex items-center gap-2"
-                  tooltipText="Upload sample images to Supabase storage"
-                >
-                  <Upload className={`h-4 w-4 ${isMigrating ? 'animate-bounce' : ''}`} />
-                  {isMigrating ? 'Migrating Images...' : 'Migrate Sample Images'}
-                </TooltipButton>
-                
-                <TooltipButton
-                  variant="outline"
-                  onClick={handleCheckImages}
-                  disabled={checkingImages}
-                  tooltipText="Verify all images are properly stored in Supabase"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${checkingImages ? 'animate-spin' : ''}`} />
-                  Check Image Accessibility
-                </TooltipButton>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button
+              onClick={handleMigrateImages}
+              disabled={isMigrating}
+              className="flex items-center gap-2"
+            >
+              <Upload className={`h-4 w-4 ${isMigrating ? 'animate-bounce' : ''}`} />
+              {isMigrating ? 'Migrating Images...' : 'Migrate Sample Images to Supabase'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleCheckImages}
+              disabled={checkingImages}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${checkingImages ? 'animate-spin' : ''}`} />
+              Check Image Accessibility
+            </Button>
+          </div>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Project Type Images</CardTitle>
-            <CardDescription>
-              Manage images that appear in the bid request wizard for different project types
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProjectImagesManager />
-          </CardContent>
-        </Card>
+        <ProjectImagesManager />
       </div>
     </ResaleRbacWrapper>
   );

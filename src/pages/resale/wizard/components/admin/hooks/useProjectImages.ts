@@ -1,14 +1,13 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { supabase } from "@/integrations/supabase/client";
-import { IMAGE_CATEGORIES } from '../constants/imageCategories';
 
 export interface ImageItem {
   id: string;
-  name: string;
   url: string;
   category: string;
+  name: string;
   size: number;
   createdAt: string;
 }
@@ -16,158 +15,155 @@ export interface ImageItem {
 export const useProjectImages = () => {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [recentUploads, setRecentUploads] = useState<ImageItem[]>([]);
-  const [category, setCategory] = useState('fencing');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [category, setCategory] = useState<string>('all');
+
+  useEffect(() => {
+    fetchImages();
+    fetchRecentUploads();
+  }, []);
+
+  useEffect(() => {
+    fetchImages();
+  }, [category]);
 
   const fetchImages = async () => {
     setLoading(true);
     try {
-      // Fetch images from the project_images bucket for the selected category
-      const { data, error } = await supabase
-        .storage
-        .from('project_images')
-        .list(category, {
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-
+      let query = supabase
+        .from('bid_request_images')
+        .select('*');
+      
+      if (category !== 'all') {
+        query = query.eq('category', category);
+      }
+      
+      const { data, error } = await query;
+      
       if (error) {
-        throw error;
+        console.error('Error fetching project images:', error);
+        toast.error('Failed to load project images');
+        return;
       }
-
-      if (data) {
-        // Filter out folders and process only files
-        const fileData = data.filter(item => !item.id.endsWith('/'));
-        
-        // Map to ImageItem format
-        const imageItems: ImageItem[] = await Promise.all(
-          fileData.map(async (file) => {
-            const { data: urlData } = supabase.storage
-              .from('project_images')
-              .getPublicUrl(`${category}/${file.name}`);
-              
-            return {
-              id: file.id,
-              name: file.name,
-              url: urlData.publicUrl,
-              category: category,
-              size: file.metadata?.size || 0,
-              createdAt: file.created_at || new Date().toISOString()
-            };
-          })
-        );
-        
-        setImages(imageItems);
-      } else {
-        setImages([]);
-      }
+      
+      // Get URLs for the images
+      const imagesWithUrls = await Promise.all(
+        (data || []).map(async (image) => {
+          const { data: urlData } = supabase.storage
+            .from('bid_request_images')
+            .getPublicUrl(image.file_path);
+          
+          return {
+            id: image.id,
+            url: urlData.publicUrl,
+            category: image.category || 'uncategorized',
+            name: image.file_name,
+            size: image.file_size || 0,
+            createdAt: image.created_at
+          };
+        })
+      );
+      
+      setImages(imagesWithUrls);
     } catch (error) {
-      console.error('Error fetching images:', error);
-      toast.error('Failed to load images');
-      setImages([]);
+      console.error('Error in fetchImages:', error);
+      toast.error('An error occurred while loading images');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchRecentUploads = async () => {
-    setLoading(true);
     try {
-      // Fetch recent uploads across all categories
-      const recentImages: ImageItem[] = [];
+      const { data, error } = await supabase
+        .from('bid_request_images')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(12);
       
-      // Loop through each category to get recent uploads
-      for (const categoryItem of IMAGE_CATEGORIES) {
-        const { data, error } = await supabase
-          .storage
-          .from('project_images')
-          .list(categoryItem.id, {
-            limit: 3,
-            sortBy: { column: 'created_at', order: 'desc' }
-          });
-          
-        if (error) {
-          console.error(`Error fetching ${categoryItem.id} images:`, error);
-          continue;
-        }
-        
-        if (data) {
-          // Filter out folders and process only files
-          const fileData = data.filter(item => !item.id.endsWith('/'));
-          
-          // Add to recent uploads
-          for (const file of fileData) {
-            const { data: urlData } = supabase.storage
-              .from('project_images')
-              .getPublicUrl(`${categoryItem.id}/${file.name}`);
-              
-            recentImages.push({
-              id: file.id,
-              name: file.name,
-              url: urlData.publicUrl,
-              category: categoryItem.id,
-              size: file.metadata?.size || 0,
-              createdAt: file.created_at || new Date().toISOString()
-            });
-          }
-        }
+      if (error) {
+        console.error('Error fetching recent uploads:', error);
+        return;
       }
       
-      // Sort by date and limit to 8 most recent
-      const sorted = recentImages.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      // Get URLs for the images
+      const recentWithUrls = await Promise.all(
+        (data || []).map(async (image) => {
+          const { data: urlData } = supabase.storage
+            .from('bid_request_images')
+            .getPublicUrl(image.file_path);
+          
+          return {
+            id: image.id,
+            url: urlData.publicUrl,
+            category: image.category || 'uncategorized',
+            name: image.file_name,
+            size: image.file_size || 0,
+            createdAt: image.created_at
+          };
+        })
       );
       
-      setRecentUploads(sorted.slice(0, 8));
+      setRecentUploads(recentWithUrls);
     } catch (error) {
-      console.error('Error fetching recent uploads:', error);
-      toast.error('Failed to load recent uploads');
-    } finally {
-      setLoading(false);
+      console.error('Error in fetchRecentUploads:', error);
     }
   };
 
   const handleDeleteImage = async (imageId: string) => {
     try {
-      // Find the image to delete
-      const imageToDelete = images.find(img => img.id === imageId);
-      if (!imageToDelete) {
-        throw new Error('Image not found');
+      // Get the file path first
+      const { data: imageData, error: fetchError } = await supabase
+        .from('bid_request_images')
+        .select('file_path')
+        .eq('id', imageId)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching image data:', fetchError);
+        toast.error('Failed to find image metadata');
+        return;
       }
       
-      // Delete from Supabase storage
-      const { error } = await supabase
-        .storage
-        .from('project_images')
-        .remove([`${imageToDelete.category}/${imageToDelete.name}`]);
-        
-      if (error) {
-        throw error;
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('bid_request_images')
+        .remove([imageData.file_path]);
+      
+      if (storageError) {
+        console.error('Error deleting image from storage:', storageError);
+        toast.error('Failed to delete image from storage');
+        return;
       }
       
-      // Update state
-      setImages(prevImages => prevImages.filter(img => img.id !== imageId));
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('bid_request_images')
+        .delete()
+        .eq('id', imageId);
+      
+      if (dbError) {
+        console.error('Error deleting image from database:', dbError);
+        toast.error('Failed to delete image record');
+        return;
+      }
+      
       toast.success('Image deleted successfully');
-      return Promise.resolve();
+      
+      // Refresh images
+      fetchImages();
+      fetchRecentUploads();
     } catch (error) {
-      console.error('Error deleting image:', error);
-      toast.error('Failed to delete image');
-      return Promise.reject(error);
+      console.error('Error in handleDeleteImage:', error);
+      toast.error('An error occurred while deleting the image');
     }
   };
 
-  useEffect(() => {
-    fetchImages();
-  }, [category]);
-
-  useEffect(() => {
-    fetchRecentUploads();
-  }, []);
-
   return {
     images,
-    category,
-    loading,
     recentUploads,
+    loading,
+    category,
     setCategory,
     fetchImages,
     fetchRecentUploads,

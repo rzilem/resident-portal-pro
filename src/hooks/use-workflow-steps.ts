@@ -8,6 +8,9 @@ export function useWorkflowSteps(initialSteps: WorkflowStep[] = []) {
   
   // Add a step after a specific step
   const addStep = useCallback((afterId: string, stepType: 'action' | 'condition' = 'action') => {
+    const afterIndex = steps.findIndex(step => step.id === afterId);
+    if (afterIndex === -1) return;
+    
     const newStep: WorkflowStep = stepType === 'action' 
       ? {
           id: uuid(),
@@ -29,21 +32,9 @@ export function useWorkflowSteps(initialSteps: WorkflowStep[] = []) {
           }
         };
     
-    // Special case for adding the first step
-    if (afterId === 'start') {
-      setSteps(prev => [...prev, newStep]);
-      return newStep;
-    }
-    
-    const afterIndex = steps.findIndex(step => step.id === afterId);
-    if (afterIndex === -1) {
-      // If we can't find the ID, add to the end
-      setSteps(prev => [...prev, newStep]);
-    } else {
-      const newSteps = [...steps];
-      newSteps.splice(afterIndex + 1, 0, newStep);
-      setSteps(newSteps);
-    }
+    const newSteps = [...steps];
+    newSteps.splice(afterIndex + 1, 0, newStep);
+    setSteps(newSteps);
     
     return newStep;
   }, [steps]);

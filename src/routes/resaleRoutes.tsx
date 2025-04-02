@@ -110,7 +110,9 @@ export const resaleRoutes = [
     path: '/resale/admin/project-images',
     element: (
       <ProtectedRoute>
-        <ProjectImagesPage />
+        <ResaleRbacWrapper requiredPermission="admin">
+          <ProjectImagesPage />
+        </ResaleRbacWrapper>
       </ProtectedRoute>
     ),
   },
