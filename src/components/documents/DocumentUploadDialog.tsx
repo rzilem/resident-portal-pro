@@ -1,218 +1,332 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileUp, AlertCircle, Upload, Check } from 'lucide-react';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { toast } from 'sonner';
-import { uploadDocument } from '@/utils/documents/uploadDocument';
-import { formatBytes } from '@/utils/documents/fileUtils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { uploadDocument } from '@/services/document-upload';
+import { useAuth } from '@/hooks/use-auth';
+import { FileUp, Upload, X } from 'lucide-react';
+import { IMAGE_CATEGORIES } from '@/pages/resale/wizard/components/admin/constants/imageCategories';
+import Dropzone from 'react-dropzone';
+import { Badge } from '@/components/ui/badge';
+import { useSelectedAssociation } from '@/hooks/use-selected-association';
+import { errorLog, infoLog } from '@/utils/debug';
 
 interface DocumentUploadDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSuccess?: () => void;
-  associationId?: string;
-  category?: string;
-  // Add the missing props
   refreshDocuments?: () => void;
-  categoryId?: string;
+  defaultCategory?: string;
+  defaultDescription?: string;
+  defaultTags?: string[];
+  associationId?: string;
 }
+
+const documentSchema = z.object({
+  file: z.any().refine((file) => file, 'File is required'),
+  description: z.string().optional(),
+  category: z.string().min(1, 'Category is required'),
+  tags: z.array(z.string()).optional(),
+});
+
+type DocumentFormValues = z.infer<typeof documentSchema>;
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   open,
   setOpen,
   onSuccess,
-  associationId = '00000000-0000-0000-0000-000000000000',
-  category = 'general',
   refreshDocuments,
-  categoryId
+  defaultCategory = 'general',
+  defaultDescription = '',
+  defaultTags = [],
+  associationId: propAssociationId,
 }) => {
   const { user } = useAuth();
-  const [file, setFile] = useState<File | null>(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [tags, setTags] = useState('');
+  const { selectedAssociation } = useSelectedAssociation();
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedTags, setSelectedTags] = useState<string[]>(defaultTags);
+  const [customTag, setCustomTag] = useState('');
 
-  // Use categoryId if provided (for backward compatibility)
-  const effectiveCategory = categoryId || category;
+  const effectiveAssociationId = propAssociationId || selectedAssociation?.id || '';
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      
-      // Prefill name with file name without extension
-      const fileName = selectedFile.name.split('.')[0];
-      setName(fileName);
+  const { register, handleSubmit, setValue, formState: { errors }, reset, watch } = useForm<DocumentFormValues>({
+    resolver: zodResolver(documentSchema),
+    defaultValues: {
+      description: defaultDescription,
+      category: defaultCategory,
+      tags: defaultTags,
+    },
+  });
+
+  const onDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      setSelectedFile(acceptedFiles[0]);
+      setValue('file', acceptedFiles[0]);
     }
+  };
+
+  const handleAddTag = () => {
+    if (customTag && !selectedTags.includes(customTag)) {
+      const newTags = [...selectedTags, customTag];
+      setSelectedTags(newTags);
+      setValue('tags', newTags);
+      setCustomTag('');
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    const newTags = selectedTags.filter((t) => t !== tag);
+    setSelectedTags(newTags);
+    setValue('tags', newTags);
   };
 
   const resetForm = () => {
-    setFile(null);
-    setName('');
-    setDescription('');
-    setTags('');
+    reset();
+    setSelectedFile(null);
+    setSelectedTags(defaultTags);
+    setUploadProgress(0);
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      toast.error('Please select a file to upload');
-      return;
-    }
-
-    if (!name.trim()) {
-      toast.error('Please enter a document name');
-      return;
-    }
-
+  const onSubmit = async (data: DocumentFormValues) => {
     if (!user) {
       toast.error('You must be logged in to upload documents');
       return;
     }
 
-    setIsUploading(true);
+    if (!effectiveAssociationId) {
+      toast.error('Please select an association first');
+      return;
+    }
 
     try {
-      const tagsArray = tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0);
+      setUploading(true);
 
-      const result = await uploadDocument({
-        file,
-        category: effectiveCategory,
-        description,
-        tags: tagsArray,
-        associationId
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev + 5;
+          return newProgress > 90 ? 90 : newProgress;
+        });
+      }, 100);
+
+      infoLog('Uploading document', {
+        fileName: selectedFile?.name,
+        fileSize: selectedFile?.size,
+        category: data.category,
+        tags: selectedTags,
+        associationId: effectiveAssociationId
       });
 
-      if (result.success) {
-        toast.success('Document uploaded successfully');
+      const success = await uploadDocument({
+        file: data.file,
+        description: data.description || '',
+        category: data.category,
+        tags: selectedTags,
+        associationId: effectiveAssociationId,
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (success) {
+        if (onSuccess) onSuccess();
+        if (refreshDocuments) refreshDocuments();
         resetForm();
-        setOpen(false);
-        // Call both callbacks if provided
-        onSuccess?.();
-        refreshDocuments?.();
-      } else {
-        toast.error(result.error || 'Upload failed');
+        
+        // Short delay to show 100% progress before closing
+        setTimeout(() => {
+          setOpen(false);
+        }, 500);
       }
     } catch (error) {
-      console.error('Error in document upload:', error);
-      toast.error('An unexpected error occurred during upload');
+      errorLog('Error in document upload form submit:', error);
+      toast.error('An error occurred while uploading the document');
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!uploading) {
+        setOpen(newOpen);
+        if (!newOpen) {
+          resetForm();
+        }
+      }
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileUp className="h-5 w-5 text-primary" />
+            <FileUp className="h-5 w-5" />
             Upload Document
           </DialogTitle>
+          <DialogDescription>
+            Upload a document to the association's document library
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="file-upload">Select File</Label>
-            <div 
-              onClick={() => document.getElementById('file-upload')?.click()}
-              className="mt-1 border-2 border-dashed rounded-md p-6 text-center cursor-pointer hover:border-primary transition-colors"
-            >
-              <input
-                id="file-upload"
-                type="file"
-                className="hidden"
-                onChange={handleFileChange}
-                disabled={isUploading}
-              />
-              
-              {file ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Check className="h-6 w-6 text-green-500" />
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-muted-foreground">{formatBytes(file.size)}</p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <p className="font-medium">Choose a file or drag and drop</p>
-                  <p className="text-sm text-muted-foreground">PDF, Word, Excel, Images up to 50MB</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="file">File</Label>
+            <Dropzone onDrop={onDrop} multiple={false}>
+              {({ getRootProps, getInputProps }) => (
+                <div 
+                  {...getRootProps()} 
+                  className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors
+                    ${errors.file ? 'border-destructive' : 'border-border'}`}
+                >
+                  <input {...getInputProps()} id="file" />
+                  {selectedFile ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium truncate">{selectedFile.name}</span>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFile(null);
+                          setValue('file', null);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="py-4">
+                      <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Drag & drop a file here, or click to select
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
+            </Dropzone>
+            {errors.file && (
+              <p className="text-destructive text-sm">{errors.file.message as string}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select 
+              defaultValue={defaultCategory} 
+              onValueChange={(value) => setValue('category', value)}
+            >
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {IMAGE_CATEGORIES.filter(cat => cat.id !== 'all').map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category && (
+              <p className="text-destructive text-sm">{errors.category.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description (Optional)</Label>
+            <Textarea 
+              id="description" 
+              placeholder="Enter a description for this document"
+              {...register('description')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tags (Optional)</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {selectedTags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 ml-1 hover:bg-destructive/10 rounded-full"
+                    onClick={() => handleRemoveTag(tag)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                placeholder="Add a tag"
+                className="flex-1"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleAddTag}
+                disabled={!customTag}
+              >
+                Add
+              </Button>
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="document-name">Document Name</Label>
-            <Input
-              id="document-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter document name"
-              disabled={isUploading}
-              className="mt-1"
-            />
-          </div>
+          {uploading && (
+            <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+              <div 
+                className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          )}
 
-          <div>
-            <Label htmlFor="document-description">Description (Optional)</Label>
-            <Textarea
-              id="document-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter document description"
-              disabled={isUploading}
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="document-tags">Tags (Optional, comma separated)</Label>
-            <Input
-              id="document-tags"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="e.g., financial, report, 2023"
-              disabled={isUploading}
-              className="mt-1"
-            />
-          </div>
-        </div>
-
-        <DialogFooter className="flex sm:justify-between">
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            disabled={isUploading}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleUpload}
-            disabled={!file || isUploading}
-            className="gap-2"
-          >
-            {isUploading ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
-                Uploading...
-              </>
-            ) : (
-              <>
-                <FileUp className="h-4 w-4" />
-                Upload Document
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={uploading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={uploading}
+              className="gap-2"
+            >
+              {uploading ? (
+                <>Uploading...</>
+              ) : (
+                <>
+                  <FileUp className="h-4 w-4" />
+                  Upload
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
