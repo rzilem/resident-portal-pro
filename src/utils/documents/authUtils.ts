@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { isDemoMode } from '@/utils/auth/demoAuth';
 
 /**
  * Check if a user is authenticated
@@ -22,9 +21,9 @@ export const getCurrentUserId = async (): Promise<string | null> => {
 
 /**
  * Check if the current user is using demo credentials
- * @returns Promise<boolean> True if using demo credentials
+ * @returns Promise<boolean> Always returns false as demo mode is disabled
  */
 export const isUsingDemoCredentials = async (): Promise<boolean> => {
-  // Use the isDemoMode function from demoAuth.ts
-  return isDemoMode();
+  // Demo mode is disabled
+  return false;
 };

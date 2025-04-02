@@ -16,38 +16,11 @@ const UploadDocument = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  const { bucketReady, demoMode, retryCheck } = useDocumentsBucket();
+  const { bucketReady, retryCheck } = useDocumentsBucket();
   
   if (!user) {
     return <AuthRequiredMessage />;
   }
-
-  const renderDemoModeWarning = () => {
-    if (demoMode) {
-      return (
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded">
-          <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
-            <div>
-              <h3 className="text-sm font-medium text-amber-800">Demo Mode Active</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Document storage is unavailable. Files will be processed but not permanently stored.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2" 
-                onClick={retryCheck}
-              >
-                Retry Connection
-              </Button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <Card className="max-w-md mx-auto shadow-md">
@@ -58,12 +31,32 @@ const UploadDocument = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {renderDemoModeWarning()}
+        {!bucketReady && (
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded">
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
+              <div>
+                <h3 className="text-sm font-medium text-amber-800">Storage Unavailable</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  Document storage is temporarily unavailable. Please try again later.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={retryCheck}
+                >
+                  Retry Connection
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         
         <FileUploader 
           file={file} 
           setFile={setFile} 
-          disabled={uploading} 
+          disabled={uploading || !bucketReady} 
         />
         
         <UploadButton 
@@ -73,13 +66,11 @@ const UploadDocument = () => {
           setUploading={setUploading}
           setError={setError}
           setSuccess={setSuccess}
-          demoMode={demoMode}
         />
         
         <UploadStatus 
           error={error} 
           success={success} 
-          demoMode={demoMode}
         />
       </CardContent>
     </Card>

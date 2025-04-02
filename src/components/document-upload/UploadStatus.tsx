@@ -6,13 +6,11 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 interface UploadStatusProps {
   error: string | null;
   success: boolean;
-  demoMode?: boolean;
 }
 
 export const UploadStatus: React.FC<UploadStatusProps> = ({ 
   error, 
-  success,
-  demoMode = false
+  success 
 }) => {
   if (error) {
     return (
@@ -30,9 +28,7 @@ export const UploadStatus: React.FC<UploadStatusProps> = ({
         <CheckCircle className="h-4 w-4 text-green-600" />
         <AlertTitle>Upload Successful</AlertTitle>
         <AlertDescription>
-          {demoMode ? 
-            "Document uploaded in demo mode (not permanently stored)." : 
-            "Your document has been uploaded successfully."}
+          Your document has been uploaded successfully.
         </AlertDescription>
       </Alert>
     );

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -19,7 +20,7 @@ interface FileUploadProps {
 const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { bucketReady, demoMode, retryCheck } = useDocumentsBucket();
+  const { bucketReady, retryCheck } = useDocumentsBucket();
   
   const handleFileUpload = async () => {
     if (!file) {
@@ -81,15 +82,15 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }
   };
 
   const renderStorageError = () => {
-    if (demoMode) {
+    if (!bucketReady) {
       return (
         <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded">
           <div className="flex items-start">
             <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
             <div>
-              <h3 className="text-sm font-medium text-amber-800">Demo Mode Active</h3>
+              <h3 className="text-sm font-medium text-amber-800">Storage Unavailable</h3>
               <p className="text-sm text-amber-700 mt-1">
-                Document storage is currently unavailable. Using demo mode instead. Data will be processed locally.
+                Document storage is currently unavailable. Please try again later.
               </p>
               <Button 
                 variant="outline" 
@@ -127,7 +128,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed, onStepChange }
         <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3">
           <Button 
             onClick={handleFileUpload} 
-            disabled={!file || isUploading}
+            disabled={!file || isUploading || !bucketReady}
             className="flex items-center gap-2"
           >
             {isUploading ? (

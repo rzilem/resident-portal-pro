@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
   const [checking, setChecking] = useState(true);
 
   const checkBucket = async () => {
@@ -15,8 +15,9 @@ export const useDocumentsBucket = () => {
       
       if (error) {
         console.error('Error checking buckets:', error);
-        setDemoMode(true);
+        toast.error('Error accessing document storage. Please try again later.');
         setBucketReady(false);
+        setChecking(false);
         return;
       }
       
@@ -33,22 +34,21 @@ export const useDocumentsBucket = () => {
           
           if (createError) {
             console.error('Error creating documents bucket:', createError);
-            setDemoMode(true);
+            toast.error('Could not create documents storage. Please try again later.');
+            setBucketReady(false);
           } else {
             console.log('Created documents bucket');
             setBucketReady(true);
-            setDemoMode(false);
           }
         } catch (e) {
           console.error('Exception creating bucket:', e);
-          setDemoMode(true);
+          toast.error('Error setting up document storage. Please try again later.');
+          setBucketReady(false);
         }
-      } else {
-        setDemoMode(false);
       }
     } catch (error) {
       console.error('Exception in useDocumentsBucket:', error);
-      setDemoMode(true);
+      toast.error('Unexpected error accessing document storage. Please try again later.');
       setBucketReady(false);
     } finally {
       setChecking(false);
@@ -61,7 +61,6 @@ export const useDocumentsBucket = () => {
 
   return {
     bucketReady,
-    demoMode,
     checking,
     retryCheck: checkBucket
   };

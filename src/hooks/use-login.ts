@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/auth/AuthProvider';
-import { isDemoCredentials, setDemoAuthentication } from '@/utils/auth/demoAuth';
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -24,22 +23,12 @@ export const useLogin = () => {
     setIsLoading(true);
     
     try {
-      // First try Supabase authentication
+      console.log('Attempting signIn with email:', loginValues.email);
       const { error } = await signIn(loginValues.email, loginValues.password);
       
       if (error) {
-        console.log("Supabase auth error:", error);
-        
-        // Fallback to demo credentials for development
-        if (isDemoCredentials(loginValues.email, loginValues.password)) {
-          setDemoAuthentication(true);
-          
-          // Navigate to dashboard after successful login
-          toast.success("Login successful with demo account! Welcome back.");
-          navigate('/dashboard');
-        } else {
-          toast.error(error.message || "Invalid credentials. Please try again.");
-        }
+        console.error("Sign-in error:", error.message);
+        toast.error(error.message || "Invalid credentials. Please try again.");
       } else {
         toast.success("Login successful! Welcome back.");
         navigate('/dashboard');
