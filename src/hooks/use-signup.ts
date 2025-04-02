@@ -42,7 +42,7 @@ export const useSignup = () => {
         toast.error(error.message || "Registration failed. Please try again.");
       } else {
         toast.success(
-          "Registration successful! You can now sign in.", 
+          "Registration successful! Please check your email to confirm your account.", 
           { duration: 5000 }
         );
         // Switch to login tab

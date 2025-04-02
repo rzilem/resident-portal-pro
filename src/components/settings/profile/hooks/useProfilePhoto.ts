@@ -1,47 +1,44 @@
 
-import { useState, useEffect } from 'react';
-import { toast } from "sonner";
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 
-export const useProfilePhoto = (
-  initialPhotoUrl: string | null, 
-  onPhotoChange: (url: string | null) => void
-) => {
-  const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl || null);
+export const useProfilePhoto = (initialPhotoUrl: string | null, onPhotoChange: (url: string | null) => void) => {
+  const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl);
   const [isUploading, setIsUploading] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const { user } = useAuth();
 
-  // Update local state when initialPhotoUrl changes from parent component
-  useEffect(() => {
-    if (initialPhotoUrl !== photoUrl) {
-      setPhotoUrl(initialPhotoUrl || null);
-    }
-  }, [initialPhotoUrl]);
-
   const handleFileUpload = async (file: File) => {
-    if (!file || !user) {
-      console.log("No file selected or user not logged in");
+    if (!user) {
+      toast.error('You must be logged in to upload a profile photo');
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+    // File size validation (2MB)
+    const fileSize = file.size / 1024 / 1024;
+    if (fileSize > 2) {
+      toast.error('File size exceeds 2MB limit');
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB');
+    // File type validation
+    const fileType = file.type;
+    if (!fileType.match(/image\/(jpeg|jpg|png|gif)/)) {
+      toast.error('Unsupported file type. Please upload a JPG, PNG, or GIF');
       return;
     }
 
     setIsUploading(true);
 
     try {
-      console.log("Starting file upload process");
-      const filePath = `${user.id}/${Date.now()}-${file.name}`;
+      // Create a unique filename using user ID and timestamp
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExtension}`;
+      const filePath = `profile_photos/${fileName}`;
 
+      // Upload the file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile_photos')
         .upload(filePath, file, {
@@ -49,39 +46,30 @@ export const useProfilePhoto = (
           upsert: true
         });
 
-      if (error) {
-        console.error("Storage upload error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("File uploaded successfully:", data);
-
-      const { data: publicUrlData } = supabase.storage
+      // Get the public URL
+      const { data: urlData } = supabase.storage
         .from('profile_photos')
         .getPublicUrl(filePath);
 
-      const publicUrl = publicUrlData.publicUrl;
-      console.log("Public URL generated:", publicUrl);
+      const newPhotoUrl = urlData.publicUrl;
+      
+      // Update the URL in state and parent component
+      setPhotoUrl(newPhotoUrl);
+      onPhotoChange(newPhotoUrl);
 
-      // First update local state to show image immediately
-      setPhotoUrl(publicUrl);
-
-      // Update the profile in the database
+      // Update the user's profile in the database
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ profile_image_url: publicUrl })
+        .update({ profile_image_url: newPhotoUrl })
         .eq('id', user.id);
 
-      if (updateError) {
-        console.error("Profile update error:", updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      // Call onPhotoChange callback after successful update
-      onPhotoChange(publicUrl);
       toast.success('Profile photo updated successfully');
     } catch (error) {
-      console.error('Error uploading profile photo:', error);
+      console.error('Error uploading photo:', error);
       toast.error('Failed to upload profile photo');
     } finally {
       setIsUploading(false);
@@ -94,43 +82,32 @@ export const useProfilePhoto = (
     setIsRemoving(true);
 
     try {
-      const filePathMatch = photoUrl.match(/profile_photos\/(.+)$/);
-      if (!filePathMatch) throw new Error('Invalid file path');
+      // Extract the file path from the URL
+      const urlPath = photoUrl.split('/').slice(-2).join('/');
       
-      const filePath = filePathMatch[1];
-      console.log("Removing file:", filePath);
+      // Delete the file from storage
+      const { error } = await supabase.storage
+        .from('profile_photos')
+        .remove([urlPath]);
 
-      // First update local state to show changes immediately
+      if (error) throw error;
+
+      // Update the URL in state and parent component
       setPhotoUrl(null);
+      onPhotoChange(null);
 
-      // Update the profile in the database first
+      // Update the user's profile in the database
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_image_url: null })
         .eq('id', user.id);
 
-      if (updateError) {
-        console.error("Profile update error:", updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      // Then try to remove the file from storage
-      const { error: removeError } = await supabase.storage
-        .from('profile_photos')
-        .remove([filePath]);
-
-      if (removeError) {
-        console.error("Storage remove error:", removeError);
-        // Don't throw error here, still update profile even if storage remove fails
-      }
-
-      onPhotoChange(null);
       toast.success('Profile photo removed');
     } catch (error) {
-      console.error('Error removing profile photo:', error);
+      console.error('Error removing photo:', error);
       toast.error('Failed to remove profile photo');
-      // Restore photoUrl if operation fails
-      setPhotoUrl(photoUrl);
     } finally {
       setIsRemoving(false);
     }

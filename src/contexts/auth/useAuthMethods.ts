@@ -25,7 +25,8 @@ export const useAuthMethods = ({ user, setUser, setProfile, setIsAuthenticated }
       email,
       password,
       options: { 
-        data: userData
+        data: userData,
+        emailRedirectTo: window.location.origin + '/login'
       }
     });
     
