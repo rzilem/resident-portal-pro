@@ -19,7 +19,8 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     try {
       setIsLoading(true);
       console.log(`Fetching calendar events for ${associationId ? `association ${associationId}` : 'global view'}`);
-      // Await the Promise to resolve before setting state
+      
+      // Use await to ensure we get the events before updating state
       const allEvents = await calendarService.getAllEvents(userId, userAccessLevel, associationId);
       console.log(`Fetched ${allEvents.length} events`);
       setEvents(allEvents);
@@ -31,11 +32,17 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     }
   }, [associationId, userId, userAccessLevel]);
   
+  // Fetch events on mount and when dependencies change
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+  
   const fetchEventsByDateRange = useCallback(async (start: Date, end: Date) => {
     try {
       setIsLoading(true);
       console.log(`Fetching events by date range for ${associationId ? `association ${associationId}` : 'global view'}`);
-      // Await the Promise to resolve before setting state
+      
+      // Use await to ensure we get the events before updating state
       const rangeEvents = await calendarService.getEventsByDateRange(
         start, end, userId, userAccessLevel, associationId
       );
@@ -52,13 +59,18 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const createEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
     try {
       console.log('Creating event:', event);
-      // Await the Promise to resolve before updating state
-      const newEvent = await calendarService.createEvent({
+      
+      // Ensure createdBy is set to the current user
+      const eventData = {
         ...event,
-        createdBy: userId // Fixed property name
-      });
+        createdBy: userId
+      };
+      
+      // Use await to ensure we get the new event before updating state
+      const newEvent = await calendarService.createEvent(eventData);
       
       console.log('Event created successfully:', newEvent);
+      // Update the events list with the new event
       setEvents(prev => [...prev, newEvent]);
       toast.success('Event created successfully');
       return newEvent;
@@ -72,11 +84,14 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
     try {
       console.log('Updating event:', id, updates);
-      // Await the Promise to resolve before updating state
+      
+      // Use await to ensure we get the updated event before updating state
       const updatedEvent = await calendarService.updateEvent(id, updates);
       
       console.log('Event updated successfully:', updatedEvent);
+      // Update the events list with the updated event
       setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      // Update selectedEvent if it's the one being updated
       if (selectedEvent?.id === id) {
         setSelectedEvent(updatedEvent);
       }
@@ -92,9 +107,14 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
   const deleteEvent = useCallback(async (id: string) => {
     try {
       console.log('Deleting event:', id);
+      
+      // Use await to ensure deletion is complete before updating state
       await calendarService.deleteEvent(id);
+      
       console.log('Event deleted successfully');
+      // Remove the deleted event from the events list
       setEvents(prev => prev.filter(event => event.id !== id));
+      // Clear selectedEvent if it's the one being deleted
       if (selectedEvent?.id === id) {
         setSelectedEvent(null);
       }
@@ -119,7 +139,8 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     
     try {
       console.log('Creating workflow event:', workflowId, title, scheduledDateTime);
-      // Await the Promise to resolve before updating state
+      
+      // Use await to ensure we get the new event before updating state
       const newEvent = await calendarService.createWorkflowEvent(
         workflowId,
         title,
@@ -128,6 +149,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
       );
       
       console.log('Workflow event created successfully:', newEvent);
+      // Update the events list with the new event
       setEvents(prev => [...prev, newEvent]);
       toast.success('Workflow scheduled successfully');
       return newEvent;
@@ -137,49 +159,6 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
       throw error;
     }
   }, [associationId]);
-  
-  // Since calendarService doesn't expose these methods yet, we'll implement placeholders
-  // These should be properly implemented in calendarService.ts
-  const uploadEventDocument = useCallback(async (
-    eventId: string,
-    file: File
-  ) => {
-    try {
-      // This would ideally call calendarService.uploadEventDocument
-      toast.success('Document upload functionality is not yet implemented');
-      console.warn('Document upload not implemented in calendarService');
-      return { id: 'placeholder-id', eventId, fileName: file.name };
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Failed to upload document');
-      throw error;
-    }
-  }, []);
-  
-  const getEventDocuments = useCallback(async (eventId: string) => {
-    try {
-      // This would ideally call calendarService.getEventDocuments
-      console.warn('Get event documents not implemented in calendarService');
-      return [];
-    } catch (error) {
-      console.error('Error fetching event documents:', error);
-      toast.error('Failed to load event documents');
-      throw error;
-    }
-  }, []);
-  
-  const deleteEventDocument = useCallback(async (documentId: string) => {
-    try {
-      // This would ideally call calendarService.deleteEventDocument
-      console.warn('Delete event document not implemented in calendarService');
-      toast.success('Document deleted successfully');
-      return true;
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      toast.error('Failed to delete document');
-      return false;
-    }
-  }, []);
   
   return {
     events,
@@ -191,9 +170,6 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     createEvent,
     updateEvent,
     deleteEvent,
-    createWorkflowEvent,
-    uploadEventDocument,
-    getEventDocuments,
-    deleteEventDocument
+    createWorkflowEvent
   };
 }

@@ -5,7 +5,9 @@ import { calendarEvents } from './calendarEvents';
 
 export const calendarEventService = {
   // Get all calendar events based on user's access level
-  getAllEvents: (userId: string, userAccessLevel: CalendarAccessLevel, associationId?: string) => {
+  getAllEvents: async (userId: string, userAccessLevel: CalendarAccessLevel, associationId?: string) => {
+    console.log(`Fetching all events for user ${userId}, access level ${userAccessLevel}, association ${associationId || 'global view'}`);
+    
     let filteredEvents = calendarEvents;
     
     // Filter by association if specified
@@ -16,7 +18,7 @@ export const calendarEventService = {
     }
     
     // Filter by access level
-    return filteredEvents.filter(event => {
+    const result = filteredEvents.filter(event => {
       const levels: Record<CalendarAccessLevel, CalendarAccessLevel[]> = {
         'public': ['public', 'residents', 'committee', 'board', 'admin'],
         'residents': ['residents', 'committee', 'board', 'admin'],
@@ -27,19 +29,27 @@ export const calendarEventService = {
       
       return levels[event.accessLevel].includes(userAccessLevel);
     });
+    
+    console.log(`Fetched ${result.length} events from database`);
+    return result;
   },
 
   // Get events for a specific date range
-  getEventsByDateRange: (
+  getEventsByDateRange: async (
     start: Date, 
     end: Date,
     userId: string,
     userAccessLevel: CalendarAccessLevel,
     associationId?: string
   ) => {
-    const events = calendarEventService.getAllEvents(userId, userAccessLevel, associationId);
+    console.log(`Fetching events by date range for ${associationId ? `association ${associationId}` : 'global view'}`);
+    console.log(`Fetching events from ${start.toISOString()} to ${end.toISOString()}`);
     
-    return events.filter(event => {
+    // Get all events for the user first
+    const events = await calendarEventService.getAllEvents(userId, userAccessLevel, associationId);
+    
+    // Then filter by date range
+    const filtered = events.filter(event => {
       const eventStart = typeof event.start === 'string' ? new Date(event.start) : event.start;
       const eventEnd = event.end 
         ? (typeof event.end === 'string' ? new Date(event.end) : event.end) 
@@ -51,21 +61,24 @@ export const calendarEventService = {
         (eventStart <= start && eventEnd && eventEnd >= end) // Spans the entire range
       );
     });
+    
+    console.log(`Fetched ${filtered.length} events for date range`);
+    return filtered;
   },
 
   // Get events by type
-  getEventsByType: (
+  getEventsByType: async (
     type: CalendarEventType,
     userId: string,
     userAccessLevel: CalendarAccessLevel,
     associationId?: string
   ) => {
-    const events = calendarEventService.getAllEvents(userId, userAccessLevel, associationId);
+    const events = await calendarEventService.getAllEvents(userId, userAccessLevel, associationId);
     return events.filter(event => event.type === type);
   },
 
   // Get event by ID
-  getEventById: (id: string) => {
+  getEventById: async (id: string) => {
     const event = calendarEvents.find(event => event.id === id);
     if (!event) {
       throw new Error(`Event with ID ${id} not found`);
@@ -74,40 +87,98 @@ export const calendarEventService = {
   },
 
   // Create a new event
-  createEvent: (event: Omit<CalendarEvent, 'id'>) => {
+  createEvent: async (event: Omit<CalendarEvent, 'id'>) => {
+    console.log('Creating event with data:', event);
+    
+    // Format dates properly if they're provided as strings
+    const start = typeof event.start === 'string' ? new Date(event.start) : event.start;
+    const end = event.end 
+      ? (typeof event.end === 'string' ? new Date(event.end) : event.end)
+      : undefined;
+    
+    // Generate a new event with proper ID and formatted dates
     const newEvent: CalendarEvent = {
       ...event,
-      id: uuid()
+      id: uuid(),
+      start: start,
+      end: end
     };
     
+    // Push to the calendarEvents array
     calendarEvents.push(newEvent);
+    console.log('New event created:', newEvent);
     return newEvent;
   },
 
   // Update an existing event
-  updateEvent: (id: string, updates: Partial<CalendarEvent>) => {
+  updateEvent: async (id: string, updates: Partial<CalendarEvent>) => {
+    console.log(`Updating event ${id} with:`, updates);
     const index = calendarEvents.findIndex(event => event.id === id);
+    
     if (index === -1) {
       throw new Error(`Event with ID ${id} not found`);
     }
     
+    // Format dates properly if they're provided as strings
+    const updatedData: Partial<CalendarEvent> = { ...updates };
+    
+    if (updates.start) {
+      updatedData.start = typeof updates.start === 'string' 
+        ? new Date(updates.start) 
+        : updates.start;
+    }
+    
+    if (updates.end) {
+      updatedData.end = typeof updates.end === 'string' 
+        ? new Date(updates.end) 
+        : updates.end;
+    }
+    
     const updatedEvent = {
       ...calendarEvents[index],
-      ...updates
+      ...updatedData
     };
     
     calendarEvents[index] = updatedEvent;
+    console.log('Event updated successfully:', updatedEvent);
     return updatedEvent;
   },
 
   // Delete an event
-  deleteEvent: (id: string) => {
+  deleteEvent: async (id: string) => {
     const index = calendarEvents.findIndex(event => event.id === id);
+    
     if (index === -1) {
       throw new Error(`Event with ID ${id} not found`);
     }
     
     calendarEvents.splice(index, 1);
+    console.log(`Event ${id} deleted successfully`);
     return { success: true };
+  },
+  
+  // Create workflow event
+  createWorkflowEvent: async (
+    workflowId: string,
+    title: string,
+    scheduledDateTime: Date,
+    associationId: string
+  ) => {
+    if (!associationId) {
+      throw new Error('Association ID is required to create a workflow event');
+    }
+    
+    const newEvent: Omit<CalendarEvent, 'id'> = {
+      title,
+      description: `Scheduled workflow: ${title}`,
+      start: scheduledDateTime,
+      type: 'workflow',
+      associationId,
+      accessLevel: 'admin',
+      color: '#6366f1', // Indigo color for workflow events
+      workflowId
+    };
+    
+    return calendarEventService.createEvent(newEvent);
   }
 };

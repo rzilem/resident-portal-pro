@@ -68,7 +68,9 @@ const CalendarView = ({
     handleViewChange,
     toggleFilters,
     activeEventType,
-    setEventTypeFilter
+    setEventTypeFilter,
+    // Add refresh function to force reload events
+    refreshEvents
   } = useCalendarView({
     userId,
     userAccessLevel,
@@ -93,7 +95,7 @@ const CalendarView = ({
     setQuickEventDate(date);
   };
 
-  const handleCreateEvent = (eventData: any) => {
+  const handleCreateEvent = async (eventData: any) => {
     try {
       // For global view, ensure associationId is set properly
       const eventWithAssociation = {
@@ -102,7 +104,10 @@ const CalendarView = ({
       };
       
       console.log("Creating event with data:", eventWithAssociation);
-      createEvent(eventWithAssociation);
+      await createEvent(eventWithAssociation);
+      
+      // Force refresh events after creation
+      refreshEvents();
       
       toast({
         title: "Event created",
@@ -118,9 +123,13 @@ const CalendarView = ({
     }
   };
 
-  const handleUpdateEvent = (id: string, updates: any) => {
+  const handleUpdateEvent = async (id: string, updates: any) => {
     try {
-      updateEvent(id, updates);
+      await updateEvent(id, updates);
+      
+      // Force refresh events after update
+      refreshEvents();
+      
       toast({
         title: "Event updated",
         description: "Your event has been updated successfully.",
@@ -134,9 +143,13 @@ const CalendarView = ({
     }
   };
 
-  const handleDeleteEvent = (id: string) => {
+  const handleDeleteEvent = async (id: string) => {
     try {
-      deleteEvent(id);
+      await deleteEvent(id);
+      
+      // Force refresh events after deletion
+      refreshEvents();
+      
       toast({
         title: "Event deleted",
         description: "Your event has been deleted successfully.",

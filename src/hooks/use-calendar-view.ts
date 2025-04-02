@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { isSameDay, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { useCalendar } from '@/hooks/calendar';
 import { CalendarEvent, CalendarEventType, CalendarAccessLevel } from '@/types/calendar';
@@ -33,6 +34,17 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     userAccessLevel,
     associationId
   });
+
+  // Function to force refresh events
+  const refreshEvents = useCallback(() => {
+    if (view === 'month') {
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
+      fetchEventsByDateRange(start, end);
+    } else {
+      fetchEvents();
+    }
+  }, [currentDate, view, fetchEvents, fetchEventsByDateRange]);
 
   useEffect(() => {
     if (view === 'month') {
@@ -163,6 +175,7 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     handleViewChange,
     toggleFilters,
     activeEventType,
-    setEventTypeFilter
+    setEventTypeFilter,
+    refreshEvents
   };
 }
