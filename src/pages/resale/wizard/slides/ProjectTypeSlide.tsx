@@ -32,7 +32,8 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       const images: Record<string, string> = {};
       
       try {
-        // Prioritize getting access system image first as a fallback
+        // Always prioritize getting access_system image first as a fallback
+        debugLog('Fetching access_system image first as fallback');
         await fetchTypeImage('access_system', images);
         
         // Fetch images for each project type
