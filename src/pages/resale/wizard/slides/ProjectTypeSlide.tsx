@@ -112,7 +112,19 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       );
     }
     
-    // Show icon as fallback
+    // Force use of access_system image for all types as fallback
+    if (projectImages['access_system'] && !imageErrors['access_system']) {
+      return (
+        <img 
+          src={projectImages['access_system']}
+          alt={type.name}
+          className="w-full h-full object-cover"
+          onError={() => handleImageError('access_system')}
+        />
+      );
+    }
+    
+    // Show icon as fallback if all else fails
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-4xl text-muted-foreground">
