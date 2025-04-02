@@ -36,23 +36,28 @@ export const speakGreeting = async (
   
   let message = '';
   
+  console.log('Speaking greeting with options:', options);
+  
   // Determine which type of greeting to use
   if (options?.greetingType === 'custom' && options.customGreeting) {
     // Use custom greeting with name substitution
     message = options.customGreeting.replace('{name}', name);
-    console.log('Using custom greeting:', message); // Add logging for debugging
+    console.log('Using custom greeting:', message);
   } else if (options?.greetingType === 'preset' && options.presetGreetingId) {
     // Use preset greeting
     const presetText = getPresetGreetingById(options.presetGreetingId);
     if (presetText) {
       message = presetText.replace('{name}', name);
+      console.log('Using preset greeting:', message);
     } else {
       // Fallback to default if preset not found
+      console.log('Preset not found, falling back to default');
       const greeting = getTimeBasedGreeting();
       message = `${greeting}, ${name}. Welcome to your dashboard.`;
     }
   } else {
     // Use default time-based greeting
+    console.log('Using default time-based greeting');
     const greeting = getTimeBasedGreeting();
     message = `${greeting}, ${name}. Welcome to your dashboard.`;
   }

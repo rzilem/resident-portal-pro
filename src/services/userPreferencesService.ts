@@ -11,21 +11,27 @@ export const userPreferencesService = {
    * @param userId - The user's ID
    * @param preferences - The preferences object to save
    */
-  async savePreferences(userId: string, preferences: any): Promise<void> {
+  async savePreferences(userId: string, preferences: any): Promise<boolean> {
     if (!userId) {
       console.error('Cannot save preferences: No user ID provided');
-      return;
+      return false;
     }
 
     try {
       console.log('Saving preferences for user:', userId);
+      console.log('Preferences to save:', preferences);
       
       // First check if the user already has preferences
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('user_preferences')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
+      
+      if (checkError) {
+        console.error('Error checking existing preferences:', checkError);
+        throw checkError;
+      }
       
       if (existing) {
         // Update existing preferences
@@ -51,9 +57,12 @@ export const userPreferencesService = {
         if (error) throw error;
         console.log('Preferences created successfully');
       }
+      
+      return true;
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast.error('Failed to save preferences');
+      return false;
     }
   },
 

@@ -41,6 +41,11 @@ export const useVoiceGreeting = () => {
         try {
           console.log('Speaking greeting to:', name);
           console.log('ElevenLabs connected:', isElevenLabsConnected);
+          console.log('Greeting preferences:', {
+            greetingType: preferences.voiceGreetingType || 'default',
+            customGreeting: preferences.customGreeting,
+            presetGreetingId: preferences.selectedPresetGreeting
+          });
           
           // Get greeting options from preferences
           const greetingOptions = {
@@ -48,9 +53,6 @@ export const useVoiceGreeting = () => {
             customGreeting: preferences.customGreeting,
             presetGreetingId: preferences.selectedPresetGreeting
           };
-          
-          // Log the greeting options for debugging
-          console.log('Using greeting options:', greetingOptions);
           
           await speakGreeting(name, greetingOptions);
           setHasGreeted(true);
