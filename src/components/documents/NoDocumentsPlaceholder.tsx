@@ -10,14 +10,20 @@ interface NoDocumentsPlaceholderProps {
   onUpload?: () => void;
   associationId?: string;
   categoryId?: string;
+  searchQuery?: string;
+  category?: string;
+  filter?: 'recent' | 'shared' | 'important';
 }
 
 const NoDocumentsPlaceholder: React.FC<NoDocumentsPlaceholderProps> = ({
-  title = "No documents found",
-  description = "Upload a document to get started",
+  title,
+  description,
   onUpload,
   associationId,
   categoryId,
+  searchQuery,
+  category,
+  filter,
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
@@ -27,14 +33,36 @@ const NoDocumentsPlaceholder: React.FC<NoDocumentsPlaceholderProps> = ({
     }
   };
 
+  // Generate appropriate title and description based on props
+  const getTitle = () => {
+    if (title) return title;
+    if (searchQuery) return "No search results";
+    if (filter === 'recent') return "No recent documents";
+    if (filter === 'shared') return "No shared documents";
+    if (filter === 'important') return "No important documents";
+    return "No documents found";
+  };
+
+  const getDescription = () => {
+    if (description) return description;
+    if (searchQuery) return `No documents match "${searchQuery}"`;
+    if (filter) return `No ${filter} documents found in this category`;
+    if (category) return `No documents found in ${category}`;
+    return "Upload a document to get started";
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center">
       <div className="rounded-full bg-muted p-3 mb-4">
-        <FolderOpen className="h-10 w-10 text-muted-foreground" />
+        {searchQuery ? (
+          <Search className="h-10 w-10 text-muted-foreground" />
+        ) : (
+          <FolderOpen className="h-10 w-10 text-muted-foreground" />
+        )}
       </div>
-      <h3 className="text-lg font-medium">{title}</h3>
+      <h3 className="text-lg font-medium">{getTitle()}</h3>
       <p className="text-muted-foreground mt-1 max-w-md">
-        {description}
+        {getDescription()}
       </p>
       <Button 
         className="mt-4"
@@ -49,7 +77,7 @@ const NoDocumentsPlaceholder: React.FC<NoDocumentsPlaceholderProps> = ({
         setOpen={setIsUploadDialogOpen}
         onSuccess={handleUploadSuccess}
         associationId={associationId}
-        categoryId={categoryId}
+        categoryId={categoryId || category}
       />
     </div>
   );
