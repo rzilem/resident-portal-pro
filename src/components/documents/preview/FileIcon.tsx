@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, FileImage, FilePdf, FileCode, FileSpreadsheet, File, FilePresentation } from 'lucide-react';
+import { FileText, FileImage, FileCode, FileSpreadsheet, File, Presentation } from 'lucide-react';
 
 interface FileIconProps {
   fileType: string;
@@ -25,7 +25,7 @@ const FileIcon: React.FC<FileIconProps> = ({ fileType, className = "h-10 w-10 te
   }
   
   if (normalizedType.includes('pdf')) {
-    return <FilePdf className={className} />;
+    return <FileText className={`${className} text-red-500`} />; // Use FileText for PDF
   }
   
   if (
@@ -40,7 +40,7 @@ const FileIcon: React.FC<FileIconProps> = ({ fileType, className = "h-10 w-10 te
     normalizedType.includes('powerpoint') || 
     normalizedType.includes('presentation')
   ) {
-    return <FilePresentation className={className} />;
+    return <Presentation className={className} />; // Changed from FilePresentation
   }
   
   if (

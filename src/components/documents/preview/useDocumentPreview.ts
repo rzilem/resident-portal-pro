@@ -74,14 +74,15 @@ export const useDocumentPreview = (document: DocumentFile | null, isOpen: boolea
     });
     
     try {
-      const link = document.createElement('a');
+      // Fixed: Use window.document instead of document object
+      const link = window.document.createElement('a');
       link.href = document.url;
       link.download = document.name;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading document:', error);
       setPreviewError('Failed to download document');

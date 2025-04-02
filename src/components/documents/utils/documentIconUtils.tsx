@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { 
-  FileText, File, FileCode, FilePdf,
-  FileSpreadsheet, Image, FilePresentation
+  FileText, File, FileCode, 
+  FileSpreadsheet, Image, 
+  FileDigit, Presentation // Changed from FilePdf and FilePresentation
 } from "lucide-react";
 
 // Helper function to determine icon based on file name or type
@@ -16,7 +17,7 @@ export const getDocumentIcon = (fileName: string) => {
   
   // PDF files
   if (extension === 'pdf') {
-    return <FilePdf className="h-5 w-5 text-red-500" />;
+    return <FileDigit className="h-5 w-5 text-red-500" />; // Changed from FilePdf
   }
   
   // Office document files
@@ -31,7 +32,7 @@ export const getDocumentIcon = (fileName: string) => {
   
   // Presentation files
   if (['ppt', 'pptx'].includes(extension)) {
-    return <FilePresentation className="h-5 w-5 text-orange-500" />;
+    return <Presentation className="h-5 w-5 text-orange-500" />; // Changed from FilePresentation
   }
   
   // Code or programming files

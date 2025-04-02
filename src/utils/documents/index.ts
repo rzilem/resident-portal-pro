@@ -10,7 +10,8 @@ export {
   sanitizeDocumentUrl,
   canUseOfficeViewer,
   getDocumentCategories,
-  ensureDocumentsBucketExists
+  ensureDocumentsBucketExists,
+  getDocumentById
 } from './documentUtils';
 
 export * from './authUtils';

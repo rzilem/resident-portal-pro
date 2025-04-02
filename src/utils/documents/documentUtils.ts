@@ -61,3 +61,115 @@ export const isOfficeFile = (fileNameOrType: string): boolean => {
     lower.includes('office')
   );
 };
+
+/**
+ * Retrieve document categories
+ */
+export const getDocumentCategories = async () => {
+  // In a real application, this would fetch from an API or database
+  return [
+    { id: 'governing', name: 'Governing Documents', accessLevel: 'homeowner' },
+    { id: 'financial', name: 'Financial Documents', accessLevel: 'board' },
+    { id: 'meetings', name: 'Meeting Minutes', accessLevel: 'homeowner' },
+    { id: 'legal', name: 'Legal Documents', accessLevel: 'management' },
+    { id: 'rules', name: 'Rules & Regulations', accessLevel: 'all' },
+    { id: 'contracts', name: 'Contracts', accessLevel: 'management' }
+  ];
+};
+
+/**
+ * Determine if a document can be previewed
+ */
+export const isPreviewable = (fileType: string): boolean => {
+  const lower = fileType.toLowerCase();
+  return (
+    isImageFile(lower) ||
+    isPdfFile(lower) ||
+    lower.endsWith('.txt') ||
+    lower.endsWith('.html') ||
+    lower.endsWith('.md')
+  );
+};
+
+/**
+ * Sanitize document URL for safe display
+ */
+export const sanitizeDocumentUrl = (url: string): string => {
+  // Simple URL sanitization
+  return url.replace(/[^a-zA-Z0-9-_:./?&=]/g, '');
+};
+
+/**
+ * Check if document can use Office viewer
+ */
+export const canUseOfficeViewer = (filename: string): boolean => {
+  const ext = getFileExtension(filename);
+  return ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
+};
+
+/**
+ * Ensure documents bucket exists (placeholder implementation)
+ */
+export const ensureDocumentsBucketExists = async (): Promise<boolean> => {
+  // In a real app, this would check and create a storage bucket
+  return true;
+};
+
+/**
+ * Get document by ID (placeholder implementation)
+ */
+export const getDocumentById = async (id: string): Promise<any> => {
+  // In a real app, this would fetch a document by ID
+  console.log(`Fetching document with ID: ${id}`);
+  return null;
+};
+
+/**
+ * Format date (using the function from documentIconUtils)
+ */
+export const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (e) {
+    return 'Invalid date';
+  }
+};
+
+/**
+ * Get file type information
+ */
+export const getFileTypeInfo = (filename: string) => {
+  const extension = getFileExtension(filename);
+  let type = 'Unknown';
+  let icon = 'file';
+  
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension)) {
+    type = 'Image';
+    icon = 'image';
+  } else if (extension === 'pdf') {
+    type = 'PDF Document';
+    icon = 'file-text';
+  } else if (['doc', 'docx'].includes(extension)) {
+    type = 'Word Document';
+    icon = 'file-text';
+  } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
+    type = 'Spreadsheet';
+    icon = 'file-spreadsheet';
+  } else if (['ppt', 'pptx'].includes(extension)) {
+    type = 'Presentation';
+    icon = 'presentation';
+  } else if (['txt', 'log'].includes(extension)) {
+    type = 'Text File';
+    icon = 'file-text';
+  } else if (['html', 'css', 'js', 'ts', 'jsx', 'tsx', 'json', 'xml'].includes(extension)) {
+    type = 'Code File';
+    icon = 'file-code';
+  }
+  
+  return { type, icon, extension };
+};
