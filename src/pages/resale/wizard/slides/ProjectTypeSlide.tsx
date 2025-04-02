@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { PROJECT_TYPES } from '../data/project-types';
-import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from '@/components/ui/skeleton';
-import { debugLog, errorLog } from '@/utils/debug';
-import { getFileUrl, checkFileExists } from '@/utils/supabase/storage/getUrl';
-import { toast } from 'sonner';
+import { useProjectTypeImages } from '@/hooks/useProjectTypeImages';
+import ProjectTypesGrid from '../components/ProjectTypesGrid';
 
 interface ProjectTypeSlideProps {
   selectedType: string;
@@ -16,153 +13,13 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   selectedType, 
   onSelect 
 }) => {
-  const [loading, setLoading] = useState(true);
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [projectImages, setProjectImages] = useState<Record<string, string>>({});
-  
   // Sort project types alphabetically by name
   const sortedProjectTypes = [...PROJECT_TYPES].sort((a, b) => 
     a.name.localeCompare(b.name)
   );
 
-  // Fetch project images from Supabase
-  useEffect(() => {
-    const fetchProjectImages = async () => {
-      setLoading(true);
-      const images: Record<string, string> = {};
-      
-      try {
-        // Always prioritize getting access_system image first as a fallback
-        debugLog('Fetching access_system image first as fallback');
-        await fetchTypeImage('access_system', images);
-        
-        // Fetch images for each project type
-        for (const type of PROJECT_TYPES) {
-          if (type.id !== 'access_system') { // Skip access_system as we already processed it
-            await fetchTypeImage(type.id, images);
-          }
-        }
-        
-        setProjectImages(images);
-        debugLog('Loaded project images:', images);
-      } catch (error) {
-        errorLog('Error fetching project images:', error);
-        toast.error('Failed to load project images');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchProjectImages();
-  }, []);
-
-  // Helper function to fetch a single type image
-  const fetchTypeImage = async (typeId: string, imagesObj: Record<string, string>): Promise<boolean> => {
-    try {
-      debugLog(`Fetching images for ${typeId}...`);
-      
-      const { data, error } = await supabase
-        .storage
-        .from('project_images')
-        .list(typeId, {
-          limit: 1,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-      
-      if (error) {
-        errorLog(`Error listing files for ${typeId}:`, error);
-        return false;
-      }
-      
-      debugLog(`Files found in ${typeId}:`, data);
-      
-      if (data && data.length > 0) {
-        // Filter out folders (entries ending with '/')
-        const files = data.filter(item => !item.name.endsWith('/'));
-        
-        if (files.length > 0) {
-          const filePath = `${typeId}/${files[0].name}`;
-          debugLog(`Using file path: ${filePath}`);
-          
-          // Get public URL for the file
-          const fileUrl = getFileUrl('project_images', filePath);
-          
-          if (fileUrl) {
-            imagesObj[typeId] = fileUrl;
-            debugLog(`Loaded image for ${typeId}: ${fileUrl}`);
-            return true;
-          } else {
-            errorLog(`Failed to get URL for ${filePath}`);
-          }
-        } else {
-          debugLog(`No valid files found in ${typeId}`);
-        }
-      } else {
-        debugLog(`No data returned for ${typeId}`);
-      }
-      
-      return false;
-    } catch (error) {
-      errorLog(`Error in fetchTypeImage for ${typeId}:`, error);
-      return false;
-    }
-  };
-
-  const handleImageError = (typeId: string) => {
-    debugLog(`Image error for type: ${typeId}`);
-    setImageErrors(prev => ({ ...prev, [typeId]: true }));
-    
-    // Show a toast only once per session (not for every image)
-    if (!sessionStorage.getItem('image-error-shown')) {
-      toast.error('Some project type images could not be loaded', {
-        description: 'Using fallback images instead'
-      });
-      sessionStorage.setItem('image-error-shown', 'true');
-    }
-  };
-
-  // Function to get appropriate image or icon
-  const renderProjectTypeImage = (type: any) => {
-    if (loading) {
-      return <Skeleton className="w-full h-full rounded-md" />;
-    }
-    
-    // Check if we have a Supabase image for this type and it hasn't errored
-    if (projectImages[type.id] && !imageErrors[type.id]) {
-      debugLog(`Rendering image for ${type.id}: ${projectImages[type.id]}`);
-      return (
-        <img 
-          src={projectImages[type.id]}
-          alt={type.name}
-          className="w-full h-full object-cover rounded-md"
-          onError={() => handleImageError(type.id)}
-        />
-      );
-    }
-    
-    // If type-specific image failed, try the access_system fallback image
-    if (projectImages['access_system'] && !imageErrors['access_system']) {
-      debugLog(`Using access_system fallback for ${type.id}`);
-      return (
-        <img 
-          src={projectImages['access_system']}
-          alt={type.name}
-          className="w-full h-full object-cover rounded-md"
-          onError={() => handleImageError('access_system')}
-        />
-      );
-    }
-    
-    // Show icon as last resort if all images fail
-    debugLog(`Falling back to icon for ${type.id}`);
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-4xl text-muted-foreground">
-          {type.icon && <type.icon className="h-12 w-12" />}
-        </div>
-      </div>
-    );
-  };
+  // Use our custom hook to fetch and manage project images
+  const { loading, imageErrors, projectImages, handleImageError } = useProjectTypeImages(sortedProjectTypes);
 
   return (
     <div className="space-y-6">
@@ -173,29 +30,15 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedProjectTypes.map(type => (
-          <div
-            key={type.id}
-            className={`p-4 border rounded-md cursor-pointer transition-colors ${
-              selectedType === type.id 
-                ? 'bg-primary/10 border-primary' 
-                : 'hover:bg-muted'
-            }`}
-            onClick={() => onSelect(type.id)}
-          >
-            <div className="flex flex-col h-full">
-              <div className="mb-3 h-32 overflow-hidden rounded-md bg-muted relative">
-                {renderProjectTypeImage(type)}
-              </div>
-              <div>
-                <h3 className="font-medium">{type.name}</h3>
-                <p className="text-sm text-muted-foreground">{type.description}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <ProjectTypesGrid
+        projectTypes={sortedProjectTypes}
+        selectedType={selectedType}
+        loading={loading}
+        projectImages={projectImages}
+        imageErrors={imageErrors}
+        onSelect={onSelect}
+        onImageError={handleImageError}
+      />
     </div>
   );
 };
