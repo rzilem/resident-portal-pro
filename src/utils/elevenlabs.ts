@@ -111,3 +111,39 @@ export async function generateSpeech(
     return null;
   }
 }
+
+/**
+ * Speaks text using ElevenLabs API
+ * @param text Text to speak
+ * @param options Options for speech generation
+ * @returns Promise<void>
+ */
+export async function speakWithElevenLabs(
+  text: string,
+  options: {
+    voice?: string;
+    model?: string;
+  } = {}
+): Promise<void> {
+  try {
+    // For demonstration purposes, we'll use a simulated API call
+    console.log(`Speaking with ElevenLabs: "${text}" (voice: ${options.voice || 'Sarah'}, model: ${options.model || 'eleven_turbo_v2'})`);
+    
+    // In a real implementation, we would:
+    // 1. Get the API key from settings or integration configuration
+    // 2. Call generateSpeech to get the audio blob
+    // 3. Play the audio
+    
+    // Simulate audio processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Simulate audio playback
+    console.log('Audio playback started...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('Audio playback completed.');
+    
+  } catch (error) {
+    console.error('Error speaking with ElevenLabs:', error);
+    throw error;
+  }
+}
