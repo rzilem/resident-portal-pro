@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { toast } from "sonner";
@@ -78,9 +79,13 @@ export const useSettings = () => {
     if (isAuthenticated && user?.id) {
       const updatedPreferences = { ...preferences, ...newPreferences };
       console.log('Saving preferences to Supabase:', updatedPreferences);
-      await userPreferencesService.savePreferences(user.id, updatedPreferences);
+      const success = await userPreferencesService.savePreferences(user.id, updatedPreferences);
+      if (success) {
+        toast.success('Preferences saved');
+      }
     } else {
       console.log('Not authenticated, preferences only saved locally');
+      toast.warning('Changes saved locally only. Login to save permanently.');
     }
   }, [preferences, isAuthenticated, user?.id]);
 

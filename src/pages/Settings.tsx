@@ -11,10 +11,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Save, RefreshCw } from 'lucide-react';
 import { TooltipButton } from '@/components/ui/tooltip-button';
+import { useSettings } from '@/hooks/use-settings';
 
 const Settings = () => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<string>("profile");
+  const { preferences, savePreferences } = useSettings();
   
   useEffect(() => {
     // Check if we should open the display tab (from sidebar logo click)
@@ -24,6 +26,22 @@ const Settings = () => {
     }
   }, []);
   
+  const handleResetDefaults = () => {
+    savePreferences({
+      theme: 'system',
+      cardStyle: 'default',
+      colorMode: 'default',
+      fontSize: 'medium',
+      tableDensity: 'default',
+      voiceGreetingEnabled: true,
+      voiceGreetingType: 'default'
+    });
+  };
+  
+  const handleSaveAll = () => {
+    savePreferences(preferences);
+  };
+  
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -32,12 +50,14 @@ const Settings = () => {
           <TooltipButton
             variant="outline"
             tooltipText="Reset to defaults"
+            onClick={handleResetDefaults}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Reset
           </TooltipButton>
           <TooltipButton
             tooltipText="Save all settings"
+            onClick={handleSaveAll}
           >
             <Save className="h-4 w-4 mr-2" />
             Save Changes
