@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
@@ -15,6 +16,7 @@ import Integrations from '../pages/Integrations';
 import SystemUploads from '../pages/SystemUploads';
 import AssociationProfile from '../pages/AssociationProfile';
 import LeadsManagement from '../pages/leads/LeadsManagement';
+import UserProfile from '../pages/profile/UserProfile';
 
 export const mainRoutes = [
   {
@@ -154,6 +156,15 @@ export const mainRoutes = [
     element: (
       <ProtectedRoute>
         <LeadsManagement />
+      </ProtectedRoute>
+    ),
+  },
+  // Add profile route
+  {
+    path: '/profile/user',
+    element: (
+      <ProtectedRoute>
+        <UserProfile />
       </ProtectedRoute>
     ),
   },

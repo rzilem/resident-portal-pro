@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserCircle, HelpCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   NavigationMenu, 
   NavigationMenuItem, 
@@ -14,46 +14,44 @@ import {
 import { TooltipButton } from '@/components/ui/tooltip-button';
 import { useCompanySettings } from '@/hooks/use-company-settings';
 import { useLogout } from '@/hooks/use-logout';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 
 const MainNav = () => {
   const { settings } = useCompanySettings();
   const { handleLogout } = useLogout();
+  const navigate = useNavigate();
   
   return (
     <div className="flex items-center justify-between w-full">
       <NavigationMenu className="hidden md:flex">
         <NavigationMenuList>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>User Account</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid gap-3 p-4 w-[200px]">
-                <li className="row-span-1">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      to="/profile"
-                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
-                    >
-                      <UserCircle className="h-5 w-5 mb-2" />
-                      <div className="mb-2 mt-2 text-base font-medium">
-                        Profile
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-                <li className="row-span-1">
-                  <NavigationMenuLink asChild>
-                    <button
-                      onClick={handleLogout}
-                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-4 no-underline outline-none focus:shadow-md"
-                    >
-                      <div className="mb-2 mt-2 text-base font-medium">
-                        Logout
-                      </div>
-                    </button>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={navigationMenuTriggerStyle()}>
+                  <UserCircle className="h-4 w-4 mr-1" />
+                  My Account
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48">
+                <DropdownMenuItem onClick={() => navigate('/profile/user')}>
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <HelpCircle className="h-4 w-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </NavigationMenuItem>
           
           <NavigationMenuItem>
@@ -68,17 +66,33 @@ const MainNav = () => {
       </NavigationMenu>
       
       {/* Mobile menu button */}
-      <TooltipButton 
-        variant="ghost" 
-        size="sm" 
-        className="md:hidden" 
-        tooltipText="User Menu"
-      >
-        <UserCircle className="h-5 w-5" />
-      </TooltipButton>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <TooltipButton 
+            variant="ghost" 
+            size="sm" 
+            className="md:hidden" 
+            tooltipText="User Menu"
+          >
+            <UserCircle className="h-5 w-5" />
+          </TooltipButton>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => navigate('/profile/user')}>
+            <UserCircle className="h-4 w-4 mr-2" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/settings')}>
+            <HelpCircle className="h-4 w-4 mr-2" />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
 
 export default MainNav;
-
