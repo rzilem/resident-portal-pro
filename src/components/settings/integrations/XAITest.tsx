@@ -55,10 +55,6 @@ const XAITest = () => {
     }
   };
 
-  const handleConfigureClick = () => {
-    setShowConfigDialog(true);
-  };
-
   return (
     <>
       <Card className="mt-6">
@@ -86,7 +82,7 @@ const XAITest = () => {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 variant={isXAIConnected ? "default" : "outline"}
-                onClick={isXAIConnected ? handleTestConnection : handleConfigureClick} 
+                onClick={isXAIConnected ? handleTestConnection : () => setShowConfigDialog(true)} 
                 disabled={isTesting || isLoading}
                 className="w-full"
               >
@@ -111,7 +107,7 @@ const XAITest = () => {
               {isXAIConnected && (
                 <Button 
                   variant="outline"
-                  onClick={handleConfigureClick}
+                  onClick={() => setShowConfigDialog(true)}
                   disabled={isLoading}
                   className="w-full"
                 >

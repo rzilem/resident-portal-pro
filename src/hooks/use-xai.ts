@@ -41,6 +41,21 @@ export function useXAI() {
   // Check if XAI is connected
   const isXAIConnected = isConnected('XAI');
 
+  // Add a dedicated method to fetch the latest settings
+  const fetchSettings = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log('Fetching latest X.AI settings...');
+      await fetchIntegrations();
+      return true;
+    } catch (error) {
+      console.error('Error fetching X.AI settings:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchIntegrations]);
+
   // Improved saveXAISettings to ensure settings are properly saved
   const saveXAISettings = useCallback(async (settings: XAISettings) => {
     setIsLoading(true);
@@ -141,6 +156,7 @@ export function useXAI() {
     testXAIConnection,
     generateContent,
     isLoading,
-    isAuthenticated
+    isAuthenticated,
+    fetchSettings
   };
 }

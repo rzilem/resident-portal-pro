@@ -8,6 +8,9 @@ import FinancialsIntegrations from './integrations/FinancialsIntegrations';
 import CommunicationsIntegrations from './integrations/CommunicationsIntegrations';
 import ManagementIntegrations from './integrations/ManagementIntegrations';
 import AutomationIntegrations from './integrations/AutomationIntegrations';
+import XAIDialog from './integrations/dialogs/XAIDialog';
+import { useIntegrations } from '@/hooks/use-integrations';
+import { toast } from 'sonner';
 
 // Define the prop types for the integration components
 interface IntegrationComponentProps {
@@ -17,6 +20,16 @@ interface IntegrationComponentProps {
 const IntegrationSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('financials');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showXAIDialog, setShowXAIDialog] = useState(false);
+  const { fetchIntegrations } = useIntegrations();
+
+  useEffect(() => {
+    // Refresh integrations data when component mounts
+    fetchIntegrations().catch(err => {
+      console.error("Failed to refresh integrations:", err);
+      toast.error("Failed to load integration settings");
+    });
+  }, [fetchIntegrations]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -71,6 +84,12 @@ const IntegrationSettings: React.FC = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
+      
+      {/* Single centralized XAI Dialog */}
+      <XAIDialog 
+        open={showXAIDialog} 
+        onOpenChange={setShowXAIDialog} 
+      />
     </Card>
   );
 };

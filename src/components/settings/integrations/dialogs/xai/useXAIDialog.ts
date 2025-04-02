@@ -4,7 +4,7 @@ import { useXAI } from '@/hooks/use-xai';
 import { toast } from 'sonner';
 
 export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => void) {
-  const { settings, saveXAISettings, testXAIConnection, isLoading: xaiLoading } = useXAI();
+  const { settings, saveXAISettings, testXAIConnection, isLoading: xaiLoading, fetchSettings } = useXAI();
   
   // Form state with debug logging
   const [apiKey, setApiKey] = useState('');
@@ -28,6 +28,14 @@ export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => voi
     console.log('Setting organization to:', value);
     setOrganization(value);
   }, []);
+
+  // Refresh settings when dialog opens
+  useEffect(() => {
+    if (open) {
+      // Reload the latest settings from the backend
+      fetchSettings && fetchSettings();
+    }
+  }, [open, fetchSettings]);
 
   // Load settings when dialog opens or settings change
   useEffect(() => {
