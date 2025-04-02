@@ -126,7 +126,6 @@ export async function speakWithElevenLabs(
   } = {}
 ): Promise<void> {
   try {
-    // For demonstration purposes, we'll use a simulated API call
     console.log(`Speaking with ElevenLabs: "${text}" (voice: ${options.voice || 'Sarah'}, model: ${options.model || 'eleven_turbo_v2'})`);
     
     // In a real implementation, we would:
@@ -137,13 +136,78 @@ export async function speakWithElevenLabs(
     // Simulate audio processing delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Simulate audio playback
-    console.log('Audio playback started...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log('Audio playback completed.');
-    
+    // Create and play audio element for better testing
+    if (typeof window !== 'undefined') {
+      // Create a mock audio blob
+      const mockAudioData = new Uint8Array([1, 2, 3, 4]);
+      const mockAudio = new Blob([mockAudioData], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(mockAudio);
+      
+      const audioElement = new Audio(audioUrl);
+      audioElement.volume = 0.7; // Set a reasonable volume
+      
+      // Log when audio starts and ends
+      audioElement.onplay = () => console.log('Audio playback started...');
+      audioElement.onended = () => {
+        console.log('Audio playback completed.');
+        // Clean up the object URL to prevent memory leaks
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      try {
+        await audioElement.play();
+        // Simulate a 2-second audio clip
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        audioElement.pause();
+        audioElement.onended?.call(audioElement);
+      } catch (playError) {
+        console.error('Error playing audio:', playError);
+        // If play() fails (which can happen without user interaction in some browsers)
+        // we'll just log the simulation
+        console.log('Audio playback simulated (browser blocked autoplay)');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log('Audio playback completed (simulation)');
+      }
+    } else {
+      // If we're in a non-browser environment, just simulate
+      console.log('Audio playback simulated...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Audio playback completed (simulation)');
+    }
   } catch (error) {
     console.error('Error speaking with ElevenLabs:', error);
     throw error;
   }
+}
+
+/**
+ * Utility function to play audio from a blob
+ * @param audioBlob Audio blob to play
+ * @returns Promise that resolves when audio finishes playing
+ */
+export function playAudioBlob(audioBlob: Blob): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        resolve();
+      };
+      
+      audio.onerror = (event) => {
+        URL.revokeObjectURL(audioUrl);
+        reject(new Error('Error playing audio'));
+      };
+      
+      audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+        URL.revokeObjectURL(audioUrl);
+        reject(error);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 }

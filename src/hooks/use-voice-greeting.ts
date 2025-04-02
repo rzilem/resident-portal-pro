@@ -16,6 +16,13 @@ export const useVoiceGreeting = () => {
   const { isElevenLabsConnected } = useElevenLabs();
   const [hasGreeted, setHasGreeted] = useState(false);
   const [isGreeting, setIsGreeting] = useState(false);
+  const [greetingLog, setGreetingLog] = useState<string[]>([]);
+  
+  // Add a log function to track greeting attempts
+  const logGreeting = (message: string) => {
+    console.log(`[Voice Greeting] ${message}`);
+    setGreetingLog(prev => [...prev, message]);
+  };
   
   useEffect(() => {
     // Exit early if we've already greeted globally in this session
@@ -36,16 +43,13 @@ export const useVoiceGreeting = () => {
       setIsGreeting(true);
       hasGreetedGlobally = true;
       
+      logGreeting(`Preparing greeting for user: ${name}`);
+      logGreeting(`ElevenLabs connected: ${isElevenLabsConnected}`);
+      
       // Add a small delay to ensure the page has loaded
       setTimeout(async () => {
         try {
-          console.log('Speaking greeting to:', name);
-          console.log('ElevenLabs connected:', isElevenLabsConnected);
-          console.log('Greeting preferences:', {
-            greetingType: preferences.voiceGreetingType || 'default',
-            customGreeting: preferences.customGreeting,
-            presetGreetingId: preferences.selectedPresetGreeting
-          });
+          logGreeting(`Speaking greeting to: ${name}`);
           
           // Get greeting options from preferences
           const greetingOptions = {
@@ -54,12 +58,16 @@ export const useVoiceGreeting = () => {
             presetGreetingId: preferences.selectedPresetGreeting
           };
           
+          logGreeting(`Greeting options: ${JSON.stringify(greetingOptions)}`);
+          
           await speakGreeting(name, greetingOptions);
           setHasGreeted(true);
+          logGreeting('Greeting completed successfully');
           
           // Save the last greeting time to Supabase
           await updatePreference('lastGreetingTime', new Date().toISOString());
         } catch (error) {
+          logGreeting(`Error with voice greeting: ${error instanceof Error ? error.message : String(error)}`);
           console.error('Error with voice greeting:', error);
           // Reset global flag if there's an error
           hasGreetedGlobally = false;
@@ -74,6 +82,7 @@ export const useVoiceGreeting = () => {
   
   // Add a function to reset greeting (for testing purposes)
   const resetGreeting = async () => {
+    logGreeting('Resetting greeting state');
     hasGreetedGlobally = false;
     setHasGreeted(false);
     await updatePreference('lastGreetingTime', null);
@@ -87,13 +96,39 @@ export const useVoiceGreeting = () => {
     selectedPresetGreeting?: string;
   }) => {
     try {
+      logGreeting(`Updating greeting preferences: ${JSON.stringify(updates)}`);
       const result = await updatePreference({
         ...updates
       });
       
+      logGreeting(`Preferences update result: ${result}`);
       return result;
     } catch (error) {
+      logGreeting(`Error updating greeting preferences: ${error instanceof Error ? error.message : String(error)}`);
       console.error('Error updating greeting preferences:', error);
+      return false;
+    }
+  };
+  
+  // Manual test function for verifying greetings
+  const testGreeting = async (name: string = 'Test User') => {
+    try {
+      logGreeting(`Running test greeting for: ${name}`);
+      
+      const greetingOptions = {
+        greetingType: preferences.voiceGreetingType || 'default',
+        customGreeting: preferences.customGreeting,
+        presetGreetingId: preferences.selectedPresetGreeting
+      };
+      
+      logGreeting(`Test greeting options: ${JSON.stringify(greetingOptions)}`);
+      
+      await speakGreeting(name, greetingOptions);
+      logGreeting('Test greeting completed successfully');
+      return true;
+    } catch (error) {
+      logGreeting(`Error in test greeting: ${error instanceof Error ? error.message : String(error)}`);
+      console.error('Error in test greeting:', error);
       return false;
     }
   };
@@ -102,6 +137,8 @@ export const useVoiceGreeting = () => {
     hasGreeted, 
     isGreeting, 
     resetGreeting,
-    updateGreetingPreferences
+    updateGreetingPreferences,
+    testGreeting,
+    greetingLog
   };
 };
