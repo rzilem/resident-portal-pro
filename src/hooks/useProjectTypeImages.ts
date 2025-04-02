@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { debugLog, errorLog } from '@/utils/debug';
 import { getFileUrl } from '@/utils/supabase/storage/getUrl';
@@ -9,6 +9,12 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [projectImages, setProjectImages] = useState<Record<string, string>>({});
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
+
+  // Create a refreshImages method that can be called to force a refresh
+  const refreshImages = useCallback(() => {
+    setLastRefreshTime(Date.now());
+  }, []);
 
   useEffect(() => {
     const fetchProjectImages = async () => {
@@ -16,6 +22,9 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
       const images: Record<string, string> = {};
       
       try {
+        // Reset error state when refreshing
+        setImageErrors({});
+        
         // Always prioritize getting access_system image first as a fallback
         debugLog('Fetching access_system image first as fallback');
         await fetchTypeImage('access_system', images);
@@ -38,7 +47,7 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
     };
     
     fetchProjectImages();
-  }, [projectTypes]);
+  }, [projectTypes, lastRefreshTime]); // Added lastRefreshTime as a dependency
 
   // Helper function to fetch a single type image
   const fetchTypeImage = async (typeId: string, imagesObj: Record<string, string>): Promise<boolean> => {
@@ -68,8 +77,8 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
           const filePath = `${typeId}/${files[0].name}`;
           debugLog(`Using file path: ${filePath}`);
           
-          // Get public URL for the file
-          const fileUrl = getFileUrl('project_images', filePath);
+          // Get public URL for the file with cache busting to prevent flashing
+          const fileUrl = getFileUrl('project_images', filePath, { cacheBuster: true });
           
           if (fileUrl) {
             imagesObj[typeId] = fileUrl;
@@ -105,5 +114,5 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
     }
   };
 
-  return { loading, imageErrors, projectImages, handleImageError };
+  return { loading, imageErrors, projectImages, handleImageError, refreshImages };
 };

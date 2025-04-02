@@ -50,7 +50,8 @@ export const getFileUrl = (
     // Add cache buster if requested
     let url = data.publicUrl;
     if (options.cacheBuster) {
-      const cacheBuster = `cb=${Date.now()}`;
+      // Use a more unique cache buster value
+      const cacheBuster = `cb=${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
       url += (url.includes('?') ? '&' : '?') + cacheBuster;
     }
     
@@ -85,12 +86,24 @@ export const checkFileExists = async (
       return false;
     }
     
+    // First try a HEAD request which is more efficient
+    const { data: existsData, error: existsError } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(path, 1); // 1 second expiry, just to check existence
+    
+    // If signed URL creation worked, the file exists
+    if (existsData && !existsError) {
+      debugLog(`File ${path} exists (via signed URL)`);
+      return true;
+    }
+    
+    // Fallback to download method if signed URL fails
     const { data, error } = await supabase.storage
       .from(bucket)
-      .download(path, { transform: { width: 10, height: 10 } }); // Use transform to minimize download size for checking
+      .download(path, { transform: { width: 1, height: 1 } }); // Use minimal transform
     
     const exists = !!data && !error;
-    debugLog(`File ${path} exists: ${exists}`);
+    debugLog(`File ${path} exists (via download): ${exists}`);
     
     return exists;
   } catch (error) {

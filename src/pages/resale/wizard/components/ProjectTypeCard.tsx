@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { debugLog } from '@/utils/debug';
 
@@ -22,6 +22,9 @@ const ProjectTypeCard: React.FC<ProjectTypeCardProps> = ({
   onSelect,
   onImageError
 }) => {
+  // Add state to track local image loading
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  
   // Function to get appropriate image or icon
   const renderProjectTypeImage = () => {
     if (loading) {
@@ -32,12 +35,19 @@ const ProjectTypeCard: React.FC<ProjectTypeCardProps> = ({
     if (projectImages[type.id] && !imageErrors[type.id]) {
       debugLog(`Rendering image for ${type.id}: ${projectImages[type.id]}`);
       return (
-        <img 
-          src={projectImages[type.id]}
-          alt={type.name}
-          className="w-full h-full object-cover rounded-md"
-          onError={() => onImageError(type.id)}
-        />
+        <div className="relative w-full h-full">
+          {isImageLoading && <Skeleton className="absolute inset-0 rounded-md" />}
+          <img 
+            src={projectImages[type.id]}
+            alt={type.name}
+            className={`w-full h-full object-cover rounded-md ${isImageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+            onLoad={() => setIsImageLoading(false)}
+            onError={() => {
+              setIsImageLoading(false);
+              onImageError(type.id);
+            }}
+          />
+        </div>
       );
     }
     
@@ -45,12 +55,19 @@ const ProjectTypeCard: React.FC<ProjectTypeCardProps> = ({
     if (projectImages['access_system'] && !imageErrors['access_system']) {
       debugLog(`Using access_system fallback for ${type.id}`);
       return (
-        <img 
-          src={projectImages['access_system']}
-          alt={type.name}
-          className="w-full h-full object-cover rounded-md"
-          onError={() => onImageError('access_system')}
-        />
+        <div className="relative w-full h-full">
+          {isImageLoading && <Skeleton className="absolute inset-0 rounded-md" />}
+          <img 
+            src={projectImages['access_system']}
+            alt={type.name}
+            className={`w-full h-full object-cover rounded-md ${isImageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+            onLoad={() => setIsImageLoading(false)}
+            onError={() => {
+              setIsImageLoading(false);
+              onImageError('access_system');
+            }}
+          />
+        </div>
       );
     }
     
