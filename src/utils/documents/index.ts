@@ -11,6 +11,7 @@ export {
   canUseOfficeViewer,
   getDocumentCategories,
   ensureDocumentsBucketExists,
+  // Only export getDocumentById once
   getDocumentById
 } from './documentUtils';
 
@@ -20,4 +21,4 @@ export * from './bucketUtils';
 import { getDocumentCategories as getDocumentCategoriesFromUpload } from './uploadUtils';
 export { getDocumentCategoriesFromUpload };
 
-// We don't need to re-export getDocumentById here again, as it's already exported above
+// Removed duplicate re-export of getDocumentById

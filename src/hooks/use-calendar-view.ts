@@ -152,6 +152,35 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     setActiveEventType(type);
   };
   
+  // Wrap calendar event operations to ensure we refresh after operations
+  const wrappedCreateEvent = async (event: Omit<CalendarEvent, 'id'>) => {
+    const result = await createEvent(event);
+    refreshEvents();
+    return result;
+  };
+  
+  const wrappedUpdateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
+    const result = await updateEvent(id, updates);
+    refreshEvents();
+    return result;
+  };
+  
+  const wrappedDeleteEvent = async (id: string) => {
+    const result = await deleteEvent(id);
+    refreshEvents();
+    return result;
+  };
+  
+  const wrappedCreateWorkflowEvent = async (
+    workflowId: string,
+    title: string,
+    scheduledDateTime: Date
+  ) => {
+    const result = await createWorkflowEvent(workflowId, title, scheduledDateTime);
+    refreshEvents();
+    return result;
+  };
+  
   return {
     currentDate,
     selectedDate,
@@ -165,10 +194,10 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     selectedEvent,
     setSelectedEvent,
     isLoading,
-    createEvent,
-    updateEvent,
-    deleteEvent,
-    createWorkflowEvent,
+    createEvent: wrappedCreateEvent,
+    updateEvent: wrappedUpdateEvent,
+    deleteEvent: wrappedDeleteEvent,
+    createWorkflowEvent: wrappedCreateWorkflowEvent,
     getEventTypeForDay,
     getEventsCountForDay,
     handlePrevious,
