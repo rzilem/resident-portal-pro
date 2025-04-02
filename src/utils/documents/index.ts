@@ -20,6 +20,4 @@ export * from './bucketUtils';
 import { getDocumentCategories as getDocumentCategoriesFromUpload } from './uploadUtils';
 export { getDocumentCategoriesFromUpload };
 
-// Explicitly re-export getDocumentById from documentUtils to resolve ambiguity
-import { getDocumentById } from './documentUtils';
-export { getDocumentById };
+// We don't need to re-export getDocumentById here again, as it's already exported above
