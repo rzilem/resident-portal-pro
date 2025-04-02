@@ -6,7 +6,7 @@ import { getFileUrl } from '@/utils/supabase/storage/getUrl';
 import { toast } from 'sonner';
 
 export const useProjectTypeImages = (projectTypes: any[]) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [projectImages, setProjectImages] = useState<Record<string, string>>({});
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
@@ -17,7 +17,11 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchProjectImages = async () => {
+      if (!isMounted) return;
+      
       setLoading(true);
       const images: Record<string, string> = {};
       
@@ -36,17 +40,28 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
           }
         }
         
-        setProjectImages(images);
-        debugLog('Loaded project images:', images);
+        if (isMounted) {
+          setProjectImages(images);
+          debugLog('Loaded project images:', images);
+        }
       } catch (error) {
         errorLog('Error fetching project images:', error);
-        toast.error('Failed to load project images');
+        if (isMounted) {
+          toast.error('Failed to load project images');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
     fetchProjectImages();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [projectTypes, lastRefreshTime]); // Added lastRefreshTime as a dependency
 
   // Helper function to fetch a single type image
@@ -101,7 +116,7 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
     }
   };
 
-  const handleImageError = (typeId: string) => {
+  const handleImageError = useCallback((typeId: string) => {
     debugLog(`Image error for type: ${typeId}`);
     setImageErrors(prev => ({ ...prev, [typeId]: true }));
     
@@ -112,7 +127,7 @@ export const useProjectTypeImages = (projectTypes: any[]) => {
       });
       sessionStorage.setItem('image-error-shown', 'true');
     }
-  };
+  }, []);
 
   return { loading, imageErrors, projectImages, handleImageError, refreshImages };
 };

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { debugLog } from '@/utils/debug';
 
@@ -24,6 +24,11 @@ const ProjectTypeCard: React.FC<ProjectTypeCardProps> = ({
 }) => {
   // Add state to track local image loading
   const [isImageLoading, setIsImageLoading] = useState(true);
+  
+  // Reset image loading state when project images or type changes
+  useEffect(() => {
+    setIsImageLoading(true);
+  }, [projectImages[type.id]]);
   
   // Function to get appropriate image or icon
   const renderProjectTypeImage = () => {
