@@ -15,6 +15,7 @@ interface DocumentUploadDialogProps {
   onSuccess?: () => void;
   associationId?: string;
   category?: string;
+  refreshDocuments?: () => void;
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
@@ -22,7 +23,8 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   setOpen,
   onSuccess,
   associationId = '00000000-0000-0000-0000-000000000000',
-  category: initialCategory
+  category: initialCategory,
+  refreshDocuments
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState(initialCategory || 'general');
@@ -64,6 +66,11 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
         // Call success callback
         if (onSuccess) {
           onSuccess();
+        }
+        
+        // Call refreshDocuments if provided
+        if (refreshDocuments) {
+          refreshDocuments();
         }
       } else {
         throw new Error('Failed to upload document');

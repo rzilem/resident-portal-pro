@@ -9,9 +9,8 @@ interface NoDocumentsPlaceholderProps {
   description?: string;
   onUpload?: () => void;
   associationId?: string;
-  categoryId?: string;
-  searchQuery?: string;
   category?: string;
+  searchQuery?: string;
   filter?: 'recent' | 'shared' | 'important';
 }
 
@@ -20,9 +19,8 @@ const NoDocumentsPlaceholder: React.FC<NoDocumentsPlaceholderProps> = ({
   description,
   onUpload,
   associationId,
-  categoryId,
-  searchQuery,
   category,
+  searchQuery,
   filter,
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
@@ -77,7 +75,7 @@ const NoDocumentsPlaceholder: React.FC<NoDocumentsPlaceholderProps> = ({
         setOpen={setIsUploadDialogOpen}
         onSuccess={handleUploadSuccess}
         associationId={associationId}
-        categoryId={categoryId || category}
+        category={category}
       />
     </div>
   );

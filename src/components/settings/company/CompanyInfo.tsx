@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +12,12 @@ const CompanyInfo: React.FC = () => {
   const { 
     settings, 
     isLoading, 
-    updateSettings, 
+    updateSetting, 
     getSetting 
   } = useCompanySettings();
 
   const handleUpdateSetting = (key: string, value: any) => {
-    const updates = { [key]: value };
-    updateSettings(updates);
+    updateSetting(key, value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,7 +55,7 @@ const CompanyInfo: React.FC = () => {
               <Input 
                 id="companyName" 
                 placeholder="Enter company name" 
-                defaultValue={getSetting('companyName', '')}
+                defaultValue={getSetting('companyName')}
                 onChange={(e) => handleUpdateSetting('companyName', e.target.value)}
               />
             </div>
@@ -66,7 +65,7 @@ const CompanyInfo: React.FC = () => {
               <Input 
                 id="taxId" 
                 placeholder="XX-XXXXXXX" 
-                defaultValue={getSetting('taxId', '')}
+                defaultValue={getSetting('taxId')}
                 onChange={(e) => handleUpdateSetting('taxId', e.target.value)}
               />
             </div>
@@ -77,7 +76,7 @@ const CompanyInfo: React.FC = () => {
                 id="phone" 
                 type="tel" 
                 placeholder="(555) 555-5555" 
-                defaultValue={getSetting('phone', '')}
+                defaultValue={getSetting('phone')}
                 onChange={(e) => handleUpdateSetting('phone', e.target.value)}
               />
             </div>
@@ -88,7 +87,7 @@ const CompanyInfo: React.FC = () => {
                 id="email" 
                 type="email" 
                 placeholder="contact@company.com" 
-                defaultValue={getSetting('email', '')}
+                defaultValue={getSetting('email')}
                 onChange={(e) => handleUpdateSetting('email', e.target.value)}
               />
             </div>
@@ -100,7 +99,7 @@ const CompanyInfo: React.FC = () => {
               id="address" 
               placeholder="Enter your business address" 
               rows={3}
-              defaultValue={getSetting('address', '')}
+              defaultValue={getSetting('address')}
               onChange={(e) => handleUpdateSetting('address', e.target.value)}
             />
           </div>
@@ -111,7 +110,7 @@ const CompanyInfo: React.FC = () => {
               id="description" 
               placeholder="Brief description of your company" 
               rows={4}
-              defaultValue={getSetting('description', '')}
+              defaultValue={getSetting('description')}
               onChange={(e) => handleUpdateSetting('description', e.target.value)}
             />
           </div>

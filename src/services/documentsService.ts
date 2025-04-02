@@ -15,6 +15,8 @@ export interface Document {
   is_public?: boolean;
   is_archived?: boolean;
   version?: number;
+  uploaded_date?: string;
+  uploaded_by?: string;
 }
 
 /**
