@@ -1,62 +1,55 @@
 
-import React from 'react';
-import { FileText, Plus, Search, FolderOpen } from 'lucide-react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useDialog } from '@/hooks/use-dialog';
+import { Search, Upload, FolderOpen } from 'lucide-react';
 import DocumentUploadDialog from './DocumentUploadDialog';
 
 interface NoDocumentsPlaceholderProps {
-  searchQuery?: string;
-  category?: string;
-  filter?: string;
+  title?: string;
+  description?: string;
+  onUpload?: () => void;
+  associationId?: string;
+  categoryId?: string;
 }
 
 const NoDocumentsPlaceholder: React.FC<NoDocumentsPlaceholderProps> = ({
-  searchQuery,
-  category,
-  filter
+  title = "No documents found",
+  description = "Upload a document to get started",
+  onUpload,
+  associationId,
+  categoryId,
 }) => {
-  const { open, setOpen } = useDialog();
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
-  let icon = <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />;
-  let title = 'No documents found';
-  let description = 'No documents have been uploaded yet.';
-  
-  if (searchQuery) {
-    icon = <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />;
-    title = 'No matching documents';
-    description = `No documents match your search "${searchQuery}".`;
-  } else if (category) {
-    icon = <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />;
-    title = 'No documents in this category';
-    description = 'This category doesn\'t have any documents yet.';
-  } else if (filter === 'recent') {
-    title = 'No recent documents';
-    description = 'No documents have been uploaded in the last 30 days.';
-  } else if (filter === 'shared') {
-    title = 'No shared documents';
-    description = 'No documents have been shared with you.';
-  } else if (filter === 'important') {
-    title = 'No important documents';
-    description = 'No documents have been marked as important.';
-  }
+  const handleUploadSuccess = () => {
+    if (onUpload) {
+      onUpload();
+    }
+  };
 
   return (
-    <div className="text-center py-10">
-      {icon}
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="rounded-full bg-muted p-3 mb-4">
+        <FolderOpen className="h-10 w-10 text-muted-foreground" />
+      </div>
       <h3 className="text-lg font-medium">{title}</h3>
-      <p className="text-muted-foreground mt-1 mb-6">
+      <p className="text-muted-foreground mt-1 max-w-md">
         {description}
       </p>
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="h-4 w-4 mr-2" />
+      <Button 
+        className="mt-4"
+        onClick={() => setIsUploadDialogOpen(true)}
+      >
+        <Upload className="h-4 w-4 mr-2" />
         Upload Document
       </Button>
-      
-      <DocumentUploadDialog 
-        open={open}
-        setOpen={setOpen}
-        categoryId={category}
+
+      <DocumentUploadDialog
+        open={isUploadDialogOpen}
+        setOpen={setIsUploadDialogOpen}
+        onSuccess={handleUploadSuccess}
+        associationId={associationId}
+        categoryId={categoryId}
       />
     </div>
   );

@@ -35,6 +35,9 @@ interface DocumentUploadDialogProps {
   defaultDescription?: string;
   defaultTags?: string[];
   associationId?: string;
+  // Add support for both categoryId and category
+  categoryId?: string;
+  category?: string;
 }
 
 const documentSchema = z.object({
@@ -55,12 +58,17 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
   defaultDescription = '',
   defaultTags = [],
   associationId: propAssociationId,
+  categoryId,
+  category,
 }) => {
   const { user } = useAuth();
   const { selectedAssociation } = useSelectedAssociation();
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  
+  // Use categoryId or category if provided, otherwise use defaultCategory
+  const effectiveDefaultCategory = categoryId || category || defaultCategory;
   const [selectedTags, setSelectedTags] = useState<string[]>(defaultTags);
   const [customTag, setCustomTag] = useState('');
 
@@ -70,7 +78,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     resolver: zodResolver(documentSchema),
     defaultValues: {
       description: defaultDescription,
-      category: defaultCategory,
+      category: effectiveDefaultCategory,
       tags: defaultTags,
     },
   });
@@ -229,7 +237,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select 
-              defaultValue={defaultCategory} 
+              defaultValue={effectiveDefaultCategory} 
               onValueChange={(value) => setValue('category', value)}
             >
               <SelectTrigger id="category">
