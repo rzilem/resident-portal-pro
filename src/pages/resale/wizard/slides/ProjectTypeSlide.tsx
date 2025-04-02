@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { PROJECT_TYPES } from '../data/project-types';
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from '@/components/ui/skeleton';
-import { debugLog } from '@/utils/debug';
-import { getFileUrl } from '@/utils/supabase/storage/getUrl';
+import { debugLog, errorLog } from '@/utils/debug';
+import { getFileUrl, checkFileExists } from '@/utils/supabase/storage/getUrl';
 
 interface ProjectTypeSlideProps {
   selectedType: string;
@@ -31,38 +31,25 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       const images: Record<string, string> = {};
       
       try {
-        // Fetch images for each project type
+        // Prioritize getting access system image first
+        const accessSystemImageExists = await fetchTypeImage('access_system', images);
+        debugLog(`Access system image found: ${accessSystemImageExists}`);
+        
+        // Fetch images for each other project type
         for (const type of PROJECT_TYPES) {
-          try {
-            const { data, error } = await supabase
-              .storage
-              .from('project_images')
-              .list(type.id, {
-                limit: 1,
-                sortBy: { column: 'created_at', order: 'desc' }
-              });
-              
-            if (error) {
-              console.error(`Error fetching images for ${type.id}:`, error);
-              continue;
+          if (type.id !== 'access_system') { // Skip access_system as we already processed it
+            try {
+              await fetchTypeImage(type.id, images);
+            } catch (imgError) {
+              errorLog(`Error processing image for ${type.id}:`, imgError);
             }
-            
-            if (data && data.length > 0 && !data[0].id.endsWith('/')) {
-              const fileUrl = getFileUrl('project_images', `${type.id}/${data[0].name}`);
-              if (fileUrl) {
-                images[type.id] = fileUrl;
-                debugLog(`Loaded image for ${type.id}: ${fileUrl}`);
-              }
-            }
-          } catch (imgError) {
-            console.error(`Error processing image for ${type.id}:`, imgError);
           }
         }
         
         setProjectImages(images);
         debugLog('Loaded project images:', images);
       } catch (error) {
-        console.error('Error fetching project images:', error);
+        errorLog('Error fetching project images:', error);
       } finally {
         setLoading(false);
       }
@@ -70,6 +57,37 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
     
     fetchProjectImages();
   }, []);
+
+  // Helper function to fetch a single type image
+  const fetchTypeImage = async (typeId: string, imagesObj: Record<string, string>): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .storage
+        .from('project_images')
+        .list(typeId, {
+          limit: 1,
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
+        
+      if (error) {
+        errorLog(`Error fetching images for ${typeId}:`, error);
+        return false;
+      }
+      
+      if (data && data.length > 0 && !data[0].id.endsWith('/')) {
+        const fileUrl = getFileUrl('project_images', `${typeId}/${data[0].name}`);
+        if (fileUrl) {
+          imagesObj[typeId] = fileUrl;
+          debugLog(`Loaded image for ${typeId}: ${fileUrl}`);
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      errorLog(`Error in fetchTypeImage for ${typeId}:`, error);
+      return false;
+    }
+  };
 
   const handleImageError = (typeId: string) => {
     debugLog(`Image error for type: ${typeId}`);
@@ -94,37 +112,13 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       );
     }
     
-    // Specifically handle arborist image with direct path
-    if (type.id === 'arborist') {
-      return (
-        <img 
-          src="/lovable-uploads/f882aa65-6796-4e85-85b6-1d4961276334.png" 
-          alt={type.name}
-          className="w-full h-full object-cover"
-          onError={() => handleImageError(type.id)}
-        />
-      );
-    }
-    
     // Show icon as fallback
-    if (!type.imagePath || imageErrors[type.id]) {
-      return (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-4xl text-muted-foreground">
-            {type.icon && <type.icon className="h-12 w-12" />}
-          </div>
-        </div>
-      );
-    }
-    
-    // Use the uploaded image from Supabase or fallback
     return (
-      <img 
-        src={type.imagePath} 
-        alt={type.name}
-        className="w-full h-full object-cover"
-        onError={() => handleImageError(type.id)}
-      />
+      <div className="flex items-center justify-center h-full">
+        <div className="text-4xl text-muted-foreground">
+          {type.icon && <type.icon className="h-12 w-12" />}
+        </div>
+      </div>
     );
   };
 
