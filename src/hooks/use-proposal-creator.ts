@@ -105,7 +105,8 @@ export function useProposalCreator(initialProposal?: Proposal) {
           name: proposal.name,
           description: proposal.description || '',
           sections: proposal.sections || [],
-          createdBy: user?.id
+          createdBy: user?.id,
+          createdAt: new Date().toISOString()
         });
         
         if (savedProposal) {

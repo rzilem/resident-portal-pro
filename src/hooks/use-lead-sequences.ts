@@ -34,7 +34,7 @@ export function useLeadSequences() {
     try {
       const newSequence = await emailSequenceService.createSequence({
         ...sequence,
-        createdby: user?.id
+        createdBy: user?.id
       });
       
       if (newSequence) {

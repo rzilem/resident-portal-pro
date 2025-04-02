@@ -45,7 +45,7 @@ export function useLeadEmailTemplates() {
     try {
       const newTemplate = await emailTemplateService.createTemplate({
         ...template,
-        createdby: user?.id
+        createdBy: user?.id
       });
       
       if (newTemplate) {

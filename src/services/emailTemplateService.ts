@@ -191,11 +191,11 @@ export const emailTemplateService = {
     };
     
     // Replace all variables in format {{variable}}
-    return templateContent.replace(/\{\{([^}]+)\}\}/g, (match, variable) => {
+    return templateContent.replace(/\{\{([^}]+)\}\}/g, (match, variable): string => {
       const path = variable.trim().split('.');
       
       // Traverse the data object following the path
-      let value = standardData;
+      let value: any = standardData;
       for (const key of path) {
         if (value === undefined || value === null) {
           return match; // Keep original if path is invalid
@@ -204,7 +204,7 @@ export const emailTemplateService = {
       }
       
       // Return empty string if value is undefined or null
-      return value !== undefined && value !== null ? value : '';
+      return value !== undefined && value !== null ? String(value) : '';
     });
   },
   
