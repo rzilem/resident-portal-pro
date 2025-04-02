@@ -1,22 +1,29 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCompanySettings } from '@/hooks/use-company-settings';
-import { Upload, Trash2, Image as ImageIcon } from "lucide-react";
+import { Upload, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
-import { companySettingsService } from '@/services/companySettingsService';
+import { useCompanySettings } from '@/hooks/use-company-settings';
+import { useAuth } from '@/hooks/use-auth';
 
 const LogoUploader = () => {
-  const { settings, isLoading, updateSetting, getSetting } = useCompanySettings();
+  const { settings, isLoading, updateSetting, uploadLogo } = useCompanySettings();
+  const { isAuthenticated } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const currentLogo = getSetting('logoUrl');
+  const currentLogo = settings.logoUrl;
   
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to upload a logo');
+      return;
+    }
     
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -32,20 +39,22 @@ const LogoUploader = () => {
     }
     
     setIsUploading(true);
+    toast.loading('Uploading logo...');
     
     try {
-      toast.loading('Uploading logo...');
-      
       // Use the company settings service to upload the logo
-      const logoUrl = await companySettingsService.uploadCompanyLogo(file);
+      const logoUrl = await uploadLogo(file);
       
       if (logoUrl) {
+        toast.dismiss();
         toast.success('Logo uploaded successfully');
       } else {
+        toast.dismiss();
         toast.error('Failed to upload logo');
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
+      toast.dismiss();
       toast.error('Failed to upload logo');
     } finally {
       setIsUploading(false);
@@ -55,10 +64,10 @@ const LogoUploader = () => {
         fileInputRef.current.value = '';
       }
     }
-  }, []);
+  }, [isAuthenticated, uploadLogo]);
   
   const handleRemoveLogo = useCallback(async () => {
-    if (!currentLogo) return;
+    if (!currentLogo || !isAuthenticated) return;
     
     try {
       await updateSetting('logoUrl', null);
@@ -67,7 +76,7 @@ const LogoUploader = () => {
       console.error('Error removing logo:', error);
       toast.error('Failed to remove logo');
     }
-  }, [currentLogo, updateSetting]);
+  }, [currentLogo, updateSetting, isAuthenticated]);
   
   return (
     <div className="space-y-4">
@@ -78,7 +87,13 @@ const LogoUploader = () => {
         </p>
       </div>
       
-      {currentLogo ? (
+      {isLoading ? (
+        <Card className="overflow-hidden">
+          <CardContent className="p-6 flex justify-center items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      ) : currentLogo ? (
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="flex flex-col items-center p-6 relative">
@@ -95,7 +110,11 @@ const LogoUploader = () => {
                   onClick={() => fileInputRef.current?.click()} 
                   disabled={isLoading || isUploading}
                 >
-                  <Upload className="h-4 w-4 mr-2" />
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
                   Change Logo
                 </Button>
                 
@@ -128,7 +147,11 @@ const LogoUploader = () => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading || isUploading}
               >
-                <Upload className="h-4 w-4 mr-2" />
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
                 Upload Logo
               </Button>
             </div>

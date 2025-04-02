@@ -1,70 +1,87 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import { companySettingsService } from '@/services/companySettingsService';
+import { toast } from 'sonner';
 
-export function useCompanySettings() {
-  const [settings, setSettings] = useState<Record<string, any>>({});
+interface CompanySettings {
+  logoUrl: string | null;
+  companyName: string;
+}
+
+export const useCompanySettings = () => {
+  const [settings, setSettings] = useState<CompanySettings>({
+    logoUrl: null,
+    companyName: 'ResidentPro'
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { user, isAuthenticated } = useAuth();
 
-  // Fetch company settings
-  const fetchSettings = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await companySettingsService.getCompanySettings();
-      setSettings(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch company settings'));
-      toast.error('Failed to load company settings');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Update company settings
-  const updateSettings = useCallback(async (updates: Record<string, any>) => {
-    try {
-      const updatedSettings = await companySettingsService.updateCompanySettings(updates);
-      setSettings(updatedSettings);
-      toast.success('Company settings updated successfully');
-      return updatedSettings;
-    } catch (err) {
-      toast.error('Failed to update company settings');
-      throw err;
-    }
-  }, []);
-
-  // Update a specific setting
-  const updateSetting = useCallback(async (key: string, value: any) => {
-    try {
-      const updatedSettings = await companySettingsService.updateCompanySetting(key, value);
-      setSettings(updatedSettings);
-      return updatedSettings;
-    } catch (err) {
-      toast.error(`Failed to update ${key}`);
-      throw err;
-    }
-  }, []);
-
-  // Get a specific setting with fallback
-  const getSetting = useCallback((key: string, fallback: any = '') => {
-    return settings[key] ?? fallback;
-  }, [settings]);
-
-  // Load settings on mount
   useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+    const loadSettings = async () => {
+      if (isAuthenticated && user?.id) {
+        setIsLoading(true);
+        try {
+          const companySettings = await companySettingsService.getCompanySettings(user.id);
+          if (companySettings) {
+            setSettings(companySettings);
+          }
+        } catch (error) {
+          console.error('Error loading company settings:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [isAuthenticated, user?.id]);
+
+  const updateSetting = useCallback(async (key: string, value: any) => {
+    if (!isAuthenticated || !user?.id) {
+      toast.error('You must be logged in to update settings');
+      return false;
+    }
+
+    setSettings(prev => ({ ...prev, [key]: value }));
+    
+    try {
+      await companySettingsService.updateCompanySetting(user.id, key, value);
+      toast.success('Setting updated successfully');
+      return true;
+    } catch (error) {
+      console.error('Error updating company setting:', error);
+      toast.error('Failed to update setting');
+      return false;
+    }
+  }, [isAuthenticated, user?.id]);
+
+  const uploadLogo = useCallback(async (file: File) => {
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to upload a logo');
+      return null;
+    }
+
+    const logoUrl = await companySettingsService.uploadCompanyLogo(file);
+    
+    if (logoUrl) {
+      setSettings(prev => ({ ...prev, logoUrl }));
+    }
+    
+    return logoUrl;
+  }, [isAuthenticated]);
+
+  const getSetting = useCallback((key: keyof CompanySettings) => {
+    return settings[key];
+  }, [settings]);
 
   return {
     settings,
     isLoading,
-    error,
-    updateSettings,
     updateSetting,
-    getSetting,
-    fetchSettings
+    uploadLogo,
+    getSetting
   };
-}
+};

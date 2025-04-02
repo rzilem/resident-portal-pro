@@ -2,13 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DocumentFile } from '@/types/documents';
-import { supabase } from '@/integrations/supabase/client';
+import { useDocuments } from '@/hooks/use-documents';
 import { toast } from 'sonner';
-import { Search, Plus, Filter, Download, Eye } from 'lucide-react';
+import { Search, Plus, Download, Eye, Trash } from 'lucide-react';
 import DocumentUploadDialog from './DocumentUploadDialog';
 import DocumentPreview from './DocumentPreview';
 import { formatBytes } from '@/utils/documents/fileUtils';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from '@/hooks/use-auth';
 
 interface DocumentListProps {
   associationId?: string;
@@ -16,86 +27,56 @@ interface DocumentListProps {
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({ associationId, category }) => {
-  const [documents, setDocuments] = useState<DocumentFile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
+  const { 
+    documents, 
+    isLoading, 
+    fetchDocuments, 
+    deleteDocument 
+  } = useDocuments(associationId, category);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
-  const fetchDocuments = async () => {
-    setLoading(true);
-    try {
-      let query = supabase
-        .from('documents')
-        .select('*')
-        .eq('is_archived', false);
-
-      if (associationId) {
-        query = query.eq('association_id', associationId);
-      }
-
-      if (category && category !== 'all') {
-        query = query.eq('category', category);
-      }
-
-      const { data, error } = await query.order('uploaded_date', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      const formattedDocuments: DocumentFile[] = data.map((doc) => ({
-        id: doc.id,
-        name: doc.name,
-        description: doc.description || '',
-        fileSize: doc.file_size,
-        fileType: doc.file_type,
-        url: doc.url,
-        category: doc.category,
-        tags: doc.tags || [],
-        uploadedBy: doc.uploaded_by,
-        uploadedDate: doc.uploaded_date || new Date().toISOString(),
-        lastModified: doc.last_modified || new Date().toISOString(),
-        version: doc.version || 1,
-        isPublic: doc.is_public,
-        isArchived: doc.is_archived,
-        expirationDate: undefined,
-        previousVersions: [],
-        properties: [],
-        associations: [doc.association_id],
-        metadata: {}
-      }));
-
-      setDocuments(formattedDocuments);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-      toast.error('Failed to load documents');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
+  const refreshDocuments = () => {
     fetchDocuments();
-  }, [associationId, category]);
+  };
 
   const filteredDocuments = documents.filter(doc => 
     doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (doc.description && doc.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    doc.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
-  const handleOpenPreview = (document: DocumentFile) => {
+  const handleOpenPreview = (document: any) => {
     setSelectedDocument(document);
     setPreviewOpen(true);
   };
 
-  const handleDownload = (document: DocumentFile) => {
+  const handleDownload = (document: any) => {
     if (document.url) {
       window.open(document.url, '_blank');
     } else {
       toast.error('Document URL is not available');
+    }
+  };
+  
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
+    
+    try {
+      const success = await deleteDocument(documentToDelete);
+      if (success) {
+        toast.success('Document deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error('Failed to delete document');
+    } finally {
+      setDocumentToDelete(null);
     }
   };
 
@@ -111,13 +92,13 @@ const DocumentList: React.FC<DocumentListProps> = ({ associationId, category }) 
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button onClick={() => setUploadDialogOpen(true)}>
+        <Button onClick={() => setUploadDialogOpen(true)} disabled={!isAuthenticated}>
           <Plus className="h-4 w-4 mr-2" />
           Upload
         </Button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
@@ -154,9 +135,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ associationId, category }) 
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">{doc.category}</td>
-                    <td className="px-4 py-3 text-sm">{formatBytes(doc.fileSize)}</td>
+                    <td className="px-4 py-3 text-sm">{formatBytes(doc.file_size)}</td>
                     <td className="px-4 py-3 text-sm">
-                      {new Date(doc.uploadedDate).toLocaleDateString()}
+                      {new Date(doc.uploaded_date).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
@@ -176,6 +157,36 @@ const DocumentList: React.FC<DocumentListProps> = ({ associationId, category }) 
                         >
                           <Download className="h-4 w-4" />
                         </Button>
+                        {isAuthenticated && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                title="Delete"
+                                onClick={() => setDocumentToDelete(doc.id)}
+                              >
+                                <Trash className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the document.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setDocumentToDelete(null)}>
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteDocument}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -189,7 +200,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ associationId, category }) 
       <DocumentUploadDialog
         open={uploadDialogOpen}
         setOpen={setUploadDialogOpen}
-        onSuccess={fetchDocuments}
+        onSuccess={refreshDocuments}
         associationId={associationId}
         category={category === 'all' ? undefined : category}
       />

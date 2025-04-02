@@ -10,15 +10,17 @@ import { useCardStyle } from '@/hooks/use-card-style';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import { useAuth } from '@/hooks/use-auth';
 
 const Dashboard = () => {
   useVoiceGreeting();
   
-  const { preferences, updatePreference, isLoading } = useSettings();
+  const { preferences, updatePreference, isLoading, isInitialized } = useSettings();
+  const { isAuthenticated } = useAuth();
   const [dashboardWidgets, setDashboardWidgets] = useState<Widget[]>([]);
   const [columns, setColumns] = useState(2);
   const { cardClass } = useCardStyle();
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoadingWidgets, setIsLoadingWidgets] = useState(true);
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (preferences) {
+    if (isInitialized && preferences) {
       console.log("Initializing dashboard from preferences:", preferences.dashboardLayout);
       
       if (preferences.dashboardLayout?.columns) {
@@ -36,6 +38,7 @@ const Dashboard = () => {
       if (preferences.dashboardLayout?.widgets && preferences.dashboardLayout.widgets.length > 0) {
         setDashboardWidgets(preferences.dashboardLayout.widgets);
       } else {
+        // If no saved widgets, use defaults
         setDashboardWidgets([
           {
             id: 'widget-1',
@@ -80,10 +83,18 @@ const Dashboard = () => {
             position: 5,
           },
         ]);
+        
+        // Save default widgets to preferences
+        if (isAuthenticated) {
+          updatePreference('dashboardLayout', {
+            columns: columns,
+            widgets: dashboardWidgets
+          });
+        }
       }
-      setIsInitialized(true);
+      setIsLoadingWidgets(false);
     }
-  }, [preferences]);
+  }, [preferences, isInitialized, updatePreference, isAuthenticated, columns, dashboardWidgets]);
 
   const handleSaveDashboard = async (widgets: Widget[], columnCount: number = columns) => {
     console.log("Saving dashboard with widgets:", widgets);
@@ -94,20 +105,29 @@ const Dashboard = () => {
     setIsCustomizing(false);
     
     try {
-      await updatePreference("dashboardLayout", {
+      if (!isAuthenticated) {
+        toast.warning('You must be logged in to save dashboard layout');
+        return;
+      }
+      
+      const updated = await updatePreference("dashboardLayout", {
         columns: columnCount,
         widgets: widgets
       });
       
-      console.log("Dashboard layout saved successfully");
-      toast.success("Dashboard layout saved!");
+      if (updated) {
+        console.log("Dashboard layout saved successfully");
+        toast.success("Dashboard layout saved!");
+      } else {
+        throw new Error("Failed to save layout");
+      }
     } catch (error) {
       console.error("Error saving dashboard layout:", error);
       toast.error("Failed to save layout. Please try again.");
     }
   };
 
-  if (isLoading || !isInitialized) {
+  if (isLoading || isLoadingWidgets) {
     return (
       <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
         <Card className={`${cardClass} w-full max-w-md p-8`}>

@@ -12,11 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Save, RefreshCw } from 'lucide-react';
 import { TooltipButton } from '@/components/ui/tooltip-button';
 import { useSettings } from '@/hooks/use-settings';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from 'sonner';
 
 const Settings = () => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<string>("profile");
-  const { preferences, savePreferences } = useSettings();
+  const { preferences, savePreferences, isLoading, isSaving } = useSettings();
+  const { isAuthenticated } = useAuth();
   
   useEffect(() => {
     // Check if we should open the display tab (from sidebar logo click)
@@ -27,6 +30,11 @@ const Settings = () => {
   }, []);
   
   const handleResetDefaults = () => {
+    if (!isAuthenticated) {
+      toast.warning('You must be logged in to reset settings');
+      return;
+    }
+    
     savePreferences({
       theme: 'system',
       cardStyle: 'default',
@@ -39,6 +47,11 @@ const Settings = () => {
   };
   
   const handleSaveAll = () => {
+    if (!isAuthenticated) {
+      toast.warning('You must be logged in to save settings');
+      return;
+    }
+    
     savePreferences(preferences);
   };
   
@@ -51,6 +64,7 @@ const Settings = () => {
             variant="outline"
             tooltipText="Reset to defaults"
             onClick={handleResetDefaults}
+            disabled={isSaving || isLoading}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Reset
@@ -58,9 +72,19 @@ const Settings = () => {
           <TooltipButton
             tooltipText="Save all settings"
             onClick={handleSaveAll}
+            disabled={isSaving || isLoading}
           >
-            <Save className="h-4 w-4 mr-2" />
-            Save Changes
+            {isSaving ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </>
+            )}
           </TooltipButton>
         </div>
       </div>

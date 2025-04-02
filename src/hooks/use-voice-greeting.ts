@@ -12,7 +12,7 @@ let hasGreetedGlobally = false;
 
 export const useVoiceGreeting = () => {
   const { user } = useAuth();
-  const { preferences } = useSettings();
+  const { preferences, updatePreference } = useSettings();
   const { isElevenLabsConnected } = useElevenLabs();
   const [hasGreeted, setHasGreeted] = useState(false);
   const [isGreeting, setIsGreeting] = useState(false);
@@ -56,6 +56,9 @@ export const useVoiceGreeting = () => {
           
           await speakGreeting(name, greetingOptions);
           setHasGreeted(true);
+          
+          // Save the last greeting time to Supabase
+          await updatePreference('lastGreetingTime', new Date().toISOString());
         } catch (error) {
           console.error('Error with voice greeting:', error);
           // Reset global flag if there's an error
@@ -67,13 +70,38 @@ export const useVoiceGreeting = () => {
         }
       }, 1000);
     }
-  }, [user, hasGreeted, isGreeting, preferences, isElevenLabsConnected]);
+  }, [user, hasGreeted, isGreeting, preferences, isElevenLabsConnected, updatePreference]);
   
   // Add a function to reset greeting (for testing purposes)
-  const resetGreeting = () => {
+  const resetGreeting = async () => {
     hasGreetedGlobally = false;
     setHasGreeted(false);
+    await updatePreference('lastGreetingTime', null);
   };
   
-  return { hasGreeted, isGreeting, resetGreeting };
+  // Add a function to update greeting preferences
+  const updateGreetingPreferences = async (updates: {
+    voiceGreetingEnabled?: boolean;
+    voiceGreetingType?: 'default' | 'custom' | 'preset';
+    customGreeting?: string;
+    selectedPresetGreeting?: string;
+  }) => {
+    try {
+      const result = await updatePreference({
+        ...updates
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('Error updating greeting preferences:', error);
+      return false;
+    }
+  };
+  
+  return { 
+    hasGreeted, 
+    isGreeting, 
+    resetGreeting,
+    updateGreetingPreferences
+  };
 };

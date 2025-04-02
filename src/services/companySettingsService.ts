@@ -1,147 +1,163 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Json } from '@/integrations/supabase/types';
-import { uploadCompanyLogo } from '@/utils/supabase/companyLogoStorage';
 
-// Default company settings as fallback
-const defaultCompanySettings = {
-  companyName: 'Association Management Co.',
-  taxId: '12-3456789',
-  phone: '(555) 123-4567',
-  email: 'contact@associationmgmt.com',
-  address: '123 Main St, Suite 100, Cityville, ST 12345',
-  description: 'Professional association management services for homeowners and community associations.',
-  logoUrl: null
-};
-
-// Settings ID for company-wide settings
-const COMPANY_SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
-
-// Cache for company settings
-let cachedSettings: Record<string, any> | null = null;
-
+/**
+ * Service for managing company settings and assets in Supabase
+ */
 export const companySettingsService = {
   /**
-   * Get all company settings
+   * Upload a company logo to Supabase storage
+   * @param file The logo file to upload
+   * @returns The URL of the uploaded logo or null if upload failed
    */
-  getCompanySettings: async () => {
+  async uploadCompanyLogo(file: File): Promise<string | null> {
     try {
-      // Return cached settings if available
-      if (cachedSettings) {
-        return { ...cachedSettings };
+      const user = (await supabase.auth.getUser()).data.user;
+      
+      if (!user) {
+        toast.error('You must be logged in to upload a logo');
+        return null;
       }
       
-      // Try to get settings from Supabase
-      const { data, error } = await supabase
-        .from('association_settings')
-        .select('*')
-        .eq('id', COMPANY_SETTINGS_ID)
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
+        return null;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return null;
+      }
+      
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name.split('.')[0]}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+      
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('company_assets')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (uploadError) {
+        console.error('Error uploading logo:', uploadError);
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('company_assets')
+        .getPublicUrl(filePath);
+      
+      const logoUrl = publicUrlData.publicUrl;
+      
+      // Update the user's preferences
+      const { data: existingPref } = await supabase
+        .from('user_preferences')
+        .select('preference_data')
+        .eq('user_id', user.id)
         .maybeSingle();
       
-      if (error) {
-        console.error('Error fetching company settings:', error);
-        // Fall back to default settings
-        cachedSettings = { ...defaultCompanySettings };
-        return { ...defaultCompanySettings };
+      if (existingPref) {
+        const updatedPrefs = {
+          ...existingPref.preference_data,
+          logoUrl: logoUrl
+        };
+        
+        await supabase
+          .from('user_preferences')
+          .update({ preference_data: updatedPrefs })
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            preference_data: { logoUrl: logoUrl }
+          });
       }
       
-      if (data && data.settings) {
-        // Cache the settings
-        cachedSettings = data.settings as Record<string, any>;
-        return data.settings as Record<string, any>;
-      }
-      
-      // No settings found, create default settings
-      await companySettingsService.updateCompanySettings(defaultCompanySettings);
-      cachedSettings = { ...defaultCompanySettings };
-      return { ...defaultCompanySettings };
+      toast.success('Logo uploaded successfully');
+      return logoUrl;
     } catch (error) {
-      console.error('Error in getCompanySettings:', error);
-      return { ...defaultCompanySettings };
-    }
-  },
-
-  /**
-   * Update company settings
-   */
-  updateCompanySettings: async (updates: Record<string, any>) => {
-    try {
-      // Get current settings first
-      const currentSettings = await companySettingsService.getCompanySettings();
-      
-      // Merge with updates
-      const newSettings = {
-        ...currentSettings,
-        ...updates
-      };
-      
-      // Update in Supabase
-      const { data, error } = await supabase
-        .from('association_settings')
-        .upsert({ 
-          id: COMPANY_SETTINGS_ID,
-          settings: newSettings as Json,
-          updated_at: new Date().toISOString()
-        })
-        .select();
-      
-      if (error) {
-        console.error('Error updating company settings:', error);
-        toast.error('Failed to update company settings');
-        return currentSettings;
-      }
-      
-      // Update cache
-      cachedSettings = newSettings;
-      return newSettings;
-    } catch (error) {
-      console.error('Error in updateCompanySettings:', error);
-      toast.error('Failed to update company settings');
-      return cachedSettings || { ...defaultCompanySettings };
-    }
-  },
-
-  /**
-   * Update a specific company setting
-   */
-  updateCompanySetting: async (key: string, value: any) => {
-    try {
-      const currentSettings = await companySettingsService.getCompanySettings();
-      
-      // Create updated settings
-      const updatedSettings = {
-        ...currentSettings,
-        [key]: value
-      };
-      
-      // Update settings
-      return await companySettingsService.updateCompanySettings(updatedSettings);
-    } catch (error) {
-      console.error(`Error updating company setting "${key}":`, error);
-      toast.error(`Failed to update ${key}`);
-      return cachedSettings || { ...defaultCompanySettings };
+      console.error('Error in uploadCompanyLogo:', error);
+      toast.error('Failed to upload logo');
+      return null;
     }
   },
   
   /**
-   * Upload company logo
+   * Get company settings for the current user
    */
-  uploadCompanyLogo: async (file: File): Promise<string | null> => {
+  async getCompanySettings(userId: string): Promise<any> {
     try {
-      // Upload logo to storage
-      const logoUrl = await uploadCompanyLogo(file);
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('preference_data')
+        .eq('user_id', userId)
+        .maybeSingle();
       
-      if (logoUrl) {
-        // Update logo URL in settings
-        await companySettingsService.updateCompanySetting('logoUrl', logoUrl);
+      if (error) throw error;
+      
+      if (!data) return null;
+      
+      const settings = {
+        logoUrl: data.preference_data.logoUrl,
+        companyName: data.preference_data.companyName || 'ResidentPro'
+      };
+      
+      return settings;
+    } catch (error) {
+      console.error('Error getting company settings:', error);
+      return null;
+    }
+  },
+  
+  /**
+   * Update a company setting
+   */
+  async updateCompanySetting(userId: string, key: string, value: any): Promise<boolean> {
+    try {
+      const { data: existingPref } = await supabase
+        .from('user_preferences')
+        .select('preference_data')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingPref) {
+        const updatedPrefs = {
+          ...existingPref.preference_data,
+          [key]: value
+        };
+        
+        const { error } = await supabase
+          .from('user_preferences')
+          .update({ preference_data: updatedPrefs })
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: userId,
+            preference_data: { [key]: value }
+          });
+        
+        if (error) throw error;
       }
       
-      return logoUrl;
+      return true;
     } catch (error) {
-      console.error('Error uploading company logo:', error);
-      toast.error('Failed to upload logo');
-      return null;
+      console.error('Error updating company setting:', error);
+      toast.error('Failed to update company setting');
+      return false;
     }
   }
 };
