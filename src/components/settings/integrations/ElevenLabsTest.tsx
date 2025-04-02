@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Volume2, Play, Square, Loader2, Info } from 'lucide-react';
 import { useElevenLabs } from '@/hooks/use-elevenlabs';
-import { generateSpeech, playAudioBlob } from '@/utils/elevenlabs';
+import { generateSpeech, playAudioBlob, VOICE_OPTIONS } from '@/utils/elevenlabs';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/use-integrations';
 import { Alert, AlertDescription } from "@/components/ui/alert";

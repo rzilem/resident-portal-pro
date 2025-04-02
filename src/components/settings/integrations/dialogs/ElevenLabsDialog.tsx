@@ -57,7 +57,7 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
         />
 
         {testLog.length > 0 && (
-          <Alert variant="outline" className="my-4">
+          <Alert variant="default" className="my-4">
             <Info className="h-4 w-4" />
             <AlertDescription>
               <details>
