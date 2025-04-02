@@ -90,10 +90,10 @@ export const calendarEventService = {
   createEvent: async (event: Omit<CalendarEvent, 'id'>) => {
     console.log('Creating event with data:', event);
     
-    // Format dates properly if they're provided as strings
-    const start = typeof event.start === 'string' ? new Date(event.start) : event.start;
+    // Format dates properly
+    const start = event.start instanceof Date ? event.start : new Date(event.start as string);
     const end = event.end 
-      ? (typeof event.end === 'string' ? new Date(event.end) : event.end)
+      ? (event.end instanceof Date ? event.end : new Date(event.end as string))
       : undefined;
     
     // Generate a new event with proper ID and formatted dates
@@ -119,19 +119,17 @@ export const calendarEventService = {
       throw new Error(`Event with ID ${id} not found`);
     }
     
-    // Format dates properly if they're provided as strings
+    // Format dates properly if they're provided
     const updatedData: Partial<CalendarEvent> = { ...updates };
     
     if (updates.start) {
-      updatedData.start = typeof updates.start === 'string' 
-        ? new Date(updates.start) 
-        : updates.start;
+      updatedData.start = updates.start instanceof Date ? 
+        updates.start : new Date(updates.start as string);
     }
     
     if (updates.end) {
-      updatedData.end = typeof updates.end === 'string' 
-        ? new Date(updates.end) 
-        : updates.end;
+      updatedData.end = updates.end instanceof Date ? 
+        updates.end : new Date(updates.end as string);
     }
     
     const updatedEvent = {

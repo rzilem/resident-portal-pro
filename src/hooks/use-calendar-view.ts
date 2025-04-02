@@ -40,8 +40,10 @@ export function useCalendarView({ userId, userAccessLevel, associationId }: UseC
     if (view === 'month') {
       const start = startOfMonth(currentDate);
       const end = endOfMonth(currentDate);
+      console.log(`Refreshing events for month range: ${start.toISOString()} to ${end.toISOString()}`);
       fetchEventsByDateRange(start, end);
     } else {
+      console.log('Refreshing all events');
       fetchEvents();
     }
   }, [currentDate, view, fetchEvents, fetchEventsByDateRange]);

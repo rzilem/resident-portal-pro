@@ -41,6 +41,7 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     try {
       setIsLoading(true);
       console.log(`Fetching events by date range for ${associationId ? `association ${associationId}` : 'global view'}`);
+      console.log(`Fetching events from ${start.toISOString()} to ${end.toISOString()}`);
       
       // Use await to ensure we get the events before updating state
       const rangeEvents = await calendarService.getEventsByDateRange(
@@ -66,8 +67,16 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
         createdBy: userId
       };
       
+      // Normalize dates - ensure all Date objects are properly handled
+      const normalizedEvent = {
+        ...eventData,
+        start: eventData.start instanceof Date ? eventData.start : new Date(eventData.start as string),
+        end: eventData.end instanceof Date ? eventData.end : 
+             eventData.end ? new Date(eventData.end as string) : undefined
+      };
+      
       // Use await to ensure we get the new event before updating state
-      const newEvent = await calendarService.createEvent(eventData);
+      const newEvent = await calendarService.createEvent(normalizedEvent);
       
       console.log('Event created successfully:', newEvent);
       // Update the events list with the new event
@@ -85,8 +94,20 @@ export function useCalendar({ userId, userAccessLevel, associationId }: UseCalen
     try {
       console.log('Updating event:', id, updates);
       
+      // Normalize dates in updates
+      const normalizedUpdates = { ...updates };
+      if (updates.start) {
+        normalizedUpdates.start = updates.start instanceof Date ? 
+          updates.start : new Date(updates.start as string);
+      }
+      
+      if (updates.end) {
+        normalizedUpdates.end = updates.end instanceof Date ? 
+          updates.end : new Date(updates.end as string);
+      }
+      
       // Use await to ensure we get the updated event before updating state
-      const updatedEvent = await calendarService.updateEvent(id, updates);
+      const updatedEvent = await calendarService.updateEvent(id, normalizedUpdates);
       
       console.log('Event updated successfully:', updatedEvent);
       // Update the events list with the updated event
