@@ -4,9 +4,15 @@ import { useAuth } from '@/contexts/auth/AuthProvider';
 import { companySettingsService } from '@/services/companySettingsService';
 import { toast } from 'sonner';
 
-interface CompanySettings {
+export interface CompanySettings {
   logoUrl: string | null;
   companyName: string;
+  taxId?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  description?: string;
+  [key: string]: any; // Allow for dynamic keys
 }
 
 export const useCompanySettings = () => {
@@ -74,7 +80,7 @@ export const useCompanySettings = () => {
   }, [isAuthenticated]);
 
   const getSetting = useCallback((key: keyof CompanySettings) => {
-    return settings[key];
+    return settings[key] || '';
   }, [settings]);
 
   return {
