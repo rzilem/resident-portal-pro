@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { debugLog, errorLog } from '@/utils/debug';
 import { getFileUrl, checkFileExists } from '@/utils/supabase/storage/getUrl';
+import { toast } from 'sonner';
 
 interface ProjectTypeSlideProps {
   selectedType: string;
@@ -31,18 +32,13 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       const images: Record<string, string> = {};
       
       try {
-        // Prioritize getting access system image first
-        const accessSystemImageExists = await fetchTypeImage('access_system', images);
-        debugLog(`Access system image found: ${accessSystemImageExists}`);
+        // Prioritize getting access system image first as a fallback
+        await fetchTypeImage('access_system', images);
         
-        // Fetch images for each other project type
+        // Fetch images for each project type
         for (const type of PROJECT_TYPES) {
           if (type.id !== 'access_system') { // Skip access_system as we already processed it
-            try {
-              await fetchTypeImage(type.id, images);
-            } catch (imgError) {
-              errorLog(`Error processing image for ${type.id}:`, imgError);
-            }
+            await fetchTypeImage(type.id, images);
           }
         }
         
@@ -50,6 +46,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
         debugLog('Loaded project images:', images);
       } catch (error) {
         errorLog('Error fetching project images:', error);
+        toast.error('Failed to load project images');
       } finally {
         setLoading(false);
       }
@@ -61,6 +58,8 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   // Helper function to fetch a single type image
   const fetchTypeImage = async (typeId: string, imagesObj: Record<string, string>): Promise<boolean> => {
     try {
+      debugLog(`Fetching images for ${typeId}...`);
+      
       const { data, error } = await supabase
         .storage
         .from('project_images')
@@ -68,20 +67,39 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
           limit: 1,
           sortBy: { column: 'created_at', order: 'desc' }
         });
-        
+      
       if (error) {
-        errorLog(`Error fetching images for ${typeId}:`, error);
+        errorLog(`Error listing files for ${typeId}:`, error);
         return false;
       }
       
-      if (data && data.length > 0 && !data[0].id.endsWith('/')) {
-        const fileUrl = getFileUrl('project_images', `${typeId}/${data[0].name}`);
-        if (fileUrl) {
-          imagesObj[typeId] = fileUrl;
-          debugLog(`Loaded image for ${typeId}: ${fileUrl}`);
-          return true;
+      debugLog(`Files found in ${typeId}:`, data);
+      
+      if (data && data.length > 0) {
+        // Filter out folders (entries ending with '/')
+        const files = data.filter(item => !item.name.endsWith('/'));
+        
+        if (files.length > 0) {
+          const filePath = `${typeId}/${files[0].name}`;
+          debugLog(`Using file path: ${filePath}`);
+          
+          // Get public URL for the file
+          const fileUrl = getFileUrl('project_images', filePath);
+          
+          if (fileUrl) {
+            imagesObj[typeId] = fileUrl;
+            debugLog(`Loaded image for ${typeId}: ${fileUrl}`);
+            return true;
+          } else {
+            errorLog(`Failed to get URL for ${filePath}`);
+          }
+        } else {
+          debugLog(`No valid files found in ${typeId}`);
         }
+      } else {
+        debugLog(`No data returned for ${typeId}`);
       }
+      
       return false;
     } catch (error) {
       errorLog(`Error in fetchTypeImage for ${typeId}:`, error);
@@ -100,8 +118,9 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       return <Skeleton className="w-full h-full rounded-md" />;
     }
     
-    // Check if we have a Supabase image for this type
+    // Check if we have a Supabase image for this type and it hasn't errored
     if (projectImages[type.id] && !imageErrors[type.id]) {
+      debugLog(`Rendering image for ${type.id}: ${projectImages[type.id]}`);
       return (
         <img 
           src={projectImages[type.id]}
@@ -112,8 +131,9 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       );
     }
     
-    // Force use of access_system image for all types as fallback
+    // If type-specific image failed, try the access_system fallback image
     if (projectImages['access_system'] && !imageErrors['access_system']) {
+      debugLog(`Using access_system fallback for ${type.id}`);
       return (
         <img 
           src={projectImages['access_system']}
@@ -124,7 +144,8 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
       );
     }
     
-    // Show icon as fallback if all else fails
+    // Show icon as last resort if all images fail
+    debugLog(`Falling back to icon for ${type.id}`);
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-4xl text-muted-foreground">

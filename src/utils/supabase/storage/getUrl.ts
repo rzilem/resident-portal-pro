@@ -10,11 +10,18 @@ import { debugLog, errorLog } from "@/utils/debug";
  */
 export const getFileUrl = (bucket: string, path: string): string => {
   try {
+    debugLog(`Generating URL for ${path} in ${bucket}`);
+    
     const { data } = supabase.storage
       .from(bucket)
       .getPublicUrl(path);
     
-    debugLog(`Generated URL for ${path} in ${bucket}: ${data.publicUrl}`);
+    if (!data || !data.publicUrl) {
+      errorLog(`Failed to generate public URL for ${path}`);
+      return '';
+    }
+    
+    debugLog(`Generated URL: ${data.publicUrl}`);
     return data.publicUrl;
   } catch (error) {
     errorLog(`Error generating URL for path: ${path} in bucket: ${bucket}`, error);
@@ -30,11 +37,16 @@ export const getFileUrl = (bucket: string, path: string): string => {
  */
 export const checkFileExists = async (bucket: string, path: string): Promise<boolean> => {
   try {
+    debugLog(`Checking if file exists: ${path} in ${bucket}`);
+    
     const { data, error } = await supabase.storage
       .from(bucket)
       .download(path);
     
-    return !!data && !error;
+    const exists = !!data && !error;
+    debugLog(`File ${path} exists: ${exists}`);
+    
+    return exists;
   } catch (error) {
     errorLog(`Error checking if file exists: ${path} in bucket: ${bucket}`, error);
     return false;
