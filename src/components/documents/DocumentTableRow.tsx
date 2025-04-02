@@ -122,7 +122,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="icon" 
                   onClick={handleView}
                   className="hover:bg-muted"
@@ -131,7 +131,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>View document</p>
+                <p>Preview document</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -140,7 +140,7 @@ const DocumentTableRow: React.FC<DocumentTableRowProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="icon" 
                   onClick={handleDownload}
                   className="hover:bg-muted"

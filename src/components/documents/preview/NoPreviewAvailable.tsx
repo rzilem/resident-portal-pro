@@ -1,7 +1,7 @@
 
 import React from 'react';
+import { File, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Download, FileQuestion } from 'lucide-react';
 import FileIcon from './FileIcon';
 
 interface NoPreviewAvailableProps {
@@ -12,7 +12,7 @@ interface NoPreviewAvailableProps {
   onDownload: () => void;
 }
 
-const NoPreviewAvailable: React.FC<NoPreviewAvailableProps> = ({ 
+const NoPreviewAvailable: React.FC<NoPreviewAvailableProps> = ({
   fileType,
   documentName,
   documentUrl,
@@ -24,15 +24,21 @@ const NoPreviewAvailable: React.FC<NoPreviewAvailableProps> = ({
       <div>
         <FileIcon fileType={fileType} className="h-16 w-16 mx-auto mb-4" />
         <h3 className="text-lg font-medium mb-2">No Preview Available</h3>
-        <p className="text-muted-foreground mb-6">
-          This file type cannot be previewed directly in the browser.
-          <br />
-          Please download the file to view its contents.
+        <p className="text-muted-foreground mb-4">
+          We can't display a preview for this file type.
         </p>
-        <Button onClick={onDownload} className="gap-2">
-          <Download className="h-4 w-4" />
-          Download File
-        </Button>
+        
+        {documentUrl && (
+          <Button onClick={onDownload} className="mx-auto">
+            <Download className="h-4 w-4 mr-2" />
+            Download File
+          </Button>
+        )}
+        
+        <div className="mt-6 text-xs text-muted-foreground">
+          <p>File type: {fileType || 'Unknown'}</p>
+          <p>File name: {documentName}</p>
+        </div>
       </div>
     </div>
   );

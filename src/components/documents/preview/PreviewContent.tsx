@@ -78,13 +78,14 @@ const PreviewContent: React.FC<PreviewContentProps> = ({
     );
   }
   
-  const fileType = document.fileType.toLowerCase();
+  const fileType = document.fileType?.toLowerCase() || '';
   const previewUrlToUse = getPreviewUrl();
   
   console.log('Final Preview URL being used:', { previewUrl: previewUrlToUse });
   console.log('File type being previewed:', { fileType });
   
-  if (fileType.includes('pdf')) {
+  // Handle PDF files
+  if (fileType.includes('pdf') || document.name.toLowerCase().endsWith('.pdf')) {
     return (
       <iframe 
         src={previewUrlToUse} 
@@ -96,6 +97,7 @@ const PreviewContent: React.FC<PreviewContentProps> = ({
       />
     );
   } 
+  // Handle image files
   else if (
     fileType.includes('image') || 
     fileType.includes('jpg') || 
@@ -118,7 +120,16 @@ const PreviewContent: React.FC<PreviewContentProps> = ({
       </div>
     );
   }
-  else if (useOfficeViewer) {
+  // Use Office viewer for office documents
+  else if (
+    useOfficeViewer || 
+    document.name.match(/\.(doc|docx|ppt|pptx|xls|xlsx)$/i) ||
+    fileType.includes('word') ||
+    fileType.includes('excel') ||
+    fileType.includes('powerpoint') ||
+    fileType.includes('spreadsheet') ||
+    fileType.includes('presentation')
+  ) {
     return (
       <iframe 
         src={previewUrlToUse} 
@@ -130,6 +141,22 @@ const PreviewContent: React.FC<PreviewContentProps> = ({
       />
     );
   }
+  // Handle text files with direct embedding
+  else if (
+    fileType.includes('text') || 
+    document.name.match(/\.(txt|md|json|yaml|yml|xml|html|htm|css|js|ts|jsx|tsx)$/i)
+  ) {
+    return (
+      <iframe
+        src={previewUrlToUse}
+        className="w-full h-full"
+        title={document.name}
+        onLoad={onLoadSuccess}
+        onError={onLoadError}
+      />
+    );
+  }
+  // For all other file types
   else {
     return (
       <NoPreviewAvailable

@@ -1,52 +1,18 @@
 
-/**
- * Debug utility functions for logging and debugging
- */
-
-// Enable/disable debug logging per feature
-const DEBUG_CONFIG = {
-  documentPreview: true,
-  documentUpload: true,
-  general: false,
-};
-
-/**
- * Log for document preview 
- */
-export const documentPreviewLog = (message: string, data?: any) => {
-  if (DEBUG_CONFIG.documentPreview) {
-    console.log(`[DocumentPreview] ${message}`, data ? data : '');
-  }
-};
-
-/**
- * Log for document upload
- */
-export const documentUploadLog = (message: string, data?: any) => {
-  if (DEBUG_CONFIG.documentUpload) {
-    console.log(`[DocumentUpload] ${message}`, data ? data : '');
-  }
-};
-
-/**
- * Log errors
- */
-export const errorLog = (message: string, error?: any) => {
-  console.error(`[ERROR] ${message}`, error ? error : '');
-};
-
-/**
- * General debug log
- */
 export const debugLog = (message: string, data?: any) => {
-  if (DEBUG_CONFIG.general) {
-    console.log(`[DEBUG] ${message}`, data ? data : '');
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug(`[DEBUG] ${message}`, data || '');
   }
 };
 
-/**
- * Info log
- */
 export const infoLog = (message: string, data?: any) => {
-  console.log(`[INFO] ${message}`, data ? data : '');
+  console.info(`[INFO] ${message}`, data || '');
+};
+
+export const errorLog = (message: string, data?: any) => {
+  console.error(`[ERROR] ${message}`, data || '');
+};
+
+export const documentPreviewLog = (message: string, data?: any) => {
+  console.log(`[DOCUMENT_PREVIEW] ${message}`, data || '');
 };

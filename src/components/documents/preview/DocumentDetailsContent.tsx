@@ -1,92 +1,109 @@
 
 import React from 'react';
 import { DocumentFile } from '@/types/documents';
-import { formatBytes } from '@/utils/documents/fileUtils';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Clock, User, Tag, FileType, HardDrive } from 'lucide-react';
+import { formatFileSize } from '@/utils/documents/documentUtils';
 
 interface DocumentDetailsContentProps {
   document: DocumentFile;
 }
 
 const DocumentDetailsContent: React.FC<DocumentDetailsContentProps> = ({ document }) => {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString();
-  };
-
   return (
     <div className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CalendarDays className="h-4 w-4" />
-                Uploaded Date
-              </dt>
-              <dd className="mt-1">{formatDate(document.uploadedDate)}</dd>
-            </div>
-            
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Last Modified
-              </dt>
-              <dd className="mt-1">{formatDate(document.lastModified)}</dd>
-            </div>
-            
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <FileType className="h-4 w-4" />
-                File Type
-              </dt>
-              <dd className="mt-1">{document.fileType || 'Unknown'}</dd>
-            </div>
-            
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <HardDrive className="h-4 w-4" />
-                File Size
-              </dt>
-              <dd className="mt-1">{formatBytes(document.fileSize)}</dd>
-            </div>
-            
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Uploaded By
-              </dt>
-              <dd className="mt-1">{document.uploadedBy || 'Unknown'}</dd>
-            </div>
-            
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                Tags
-              </dt>
-              <dd className="mt-1 flex flex-wrap gap-1">
-                {document.tags && document.tags.length > 0 ? (
-                  document.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">{tag}</Badge>
-                  ))
-                ) : (
-                  <span className="text-muted-foreground">No tags</span>
-                )}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Document Information</h3>
+          <div className="border rounded-md">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Name</td>
+                  <td className="py-2 px-4">{document.name}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Type</td>
+                  <td className="py-2 px-4">{document.fileType || 'Unknown'}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Size</td>
+                  <td className="py-2 px-4">{formatFileSize(document.fileSize)}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Category</td>
+                  <td className="py-2 px-4">{document.category || 'Uncategorized'}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-4 font-medium bg-muted/50">Version</td>
+                  <td className="py-2 px-4">{document.version || 1}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Upload Information</h3>
+          <div className="border rounded-md">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Uploaded By</td>
+                  <td className="py-2 px-4">{document.uploadedBy || 'Unknown'}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Upload Date</td>
+                  <td className="py-2 px-4">
+                    {document.uploadedDate ? new Date(document.uploadedDate).toLocaleString() : 'Unknown'}
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2 px-4 font-medium bg-muted/50">Last Modified</td>
+                  <td className="py-2 px-4">
+                    {document.lastModified ? new Date(document.lastModified).toLocaleString() : 'Unknown'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-4 font-medium bg-muted/50">Public Access</td>
+                  <td className="py-2 px-4">{document.isPublic ? 'Yes' : 'No'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       
       {document.description && (
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-sm font-medium mb-2">Description</h3>
-            <p className="text-sm">{document.description}</p>
-          </CardContent>
-        </Card>
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Description</h3>
+          <div className="border rounded-md p-4 text-sm">
+            {document.description}
+          </div>
+        </div>
+      )}
+      
+      {document.tags && document.tags.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Tags</h3>
+          <div className="flex flex-wrap gap-2 border rounded-md p-4">
+            {document.tags.map((tag, index) => (
+              <Badge key={index} variant="outline">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {document.metadata && Object.keys(document.metadata).length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Metadata</h3>
+          <div className="border rounded-md p-4">
+            <pre className="text-xs overflow-auto max-h-36">
+              {JSON.stringify(document.metadata, null, 2)}
+            </pre>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, AlertTriangle } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
 import FileIcon from './preview/FileIcon';
 import PreviewContent from './preview/PreviewContent';
