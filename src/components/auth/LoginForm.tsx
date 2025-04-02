@@ -1,13 +1,42 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useLogin } from '@/hooks/use-login';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 
 const LoginForm: React.FC = () => {
   const { loginValues, isLoading, handleInputChange, handleLogin } = useLogin();
+  const [isResetting, setIsResetting] = useState(false);
+  const { resetPassword } = useAuth();
+
+  const handleResetPassword = async () => {
+    if (!loginValues.email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const { error } = await resetPassword(loginValues.email);
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Password reset email sent. Please check your inbox.", {
+          duration: 5000
+        });
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      toast.error("An error occurred while sending the reset email");
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
@@ -26,9 +55,15 @@ const LoginForm: React.FC = () => {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
-          <a href="#" className="text-sm text-primary hover:underline">
-            Forgot password?
-          </a>
+          <Button 
+            type="button" 
+            variant="link" 
+            className="px-0 h-auto text-sm font-normal"
+            onClick={handleResetPassword}
+            disabled={isResetting}
+          >
+            {isResetting ? 'Sending...' : 'Forgot password?'}
+          </Button>
         </div>
         <Input
           id="password"

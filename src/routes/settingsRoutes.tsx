@@ -5,6 +5,7 @@ import Settings from '../pages/Settings';
 import Associations from '../pages/settings/Associations';
 import Permissions from '../pages/settings/Permissions';
 import EmailWorkflows from '../pages/settings/EmailWorkflows';
+import Integrations from '../pages/Integrations';
 
 export const settingsRoutes = [
   {
@@ -32,10 +33,18 @@ export const settingsRoutes = [
     ),
   },
   {
-    path: '/email-workflows',
+    path: '/settings/email-workflows',
     element: (
       <ProtectedRoute>
         <EmailWorkflows />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/integrations',
+    element: (
+      <ProtectedRoute>
+        <Integrations />
       </ProtectedRoute>
     ),
   },

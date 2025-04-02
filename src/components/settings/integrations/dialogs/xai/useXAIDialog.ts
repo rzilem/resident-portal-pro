@@ -4,133 +4,75 @@ import { useXAI } from '@/hooks/use-xai';
 import { toast } from 'sonner';
 
 export function useXAIDialog(open: boolean, onOpenChange: (open: boolean) => void) {
-  const { settings, saveXAISettings, testXAIConnection, isLoading: xaiLoading, fetchSettings } = useXAI();
+  const { 
+    settings,
+    saveXAISettings,
+    testXAIConnection,
+    isLoading,
+    isAuthenticated
+  } = useXAI();
   
-  // Form state with debug logging
-  const [apiKey, setApiKey] = useState('');
-  const [defaultModel, setDefaultModel] = useState('grok-2');
-  const [organization, setOrganization] = useState('');
+  const [apiKey, setApiKey] = useState(settings.apiKey);
+  const [defaultModel, setDefaultModel] = useState(settings.defaultModel);
+  const [organization, setOrganization] = useState(settings.organization);
   const [isTesting, setIsTesting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Safe setter functions that include logging
-  const handleSetApiKey = useCallback((value: string) => {
-    console.log('Setting API key to:', value ? `${value.substring(0, 3)}...` : 'empty');
-    setApiKey(value);
-  }, []);
-
-  const handleSetDefaultModel = useCallback((value: string) => {
-    console.log('Setting default model to:', value);
-    setDefaultModel(value);
-  }, []);
-
-  const handleSetOrganization = useCallback((value: string) => {
-    console.log('Setting organization to:', value);
-    setOrganization(value);
-  }, []);
-
-  // Refresh settings when dialog opens
+  
+  // Reset form fields when dialog opens with the current settings
   useEffect(() => {
     if (open) {
-      // Reload the latest settings from the backend
-      fetchSettings && fetchSettings();
+      setApiKey(settings.apiKey);
+      setDefaultModel(settings.defaultModel);
+      setOrganization(settings.organization);
     }
-  }, [open, fetchSettings]);
-
-  // Load settings when dialog opens or settings change
-  useEffect(() => {
-    if (open) {
-      console.log('XAI Dialog opened, initializing with settings:', {
-        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-        defaultModel: settings.defaultModel || 'grok-2',
-        organization: settings.organization || ''
-      });
-      
-      handleSetApiKey(settings.apiKey || '');
-      handleSetDefaultModel(settings.defaultModel || 'grok-2');
-      handleSetOrganization(settings.organization || '');
-    }
-  }, [open, settings, handleSetApiKey, handleSetDefaultModel, handleSetOrganization]);
-
-  // Debug state changes
-  useEffect(() => {
-    if (open) {
-      console.log('X.AI Dialog State:', {
-        openStatus: open,
-        localApiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
-        localDefaultModel: defaultModel,
-        localOrganization: organization
-      });
-    }
-  }, [open, apiKey, defaultModel, organization]);
-
-  const handleSave = async () => {
-    if (!apiKey.trim()) {
-      toast.error('API key is required');
-      return;
-    }
-    
-    console.log('Attempting to save X.AI settings:', {
-      apiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'empty',
-      defaultModel,
-      organization
-    });
-    
-    setIsLoading(true);
+  }, [open, settings]);
+  
+  const handleSave = useCallback(async () => {
     try {
       const success = await saveXAISettings({
-        apiKey: apiKey.trim(),
+        apiKey,
         defaultModel,
-        organization: organization.trim()
+        organization
       });
       
       if (success) {
-        toast.success('X.AI settings saved successfully');
+        toast.success("X.AI settings saved successfully");
         onOpenChange(false);
       } else {
-        toast.error('Failed to save X.AI settings');
+        toast.error("Failed to save X.AI settings");
       }
     } catch (error) {
-      console.error('Error saving X.AI settings:', error);
-      toast.error('An error occurred while saving settings');
-    } finally {
-      setIsLoading(false);
+      console.error("Error saving X.AI settings:", error);
+      toast.error("An error occurred while saving settings");
     }
-  };
-
-  const handleTest = async () => {
-    if (!apiKey.trim()) {
-      toast.error('API key is required');
-      return;
-    }
-    
+  }, [apiKey, defaultModel, organization, saveXAISettings, onOpenChange]);
+  
+  const handleTest = useCallback(async () => {
     setIsTesting(true);
     try {
-      console.log('Testing X.AI API with key:', apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
-      const success = await testXAIConnection(apiKey.trim());
+      const success = await testXAIConnection(apiKey);
       
       if (success) {
-        toast.success('X.AI API connection test successful');
+        toast.success("X.AI connection test successful");
       } else {
-        toast.error('X.AI API connection test failed. Check your API key.');
+        toast.error("X.AI connection test failed");
       }
     } catch (error) {
-      console.error('Error during X.AI API test:', error);
-      toast.error('X.AI API test encountered an error');
+      console.error("Error testing X.AI API:", error);
+      toast.error("An error occurred during the connection test");
     } finally {
       setIsTesting(false);
     }
-  };
-
+  }, [apiKey, testXAIConnection]);
+  
   return {
     apiKey,
     defaultModel,
     organization,
     isTesting,
-    isLoading: isLoading || xaiLoading,
-    setApiKey: handleSetApiKey,
-    setDefaultModel: handleSetDefaultModel,
-    setOrganization: handleSetOrganization,
+    isLoading,
+    setApiKey,
+    setDefaultModel,
+    setOrganization,
     handleSave,
     handleTest
   };

@@ -39,6 +39,14 @@ export const useAuthMethods = ({ user, setUser, setProfile, setIsAuthenticated }
     setProfile(null);
     setIsAuthenticated(false);
   };
+  
+  const resetPassword = async (email: string) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password',
+    });
+    
+    return { data, error };
+  };
 
   const refreshProfile = async () => {
     if (!user) return;
@@ -61,5 +69,5 @@ export const useAuthMethods = ({ user, setUser, setProfile, setIsAuthenticated }
     }
   };
 
-  return { signIn, signUp, signOut, refreshProfile };
+  return { signIn, signUp, signOut, resetPassword, refreshProfile };
 };

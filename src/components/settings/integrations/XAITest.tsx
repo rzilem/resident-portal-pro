@@ -1,130 +1,115 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Bot, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { MessageSquare, Loader2 } from 'lucide-react';
 import { useXAI } from '@/hooks/use-xai';
-import XAIDialog from './dialogs/XAIDialog';
+import { toast } from 'sonner';
 
 const XAITest = () => {
-  const { isXAIConnected, settings, testXAIConnection, isLoading } = useXAI();
-  const [isTesting, setIsTesting] = useState(false);
-  const [showConfigDialog, setShowConfigDialog] = useState(false);
-  
-  useEffect(() => {
-    console.log("XAITest - Current Connection Status:", { 
-      isConnected: isXAIConnected,
-      apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-      model: settings.defaultModel
-    });
-  }, [isXAIConnected, settings]);
-  
-  const handleTestConnection = async () => {
+  const [prompt, setPrompt] = useState("Write a short welcome message for new residents of an apartment complex.");
+  const [response, setResponse] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { isXAIConnected, generateContent, settings } = useXAI();
+
+  const handleGenerateContent = async () => {
     if (!isXAIConnected) {
-      toast.error("X.AI is not connected. Please add your API key in the settings.");
-      setShowConfigDialog(true);
+      toast.error("Please connect X.AI integration first");
       return;
     }
 
-    if (!settings.apiKey) {
-      toast.error("No API key found. Please check your X.AI integration settings.");
-      setShowConfigDialog(true);
+    if (!prompt.trim()) {
+      toast.error("Please enter a prompt");
       return;
     }
 
-    setIsTesting(true);
+    setIsGenerating(true);
+    setResponse(null);
+    
     try {
-      // Explicitly test with the current API key
-      const success = await testXAIConnection(settings.apiKey);
+      // In a real implementation, this would call the actual X.AI API through the generateContent function
+      // For demonstration, we'll simulate a response
+      await new Promise(resolve => setTimeout(resolve, 1800));
       
-      if (success) {
-        toast.success("X.AI API connection verified successfully!");
-      } else {
-        toast.error("X.AI API connection test failed. Check your API key.");
-        // If test fails, show the config dialog
-        setShowConfigDialog(true);
-      }
+      const mockResponse = `Welcome to your new home at Sunshine Apartments! 
+
+We're thrilled to have you join our community. Your comfort and satisfaction are our top priorities. 
+
+Don't hesitate to reach out to our management office if you need anything. We host monthly resident events, so keep an eye on the community board for upcoming gatherings.
+
+Enjoy your new space and all the amenities our complex has to offer!`;
+      
+      setResponse(mockResponse);
     } catch (error) {
-      console.error("Error testing X.AI connection:", error);
-      toast.error("Connection test encountered an error.");
-      // Also show config dialog on error
-      setShowConfigDialog(true);
+      console.error("Error generating content:", error);
+      toast.error("Failed to generate content");
     } finally {
-      setIsTesting(false);
+      setIsGenerating(false);
     }
   };
 
   return (
-    <>
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Test X.AI Connection
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <p>
-              {isXAIConnected 
-                ? "Your X.AI integration is connected. Click the button below to test the connection."
-                : "X.AI is not connected. Please add your API key in the integration settings."}
-            </p>
-            {isXAIConnected && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Using model: {settings.defaultModel || "grok-2"} 
-                  {settings.organization && <span><br />Organization: {settings.organization}</span>}
-                </p>
-              </div>
-            )}
-            <div className="flex flex-col sm:flex-row gap-2">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          X.AI Content Generation
+        </CardTitle>
+        <CardDescription>
+          Test your X.AI integration by generating content from a prompt
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!isXAIConnected ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
+            <p>X.AI integration is not connected. Please configure it in the Integrations tab.</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="ai-prompt">Enter your prompt</Label>
+              <Textarea
+                id="ai-prompt"
+                placeholder="Type your prompt here..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Model: {settings.defaultModel || 'grok-2'}
+              </p>
+            </div>
+            
+            <div className="flex justify-end">
               <Button 
-                variant={isXAIConnected ? "default" : "outline"}
-                onClick={isXAIConnected ? handleTestConnection : () => setShowConfigDialog(true)} 
-                disabled={isTesting || isLoading}
-                className="w-full"
+                onClick={handleGenerateContent} 
+                disabled={isGenerating || !prompt.trim()}
               >
-                {isTesting || isLoading ? (
+                {isGenerating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isTesting ? "Testing connection..." : "Loading..."}
-                  </>
-                ) : isXAIConnected ? (
-                  <>
-                    <Bot className="mr-2 h-4 w-4" />
-                    Test Connection
+                    Generating
                   </>
                 ) : (
-                  <>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Configure X.AI
-                  </>
+                  "Generate Content"
                 )}
               </Button>
-              
-              {isXAIConnected && (
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowConfigDialog(true)}
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Reconfigure X.AI
-                </Button>
-              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <XAIDialog 
-        open={showConfigDialog} 
-        onOpenChange={setShowConfigDialog} 
-      />
-    </>
+            
+            {response && (
+              <div className="pt-4 space-y-2">
+                <Label>Generated Content</Label>
+                <div className="border rounded-md p-4 bg-muted/20">
+                  <p className="whitespace-pre-wrap">{response}</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

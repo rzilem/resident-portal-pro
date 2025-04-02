@@ -1,58 +1,32 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useElevenLabs } from '@/hooks/use-elevenlabs';
 import { toast } from 'sonner';
 
 export function useElevenLabsDialog(open: boolean, onOpenChange: (open: boolean) => void) {
-  const { settings, saveElevenLabsSettings, testElevenLabsAPI, isLoading, isAuthenticated } = useElevenLabs();
+  const { 
+    settings,
+    saveElevenLabsSettings,
+    testElevenLabsAPI,
+    isLoading,
+    isAuthenticated
+  } = useElevenLabs();
   
-  // Form state
-  const [apiKey, setApiKey] = useState('');
-  const [defaultVoiceId, setDefaultVoiceId] = useState('');
-  const [defaultModel, setDefaultModel] = useState('');
+  const [apiKey, setApiKey] = useState(settings.apiKey);
+  const [defaultVoiceId, setDefaultVoiceId] = useState(settings.defaultVoiceId);
+  const [defaultModel, setDefaultModel] = useState(settings.defaultModel);
   const [isTesting, setIsTesting] = useState(false);
-
-  // Update local state when dialog opens or settings change
+  
+  // Reset form fields when dialog opens with the current settings
   useEffect(() => {
     if (open) {
-      console.log('Dialog opened, initializing with settings:', {
-        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-        defaultVoiceId: settings.defaultVoiceId,
-        defaultModel: settings.defaultModel
-      });
       setApiKey(settings.apiKey);
       setDefaultVoiceId(settings.defaultVoiceId);
       setDefaultModel(settings.defaultModel);
     }
   }, [open, settings]);
-
-  // Debug state changes
-  useEffect(() => {
-    console.log('ElevenLabs Dialog State:', {
-      openStatus: open,
-      currentSettings: {
-        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
-        defaultVoiceId: settings.defaultVoiceId,
-        defaultModel: settings.defaultModel
-      },
-      localApiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'none',
-      localDefaultVoiceId: defaultVoiceId,
-      localDefaultModel: defaultModel
-    });
-  }, [open, settings, apiKey, defaultVoiceId, defaultModel]);
-
-  const handleSave = async () => {
-    if (!apiKey.trim()) {
-      toast.error('API key is required');
-      return;
-    }
-    
-    console.log('Attempting to save ElevenLabs settings:', {
-      apiKey: apiKey ? `${apiKey.substring(0, 5)}...` : 'empty',
-      defaultVoiceId,
-      defaultModel
-    });
-    
+  
+  const handleSave = useCallback(async () => {
     try {
       const success = await saveElevenLabsSettings({
         apiKey,
@@ -61,41 +35,35 @@ export function useElevenLabsDialog(open: boolean, onOpenChange: (open: boolean)
       });
       
       if (success) {
-        toast.success('ElevenLabs settings saved successfully');
+        toast.success("ElevenLabs settings saved successfully");
         onOpenChange(false);
       } else {
-        toast.error('Failed to save ElevenLabs settings');
+        toast.error("Failed to save ElevenLabs settings");
       }
     } catch (error) {
-      console.error('Error in handleSave:', error);
-      toast.error('An error occurred while saving settings');
+      console.error("Error saving ElevenLabs settings:", error);
+      toast.error("An error occurred while saving settings");
     }
-  };
-
-  const handleTest = async () => {
-    if (!apiKey.trim()) {
-      toast.error('API key is required');
-      return;
-    }
-    
+  }, [apiKey, defaultVoiceId, defaultModel, saveElevenLabsSettings, onOpenChange]);
+  
+  const handleTest = useCallback(async () => {
     setIsTesting(true);
     try {
-      console.log('Testing ElevenLabs API...');
       const success = await testElevenLabsAPI(apiKey);
       
       if (success) {
-        toast.success('ElevenLabs API connection test successful');
+        toast.success("ElevenLabs connection test successful");
       } else {
-        toast.error('ElevenLabs API connection test failed');
+        toast.error("ElevenLabs connection test failed");
       }
     } catch (error) {
-      console.error('Error during ElevenLabs API test:', error);
-      toast.error('ElevenLabs API test encountered an error');
+      console.error("Error testing ElevenLabs API:", error);
+      toast.error("An error occurred during the connection test");
     } finally {
       setIsTesting(false);
     }
-  };
-
+  }, [apiKey, testElevenLabsAPI]);
+  
   return {
     apiKey,
     defaultVoiceId,

@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface AuthRequiredAlertProps {
   isAuthenticated: boolean;
@@ -9,14 +8,17 @@ interface AuthRequiredAlertProps {
 
 const AuthRequiredAlert: React.FC<AuthRequiredAlertProps> = ({ isAuthenticated }) => {
   if (isAuthenticated) return null;
-
+  
   return (
-    <Alert variant="default" className="mb-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
-      <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-      <AlertDescription className="text-yellow-600 dark:text-yellow-400">
-        You need to be logged in to save settings permanently. Settings will be saved in local storage for now.
-      </AlertDescription>
-    </Alert>
+    <div className="flex items-start p-4 mb-4 rounded-md border border-red-200 bg-red-50 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+      <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+      <div>
+        <p className="font-medium">Authentication Required</p>
+        <p className="mt-1">
+          You need to be logged in to save integration settings. Please log in and try again.
+        </p>
+      </div>
+    </div>
   );
 };
 
