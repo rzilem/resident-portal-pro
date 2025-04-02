@@ -1,47 +1,65 @@
 
 import React from 'react';
 import { 
-  FileText, File, FileCode, 
-  FileSpreadsheet, Image
+  FileText, File, FileCode, FilePdf,
+  FileSpreadsheet, Image, FilePresentation
 } from "lucide-react";
 
 // Helper function to determine icon based on file name or type
 export const getDocumentIcon = (fileName: string) => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
   
-  switch(extension) {
-    case 'pdf':
-      return <FileText className="h-5 w-5 text-red-500" />;
-    case 'doc':
-    case 'docx':
-      return <FileText className="h-5 w-5 text-blue-500" />;
-    case 'xls':
-    case 'xlsx':
-    case 'csv':
-      return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-      return <Image className="h-5 w-5 text-purple-500" />;
-    case 'html':
-    case 'css':
-    case 'js':
-    case 'ts':
-    case 'json':
-      return <FileCode className="h-5 w-5 text-yellow-500" />;
-    default:
-      return <File className="h-5 w-5 text-gray-500" />;
+  // Image files
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension)) {
+    return <Image className="h-5 w-5 text-purple-500" />;
   }
+  
+  // PDF files
+  if (extension === 'pdf') {
+    return <FilePdf className="h-5 w-5 text-red-500" />;
+  }
+  
+  // Office document files
+  if (['doc', 'docx', 'rtf'].includes(extension)) {
+    return <FileText className="h-5 w-5 text-blue-600" />;
+  }
+  
+  // Spreadsheet files
+  if (['xls', 'xlsx', 'csv'].includes(extension)) {
+    return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
+  }
+  
+  // Presentation files
+  if (['ppt', 'pptx'].includes(extension)) {
+    return <FilePresentation className="h-5 w-5 text-orange-500" />;
+  }
+  
+  // Code or programming files
+  if (['html', 'css', 'js', 'ts', 'jsx', 'tsx', 'json', 'xml', 'md'].includes(extension)) {
+    return <FileCode className="h-5 w-5 text-yellow-500" />;
+  }
+  
+  // Text files
+  if (['txt', 'log'].includes(extension)) {
+    return <FileText className="h-5 w-5 text-gray-600" />;
+  }
+  
+  // Default file icon for unknown types
+  return <File className="h-5 w-5 text-gray-500" />;
 };
 
 // Format date for display
-export const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+export const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (e) {
+    return 'Invalid date';
+  }
 };
 
 // Format file size for display
