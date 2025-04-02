@@ -111,6 +111,14 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
   const handleImageError = (typeId: string) => {
     debugLog(`Image error for type: ${typeId}`);
     setImageErrors(prev => ({ ...prev, [typeId]: true }));
+    
+    // Show a toast only once per session (not for every image)
+    if (!sessionStorage.getItem('image-error-shown')) {
+      toast.error('Some project type images could not be loaded', {
+        description: 'Using fallback images instead'
+      });
+      sessionStorage.setItem('image-error-shown', 'true');
+    }
   };
 
   // Function to get appropriate image or icon
@@ -126,7 +134,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
         <img 
           src={projectImages[type.id]}
           alt={type.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-md"
           onError={() => handleImageError(type.id)}
         />
       );
@@ -139,7 +147,7 @@ const ProjectTypeSlide: React.FC<ProjectTypeSlideProps> = ({
         <img 
           src={projectImages['access_system']}
           alt={type.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-md"
           onError={() => handleImageError('access_system')}
         />
       );
