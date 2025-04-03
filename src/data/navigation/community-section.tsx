@@ -1,5 +1,5 @@
 
-import { PanelsTopLeft, Building, Users, Castle, FileWarning, HandCoins, MessageSquare } from 'lucide-react';
+import { PanelsTopLeft, Building, Users, FileWarning, HandCoins, MessageSquare } from 'lucide-react';
 import { NavItem } from './types';
 
 export const getCommunitySection = (currentPath: string): NavItem => ({
@@ -8,7 +8,6 @@ export const getCommunitySection = (currentPath: string): NavItem => ({
   active: currentPath.startsWith("/properties") || 
           currentPath.startsWith("/residents") || 
           currentPath.startsWith("/compliance") ||
-          currentPath.startsWith("/community-hub") ||
           currentPath.startsWith("/resale/bid-requests") ||
           currentPath.startsWith("/resale/bid-request") ||
           currentPath.startsWith("/communications"),
@@ -31,12 +30,6 @@ export const getCommunitySection = (currentPath: string): NavItem => ({
       icon: FileWarning,
       href: "/compliance",
       active: currentPath === "/compliance"
-    },
-    {
-      label: "Community Hub",
-      icon: Castle,
-      href: "/community-hub",
-      active: currentPath === "/community-hub"
     },
     {
       label: "Communications",

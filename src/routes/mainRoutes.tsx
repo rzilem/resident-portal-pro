@@ -6,7 +6,6 @@ import Login from '../pages/Login';
 import Properties from '../pages/Properties';
 import Residents from '../pages/Residents';
 import ResidentProfile from '../pages/ResidentProfile';
-import CommunityHub from '../pages/CommunityHub';
 import Compliance from '../pages/compliance/Compliance';
 import Calendar from '../pages/Calendar';
 import Workflows from '../pages/Workflows';
@@ -84,22 +83,6 @@ export const mainRoutes = [
     element: (
       <ProtectedRoute>
         <ResidentProfile />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/residents/:id',
-    element: (
-      <ProtectedRoute>
-        <ResidentProfile />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/community-hub',
-    element: (
-      <ProtectedRoute>
-        <CommunityHub />
       </ProtectedRoute>
     ),
   },

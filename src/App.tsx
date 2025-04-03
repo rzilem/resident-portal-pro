@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -57,7 +58,6 @@ import ResaleWizard from '@/pages/resale/wizard/ResaleWizard';
 import BidRequestWizard from '@/pages/resale/wizard/BidRequestWizard';
 import BidRequests from '@/pages/resale/BidRequests';
 import BidRequestDetail from '@/pages/resale/BidRequestDetail';
-import CommunityHub from '@/pages/CommunityHub';
 import Vendors from '@/pages/vendors/Vendors';
 import VendorProfile from '@/pages/vendors/VendorProfile';
 
@@ -134,7 +134,6 @@ const App = () => {
           
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/print-queue" element={<PrintQueue />} />
-          <Route path="/community-hub" element={<CommunityHub />} />
           
           <Route path="/letter-templates" element={<LetterTemplates />} />
           
