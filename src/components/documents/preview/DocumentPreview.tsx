@@ -10,13 +10,33 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { isPreviewableDocument, useGoogleDocsViewer } from '@/utils/documents';
 import { X, Download, ExternalLink } from 'lucide-react';
 import NoPreviewAvailable from './NoPreviewAvailable';
 import PDFPreview from './PDFPreview';
 import ImagePreview from './ImagePreview';
 import TextPreview from './TextPreview';
 import { toast } from 'sonner';
+
+// Utility functions for document preview
+export const isPreviewableDocument = (fileType: string = ''): boolean => {
+  return (
+    fileType.startsWith('image/') || 
+    fileType === 'application/pdf' ||
+    fileType.startsWith('text/') ||
+    fileType.includes('word') ||
+    fileType.includes('sheet') ||
+    fileType.includes('presentation')
+  );
+};
+
+export const useGoogleDocsViewer = (fileType: string = ''): boolean => {
+  return (
+    fileType.includes('word') ||
+    fileType.includes('sheet') ||
+    fileType.includes('presentation') ||
+    fileType === 'application/pdf'
+  );
+};
 
 interface DocumentPreviewProps {
   document: DocumentFile | null;
@@ -25,7 +45,7 @@ interface DocumentPreviewProps {
   onDownload?: (document: DocumentFile) => Promise<boolean>;
 }
 
-const DocumentPreview: React.FC<DocumentPreviewProps> = ({
+export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   document,
   isOpen,
   onClose,
@@ -243,25 +263,3 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     </Dialog>
   );
 };
-
-export const isPreviewableDocument = (fileType: string = '') => {
-  return (
-    fileType.startsWith('image/') || 
-    fileType === 'application/pdf' ||
-    fileType.startsWith('text/') ||
-    fileType.includes('word') ||
-    fileType.includes('sheet') ||
-    fileType.includes('presentation')
-  );
-};
-
-export const useGoogleDocsViewer = (fileType: string = '') => {
-  return (
-    fileType.includes('word') ||
-    fileType.includes('sheet') ||
-    fileType.includes('presentation') ||
-    fileType === 'application/pdf'
-  );
-};
-
-export { DocumentPreview };

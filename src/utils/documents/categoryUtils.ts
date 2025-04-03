@@ -1,152 +1,113 @@
 
-/**
- * Utility functions for document categories
- */
-
+import { Badge } from '@/components/ui/badge';
 import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
-import { debugLog, errorLog } from '@/utils/debug';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { 
+  FileText, 
+  File, 
+  Folder, 
+  FileSpreadsheet, 
+  Book, 
+  Receipt, 
+  Banknote, 
+  ScrollText, 
+  FileQuestion, 
+  FileCheck,
+  BarChart,
+  Gavel
+} from 'lucide-react';
 
 /**
- * Create a new document category
- * @param category Category data
- * @returns Promise<{ success: boolean, id?: string, error?: string }>
+ * Get appropriate icon component for document category
+ * @param category Category to get icon for
+ * @returns React component for the icon
  */
-export const createDocumentCategory = async (category: Partial<DocumentCategory>): Promise<{ success: boolean, id?: string, error?: string }> => {
-  try {
-    // This is a placeholder - in a real app, this would save to a database
-    const id = `cat_${Date.now()}`;
-    
-    debugLog("Created category:", { ...category, id });
-    
-    return {
-      success: true,
-      id
-    };
-  } catch (error) {
-    errorLog("Error creating category:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error creating category"
-    };
+export const getCategoryIcon = (category: DocumentCategory) => {
+  if (category.icon) {
+    return category.icon;
+  }
+  
+  // Default mapping based on category ID
+  switch (category.id) {
+    case 'financial':
+      return Banknote;
+    case 'legal':
+      return Gavel;
+    case 'meeting':
+      return ScrollText;
+    case 'maintenance':
+      return FileCheck;
+    case 'reports':
+      return BarChart;
+    case 'general':
+      return File;
+    default:
+      return Folder;
   }
 };
 
 /**
- * Update a document category
- * @param categoryId Category ID
- * @param updates Category updates
- * @returns Promise<boolean> Success status
+ * Get appropriate color for a category's folder icon
+ * @param category Category to get color for
+ * @returns Tailwind CSS color class
  */
-export const updateDocumentCategory = async (categoryId: string, updates: Partial<DocumentCategory>): Promise<boolean> => {
-  try {
-    // This is a placeholder - in a real app, this would update a database
-    debugLog("Updated category:", { id: categoryId, ...updates });
-    
-    return true;
-  } catch (error) {
-    errorLog("Error updating category:", error);
-    return false;
+export const getFolderIconColor = (category: DocumentCategory): string => {
+  if (category.color) {
+    return category.color;
+  }
+  
+  // Default mapping
+  switch(category.id) {
+    case 'financial':
+      return 'text-green-500';
+    case 'legal':
+      return 'text-blue-500';
+    case 'meeting':
+      return 'text-purple-500';
+    case 'maintenance':
+      return 'text-orange-500';
+    case 'reports':
+      return 'text-indigo-500';
+    default:
+      return 'text-gray-500';
   }
 };
 
 /**
- * Delete a document category
- * @param categoryId Category ID
- * @returns Promise<boolean> Success status
+ * Render an access level badge with appropriate styling
+ * @param accessLevel Access level to render
+ * @returns JSX Element
  */
-export const deleteDocumentCategory = async (categoryId: string): Promise<boolean> => {
-  try {
-    // This is a placeholder - in a real app, this would delete from a database
-    debugLog("Deleted category:", categoryId);
-    
-    return true;
-  } catch (error) {
-    errorLog("Error deleting category:", error);
-    return false;
+export const renderAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
+  let variant = 'outline';
+  let className = '';
+  let label = 'Everyone';
+  
+  switch (accessLevel) {
+    case 'admin':
+      className = 'bg-red-100 text-red-800 border-red-300';
+      label = 'Admin Only';
+      break;
+    case 'management':
+      className = 'bg-purple-100 text-purple-800 border-purple-300';
+      label = 'Management';
+      break;
+    case 'board':
+      className = 'bg-blue-100 text-blue-800 border-blue-300';
+      label = 'Board Members';
+      break;
+    case 'homeowner':
+      className = 'bg-green-100 text-green-800 border-green-300';
+      label = 'Homeowners';
+      break;
+    case 'all':
+      className = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      label = 'Everyone';
+      break;
   }
-};
-
-/**
- * Synchronize document categories with Supabase
- * @param categories Array of document categories to synchronize
- * @returns Promise<boolean> Success status
- */
-export const syncCategoriesToSupabase = async (categories: DocumentCategory[]): Promise<boolean> => {
-  try {
-    // First get existing categories from Supabase
-    const { data: existingCategories, error: fetchError } = await supabase
-      .from('document_categories')
-      .select('id, name, description, sort_order');
-      
-    if (fetchError) {
-      console.error('Error fetching existing categories:', fetchError);
-      toast.error('Failed to fetch existing categories from database');
-      return false;
-    }
-    
-    // Create a mapping of existing categories by name for quick lookup
-    const existingCategoryMap = new Map();
-    existingCategories?.forEach(cat => {
-      existingCategoryMap.set(cat.name.toLowerCase(), cat);
-    });
-    
-    // Process each category - update existing ones or insert new ones
-    const promises = categories.map(async (category, index) => {
-      // Check if this category already exists in Supabase
-      const existingCategory = existingCategoryMap.get(category.name.toLowerCase());
-      
-      if (existingCategory) {
-        // Category exists, update it
-        const { error } = await supabase
-          .from('document_categories')
-          .update({
-            name: category.name,
-            description: category.description || null,
-            sort_order: index
-          })
-          .eq('id', existingCategory.id);
-        
-        if (error) {
-          console.error(`Error updating category ${category.name}:`, error);
-          return false;
-        }
-        return true;
-      } else {
-        // Category doesn't exist, insert it
-        const { error } = await supabase
-          .from('document_categories')
-          .insert({
-            name: category.name,
-            description: category.description || null,
-            sort_order: index
-          });
-        
-        if (error) {
-          console.error(`Error creating category ${category.name}:`, error);
-          return false;
-        }
-        return true;
-      }
-    });
-    
-    // Wait for all operations to complete
-    const results = await Promise.all(promises);
-    
-    // Check if any operation failed
-    const allSuccessful = results.every(result => result === true);
-    
-    if (allSuccessful) {
-      toast.success('Document categories synchronized successfully');
-    } else {
-      toast.error('Some categories failed to synchronize');
-    }
-    
-    return allSuccessful;
-  } catch (error) {
-    console.error('Unexpected error synchronizing categories:', error);
-    toast.error('Failed to synchronize document categories');
-    return false;
-  }
+  
+  return (
+    <Badge variant={variant} className={className}>
+      {label}
+    </Badge>
+  );
 };

@@ -4,7 +4,7 @@ import { DocumentFile } from '@/types/documents';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw, Search, File } from 'lucide-react';
-import DocumentPreview from './preview/DocumentPreview';
+import { DocumentPreview } from './preview/DocumentPreview';
 import DocumentGrid from './DocumentGrid';
 import DocumentTable from './DocumentTable';
 import NoDocumentsPlaceholder from './NoDocumentsPlaceholder';
@@ -98,6 +98,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         document={selectedDocument}
         isOpen={previewOpen}
         onClose={handleClosePreview}
+        onDownload={onDownloadDocument}
       />
     </div>
   );

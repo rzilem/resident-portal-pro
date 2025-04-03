@@ -1,5 +1,5 @@
 
-import { DocumentCategory, DocumentFile } from '@/types/documents';
+import { DocumentCategory, DocumentFile, DocumentAccessLevel } from '@/types/documents';
 import { BarChart, FileText, FileCode, Calculator, FileSpreadsheet, Book, Receipt, Gavel, File, FileUp } from 'lucide-react';
 
 /**
@@ -20,6 +20,23 @@ export const formatDate = (dateString?: string): string => {
   } catch (e) {
     return 'Invalid date';
   }
+};
+
+/**
+ * Format file size to human-readable format
+ * @param bytes File size in bytes
+ * @returns Formatted string
+ */
+export const formatFileSize = (bytes?: number): string => {
+  if (bytes === undefined || bytes === null) return 'Unknown size';
+  
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 /**
@@ -60,42 +77,48 @@ export const getDocumentCategories = (): DocumentCategory[] => {
       name: 'Financial',
       description: 'Financial reports, budgets, and statements',
       icon: Calculator,
-      color: 'text-green-600'
+      color: 'text-green-600',
+      accessLevel: 'management'
     },
     {
       id: 'legal',
       name: 'Legal',
       description: 'Legal documents, contracts, and agreements',
       icon: Gavel,
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      accessLevel: 'management'
     },
     {
       id: 'meeting',
       name: 'Meeting Minutes',
       description: 'Board meeting minutes and notes',
       icon: FileText,
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      accessLevel: 'board'
     },
     {
       id: 'maintenance',
       name: 'Maintenance',
       description: 'Maintenance reports and schedules',
       icon: FileUp,
-      color: 'text-orange-600'
+      color: 'text-orange-600',
+      accessLevel: 'board'
     },
     {
       id: 'reports',
       name: 'Reports',
       description: 'Various reports and analytics',
       icon: BarChart,
-      color: 'text-indigo-600'
+      color: 'text-indigo-600',
+      accessLevel: 'management'
     },
     {
       id: 'general',
       name: 'General',
       description: 'General documents and files',
       icon: File,
-      color: 'text-gray-600'
+      color: 'text-gray-600',
+      accessLevel: 'all'
     }
   ];
 };
@@ -108,4 +131,50 @@ export const getDocumentCategories = (): DocumentCategory[] => {
 export const getDocumentCategoryById = (categoryId?: string): DocumentCategory | undefined => {
   if (!categoryId) return undefined;
   return getDocumentCategories().find(category => category.id === categoryId);
+};
+
+/**
+ * Format the document category with proper value and label properties
+ * for use with selection components
+ * @param categories List of document categories
+ * @returns Formatted categories for dropdown selection
+ */
+export const formatCategoriesForSelection = (categories: DocumentCategory[]): DocumentCategory[] => {
+  return categories.map(category => ({
+    ...category,
+    value: category.id,
+    label: category.name
+  }));
+};
+
+/**
+ * Convert document access level to a string representation
+ * @param level Access level
+ * @returns Readable string
+ */
+export const accessLevelToString = (level?: DocumentAccessLevel): string => {
+  switch (level) {
+    case 'admin': return 'Admin Only';
+    case 'management': return 'Management';
+    case 'board': return 'Board Members';
+    case 'homeowner': return 'Homeowners';
+    case 'all': return 'Everyone';
+    default: return 'Everyone';
+  }
+};
+
+/**
+ * Get appropriate CSS class for an access level
+ * @param level Access level
+ * @returns CSS class name
+ */
+export const getAccessLevelClass = (level?: DocumentAccessLevel): string => {
+  switch (level) {
+    case 'admin': return 'bg-red-100 text-red-800 border-red-300';
+    case 'management': return 'bg-purple-100 text-purple-800 border-purple-300';
+    case 'board': return 'bg-blue-100 text-blue-800 border-blue-300';
+    case 'homeowner': return 'bg-green-100 text-green-800 border-green-300';
+    case 'all': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    default: return 'bg-gray-100 text-gray-800 border-gray-300';
+  }
 };
