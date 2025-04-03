@@ -40,6 +40,11 @@ export const useCompanySettings = () => {
             if (companySettings.companyName) {
               document.title = companySettings.companyName;
             }
+            
+            // Verify logo URL is valid if present
+            if (companySettings.logoUrl) {
+              infoLog('Logo URL found:', companySettings.logoUrl);
+            }
           } else {
             infoLog('No company settings found, using defaults');
           }
@@ -72,9 +77,23 @@ export const useCompanySettings = () => {
     }
     
     try {
-      await companySettingsService.updateCompanySetting(user.id, key, value);
-      toast.success('Setting updated successfully');
-      return true;
+      const success = await companySettingsService.updateCompanySetting(user.id, key, value);
+      if (success) {
+        // Refresh settings after update to ensure consistency
+        const updatedSettings = await companySettingsService.getCompanySettings(user.id);
+        if (updatedSettings) {
+          setSettings(updatedSettings);
+          infoLog('Settings refreshed after update:', updatedSettings);
+        }
+        return true;
+      } else {
+        // Revert local state if server update failed
+        const currentSettings = await companySettingsService.getCompanySettings(user.id);
+        if (currentSettings) {
+          setSettings(currentSettings);
+        }
+        return false;
+      }
     } catch (error) {
       errorLog('Error updating company setting:', error);
       toast.error('Failed to update setting');
@@ -94,6 +113,17 @@ export const useCompanySettings = () => {
     if (logoUrl) {
       infoLog('Logo uploaded successfully, setting state:', logoUrl);
       setSettings(prev => ({ ...prev, logoUrl }));
+      
+      // Explicitly update the setting in the database to ensure it's saved
+      await companySettingsService.updateCompanySetting(user.id, 'logoUrl', logoUrl);
+      
+      // Verify setting was saved by refreshing settings
+      const updatedSettings = await companySettingsService.getCompanySettings(user.id);
+      if (updatedSettings && updatedSettings.logoUrl === logoUrl) {
+        infoLog('Logo URL verified in settings:', updatedSettings.logoUrl);
+      } else {
+        errorLog('Logo URL verification failed. Expected:', logoUrl, 'Got:', updatedSettings?.logoUrl);
+      }
     } else {
       errorLog('Logo upload failed');
     }

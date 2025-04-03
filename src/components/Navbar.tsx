@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
 import { useCompanySettings } from '@/hooks/use-company-settings';
+import { infoLog, errorLog } from '@/utils/debug';
 
 interface NavItem {
   label: string;
@@ -24,6 +25,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
   const { settings, isLoading } = useCompanySettings();
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +39,12 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
-  console.log('Navbar rendering with logo URL:', settings.logoUrl);
+  // Reset image error state if logo URL changes
+  useEffect(() => {
+    setImgError(false);
+  }, [settings.logoUrl]);
+
+  infoLog('Navbar rendering with logo URL:', settings.logoUrl);
 
   return (
     <nav
@@ -53,13 +60,14 @@ const Navbar = () => {
           to="/"
           className="flex items-center"
         >
-          {settings.logoUrl ? (
+          {settings.logoUrl && !imgError ? (
             <img 
-              src={settings.logoUrl} 
+              src={settings.logoUrl + `?t=${Date.now()}`} // Add cache busting
               alt={settings.companyName || "Company Logo"} 
               className="h-10 max-w-[180px] object-contain" 
               onError={(e) => {
-                console.error('Logo failed to load:', settings.logoUrl);
+                errorLog('Logo failed to load in Navbar:', settings.logoUrl);
+                setImgError(true);
                 e.currentTarget.src = ""; // Clear the src to prevent fallback loop
                 e.currentTarget.style.display = "none"; // Hide the image
               }}

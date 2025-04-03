@@ -31,9 +31,11 @@ export const uploadFile = async (
     
     infoLog(`Uploading file: ${file.name} to ${bucket}/${path}`);
     
-    // Create a unique filename
+    // Create a unique filename that includes the original extension
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${file.name.split('.')[0]}.${fileExt}`;
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 8);
+    const fileName = `${timestamp}-${randomString}-${file.name.split('.')[0]}.${fileExt}`;
     const filePath = path ? `${path}/${fileName}` : fileName;
     
     // First check if the bucket exists
@@ -104,6 +106,12 @@ export const uploadFile = async (
     const { data: publicUrlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(data.path);
+    
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      errorLog('Failed to get public URL for uploaded file');
+      toast.error('Failed to generate public URL for uploaded file');
+      return null;
+    }
     
     infoLog('Generated public URL:', publicUrlData.publicUrl);
     

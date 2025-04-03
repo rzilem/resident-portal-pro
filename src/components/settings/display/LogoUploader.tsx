@@ -13,11 +13,12 @@ const LogoUploader = () => {
   const { settings, isLoading, updateSetting, uploadLogo } = useCompanySettings();
   const { isAuthenticated } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const currentLogo = settings.logoUrl;
   
-  console.log('LogoUploader current logo URL:', currentLogo);
+  infoLog('LogoUploader current logo URL:', currentLogo);
   
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,13 +76,24 @@ const LogoUploader = () => {
   const handleRemoveLogo = useCallback(async () => {
     if (!currentLogo || !isAuthenticated) return;
     
+    setIsRemoving(true);
+    
     try {
       infoLog('Removing logo');
-      await updateSetting('logoUrl', null);
-      toast.success('Logo removed successfully');
+      const success = await updateSetting('logoUrl', null);
+      
+      if (success) {
+        toast.success('Logo removed successfully');
+        infoLog('Logo removed successfully');
+      } else {
+        toast.error('Failed to remove logo');
+        errorLog('Failed to remove logo');
+      }
     } catch (error) {
       errorLog('Error removing logo:', error);
       toast.error('Failed to remove logo');
+    } finally {
+      setIsRemoving(false);
     }
   }, [currentLogo, updateSetting, isAuthenticated]);
   
@@ -104,23 +116,30 @@ const LogoUploader = () => {
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="flex flex-col items-center p-6 relative">
-              <img 
-                src={currentLogo} 
-                alt="Company Logo" 
-                className="max-h-24 w-auto object-contain mb-4" 
-                onError={(e) => {
-                  console.error('Failed to load logo in uploader:', currentLogo);
-                  // Don't hide the image here, show a placeholder instead
-                  e.currentTarget.src = "";
-                }}
-              />
+              <div className="mb-4 border border-muted p-2 rounded-md">
+                <img 
+                  src={currentLogo} 
+                  alt="Company Logo" 
+                  className="max-h-24 w-auto object-contain" 
+                  onError={(e) => {
+                    console.error('Failed to load logo in uploader:', currentLogo);
+                    e.currentTarget.src = "";
+                    e.currentTarget.style.display = "none";
+                    // Show placeholder instead
+                    const placeholder = document.createElement('div');
+                    placeholder.className = "flex items-center justify-center h-24 w-24 bg-muted rounded-md";
+                    placeholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 11v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>';
+                    e.currentTarget.parentNode?.appendChild(placeholder);
+                  }}
+                />
+              </div>
               
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()} 
-                  disabled={isLoading || isUploading}
+                  disabled={isLoading || isUploading || isRemoving}
                 >
                   {isUploading ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -134,9 +153,13 @@ const LogoUploader = () => {
                   variant="destructive"
                   size="sm"
                   onClick={handleRemoveLogo}
-                  disabled={isLoading || isUploading}
+                  disabled={isLoading || isUploading || isRemoving}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isRemoving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
                   Remove
                 </Button>
               </div>
