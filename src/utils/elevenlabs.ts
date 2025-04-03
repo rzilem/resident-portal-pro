@@ -9,6 +9,60 @@ export const VOICE_OPTIONS = {
 };
 
 /**
+ * Speaks text using ElevenLabs API
+ * @param text Text to convert to speech and play
+ * @param options Options for speech generation
+ * @returns Promise that resolves when speech playback starts
+ */
+export async function speakWithElevenLabs(
+  text: string, 
+  options: {
+    voice?: string;
+    model?: string;
+  } = {}
+): Promise<void> {
+  try {
+    console.log('Speaking with ElevenLabs:', { text, options });
+    
+    // Get API key from localStorage or another source
+    // In a real implementation, you would get this from a secure source
+    const apiKey = localStorage.getItem('elevenLabsApiKey') || '';
+    
+    if (!apiKey) {
+      console.error('ElevenLabs API key not found');
+      throw new Error('ElevenLabs API key is required');
+    }
+    
+    // Get speech blob using the generateSpeech function
+    const audioBlob = await generateSpeech(text, apiKey, {
+      voiceId: options.voice || VOICE_OPTIONS.SARAH,
+      model: options.model || 'eleven_multilingual_v2'
+    });
+    
+    if (!audioBlob) {
+      throw new Error('Failed to generate speech');
+    }
+    
+    // Create an audio URL and play it
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    
+    // Clean up when audio finishes playing
+    audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+    };
+    
+    // Start playing
+    await audio.play();
+    
+    return;
+  } catch (error) {
+    console.error('Error with ElevenLabs speech:', error);
+    throw error; // Rethrow to allow caller to catch and handle
+  }
+}
+
+/**
  * Tests an ElevenLabs API connection
  * @param apiKey ElevenLabs API key
  * @returns Promise<boolean> indicating if test was successful
