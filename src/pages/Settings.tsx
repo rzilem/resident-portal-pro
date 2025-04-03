@@ -27,6 +27,12 @@ const Settings = () => {
       setActiveTab('display');
       sessionStorage.removeItem('open-display-settings');
     }
+    
+    // Check if we should open the branding tab
+    if (sessionStorage.getItem('open-branding-tab') === 'true') {
+      setActiveTab('branding');
+      sessionStorage.removeItem('open-branding-tab');
+    }
   }, []);
   
   const handleResetDefaults = () => {

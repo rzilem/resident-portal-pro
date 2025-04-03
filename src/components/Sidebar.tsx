@@ -53,7 +53,8 @@ export function Sidebar({
         <SidebarContent className="space-y-2 py-3">
           <SidebarHeader className="py-1 px-4 my-0">
             <div className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group" onClick={handleLogoClick}>
-              {settings.logoUrl ? <>
+              {settings.logoUrl ? (
+                <>
                   <img 
                     src={settings.logoUrl} 
                     alt={settings.companyName || "Company Logo"} 
@@ -69,7 +70,9 @@ export function Sidebar({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </> : <>
+                </>
+              ) : (
+                <>
                   <div className="text-lg font-semibold tracking-tight">
                     {settings.companyName || "HOA Management"}
                   </div>
@@ -83,7 +86,8 @@ export function Sidebar({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </>}
+                </>
+              )}
             </div>
           </SidebarHeader>
           <ScrollArea className="h-[calc(100vh-7rem)] px-2">
@@ -108,3 +112,5 @@ export function Sidebar({
       </div>
     </SidebarProvider>;
 }
+
+export default Sidebar;
