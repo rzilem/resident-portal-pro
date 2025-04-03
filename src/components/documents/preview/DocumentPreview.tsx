@@ -103,14 +103,14 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     } else {
       // Fallback download mechanism if no onDownload function provided
       try {
-        const link = document.createElement('a');
+        const link = window.document.createElement('a');
         link.href = document.url;
         link.download = document.name;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
+        window.document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        window.document.body.removeChild(link);
       } catch (err) {
         console.error("Error downloading document:", err);
         toast.error("Failed to download document");

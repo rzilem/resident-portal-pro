@@ -1,6 +1,6 @@
 
 import { Badge } from '@/components/ui/badge';
-import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
+import { DocumentAccessLevel } from '@/types/documents';
 import { 
   FileText, 
   File, 
@@ -18,80 +18,24 @@ import {
 import React from 'react';
 
 /**
- * Get appropriate icon component for document category
- * @param category Category to get icon for
- * @returns React component for the icon
- */
-export const getCategoryIcon = (category: DocumentCategory) => {
-  if (category.icon) {
-    return category.icon;
-  }
-  
-  // Default mapping based on category ID
-  switch (category.id) {
-    case 'financial':
-      return Banknote;
-    case 'legal':
-      return Gavel;
-    case 'meeting':
-      return ScrollText;
-    case 'maintenance':
-      return FileCheck;
-    case 'reports':
-      return BarChart;
-    case 'general':
-      return File;
-    default:
-      return Folder;
-  }
-};
-
-/**
- * Get appropriate color for a category's folder icon
- * @param category Category to get color for
- * @returns Tailwind CSS color class
- */
-export const getFolderIconColor = (category: DocumentCategory): string => {
-  if (category.color) {
-    return category.color;
-  }
-  
-  // Default mapping
-  switch(category.id) {
-    case 'financial':
-      return 'text-green-500';
-    case 'legal':
-      return 'text-blue-500';
-    case 'meeting':
-      return 'text-purple-500';
-    case 'maintenance':
-      return 'text-orange-500';
-    case 'reports':
-      return 'text-indigo-500';
-    default:
-      return 'text-gray-500';
-  }
-};
-
-/**
  * Get folder icon color by access level
  * @param accessLevel Access level to get color for
- * @returns Tailwind CSS color class
+ * @returns React component for colored folder icon
  */
-export const getFolderIconColorByAccessLevel = (accessLevel?: DocumentAccessLevel): string => {
+export const getFolderIconColorByAccessLevel = (accessLevel?: DocumentAccessLevel) => {
   switch (accessLevel) {
     case 'admin':
-      return 'text-red-500';
+      return <Folder className="h-4 w-4 text-red-500" />;
     case 'management':
-      return 'text-purple-500';
+      return <Folder className="h-4 w-4 text-purple-500" />;
     case 'board':
-      return 'text-blue-500';
+      return <Folder className="h-4 w-4 text-blue-500" />;
     case 'homeowner':
-      return 'text-green-500';
+      return <Folder className="h-4 w-4 text-green-500" />;
     case 'all':
-      return 'text-yellow-400';
+      return <Folder className="h-4 w-4 text-yellow-400" />;
     default:
-      return 'text-gray-500';
+      return <Folder className="h-4 w-4 text-gray-500" />;
   }
 };
 
@@ -129,8 +73,52 @@ export const renderAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
   }
   
   return (
-    <Badge variant={variant} className={className}>
+    <Badge variant={variant as any} className={className}>
       {label}
     </Badge>
   );
+};
+
+/**
+ * Get appropriate icon component for document category
+ */
+export const getCategoryIcon = (category: string) => {
+  // Default mapping based on category ID
+  switch (category) {
+    case 'financial':
+      return <Banknote className="h-4 w-4" />;
+    case 'legal':
+      return <Gavel className="h-4 w-4" />;
+    case 'meeting':
+      return <ScrollText className="h-4 w-4" />;
+    case 'maintenance':
+      return <FileCheck className="h-4 w-4" />;
+    case 'reports':
+      return <BarChart className="h-4 w-4" />;
+    case 'general':
+      return <File className="h-4 w-4" />;
+    default:
+      return <Folder className="h-4 w-4" />;
+  }
+};
+
+/**
+ * Get appropriate color for a category's folder icon
+ */
+export const getFolderIconColor = (category: string): string => {
+  // Default mapping
+  switch(category) {
+    case 'financial':
+      return 'text-green-500';
+    case 'legal':
+      return 'text-blue-500';
+    case 'meeting':
+      return 'text-purple-500';
+    case 'maintenance':
+      return 'text-orange-500';
+    case 'reports':
+      return 'text-indigo-500';
+    default:
+      return 'text-gray-500';
+  }
 };

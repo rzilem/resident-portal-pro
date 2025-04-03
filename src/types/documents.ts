@@ -11,7 +11,7 @@ export interface DocumentFile {
   id: string;
   name: string;
   url: string;
-  size: number;
+  size?: number; // Make size optional but prefer using fileSize for consistency
   fileSize?: number; // Added for backward compatibility
   fileType: string;
   uploadedDate: string;
@@ -20,7 +20,7 @@ export interface DocumentFile {
   description?: string;
   category?: string;
   version?: string | number;
-  tags?: Tag[];
+  tags?: string[] | Tag[];
   isPublic?: boolean;
   isArchived?: boolean;
   previousVersions?: DocumentVersion[];

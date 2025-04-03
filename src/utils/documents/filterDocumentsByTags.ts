@@ -1,38 +1,54 @@
 
-import { DocumentFile } from '@/types/documents';
+import { DocumentFile, Tag } from '@/types/documents';
 
 /**
- * Filter documents by tags
- * @param documents List of documents to filter
- * @param tags Tags to filter by (can be a single tag or array of tags)
- * @param matchAll If true, document must match all tags; if false, match any tag
- * @returns Filtered list of documents
+ * Convert tags to normalized string array
+ * @param tags Array of tags as strings or Tag objects
+ * @returns Array of tag strings
+ */
+const normalizeTags = (tags: (string | Tag)[]): string[] => {
+  return tags.map(tag => {
+    if (typeof tag === 'string') return tag.toLowerCase();
+    if (typeof tag === 'object' && tag.name) return tag.name.toLowerCase();
+    return '';
+  }).filter(Boolean);
+};
+
+/**
+ * Filter documents by tag(s)
+ * @param documents Array of documents to filter
+ * @param filterTags Array of tags to filter by
+ * @param requireAll Whether all tags must be present (AND) or any tag (OR)
+ * @returns Filtered array of documents
  */
 export const filterDocumentsByTags = (
-  documents: DocumentFile[],
-  tags: string | string[],
-  matchAll: boolean = false
+  documents: DocumentFile[], 
+  filterTags: (string | Tag)[], 
+  requireAll = false
 ): DocumentFile[] => {
-  if (!tags || (Array.isArray(tags) && tags.length === 0)) {
+  if (!filterTags || filterTags.length === 0) {
     return documents;
   }
   
-  const tagArray = Array.isArray(tags) ? tags : [tags];
-  const normalizedTags = tagArray.map(tag => tag.toLowerCase());
+  const normalizedFilterTags = normalizeTags(filterTags);
   
   return documents.filter(doc => {
-    if (!doc.tags || doc.tags.length === 0) {
-      return false;
-    }
+    if (!doc.tags || doc.tags.length === 0) return false;
     
-    const docTags = doc.tags.map(tag => tag.toLowerCase());
+    const documentTags = normalizeTags(doc.tags as (string | Tag)[]);
     
-    if (matchAll) {
-      // Must match all specified tags
-      return normalizedTags.every(tag => docTags.includes(tag));
+    if (requireAll) {
+      // AND logic - all filter tags must be present
+      return normalizedFilterTags.every(filterTag => 
+        documentTags.some(docTag => docTag.includes(filterTag))
+      );
     } else {
-      // Match any of the specified tags
-      return normalizedTags.some(tag => docTags.includes(tag));
+      // OR logic - any filter tag can be present
+      return normalizedFilterTags.some(filterTag => 
+        documentTags.some(docTag => docTag.includes(filterTag))
+      );
     }
   });
 };
+
+export default filterDocumentsByTags;

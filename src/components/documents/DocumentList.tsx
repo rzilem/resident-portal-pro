@@ -17,6 +17,8 @@ interface DocumentListProps {
   onDeleteDocument?: (id: string) => Promise<boolean>;
   onDownloadDocument?: (document: DocumentFile) => Promise<boolean>;
   onRefresh?: () => void;
+  associationId?: string;
+  category?: string;
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({
@@ -26,7 +28,9 @@ const DocumentList: React.FC<DocumentListProps> = ({
   viewMode = 'table',
   onDeleteDocument,
   onDownloadDocument,
-  onRefresh
+  onRefresh,
+  associationId,
+  category
 }) => {
   const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -91,6 +95,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
           onViewDocument={handleViewDocument}
           onDeleteDocument={onDeleteDocument}
           onDownloadDocument={onDownloadDocument}
+          associationId={associationId}
+          category={category}
         />
       )}
       

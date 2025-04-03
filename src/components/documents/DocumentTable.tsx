@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -16,29 +15,57 @@ import { supabase } from '@/integrations/supabase/client';
 import NoDocumentsPlaceholder from './NoDocumentsPlaceholder';
 
 interface DocumentTableProps {
+  documents?: DocumentFile[];
   category?: string;
   searchQuery?: string;
   filter?: 'recent' | 'shared' | 'important';
   associationId?: string;
   refreshTrigger?: number;
+  onViewDocument?: (document: DocumentFile) => void;
+  onDeleteDocument?: (id: string) => Promise<boolean>;
+  onDownloadDocument?: (document: DocumentFile) => Promise<boolean>;
 }
 
 const DocumentTable: React.FC<DocumentTableProps> = ({
+  documents: providedDocuments,
   category,
   searchQuery = '',
   filter,
   associationId,
-  refreshTrigger = 0
+  refreshTrigger = 0,
+  onViewDocument,
+  onDeleteDocument,
+  onDownloadDocument
 }) => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(providedDocuments ? false : true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // If documents are provided directly, use them
+    if (providedDocuments) {
+      setDocuments(providedDocuments);
+      setIsLoading(false);
+      return;
+    }
+
+    // Otherwise, load documents from the database
     loadDocuments();
-  }, [category, searchQuery, filter, associationId, refreshTrigger]);
+  }, [providedDocuments, category, searchQuery, filter, associationId, refreshTrigger]);
 
   const loadDocuments = async () => {
+    if (providedDocuments) {
+      setDocuments(providedDocuments);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!associationId) {
+      setDocuments([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     
@@ -91,6 +118,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           name: doc.name,
           description: doc.description || '',
           fileSize: doc.file_size,
+          size: doc.file_size, // Add size for compatibility
           fileType: doc.file_type,
           url: doc.url,
           category: doc.category,
@@ -117,16 +145,53 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
   const handleDocumentView = (doc: DocumentFile) => {
     console.log('Viewing document:', doc.name);
-    // This will be handled by the parent component via the onView prop
+    if (onViewDocument) {
+      onViewDocument(doc);
+    }
   };
 
-  const handleDocumentDownload = (doc: DocumentFile) => {
+  const handleDocumentDownload = async (doc: DocumentFile) => {
     console.log('Downloading document:', doc.name);
-    // Download logic is handled in DocumentTableRow
+    if (onDownloadDocument) {
+      return onDownloadDocument(doc);
+    }
+    
+    try {
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = doc.url;
+      link.download = doc.name;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      
+      // Add to DOM, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      return true;
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast.error('Failed to download document');
+      return false;
+    }
   };
 
   const handleDocumentDelete = async (doc: DocumentFile) => {
     console.log('Deleting document:', doc.name);
+    
+    if (onDeleteDocument) {
+      const success = await onDeleteDocument(doc.id);
+      if (success) {
+        // If using provided documents, let the parent handle updates
+        if (!providedDocuments) {
+          // Remove from local state
+          setDocuments(documents.filter(d => d.id !== doc.id));
+        }
+      }
+      return success;
+    }
+    
     try {
       // Delete from database
       const { error: dbError } = await supabase
@@ -167,9 +232,11 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       // Update documents state
       setDocuments(documents.filter(d => d.id !== doc.id));
       
+      return true;
     } catch (error) {
       console.error('Error deleting document:', error);
       toast.error(`Failed to delete document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
     }
   };
 

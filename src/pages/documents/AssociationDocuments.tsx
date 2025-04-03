@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,10 +7,9 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, FolderPlus } from 'lucide-react';
 import DocumentList from '@/components/documents/DocumentList';
 import { useDocuments } from '@/hooks/use-documents';
-import { getDocumentCategories } from '@/services/documentService';
+import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import DocumentUploader from '@/components/documents/DocumentUploader';
 import { DocumentFile } from '@/types/documents';
-import { useEffect } from 'react';
 
 const AssociationDocuments = () => {
   const { id: associationId } = useParams<{ id: string }>();
@@ -32,7 +31,7 @@ const AssociationDocuments = () => {
     const fetchCategories = async () => {
       try {
         const fetchedCategories = await getDocumentCategories();
-        setCategories(['all', ...fetchedCategories]);
+        setCategories(['all', ...fetchedCategories.map(cat => cat.id)]);
       } catch (error) {
         console.error('Error fetching document categories:', error);
       }
@@ -109,9 +108,9 @@ const AssociationDocuments = () => {
           <TabsContent key={category} value={category} className="mt-0">
             <DocumentList 
               documents={documents}
-              isLoading={isLoading}
-              onDelete={deleteDocument}
-              onDownload={downloadDocument}
+              loading={isLoading}
+              onDeleteDocument={deleteDocument}
+              onDownloadDocument={downloadDocument}
               associationId={associationId}
               category={category !== 'all' ? category : undefined}
             />
