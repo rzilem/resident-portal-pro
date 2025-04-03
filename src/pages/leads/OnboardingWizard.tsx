@@ -19,7 +19,7 @@ const OnboardingWizard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
-  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false); // Changed to false by default
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(true); // Changed back to true by default
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -184,7 +184,7 @@ const OnboardingWizard = () => {
     );
   }
 
-  // If no project is selected, display a landing page
+  // If no project is selected and no projectId, show the "new project" dialog automatically
   if (!project && !projectId) {
     return (
       <div className="container mx-auto py-6 space-y-6">
@@ -194,121 +194,6 @@ const OnboardingWizard = () => {
             Create and manage onboarding processes for new associations
           </p>
         </div>
-        
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle>Onboarding Dashboard</CardTitle>
-            <CardDescription>
-              Guide associations through the onboarding process with structured tasks and timelines
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="shadow-sm bg-muted/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Active Projects</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">3</div>
-                  <p className="text-sm text-muted-foreground">Associations in onboarding</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="shadow-sm bg-muted/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Templates</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">5</div>
-                  <p className="text-sm text-muted-foreground">Available templates</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="shadow-sm bg-muted/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Completed</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">12</div>
-                  <p className="text-sm text-muted-foreground">Finished onboardings</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Recent Onboarding Projects</h3>
-                <TooltipButton
-                  tooltipText="Start onboarding a new association"
-                  onClick={() => setShowNewProjectDialog(true)}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  New Project
-                </TooltipButton>
-              </div>
-              
-              <div className="space-y-2">
-                {[
-                  { id: '1', name: 'Sunset Valley HOA', status: 'active', progress: 65, startDate: '2023-03-15' },
-                  { id: '2', name: 'Oakridge Condominiums', status: 'active', progress: 30, startDate: '2023-03-22' },
-                  { id: '3', name: 'Riverfront Estates', status: 'active', progress: 80, startDate: '2023-03-10' }
-                ].map(item => (
-                  <div 
-                    key={item.id}
-                    className="p-4 border rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigate(`/leads/onboarding/${item.id}`)}
-                  >
-                    <div>
-                      <h4 className="font-medium">{item.name}</h4>
-                      <p className="text-sm text-muted-foreground">Started: {new Date(item.startDate).toLocaleDateString()}</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{item.progress}% Complete</span>
-                        <div className="w-32 h-2 bg-muted rounded-full mt-1">
-                          <div 
-                            className="h-2 bg-blue-500 rounded-full" 
-                            style={{ width: `${item.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      
-                      <TooltipButton
-                        tooltipText="View this onboarding project"
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/leads/onboarding/${item.id}`);
-                        }}
-                      >
-                        <FileText className="h-4 w-4" />
-                      </TooltipButton>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t pt-4">
-            <div className="flex justify-between w-full text-sm">
-              <div className="flex items-center text-muted-foreground">
-                <Clock className="mr-1 h-4 w-4" />
-                Last updated: {new Date().toLocaleDateString()}
-              </div>
-              <TooltipButton
-                tooltipText="View all onboarding projects"
-                variant="outline"
-                size="sm"
-                className="gap-1"
-              >
-                View All Projects
-              </TooltipButton>
-            </div>
-          </CardFooter>
-        </Card>
         
         <NewProjectDialog 
           open={showNewProjectDialog} 
