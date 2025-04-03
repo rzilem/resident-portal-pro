@@ -9,7 +9,8 @@ import {
   Users, 
   Building, 
   Share2, 
-  Calendar 
+  Calendar,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -29,12 +30,14 @@ import OnboardingTaskList from '@/components/onboarding/OnboardingTaskList';
 import NewProjectDialog from '@/components/onboarding/NewProjectDialog';
 import ProjectTimeline from '@/components/onboarding/ProjectTimeline';
 import ClientSharingInfo from '@/components/onboarding/ClientSharingInfo';
+import TemplateManagement from '@/components/onboarding/TemplateManagement';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const OnboardingWizard = () => {
   const navigate = useNavigate();
   const { projectId } = useParams();
   const [activeTab, setActiveTab] = useState('tasks');
+  const [activeSection, setActiveSection] = useState<'projects' | 'templates'>('projects');
   const [isLoading, setIsLoading] = useState(true);
   const [project, setProject] = useState<OnboardingProject | null>(null);
   const [projects, setProjects] = useState<OnboardingProject[]>([]);
@@ -155,6 +158,10 @@ const OnboardingWizard = () => {
   };
   
   const renderContent = () => {
+    if (activeSection === 'templates') {
+      return <TemplateManagement />;
+    }
+    
     if (isLoading) {
       return (
         <div className="space-y-4">
@@ -327,9 +334,29 @@ const OnboardingWizard = () => {
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Community Onboarding</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Community Onboarding</h1>
+          <div className="flex space-x-2">
+            <Button 
+              variant={activeSection === 'projects' ? 'default' : 'outline'}
+              onClick={() => setActiveSection('projects')}
+            >
+              <Building className="h-4 w-4 mr-2" />
+              Projects
+            </Button>
+            <Button 
+              variant={activeSection === 'templates' ? 'default' : 'outline'}
+              onClick={() => setActiveSection('templates')}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Templates
+            </Button>
+          </div>
+        </div>
         <p className="text-muted-foreground">
-          Manage the onboarding process for new communities and associations
+          {activeSection === 'projects' 
+            ? 'Manage the onboarding process for new communities and associations'
+            : 'Create and manage templates for different types of client onboarding'}
         </p>
       </div>
       

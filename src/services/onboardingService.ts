@@ -1,6 +1,6 @@
+
 import { v4 as uuid } from 'uuid';
-import { OnboardingProject, OnboardingTask, OnboardingTemplate, OnboardingTaskGroup } from '@/types/onboarding';
-import { OnboardingStats } from '@/types/onboarding';
+import { OnboardingProject, OnboardingTask, OnboardingTemplate, OnboardingTaskGroup, OnboardingStats } from '@/types/onboarding';
 
 // Default onboarding template with task groups based on provided screenshots
 const defaultTemplate: OnboardingTemplate = {
@@ -8,6 +8,9 @@ const defaultTemplate: OnboardingTemplate = {
   name: 'New Community Template',
   description: 'Client Onboarding',
   isDefault: true,
+  clientType: 'hoa',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
   taskGroups: [
     {
       id: 'day-1',
@@ -261,9 +264,135 @@ const defaultTemplate: OnboardingTemplate = {
   ]
 };
 
+// Additional templates for different client types
+const condoTemplate: OnboardingTemplate = {
+  id: 'condo-template',
+  name: 'Condominium Onboarding',
+  description: 'Specialized onboarding process for condominium associations',
+  isDefault: false,
+  clientType: 'condo',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  tags: ['condo', 'multi-unit'],
+  taskGroups: [
+    {
+      id: 'day-1',
+      title: 'Day 1',
+      day: 1,
+      tasks: [
+        {
+          id: uuid(),
+          title: 'Gather Condominium Documents',
+          days: 5,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: false
+        },
+        {
+          id: uuid(),
+          title: 'Create New Association',
+          days: 5,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: true
+        },
+        {
+          id: uuid(),
+          title: 'Setup Condo Reserves Account',
+          days: 5,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: true
+        },
+        {
+          id: uuid(),
+          title: 'Request Floor Plans & Unit Documentation',
+          days: 5,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: true
+        }
+      ],
+      completedTasks: 0,
+      totalTasks: 4
+    },
+    {
+      id: 'day-5',
+      title: 'Day 5',
+      day: 5,
+      tasks: [
+        {
+          id: uuid(),
+          title: 'Setup Common Area Maintenance Schedule',
+          days: 10,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: true
+        },
+        {
+          id: uuid(),
+          title: 'Create Unit Owner Directory',
+          days: 10,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: true
+        }
+      ],
+      completedTasks: 0,
+      totalTasks: 2
+    }
+  ]
+};
+
+const apartmentTemplate: OnboardingTemplate = {
+  id: 'apartment-template',
+  name: 'Apartment Complex Onboarding',
+  description: 'Specialized onboarding process for apartment complexes',
+  isDefault: false,
+  clientType: 'apartment',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  tags: ['apartment', 'rental'],
+  taskGroups: [
+    {
+      id: 'day-1',
+      title: 'Day 1',
+      day: 1,
+      tasks: [
+        {
+          id: uuid(),
+          title: 'Obtain Lease Agreements & Tenant Information',
+          days: 5,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: false
+        },
+        {
+          id: uuid(),
+          title: 'Setup Rental Management System',
+          days: 5,
+          status: 'not_started',
+          category: 'internal',
+          teamAssigned: true,
+          clientVisible: true
+        }
+      ],
+      completedTasks: 0,
+      totalTasks: 2
+    }
+  ]
+};
+
 // Mock data store for onboarding projects
 let onboardingProjects: OnboardingProject[] = [];
-let onboardingTemplates: OnboardingTemplate[] = [defaultTemplate];
+let onboardingTemplates: OnboardingTemplate[] = [defaultTemplate, condoTemplate, apartmentTemplate];
 
 export const onboardingService = {
   // Get all onboarding templates
@@ -271,10 +400,60 @@ export const onboardingService = {
     return Promise.resolve([...onboardingTemplates]);
   },
   
+  // Get templates by client type
+  getTemplatesByClientType: async (clientType: string): Promise<OnboardingTemplate[]> => {
+    const templates = onboardingTemplates.filter(t => t.clientType === clientType);
+    return Promise.resolve([...templates]);
+  },
+  
   // Get template by ID
   getTemplateById: async (id: string): Promise<OnboardingTemplate | null> => {
     const template = onboardingTemplates.find(t => t.id === id);
     return Promise.resolve(template || null);
+  },
+
+  // Create a new template
+  createTemplate: async (template: Omit<OnboardingTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<OnboardingTemplate> => {
+    const now = new Date().toISOString();
+    const newTemplate: OnboardingTemplate = {
+      ...template,
+      id: uuid(),
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    onboardingTemplates.push(newTemplate);
+    return Promise.resolve(newTemplate);
+  },
+  
+  // Update existing template
+  updateTemplate: async (id: string, updates: Partial<OnboardingTemplate>): Promise<OnboardingTemplate | null> => {
+    const templateIndex = onboardingTemplates.findIndex(t => t.id === id);
+    
+    if (templateIndex === -1) {
+      return Promise.resolve(null);
+    }
+    
+    const template = { ...onboardingTemplates[templateIndex] };
+    
+    // Apply updates
+    const updatedTemplate: OnboardingTemplate = {
+      ...template,
+      ...updates,
+      id: template.id, // Ensure ID doesn't change
+      updatedAt: new Date().toISOString()
+    };
+    
+    onboardingTemplates[templateIndex] = updatedTemplate;
+    return Promise.resolve(updatedTemplate);
+  },
+  
+  // Delete template
+  deleteTemplate: async (id: string): Promise<boolean> => {
+    const initialLength = onboardingTemplates.length;
+    onboardingTemplates = onboardingTemplates.filter(t => t.id !== id);
+    
+    return Promise.resolve(initialLength !== onboardingTemplates.length);
   },
   
   // Create a new onboarding project

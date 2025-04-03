@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Building2, Copy, Folder } from 'lucide-react';
+import { Building2, Copy, Folder, FileText } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
@@ -25,12 +25,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { onboardingService } from '@/services/onboardingService';
 import { OnboardingTemplate } from '@/types/onboarding';
 import { associationService } from '@/services/associationService';
+import { Badge } from '@/components/ui/badge';
 
 interface NewProjectDialogProps {
   open: boolean;
@@ -54,6 +56,8 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
 }) => {
   const [associations, setAssociations] = useState<any[]>([]);
   const [templates, setTemplates] = useState<OnboardingTemplate[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<OnboardingTemplate[]>([]);
+  const [selectedClientType, setSelectedClientType] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -76,6 +80,7 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
         // Load templates
         const templatesData = await onboardingService.getTemplates();
         setTemplates(templatesData);
+        setFilteredTemplates(templatesData);
         
         // Set default template if available
         const defaultTemplate = templatesData.find(t => t.isDefault);
@@ -94,6 +99,33 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
     }
   }, [open, form]);
   
+  // Filter templates when client type changes
+  useEffect(() => {
+    if (selectedClientType === 'all') {
+      setFilteredTemplates(templates);
+    } else {
+      setFilteredTemplates(
+        templates.filter(t => !t.clientType || t.clientType === selectedClientType)
+      );
+    }
+    
+    // Reset template selection if the current selection is not in filtered list
+    const currentTemplateId = form.getValues('templateId');
+    const templateStillAvailable = filteredTemplates.some(t => t.id === currentTemplateId);
+    
+    if (currentTemplateId && !templateStillAvailable) {
+      // Find a default template in the filtered list or just the first one
+      const defaultTemplate = filteredTemplates.find(t => t.isDefault);
+      if (defaultTemplate) {
+        form.setValue('templateId', defaultTemplate.id);
+      } else if (filteredTemplates.length > 0) {
+        form.setValue('templateId', filteredTemplates[0].id);
+      } else {
+        form.setValue('templateId', '');
+      }
+    }
+  }, [selectedClientType, templates, form]);
+  
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const association = associations.find(a => a.id === values.associationId);
     if (!association) return;
@@ -104,6 +136,11 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
       values.templateId
     );
   };
+  
+  // Get unique client types from templates
+  const clientTypes = Array.from(
+    new Set(['all', ...(templates.map(t => t.clientType || 'undefined').filter(Boolean))])
+  );
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -157,6 +194,28 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
               )}
             />
             
+            <div>
+              <label className="text-sm font-medium">Template Type</label>
+              <RadioGroup 
+                defaultValue="all" 
+                className="flex flex-wrap gap-2 mt-2"
+                value={selectedClientType}
+                onValueChange={setSelectedClientType}
+              >
+                {clientTypes.map(type => (
+                  <div key={type} className="flex items-center space-x-2">
+                    <RadioGroupItem value={type} id={`type-${type}`} />
+                    <label 
+                      htmlFor={`type-${type}`} 
+                      className="text-sm cursor-pointer capitalize"
+                    >
+                      {type === 'all' ? 'All Types' : type}
+                    </label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+            
             <FormField
               control={form.control}
               name="templateId"
@@ -164,7 +223,7 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
                 <FormItem>
                   <FormLabel>Onboarding Template</FormLabel>
                   <Select
-                    disabled={isLoading}
+                    disabled={isLoading || filteredTemplates.length === 0}
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
@@ -174,18 +233,32 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {templates.map((template) => (
+                      {filteredTemplates.map((template) => (
                         <SelectItem
                           key={template.id}
                           value={template.id}
                         >
-                          <div className="flex items-center">
-                            <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {template.name}
-                            {template.isDefault && ' (Default)'}
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span>{template.name}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              {template.isDefault && (
+                                <Badge variant="secondary" className="text-xs">Default</Badge>
+                              )}
+                              {template.clientType && (
+                                <Badge variant="outline" className="text-xs capitalize">{template.clientType}</Badge>
+                              )}
+                            </div>
                           </div>
                         </SelectItem>
                       ))}
+                      {filteredTemplates.length === 0 && (
+                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                          No matching templates found
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -203,7 +276,7 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
               </Button>
               <Button 
                 type="submit" 
-                disabled={isLoading || associations.length === 0}
+                disabled={isLoading || associations.length === 0 || filteredTemplates.length === 0}
               >
                 Create Onboarding Project
               </Button>

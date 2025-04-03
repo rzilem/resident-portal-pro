@@ -33,6 +33,11 @@ export interface OnboardingTemplate {
   description: string;
   taskGroups: OnboardingTaskGroup[];
   isDefault?: boolean;
+  clientType?: string; // Type of client this template is for (e.g., 'condo', 'hoa', 'apartment')
+  tags?: string[]; // Additional metadata tags for filtering
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
 }
 
 export interface OnboardingProject {
