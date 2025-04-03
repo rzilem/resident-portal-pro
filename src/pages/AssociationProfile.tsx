@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Building } from 'lucide-react';
@@ -22,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { associations, isLoading: associationsLoading } = useAssociations();
+  const { associations, loading: associationsLoading } = useAssociations();
   const [association, setAssociation] = useState<Association | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePhotoTab, setActivePhotoTab] = useState<string>('view');
@@ -38,6 +39,7 @@ const AssociationProfile = () => {
         const cachedAssociation = associations.find(a => a.id === id);
         if (cachedAssociation) {
           console.log('Found association in cache:', cachedAssociation);
+          // Convert the hook Association to the full type Association
           setAssociation(adaptAssociationToFullType(cachedAssociation));
           setLoading(false);
           return;
@@ -55,6 +57,7 @@ const AssociationProfile = () => {
         
         if (fetchedAssociation) {
           console.log('Fetched association directly:', fetchedAssociation);
+          // Convert the fetched Association to the full type Association
           setAssociation(adaptAssociationToFullType(fetchedAssociation));
         } else {
           console.log('Association not found, even after direct fetch.');

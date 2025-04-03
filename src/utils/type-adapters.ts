@@ -53,3 +53,28 @@ export const adaptFullTypeToAssociation = (association: TypeAssociation): HookAs
     status: association.status,
   };
 };
+
+/**
+ * Converts a partial full Association to a partial simple Association
+ */
+export const adaptPartialFullTypeToAssociation = (
+  updates: Partial<TypeAssociation>
+): Partial<HookAssociation> => {
+  const result: Partial<HookAssociation> = { ...updates };
+  
+  // Handle address conversion
+  if (updates.address) {
+    result.address = updates.address.street;
+    result.city = updates.address.city;
+    result.state = updates.address.state;
+    result.zip = updates.address.zipCode;
+    
+    // Remove the original address object
+    delete result.address;
+  }
+  
+  // Remove other complex properties
+  delete result.contactInfo;
+  
+  return result;
+};

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -41,6 +42,10 @@ const Calendar = () => {
     setShowCreateEvent(false);
   };
   
+  // Convert associations to the full type needed by CalendarView
+  const fullTypeAssociations = adaptAssociationsToFullType(associations);
+  const fullTypeActiveAssociation = activeAssociation ? adaptAssociationsToFullType([activeAssociation])[0] : undefined;
+  
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -72,8 +77,8 @@ const Calendar = () => {
               userAccessLevel={userAccessLevel}
               associationId={activeAssociation?.id}
               isGlobalAdmin={false}
-              associations={adaptAssociationsToFullType(associations)}
-              activeAssociation={activeAssociation}
+              associations={fullTypeAssociations}
+              activeAssociation={fullTypeActiveAssociation}
               onAssociationChange={selectAssociation}
             />
           )}
@@ -85,7 +90,7 @@ const Calendar = () => {
               userId={currentUser.id}
               userAccessLevel={userAccessLevel}
               isGlobalAdmin={true}
-              associations={adaptAssociationsToFullType(associations)}
+              associations={fullTypeAssociations}
             />
           )}
         </TabsContent>
@@ -99,7 +104,7 @@ const Calendar = () => {
           associationId={activeTab === 'association' ? activeAssociation?.id : undefined}
           userAccessLevel={userAccessLevel}
           isGlobalView={activeTab === 'global'}
-          associations={activeTab === 'global' ? adaptAssociationsToFullType(associations) : undefined}
+          associations={activeTab === 'global' ? fullTypeAssociations : undefined}
         />
       )}
     </div>

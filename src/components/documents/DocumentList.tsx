@@ -1,237 +1,236 @@
 
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { FileIcon, FileTextIcon, FilePdfIcon, FileImageIcon, MoreHorizontalIcon, Download, Eye, Trash2, PencilIcon } from 'lucide-react';
-import { formatBytes, formatDate } from '@/utils/format';
+import { FileIcon, EyeIcon, DownloadIcon, Trash2Icon, Star, Edit } from 'lucide-react';
+import { formatFileSize, formatDate } from '@/utils/formatting';
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DocumentFile } from '@/types/documents';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import DocumentPreview from './preview/DocumentPreview';
-import DeleteDocumentDialog from './DeleteDocumentDialog';
-import { useDocuments } from '@/hooks/use-documents';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import DocumentPreviewDialog from './preview/DocumentPreviewDialog';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal } from 'lucide-react';
 
 interface DocumentListProps {
-  documents?: DocumentFile[];
-  isLoading?: boolean;
-  error?: string | null;
-  onDelete?: (document: DocumentFile) => void;
-  onPreview?: (document: DocumentFile) => void;
-  onDownload?: (document: DocumentFile) => void;
+  documents: DocumentFile[];
+  onDelete?: (id: string) => void;
+  onToggleFavorite?: (id: string, isFavorite: boolean) => void;
   onEdit?: (document: DocumentFile) => void;
-  associationId?: string;
-  category?: string;
+  onPreview?: (document: DocumentFile) => void;
+  loading?: boolean;
+  allowActions?: boolean;
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({
-  documents = [],
-  isLoading = false,
-  error = null,
+  documents,
   onDelete,
-  onPreview,
-  onDownload,
+  onToggleFavorite,
   onEdit,
-  associationId,
-  category
+  onPreview,
+  loading = false,
+  allowActions = true,
 }) => {
-  const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<DocumentFile | null>(null);
+  const [previewDocument, setPreviewDocument] = useState<DocumentFile | null>(null);
   
-  // If associationId or category is provided, we'll fetch documents
-  const { 
-    documents: fetchedDocuments, 
-    loading: fetchLoading, 
-    error: fetchError,
-    deleteDocument
-  } = useDocuments(associationId, category);
-  
-  // Use provided documents or fetched documents
-  const displayDocuments = documents.length > 0 ? documents : fetchedDocuments;
-  const displayLoading = isLoading || fetchLoading;
-  const displayError = error || fetchError;
-
-  const handlePreview = (document: DocumentFile) => {
-    setSelectedDocument(document);
-    setPreviewOpen(true);
-    if (onPreview) onPreview(document);
-  };
-
   const handleDelete = (document: DocumentFile) => {
-    setSelectedDocument(document);
+    setDocumentToDelete(document);
     setDeleteDialogOpen(true);
   };
-
-  const confirmDelete = async () => {
-    if (!selectedDocument) return;
+  
+  const confirmDelete = () => {
+    if (documentToDelete && onDelete) {
+      onDelete(documentToDelete.id);
+    }
+    setDeleteDialogOpen(false);
+    setDocumentToDelete(null);
+  };
+  
+  const handlePreview = (document: DocumentFile) => {
+    if (onPreview) {
+      onPreview(document);
+    } else {
+      setPreviewDocument(document);
+    }
+  };
+  
+  const handleDownload = (document: DocumentFile) => {
+    if (document.url) {
+      const link = document.createElement('a');
+      link.href = document.url;
+      link.download = document.name;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+  
+  const renderCategoryBadge = (category: string) => {
+    let badgeClass = 'bg-gray-200 text-gray-800';
     
-    if (onDelete) {
-      onDelete(selectedDocument);
-    } else if (deleteDocument && selectedDocument.id) {
-      await deleteDocument(selectedDocument.id);
+    if (category === 'financial') {
+      badgeClass = 'bg-emerald-100 text-emerald-800';
+    } else if (category === 'legal') {
+      badgeClass = 'bg-blue-100 text-blue-800';
+    } else if (category === 'meeting') {
+      badgeClass = 'bg-purple-100 text-purple-800';
+    } else if (category === 'maintenance') {
+      badgeClass = 'bg-amber-100 text-amber-800';
     }
     
-    setDeleteDialogOpen(false);
-    setSelectedDocument(null);
+    return (
+      <Badge className={badgeClass}>
+        {category.charAt(0).toUpperCase() + category.slice(1)}
+      </Badge>
+    );
   };
-
-  const getFileIcon = (fileType: string) => {
-    if (fileType.includes('pdf')) return <FilePdfIcon className="h-4 w-4 text-red-500" />;
-    if (fileType.includes('image')) return <FileImageIcon className="h-4 w-4 text-blue-500" />;
-    if (fileType.includes('text') || fileType.includes('document')) return <FileTextIcon className="h-4 w-4 text-amber-500" />;
-    return <FileIcon className="h-4 w-4 text-gray-500" />;
-  };
-
-  if (displayLoading) {
+  
+  // Empty state
+  if (!loading && documents.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex justify-center items-center p-6">
-          <div className="flex flex-col items-center space-y-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground">Loading documents...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (displayError) {
-    return (
-      <Card className="border-red-200">
-        <CardContent className="p-6 text-center">
-          <div className="text-red-500 mb-2">Error loading documents</div>
-          <p className="text-sm text-muted-foreground">{displayError}</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (displayDocuments.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <FileIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Documents Found</h3>
-          <p className="text-muted-foreground mb-4">
-            There are no documents in this category yet.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-1/3">Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Uploaded</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayDocuments.map((document) => (
-              <TableRow key={document.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center space-x-2">
-                    {getFileIcon(document.fileType)}
-                    <span>{document.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="capitalize">
-                    {document.category}
-                  </Badge>
-                </TableCell>
-                <TableCell>{formatBytes(document.fileSize)}</TableCell>
-                <TableCell>{formatDate(document.uploadedDate)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handlePreview(document)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    
-                    {onDownload && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDownload(document)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handlePreview(document)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Preview
-                        </DropdownMenuItem>
-                        
-                        {onEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(document)}>
-                            <PencilIcon className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {(onDownload || document.url) && (
-                          <DropdownMenuItem 
-                            onClick={() => onDownload ? onDownload(document) : window.open(document.url, '_blank')}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </DropdownMenuItem>
-                        )}
-                        
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDelete(document)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <FileIcon className="h-12 w-12 text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-1">No documents yet</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Upload documents to see them appear here.
+        </p>
       </div>
-
-      {selectedDocument && (
+    );
+  }
+  
+  return (
+    <div>
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      ) : (
         <>
-          <DocumentPreview
-            document={selectedDocument}
-            open={previewOpen}
-            onOpenChange={setPreviewOpen}
-          />
+          <Table>
+            <TableCaption>List of documents</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Uploaded</TableHead>
+                {allowActions && <TableHead className="text-right">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documents.map((doc) => (
+                <TableRow key={doc.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-medium" onClick={() => handlePreview(doc)}>
+                    <div className="flex items-center">
+                      <FileIcon className="h-5 w-5 mr-2 text-blue-500" />
+                      {doc.name}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {doc.category && renderCategoryBadge(doc.category)}
+                  </TableCell>
+                  <TableCell>{formatFileSize(doc.file_size)}</TableCell>
+                  <TableCell>{formatDate(doc.uploaded_date || '')}</TableCell>
+                  {allowActions && (
+                    <TableCell className="text-right">
+                      <div className="flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePreview(doc)}
+                          title="Preview"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(doc)}
+                          title="Download"
+                        >
+                          <DownloadIcon className="h-4 w-4" />
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {onEdit && (
+                              <DropdownMenuItem onClick={() => onEdit(doc)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
+                            {onToggleFavorite && (
+                              <DropdownMenuItem onClick={() => onToggleFavorite(doc.id, !doc.is_favorite)}>
+                                <Star className="h-4 w-4 mr-2" />
+                                {doc.is_favorite ? 'Remove Favorite' : 'Add to Favorites'}
+                              </DropdownMenuItem>
+                            )}
+                            {onDelete && (
+                              <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive" 
+                                onClick={() => handleDelete(doc)}
+                              >
+                                <Trash2Icon className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           
-          <DeleteDocumentDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            onConfirm={confirmDelete}
-            documentName={selectedDocument.name}
-          />
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete "{documentToDelete?.name}"? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={confirmDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
+          {!onPreview && (
+            <DocumentPreviewDialog
+              open={!!previewDocument}
+              onOpenChange={() => setPreviewDocument(null)}
+              document={previewDocument}
+            />
+          )}
         </>
       )}
-    </>
+    </div>
   );
 };
 
