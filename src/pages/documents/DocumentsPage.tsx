@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DocumentManager from '@/components/documents/DocumentManager';
 import { Button } from '@/components/ui/button';
@@ -142,7 +141,6 @@ const DocumentsPage = () => {
             <DocumentUploader
               associationId={selectedAssociationId}
               onUploadComplete={handleUploadComplete}
-              onCancel={() => setShowUploader(false)}
             />
           </CardContent>
         </Card>

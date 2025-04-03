@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -8,6 +7,7 @@ import { Plus, Settings } from 'lucide-react';
 import CalendarEventDialog from '@/components/calendar/CalendarEventDialog';
 import { useAssociations } from '@/hooks/use-associations';
 import { useAuthRole } from '@/hooks/use-auth-role';
+import { adaptAssociationsToFullType } from '@/utils/type-adapters';
 
 const Calendar = () => {
   const [searchParams] = useSearchParams();
@@ -72,7 +72,7 @@ const Calendar = () => {
               userAccessLevel={userAccessLevel}
               associationId={activeAssociation?.id}
               isGlobalAdmin={false}
-              associations={associations}
+              associations={adaptAssociationsToFullType(associations)}
               activeAssociation={activeAssociation}
               onAssociationChange={selectAssociation}
             />
@@ -85,7 +85,7 @@ const Calendar = () => {
               userId={currentUser.id}
               userAccessLevel={userAccessLevel}
               isGlobalAdmin={true}
-              associations={associations}
+              associations={adaptAssociationsToFullType(associations)}
             />
           )}
         </TabsContent>
@@ -99,7 +99,7 @@ const Calendar = () => {
           associationId={activeTab === 'association' ? activeAssociation?.id : undefined}
           userAccessLevel={userAccessLevel}
           isGlobalView={activeTab === 'global'}
-          associations={activeTab === 'global' ? associations : undefined}
+          associations={activeTab === 'global' ? adaptAssociationsToFullType(associations) : undefined}
         />
       )}
     </div>

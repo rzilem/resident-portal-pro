@@ -1,279 +1,276 @@
 
-import React, { useState, useRef } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  UploadIcon, 
-  FileIcon, 
-  XIcon, 
-  CheckIcon, 
-  AlertCircleIcon, 
-  Loader2Icon 
-} from "lucide-react";
-import { toast } from 'sonner';
-import { uploadDocument } from '@/services/document-upload';
-import { infoLog, errorLog } from '@/utils/debug';
+import React, { useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { UploadCloud, File, X, Check, AlertTriangle, Loader2 } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { formatBytes } from '@/utils/format';
+import { useDocumentCategories } from '@/hooks/use-document-categories';
+import { useDocumentUpload } from '@/hooks/use-document-upload';
 
-interface DocumentUploaderProps {
-  associationId: string;
-  onUploadComplete?: () => void;
+export interface DocumentUploaderProps {
+  associationId?: string;
+  onUploadComplete: () => void;
+  onCancel?: () => void;
 }
 
 const DocumentUploader: React.FC<DocumentUploaderProps> = ({ 
-  associationId, 
-  onUploadComplete 
+  associationId,
+  onUploadComplete,
+  onCancel
 }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('general');
+  const [files, setFiles] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tagInput, setTagInput] = useState<string>('');
+  const [category, setCategory] = useState<string>('general');
+  const [description, setDescription] = useState<string>('');
+  const { categories, loading: categoriesLoading } = useDocumentCategories();
+  
+  const { 
+    uploadDocument, 
+    isUploading, 
+    progress, 
+    error: uploadError 
+  } = useDocumentUpload();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
-    }
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setFiles(prev => [...prev, ...acceptedFiles]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'image/*': ['.png', '.jpeg', '.jpg'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/vnd.ms-excel': ['.xls'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'text/plain': ['.txt']
+    },
+    maxSize: 10485760 // 10MB
+  });
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (e.dataTransfer.files?.length) {
-      setFile(e.dataTransfer.files[0]);
-      setError(null);
-    }
-  };
-
-  const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+  const addTag = () => {
+    const trimmedTag = tagInput.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      setTags(prev => [...prev, trimmedTag]);
       setTagInput('');
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const removeTag = (tagToRemove: string) => {
+    setTags(prev => prev.filter(tag => tag !== tagToRemove));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddTag();
+      addTag();
     }
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file to upload');
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-
+    if (files.length === 0) return;
+    
+    const fileToUpload = files[0]; // Upload first file
+    
     try {
-      infoLog('Starting document upload', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
+      await uploadDocument({
+        file: fileToUpload,
         category,
-        tags
-      });
-
-      const uploadParams = {
-        file,
         description,
-        category,
         tags,
-        associationId
-      };
-
-      const success = await uploadDocument(uploadParams);
-
-      if (success) {
-        toast.success('Document uploaded successfully');
-        infoLog('Document upload completed successfully');
-        
-        // Reset form
-        setFile(null);
-        setDescription('');
-        setTags([]);
-        setTagInput('');
-        
-        if (onUploadComplete) {
-          onUploadComplete();
-        }
-      } else {
-        throw new Error('Upload failed');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error uploading document';
-      setError(errorMessage);
-      errorLog('Document upload error:', err);
-      toast.error('Failed to upload document');
-    } finally {
-      setUploading(false);
+        associationId: associationId || ''
+      });
+      
+      onUploadComplete();
+    } catch (error) {
+      console.error('Upload failed:', error);
     }
   };
 
   return (
     <div className="space-y-6">
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-          ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary/50'}`}
-        onClick={() => fileInputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+          isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary/50'
+        }`}
       >
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-
-        {file ? (
-          <div className="flex flex-col items-center space-y-2">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <FileIcon className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">{file.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {(file.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setFile(null);
-              }}
-            >
-              Remove
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center space-y-2">
-            <div className="bg-muted p-3 rounded-full">
-              <UploadIcon className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div className="space-y-1">
-              <p className="font-medium">Drag file here or click to upload</p>
-              <p className="text-xs text-muted-foreground">
-                Support for PDF, DOC, DOCX, XLS, XLSX, JPEG, PNG and more
-              </p>
-            </div>
-          </div>
-        )}
+        <input {...getInputProps()} />
+        <UploadCloud className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-1">Drag and drop file here</h3>
+        <p className="text-sm text-muted-foreground mb-2">
+          or click to browse files (PDF, DOC, XLS, JPG, PNG)
+        </p>
+        <p className="text-xs text-muted-foreground">Maximum file size: 10MB</p>
       </div>
+
+      {files.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="font-medium">Selected File</h4>
+          {files.map((file, index) => (
+            <div 
+              key={`${file.name}-${index}`}
+              className="flex items-center justify-between p-3 border rounded-md"
+            >
+              <div className="flex items-center space-x-3">
+                <File className="h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-medium">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">{formatBytes(file.size)}</p>
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => removeFile(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
+          <Select 
+            value={category} 
+            onValueChange={setCategory}
+          >
+            <SelectTrigger id="category">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="general">General</SelectItem>
-              <SelectItem value="financial">Financial</SelectItem>
-              <SelectItem value="legal">Legal</SelectItem>
-              <SelectItem value="meeting">Meeting Minutes</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
+              {categoriesLoading ? (
+                <div className="flex justify-center p-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="financial">Financial</SelectItem>
+                  <SelectItem value="legal">Legal</SelectItem>
+                  <SelectItem value="meeting">Meeting Minutes</SelectItem>
+                  <SelectItem value="policies">Policies & Rules</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
+          <Label htmlFor="description">Description (Optional)</Label>
+          <Textarea 
+            id="description" 
+            placeholder="Enter a brief description of the document"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter a description for this document"
-            rows={3}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tags">Tags</Label>
-          <div className="flex gap-2">
-            <Input
-              id="tags"
+          <Label htmlFor="tags">Tags (Optional)</Label>
+          <div className="flex space-x-2">
+            <Input 
+              id="tags" 
+              placeholder="Add tags and press Enter"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Add a tag"
-              className="flex-1"
+              onKeyDown={handleTagKeyDown}
             />
-            <Button type="button" onClick={handleAddTag} variant="outline">
-              Add
-            </Button>
+            <Button type="button" onClick={addTag}>Add</Button>
           </div>
           
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {tags.map(tag => (
-                <div 
+                <Badge 
                   key={tag} 
-                  className="bg-muted px-2 py-1 rounded-full flex items-center gap-1 text-sm"
+                  variant="secondary"
+                  className="flex items-center gap-1"
                 >
-                  <span>{tag}</span>
+                  {tag}
                   <button 
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-muted-foreground hover:text-foreground rounded-full"
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 rounded-full hover:bg-muted p-1"
                   >
-                    <XIcon className="h-3 w-3" />
+                    <X className="h-3 w-3" />
                   </button>
-                </div>
+                </Badge>
               ))}
             </div>
           )}
         </div>
+      </div>
 
-        {error && (
-          <div className="bg-destructive/10 text-destructive p-3 rounded-md flex items-start gap-2">
-            <AlertCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <p className="text-sm">{error}</p>
+      {isUploading && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Uploading...</span>
+            <span>{progress}%</span>
           </div>
-        )}
-
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleUpload} 
-            disabled={!file || uploading}
-            className="min-w-[120px]"
-          >
-            {uploading ? (
-              <>
-                <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <UploadIcon className="h-4 w-4 mr-2" />
-                Upload
-              </>
-            )}
-          </Button>
+          <Progress value={progress} className="h-2" />
         </div>
+      )}
+
+      {uploadError && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-600 flex items-start">
+          <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">Upload Failed</p>
+            <p className="text-sm">{uploadError}</p>
+          </div>
+        </div>
+      )}
+
+      <Separator />
+
+      <div className="flex justify-end space-x-2">
+        {onCancel && (
+          <Button 
+            variant="outline" 
+            onClick={onCancel}
+            disabled={isUploading}
+          >
+            Cancel
+          </Button>
+        )}
+        <Button 
+          onClick={handleUpload} 
+          disabled={files.length === 0 || isUploading}
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              Upload Document
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

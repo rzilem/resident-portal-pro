@@ -1,205 +1,147 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { 
-  Search, RefreshCw, Trash, Download, Eye, 
-  FileText, FilePlus, FileQuestion, FileX 
-} from "lucide-react";
-import { formatBytes, formatDate } from "@/utils/format";
-import { useDocumentList } from '@/hooks/use-document-list';
-import DocumentPreview from './preview/DocumentPreview';
-import { DocumentFile } from '@/types/documents';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { FileIcon, FileTextIcon, FilePdfIcon, FileImageIcon, MoreHorizontalIcon, Download, Eye, Trash2, PencilIcon } from 'lucide-react';
+import { formatBytes, formatDate } from '@/utils/format';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DocumentFile } from '@/types/documents';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import DocumentPreview from './preview/DocumentPreview';
+import DeleteDocumentDialog from './DeleteDocumentDialog';
+import { useDocuments } from '@/hooks/use-documents';
 
-export interface DocumentListProps {
+interface DocumentListProps {
   documents?: DocumentFile[];
-  loading?: boolean;
+  isLoading?: boolean;
   error?: string | null;
-  onDeleteDocument?: (document: DocumentFile) => void;
-  onRefresh?: () => void;
+  onDelete?: (document: DocumentFile) => void;
+  onPreview?: (document: DocumentFile) => void;
+  onDownload?: (document: DocumentFile) => void;
+  onEdit?: (document: DocumentFile) => void;
   associationId?: string;
   category?: string;
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({
-  documents: providedDocuments,
-  loading: providedLoading,
-  error: providedError,
-  onDeleteDocument: providedDeleteFn,
-  onRefresh: providedRefreshFn,
+  documents = [],
+  isLoading = false,
+  error = null,
+  onDelete,
+  onPreview,
+  onDownload,
+  onEdit,
   associationId,
   category
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [previewDocument, setPreviewDocument] = useState<DocumentFile | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-
-  // Use the hook only if associationId is provided and no documents are provided
-  const hookProps = associationId ? { associationId, category } : {};
+  const [selectedDocument, setSelectedDocument] = useState<DocumentFile | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  
+  // If associationId or category is provided, we'll fetch documents
   const { 
-    documents: hookDocuments, 
-    loading: hookLoading, 
-    error: hookError, 
-    searchQuery: hookSearchQuery, 
-    setSearchQuery: hookSetSearchQuery,
-    deleteDocument: hookDeleteDocument,
-    refreshDocuments: hookRefreshDocuments
-  } = useDocumentList(hookProps);
-
-  // Use provided props if available, otherwise use hook values
-  const documents = providedDocuments || hookDocuments;
-  const loading = providedLoading !== undefined ? providedLoading : hookLoading;
-  const error = providedError !== undefined ? providedError : hookError;
-  const deleteDocument = providedDeleteFn || hookDeleteDocument;
-  const refreshDocuments = providedRefreshFn || hookRefreshDocuments;
-
-  // Sync search query with hook if using hook
-  useEffect(() => {
-    if (!providedDocuments && associationId) {
-      hookSetSearchQuery(searchQuery);
-    }
-  }, [searchQuery, providedDocuments, associationId, hookSetSearchQuery]);
-
-  const filteredDocuments = documents.filter(doc => 
-    !searchQuery ? true : (
-      doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (doc.description && doc.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      doc.category.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
-
-  const handleDelete = async (document: DocumentFile) => {
-    if (window.confirm(`Are you sure you want to delete "${document.name}"?`)) {
-      try {
-        await deleteDocument(document);
-        toast.success("Document deleted successfully");
-      } catch (error) {
-        console.error("Error deleting document:", error);
-        toast.error("Failed to delete document");
-      }
-    }
-  };
+    documents: fetchedDocuments, 
+    loading: fetchLoading, 
+    error: fetchError,
+    deleteDocument
+  } = useDocuments(associationId, category);
+  
+  // Use provided documents or fetched documents
+  const displayDocuments = documents.length > 0 ? documents : fetchedDocuments;
+  const displayLoading = isLoading || fetchLoading;
+  const displayError = error || fetchError;
 
   const handlePreview = (document: DocumentFile) => {
-    setPreviewDocument(document);
-    setIsPreviewOpen(true);
+    setSelectedDocument(document);
+    setPreviewOpen(true);
+    if (onPreview) onPreview(document);
   };
 
-  const handleDownload = (document: DocumentFile) => {
-    if (!document.url) {
-      toast.error("Document URL is not available");
-      return;
+  const handleDelete = (document: DocumentFile) => {
+    setSelectedDocument(document);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedDocument) return;
+    
+    if (onDelete) {
+      onDelete(selectedDocument);
+    } else if (deleteDocument && selectedDocument.id) {
+      await deleteDocument(selectedDocument.id);
     }
-
-    const link = document.createElement('a');
-    link.href = document.url;
-    link.download = document.name;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    setDeleteDialogOpen(false);
+    setSelectedDocument(null);
   };
 
-  if (error) {
+  const getFileIcon = (fileType: string) => {
+    if (fileType.includes('pdf')) return <FilePdfIcon className="h-4 w-4 text-red-500" />;
+    if (fileType.includes('image')) return <FileImageIcon className="h-4 w-4 text-blue-500" />;
+    if (fileType.includes('text') || fileType.includes('document')) return <FileTextIcon className="h-4 w-4 text-amber-500" />;
+    return <FileIcon className="h-4 w-4 text-gray-500" />;
+  };
+
+  if (displayLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <FileX className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Error Loading Documents</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={refreshDocuments} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Try Again
-            </Button>
+        <CardContent className="flex justify-center items-center p-6">
+          <div className="flex flex-col items-center space-y-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">Loading documents...</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (loading) {
+  if (displayError) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center justify-center">
-            <RefreshCw className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading documents...</p>
-          </div>
+      <Card className="border-red-200">
+        <CardContent className="p-6 text-center">
+          <div className="text-red-500 mb-2">Error loading documents</div>
+          <p className="text-sm text-muted-foreground">{displayError}</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (filteredDocuments.length === 0) {
+  if (displayDocuments.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <FileQuestion className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Documents Found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery ? "No documents match your search criteria." : "No documents have been uploaded yet."}
-            </p>
-            <div className="flex justify-center gap-4">
-              {searchQuery && (
-                <Button variant="outline" onClick={() => setSearchQuery('')} className="gap-2">
-                  <Search className="h-4 w-4" />
-                  Clear Search
-                </Button>
-              )}
-              <Button onClick={refreshDocuments} className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Refresh
-              </Button>
-            </div>
-          </div>
+        <CardContent className="p-6 text-center">
+          <FileIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">No Documents Found</h3>
+          <p className="text-muted-foreground mb-4">
+            There are no documents in this category yet.
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button onClick={refreshDocuments} variant="outline" size="sm" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
-      </div>
-
-      <div className="border rounded-md overflow-hidden">
+    <>
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">Name</TableHead>
-              <TableHead className="w-[15%]">Category</TableHead>
-              <TableHead className="w-[15%]">Size</TableHead>
-              <TableHead className="w-[15%]">Date</TableHead>
-              <TableHead className="text-right w-[15%]">Actions</TableHead>
+              <TableHead className="w-1/3">Name</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead>Uploaded</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDocuments.map((document) => (
+            {displayDocuments.map((document) => (
               <TableRow key={document.id}>
-                <TableCell className="font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{document.name}</span>
+                <TableCell className="font-medium">
+                  <div className="flex items-center space-x-2">
+                    {getFileIcon(document.fileType)}
+                    <span>{document.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" className="capitalize">
@@ -208,58 +150,88 @@ const DocumentList: React.FC<DocumentListProps> = ({
                 </TableCell>
                 <TableCell>{formatBytes(document.fileSize)}</TableCell>
                 <TableCell>{formatDate(document.uploadedDate)}</TableCell>
-                <TableCell className="text-right space-x-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button onClick={() => handlePreview(document)} size="icon" variant="ghost">
-                          <Eye className="h-4 w-4" />
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handlePreview(document)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    
+                    {onDownload && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDownload(document)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontalIcon className="h-4 w-4" />
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Preview</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button onClick={() => handleDownload(document)} size="icon" variant="ghost">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Download</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button onClick={() => handleDelete(document)} size="icon" variant="ghost">
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Delete</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handlePreview(document)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </DropdownMenuItem>
+                        
+                        {onEdit && (
+                          <DropdownMenuItem onClick={() => onEdit(document)}>
+                            <PencilIcon className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {(onDownload || document.url) && (
+                          <DropdownMenuItem 
+                            onClick={() => onDownload ? onDownload(document) : window.open(document.url, '_blank')}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </DropdownMenuItem>
+                        )}
+                        
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => handleDelete(document)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      
-      <DocumentPreview
-        document={previewDocument}
-        open={isPreviewOpen}
-        onOpenChange={setIsPreviewOpen}
-      />
-    </div>
+
+      {selectedDocument && (
+        <>
+          <DocumentPreview
+            document={selectedDocument}
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+          />
+          
+          <DeleteDocumentDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            onConfirm={confirmDelete}
+            documentName={selectedDocument.name}
+          />
+        </>
+      )}
+    </>
   );
 };
 

@@ -5,6 +5,7 @@ import { useAssociations } from '@/hooks/use-associations';
 import { Association } from '@/types/association';
 import { getPropertiesFromAssociations } from '@/components/properties/PropertyHelpers';
 import { toast } from 'sonner';
+import { adaptAssociationToFullType } from '@/utils/type-adapters';
 
 // Imported Components
 import AssociationHeader from '@/components/associations/AssociationHeader';
@@ -37,7 +38,7 @@ const AssociationProfile = () => {
         const cachedAssociation = associations.find(a => a.id === id);
         if (cachedAssociation) {
           console.log('Found association in cache:', cachedAssociation);
-          setAssociation(cachedAssociation);
+          setAssociation(adaptAssociationToFullType(cachedAssociation));
           setLoading(false);
           return;
         }
@@ -54,7 +55,7 @@ const AssociationProfile = () => {
         
         if (fetchedAssociation) {
           console.log('Fetched association directly:', fetchedAssociation);
-          setAssociation(fetchedAssociation);
+          setAssociation(adaptAssociationToFullType(fetchedAssociation));
         } else {
           console.log('Association not found, even after direct fetch.');
           toast.error('Association not found');

@@ -102,13 +102,15 @@ const AssociationSettings = () => {
     setShowEditDialog(false);
   };
 
-  const handleSaveNew = async (data: Partial<Association>) => {
-    return await addAssociation(data as Omit<Association, 'id'>);
+  const handleSaveNew = async (data: Partial<TypeAssociation>) => {
+    const adaptedData = adaptFullTypeToAssociation(data as TypeAssociation);
+    return await addAssociation(adaptedData as Omit<HookAssociation, 'id'>);
   };
 
-  const handleSaveEdit = async (data: Partial<Association>) => {
+  const handleSaveEdit = async (data: Partial<TypeAssociation>) => {
     if (associationToEdit) {
-      return await updateAssociation(associationToEdit.id, data);
+      const adaptedData = adaptFullTypeToAssociation({...associationToEdit, ...data} as TypeAssociation);
+      return await updateAssociation(associationToEdit.id, adaptedData);
     }
     throw new Error('No association to edit');
   };
@@ -133,7 +135,7 @@ const AssociationSettings = () => {
     return (
       <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-md">
         <h3 className="font-bold">Error</h3>
-        <p>{error.message}</p>
+        <p>{error.message || 'Failed to load associations'}</p>
         <button 
           onClick={() => fetchAssociations()} 
           className="mt-2 px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200"
@@ -157,7 +159,7 @@ const AssociationSettings = () => {
       </div>
 
       <AssociationList 
-        associations={associations}
+        associations={adaptAssociationsToFullType(associations)}
         activeAssociation={activeAssociation}
         selectAssociation={selectAssociation}
         openNewAssociationDialog={handleOpenNewDialog}
@@ -197,3 +199,7 @@ const AssociationSettings = () => {
 };
 
 export default AssociationSettings;
+
+import { Association as HookAssociation } from '@/hooks/use-associations';
+import { Association as TypeAssociation } from '@/types/association';
+import { adaptFullTypeToAssociation, adaptAssociationsToFullType } from '@/utils/type-adapters';
