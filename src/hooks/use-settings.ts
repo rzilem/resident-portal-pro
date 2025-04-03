@@ -1,23 +1,13 @@
 
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { Settings } from '@/types/settings';
+import { Settings, SettingsContextType } from '@/types/settings';
 
 // Create a context with the extended type that includes preferences
-export const SettingsContext = createContext<{
-  settings: Settings;
-  preferences: Record<string, any>;
-  isLoading: boolean;
-  isInitialized: boolean;
-  savePreferences: (prefs: Record<string, any>) => Promise<void>;
-  isSaving: boolean;
-  updateSettings: (section: keyof Settings, data: any) => Promise<boolean>;
-  updatePreference: (key: string, value: any) => Promise<boolean>;
-  refreshSettings: () => Promise<void>;
-}>({
+export const SettingsContext = createContext<SettingsContextType>({
   settings: {},
-  preferences: {},
   isLoading: true,
   isInitialized: false,
+  preferences: {},
   savePreferences: async () => {},
   isSaving: false,
   updateSettings: async () => false,
@@ -27,7 +17,7 @@ export const SettingsContext = createContext<{
 
 export const useSettings = () => useContext(SettingsContext);
 
-export const SettingsProvider = ({ children }) => {
+export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const [settings, setSettings] = useState<Settings>({});
   const [preferences, setPreferences] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -48,11 +38,19 @@ export const SettingsProvider = ({ children }) => {
         customColors: {},
         themePreset: 'light',
         customBackground: '',
+        preferences: {}
       });
       
       // Set preferences separately
       setPreferences({
         // Default preferences
+        theme: 'system',
+        cardStyle: 'default',
+        colorMode: 'default',
+        fontSize: 'medium',
+        tableDensity: 'default',
+        voiceGreetingEnabled: true,
+        voiceGreetingType: 'default'
       });
       
       setIsInitialized(true);
@@ -69,7 +67,7 @@ export const SettingsProvider = ({ children }) => {
   }, [loadSettings]);
   
   // Function to update a setting
-  const updateSettings = async (section: keyof Settings, data: any) => {
+  const updateSettings = async (section: keyof Settings, data: any): Promise<boolean> => {
     try {
       // Update logic
       setSettings(prev => ({
@@ -84,7 +82,7 @@ export const SettingsProvider = ({ children }) => {
   };
   
   // Function to update a single preference
-  const updatePreference = async (key: string, value: any) => {
+  const updatePreference = async (key: string, value: any): Promise<boolean> => {
     try {
       setPreferences(prev => ({
         ...prev,
@@ -98,7 +96,7 @@ export const SettingsProvider = ({ children }) => {
   };
   
   // Function to save all preferences
-  const savePreferences = async (prefs: Record<string, any>) => {
+  const savePreferences = async (prefs: Record<string, any>): Promise<void> => {
     try {
       setIsSaving(true);
       // Save logic
@@ -111,7 +109,7 @@ export const SettingsProvider = ({ children }) => {
   };
   
   // Function to refresh settings
-  const refreshSettings = async () => {
+  const refreshSettings = async (): Promise<void> => {
     await loadSettings();
   };
   
