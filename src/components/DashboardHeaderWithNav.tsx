@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TooltipButton } from '@/components/ui/tooltip-button';
-import { useCompanySettings } from '@/hooks/use-company-settings';
 
 interface DashboardHeaderWithNavProps {
   toggleSidebar?: () => void;
@@ -27,7 +25,6 @@ const DashboardHeaderWithNav = ({
   icon
 }: DashboardHeaderWithNavProps) => {
   const location = useLocation();
-  const { settings } = useCompanySettings();
   
   const getPageTitle = () => {
     if (title) return title;

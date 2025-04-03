@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DashboardHeaderWithNav from './DashboardHeaderWithNav';
-import Sidebar from '@/components/Sidebar'; // Changed from import { Sidebar }
+import { Sidebar } from '@/components/Sidebar';
 import HoaSidebar from '@/components/HoaSidebar';
 import ChatbotButton from './ChatbotButton';
 import { useLocation, Outlet, Link } from 'react-router-dom';
@@ -76,7 +77,7 @@ const DashboardLayout = ({ children, title: propTitle }: DashboardLayoutProps) =
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           } w-[260px]`}
         >
-          <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} /> {/* Changed to use props correctly */}
+          <Sidebar className="min-h-screen w-[260px]"/>
         </div>
       )}
       

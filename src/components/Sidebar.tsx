@@ -1,68 +1,110 @@
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
-import NavigationMenu from './layout/NavigationMenu';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { useCompanySettings } from '@/hooks/use-company-settings';
 
-interface SidebarProps {
-  isOpen: boolean;
-  toggleSidebar: () => void;
-}
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLocation, useNavigate } from "react-router-dom";
+import { SidebarContent, SidebarHeader, SidebarProvider } from "@/components/ui/sidebar";
+import { CollapsibleNavItem } from "./sidebar/CollapsibleNavItem";
+import { RegularNavItem } from "./sidebar/RegularNavItem";
+import { NavSeparator } from "./sidebar/NavSeparator";
+import { getNavItems, NavItem } from "@/data/navigation";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
+import { useState, useEffect } from "react";
+import HoaSidebar from "./HoaSidebar";
+import { useCompanySettings } from "@/hooks/use-company-settings";
+import { Settings } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
-  const { settings } = useCompanySettings();
-  
-  return (
-    <div
-      className={cn(
-        'h-screen fixed top-0 left-0 z-20 bg-card border-r border-border transition-all duration-300',
-        isOpen ? 'w-64' : 'w-0 -translate-x-full sm:translate-x-0 sm:w-16'
-      )}
-    >
-      <div className="flex flex-col h-full">
-        <div className={cn(
-          'h-16 flex items-center border-b border-border px-4',
-          isOpen ? 'justify-between' : 'justify-center'
-        )}>
-          {isOpen ? (
-            <>
-              <div className="flex items-center gap-2">
-                {settings.logoUrl ? (
-                  <img src={settings.logoUrl} alt="Logo" className="h-8 w-auto" />
-                ) : (
-                  <span className="text-lg font-semibold">{settings.companyName || "ResidentPro"}</span>
-                )}
-              </div>
-              <button
-                onClick={toggleSidebar}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={toggleSidebar}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex-1 overflow-y-auto">
-          {isOpen ? (
-            <NavigationMenu />
-          ) : (
-            <div className="py-4">
-              {/* Collapsed sidebar icons only version */}
-              {/* We could implement icons-only navigation here */}
+export function Sidebar({
+  className
+}: React.HTMLAttributes<HTMLDivElement>) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+  const {
+    settings
+  } = useCompanySettings();
+
+  const isHoaPage = location.pathname === '/hoa/dashboard' || location.pathname === '/hoa/finances' || location.pathname === '/hoa/maintenance' || location.pathname === '/hoa/members' || location.pathname === '/hoa/events';
+
+  if (isHoaPage) {
+    return <HoaSidebar collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} className={className} />;
+  }
+
+  const {
+    openGroups,
+    toggleGroup
+  } = useSidebarState();
+  const NAV_ITEMS = getNavItems(location.pathname);
+
+  useEffect(() => {
+    console.log("Current path:", location.pathname);
+    console.log("Open groups:", openGroups);
+    console.log("Navigation items:", NAV_ITEMS);
+  }, [location.pathname, openGroups, NAV_ITEMS]);
+
+  const handleLogoClick = () => {
+    navigate('/settings');
+    sessionStorage.setItem('open-display-settings', 'true');
+    sessionStorage.setItem('open-branding-tab', 'true');
+  };
+
+  return <SidebarProvider defaultOpen={true}>
+      <div className={cn("pb-12 border-r min-h-screen bg-background w-[260px]", className)}>
+        <SidebarContent className="space-y-2 py-3">
+          <SidebarHeader className="py-1 px-4 my-0">
+            <div className="mb-2 px-2 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 group" onClick={handleLogoClick}>
+              {settings.logoUrl ? <>
+                  <img 
+                    src={settings.logoUrl} 
+                    alt={settings.companyName || "Company Logo"} 
+                    className="h-12 max-w-[200px] object-contain" 
+                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Settings className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit logo in settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </> : <>
+                  <div className="text-lg font-semibold tracking-tight">
+                    {settings.companyName || "HOA Management"}
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Settings className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add logo in settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>}
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+          </SidebarHeader>
+          <ScrollArea className="h-[calc(100vh-7rem)] px-2">
+            <div className="space-y-1">
+              {NAV_ITEMS.map((item, i) => {
+                if (item === 'separator') {
+                  return <NavSeparator key={`sep-${i}`} />;
+                }
 
-export default Sidebar;
+                const navItem = item as NavItem;
+                console.log(`Rendering nav item: ${navItem.label}, isOpen: ${!!openGroups[navItem.label]}`);
+
+                if (navItem.items && navItem.items.length > 0) {
+                  return <CollapsibleNavItem key={navItem.label} item={navItem} isOpen={!!openGroups[navItem.label]} onToggle={() => toggleGroup(navItem.label)} />;
+                }
+
+                return <RegularNavItem key={navItem.label} item={navItem} />;
+              })}
+            </div>
+          </ScrollArea>
+        </SidebarContent>
+      </div>
+    </SidebarProvider>;
+}
