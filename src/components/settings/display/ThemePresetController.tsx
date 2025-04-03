@@ -14,19 +14,19 @@ export interface ThemePresetControllerProps {
 }
 
 const ThemePresetController: React.FC<ThemePresetControllerProps> = ({ children }) => {
-  const { preferences, updatePreference } = useSettings();
+  const { settings, updatePreference } = useSettings();
 
   const applyTheme = (preset: ThemePreset) => {
     // Apply theme to DOM
     applyPresetToUI(preset);
     
     // Clear any custom colors when applying a preset
-    if (preferences?.customColors) {
+    if (settings?.customColors) {
       updatePreference('customColors', null);
     }
     
     // Clear any custom background when applying a preset
-    if (preferences?.customBackground) {
+    if (settings?.customBackground) {
       updatePreference('customBackground', null);
       // This will ensure body background is cleared
       document.body.style.backgroundImage = 'none';
@@ -52,7 +52,7 @@ const ThemePresetController: React.FC<ThemePresetControllerProps> = ({ children 
       {children({
         applyTheme,
         resetTheme,
-        selectedPresetId: preferences?.themePreset
+        selectedPresetId: settings?.themePreset
       })}
     </>
   );

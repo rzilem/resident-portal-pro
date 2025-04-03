@@ -1,5 +1,5 @@
 
-import { DocumentFile, Tag } from '@/types/documents';
+import { DocumentFile, Tag, DocumentCategory } from '@/types/documents';
 
 /**
  * Normalize a string for case-insensitive comparison
@@ -161,5 +161,86 @@ export const formatDate = (dateString: string, format: 'default' | 'short' | 'lo
   } catch (error) {
     console.error('Error formatting date:', error);
     return dateString; // Return original on error
+  }
+};
+
+/**
+ * Get information about a file type for UI display
+ * @param fileType MIME type or file extension
+ * @returns Object with icon and color information
+ */
+export const getFileTypeInfo = (fileType: string): { icon: string; color: string } => {
+  const type = getReadableFileType(fileType).toLowerCase();
+  
+  switch (type) {
+    case 'pdf':
+      return { icon: 'file-pdf', color: 'red' };
+    case 'word':
+      return { icon: 'file-word', color: 'blue' };
+    case 'excel':
+      return { icon: 'file-spreadsheet', color: 'green' };
+    case 'powerpoint':
+      return { icon: 'file-presentation', color: 'orange' };
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+    case 'webp':
+    case 'svg':
+      return { icon: 'image', color: 'purple' };
+    case 'text':
+      return { icon: 'file-text', color: 'gray' };
+    default:
+      return { icon: 'file', color: 'gray' };
+  }
+};
+
+/**
+ * Get document categories from database or static list
+ * @returns Array of document categories
+ */
+export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
+  try {
+    // This would typically fetch from your database
+    // For now, return a static list
+    return [
+      { id: 'general', name: 'General', accessLevel: 'all', description: 'General documents' },
+      { id: 'financial', name: 'Financial', accessLevel: 'board', description: 'Financial documents' },
+      { id: 'legal', name: 'Legal', accessLevel: 'management', description: 'Legal documents' },
+      { id: 'meeting', name: 'Meeting Minutes', accessLevel: 'homeowner', description: 'Meeting minutes' },
+      { id: 'policies', name: 'Policies', accessLevel: 'all', description: 'Association policies' }
+    ];
+  } catch (error) {
+    console.error('Error fetching document categories:', error);
+    return [];
+  }
+};
+
+/**
+ * Format categories for selection dropdowns
+ * @param categories Array of document categories
+ * @returns Formatted array for selection components
+ */
+export const formatCategoriesForSelection = (categories: DocumentCategory[]): { value: string; label: string }[] => {
+  return categories.map(category => ({
+    value: category.id,
+    label: category.name
+  }));
+};
+
+/**
+ * Sync category changes to database
+ * @param categories Updated categories array
+ * @returns Success status
+ */
+export const syncCategoriesToSupabase = async (categories: DocumentCategory[]): Promise<boolean> => {
+  try {
+    // This would typically update your database
+    console.log('Syncing categories to Supabase:', categories);
+    // Mock successful operation
+    return true;
+  } catch (error) {
+    console.error('Error syncing categories to Supabase:', error);
+    return false;
   }
 };

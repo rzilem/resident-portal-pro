@@ -134,19 +134,19 @@ export const defaultColumns: DatabaseColumn[] = [
 ];
 
 export const useHomeowners = () => {
-  const { preferences } = useSettings();
+  const { settings } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<keyof Homeowner>('fullName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [columns, setColumns] = useState<DatabaseColumn[]>(
-    preferences?.databaseHomeownerColumns || defaultColumns
+    settings?.databaseHomeownerColumns || defaultColumns
   );
 
   useEffect(() => {
-    if (preferences?.databaseHomeownerColumns) {
-      setColumns(preferences.databaseHomeownerColumns);
+    if (settings?.databaseHomeownerColumns) {
+      setColumns(settings.databaseHomeownerColumns);
     }
-  }, [preferences]);
+  }, [settings]);
 
   const handleColumnsChange = (newColumns: DatabaseColumn[]) => {
     setColumns(newColumns);

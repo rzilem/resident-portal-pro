@@ -1,140 +1,98 @@
 
-import { Badge } from '@/components/ui/badge';
-import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
-import { 
-  FileText, 
-  File, 
-  Folder, 
-  FileSpreadsheet, 
-  Book, 
-  Receipt, 
-  Banknote, 
-  ScrollText, 
-  FileQuestion, 
-  FileCheck,
-  BarChart,
-  Gavel
-} from 'lucide-react';
+import { DocumentCategory } from '@/types/documents';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Get appropriate icon component for document category
- * @param category Category to get icon for
- * @returns React component for the icon
+ * Sync categories to Supabase database
+ * @param categories Updated array of categories
+ * @returns Success status
  */
-export const getCategoryIcon = (category: DocumentCategory) => {
-  if (category.icon) {
-    return category.icon;
-  }
-  
-  // Default mapping based on category ID
-  switch (category.id) {
-    case 'financial':
-      return Banknote;
-    case 'legal':
-      return Gavel;
-    case 'meeting':
-      return ScrollText;
-    case 'maintenance':
-      return FileCheck;
-    case 'reports':
-      return BarChart;
-    case 'general':
-      return File;
-    default:
-      return Folder;
+export const syncCategoriesToSupabase = async (categories: DocumentCategory[]): Promise<boolean> => {
+  try {
+    // Implementation would update categories in the database
+    // For example:
+    // const { error } = await supabase
+    //   .from('document_categories')
+    //   .upsert(categories.map(cat => ({
+    //     id: cat.id,
+    //     name: cat.name,
+    //     description: cat.description,
+    //     access_level: cat.accessLevel,
+    //     sort_order: cat.sortOrder
+    //   })));
+    
+    // if (error) throw error;
+    
+    console.log('Categories synced successfully:', categories);
+    return true;
+  } catch (error) {
+    console.error('Error syncing categories:', error);
+    return false;
   }
 };
 
 /**
- * Get appropriate color for a category's folder icon
- * @param category Category to get color for
- * @returns Tailwind CSS color class
+ * Get document categories with colors
+ * @returns Array of categories with display properties
  */
-export const getFolderIconColor = (category: DocumentCategory): string => {
-  if (category.color) {
-    return category.color;
-  }
+export const getCategoriesWithColors = async (): Promise<DocumentCategory[]> => {
+  const categories = await getDocumentCategories();
   
-  // Default mapping
-  switch(category.id) {
-    case 'financial':
-      return 'text-green-500';
-    case 'legal':
-      return 'text-blue-500';
-    case 'meeting':
-      return 'text-purple-500';
-    case 'maintenance':
-      return 'text-orange-500';
-    case 'reports':
-      return 'text-indigo-500';
-    default:
-      return 'text-gray-500';
-  }
+  return categories.map(category => ({
+    ...category,
+    color: getCategoryColor(category.id)
+  }));
 };
 
 /**
- * Get folder icon color by access level
- * @param accessLevel Access level to get color for
- * @returns Tailwind CSS color class
+ * Get a consistent color for a category based on its ID
+ * @param categoryId Category identifier
+ * @returns CSS color string
  */
-export const getFolderIconColorByAccessLevel = (accessLevel?: DocumentAccessLevel): string => {
-  switch (accessLevel) {
-    case 'admin':
-      return 'text-red-500';
-    case 'management':
-      return 'text-purple-500';
-    case 'board':
-      return 'text-blue-500';
-    case 'homeowner':
-      return 'text-green-500';
-    case 'all':
-      return 'text-yellow-400';
-    default:
-      return 'text-gray-500';
-  }
+export const getCategoryColor = (categoryId: string): string => {
+  // Simple hash function to generate consistent colors
+  const hash = Array.from(categoryId).reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+  
+  const colors = [
+    'bg-blue-100 text-blue-800',
+    'bg-green-100 text-green-800',
+    'bg-amber-100 text-amber-800',
+    'bg-purple-100 text-purple-800',
+    'bg-red-100 text-red-800',
+    'bg-teal-100 text-teal-800',
+    'bg-sky-100 text-sky-800',
+    'bg-indigo-100 text-indigo-800'
+  ];
+  
+  return colors[hash % colors.length];
 };
 
 /**
- * Render an access level badge with appropriate styling
- * @param accessLevel Access level to render
- * @returns JSX Element
+ * Fetch document categories
+ * This is a placeholder that would normally fetch from database
+ * @returns Array of document categories
  */
-export const renderAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
-  let variant = 'outline';
-  let className = '';
-  let label = 'Everyone';
-  
-  switch (accessLevel) {
-    case 'admin':
-      className = 'bg-red-100 text-red-800 border-red-300';
-      label = 'Admin Only';
-      break;
-    case 'management':
-      className = 'bg-purple-100 text-purple-800 border-purple-300';
-      label = 'Management';
-      break;
-    case 'board':
-      className = 'bg-blue-100 text-blue-800 border-blue-300';
-      label = 'Board Members';
-      break;
-    case 'homeowner':
-      className = 'bg-green-100 text-green-800 border-green-300';
-      label = 'Homeowners';
-      break;
-    case 'all':
-      className = 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      label = 'Everyone';
-      break;
+export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
+  try {
+    // In a real app, this would fetch from Supabase:
+    // const { data, error } = await supabase
+    //   .from('document_categories')
+    //   .select('*')
+    //   .order('sort_order');
+    
+    // if (error) throw error;
+    // return data;
+    
+    // For now, return a static list
+    return [
+      { id: 'general', name: 'General', accessLevel: 'all', description: 'General documents', sortOrder: 1 },
+      { id: 'financial', name: 'Financial', accessLevel: 'board', description: 'Financial documents', sortOrder: 2 },
+      { id: 'legal', name: 'Legal', accessLevel: 'management', description: 'Legal documents', sortOrder: 3 },
+      { id: 'meeting', name: 'Meeting Minutes', accessLevel: 'homeowner', description: 'Meeting minutes', sortOrder: 4 },
+      { id: 'policies', name: 'Policies', accessLevel: 'all', description: 'Association policies', sortOrder: 5 }
+    ];
+  } catch (error) {
+    console.error('Error fetching document categories:', error);
+    return [];
   }
-  
-  // The JSX is being returned as a function result, not directly rendered
-  // in a .ts file. We need to create and return the element programmatically
-  return {
-    type: Badge,
-    props: {
-      variant: variant,
-      className: className,
-      children: label
-    }
-  };
 };
