@@ -1,185 +1,124 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { DocumentCategory, DocumentFile } from '@/types/documents';
-import { toast } from 'sonner';
+import { DocumentFile, Tag } from '@/types/documents';
 
 /**
- * Format file size in a human-readable format
- * @param bytes File size in bytes
- * @returns Formatted file size string
+ * Normalize a string for case-insensitive comparison
+ * @param value String to normalize
+ * @returns Normalized string (lowercase, trimmed)
  */
-export const formatFileSize = (bytes?: number): string => {
-  if (bytes === undefined || bytes === null) return 'Unknown size';
-  
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+export const normalizeString = (value: string): string => {
+  return value ? value.toLowerCase().trim() : '';
 };
 
 /**
- * Format date in a human-readable format
- * @param dateString Date string to format
- * @returns Formatted date string
+ * Check if a document matches a search query
+ * @param doc Document to check
+ * @param query Search query
+ * @returns True if document matches query
  */
-export const formatDate = (dateString?: string): string => {
-  if (!dateString) return 'Unknown date';
+export const documentMatchesSearch = (doc: DocumentFile, query: string): boolean => {
+  if (!query || query.trim() === '') return true;
   
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return 'Invalid date';
-  }
-};
-
-/**
- * Get information about a file type
- * @param fileType MIME type string
- * @returns Object with file type information
- */
-export const getFileTypeInfo = (fileType: string) => {
-  if (!fileType) return { icon: 'file', color: 'gray', label: 'Unknown' };
+  const normalizedQuery = normalizeString(query);
   
-  const lowerType = fileType.toLowerCase();
+  // Check name and description
+  if (normalizeString(doc.name).includes(normalizedQuery)) return true;
+  if (doc.description && normalizeString(doc.description).includes(normalizedQuery)) return true;
   
-  if (lowerType.includes('pdf')) {
-    return { icon: 'file-text', color: 'red', label: 'PDF' };
-  } else if (lowerType.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].some(ext => lowerType.includes(ext))) {
-    return { icon: 'image', color: 'blue', label: 'Image' };
-  } else if (lowerType.includes('word') || lowerType.includes('doc')) {
-    return { icon: 'file-text', color: 'blue', label: 'Word' };
-  } else if (lowerType.includes('excel') || lowerType.includes('sheet') || lowerType.includes('csv') || lowerType.includes('xls')) {
-    return { icon: 'file-spreadsheet', color: 'green', label: 'Spreadsheet' };
-  } else if (lowerType.includes('powerpoint') || lowerType.includes('presentation') || lowerType.includes('ppt')) {
-    return { icon: 'file', color: 'orange', label: 'Presentation' };
-  } else if (lowerType.includes('text') || lowerType.includes('txt')) {
-    return { icon: 'file-text', color: 'gray', label: 'Text' };
-  } else if (lowerType.includes('zip') || lowerType.includes('archive') || lowerType.includes('compressed')) {
-    return { icon: 'archive', color: 'yellow', label: 'Archive' };
-  } else {
-    return { icon: 'file', color: 'gray', label: fileType.split('/')[1] || 'File' };
-  }
-};
-
-/**
- * Format categories for dropdown selection
- * @param categories Array of document categories
- * @returns Array formatted for selection components
- */
-export const formatCategoriesForSelection = (categories: DocumentCategory[]) => {
-  return categories.map(category => ({
-    value: category.id,
-    label: category.name
-  }));
-};
-
-/**
- * Get document categories from the database
- * @returns Promise resolving to document categories
- */
-export const getDocumentCategories = async (): Promise<DocumentCategory[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('document_categories')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching document categories:', error);
-      return [
-        { id: 'financial', name: 'Financial Documents', accessLevel: 'board' },
-        { id: 'legal', name: 'Legal Documents', accessLevel: 'management' },
-        { id: 'meeting', name: 'Meeting Minutes', accessLevel: 'homeowner' },
-        { id: 'maintenance', name: 'Maintenance', accessLevel: 'all' },
-        { id: 'reports', name: 'Reports', accessLevel: 'board' },
-        { id: 'general', name: 'General', accessLevel: 'all' }
-      ];
+  // Check tags (can be string[] or Tag[])
+  if (doc.tags && doc.tags.length > 0) {
+    for (const tag of doc.tags) {
+      if (typeof tag === 'string' && normalizeString(tag).includes(normalizedQuery)) return true;
+      if (typeof tag === 'object' && tag.name && normalizeString(tag.name).includes(normalizedQuery)) return true;
     }
-    
-    if (data && data.length > 0) {
-      return data.map(category => ({
-        id: category.id,
-        name: category.name,
-        description: category.description,
-        accessLevel: category.access_level
-      }));
-    }
-    
-    // Default categories if none found in database
-    return [
-      { id: 'financial', name: 'Financial Documents', accessLevel: 'board' },
-      { id: 'legal', name: 'Legal Documents', accessLevel: 'management' },
-      { id: 'meeting', name: 'Meeting Minutes', accessLevel: 'homeowner' },
-      { id: 'maintenance', name: 'Maintenance', accessLevel: 'all' },
-      { id: 'reports', name: 'Reports', accessLevel: 'board' },
-      { id: 'general', name: 'General', accessLevel: 'all' }
-    ];
-  } catch (error) {
-    console.error('Error in getDocumentCategories:', error);
-    // Fallback to default categories
-    return [
-      { id: 'financial', name: 'Financial Documents', accessLevel: 'board' },
-      { id: 'legal', name: 'Legal Documents', accessLevel: 'management' },
-      { id: 'meeting', name: 'Meeting Minutes', accessLevel: 'homeowner' },
-      { id: 'maintenance', name: 'Maintenance', accessLevel: 'all' },
-      { id: 'reports', name: 'Reports', accessLevel: 'board' },
-      { id: 'general', name: 'General', accessLevel: 'all' }
-    ];
   }
+  
+  // Check category
+  if (doc.category && normalizeString(doc.category).includes(normalizedQuery)) return true;
+  
+  return false;
 };
 
 /**
- * Update document categories in the database
- * @param categories Array of document categories to sync
- * @returns Promise resolving to success status
+ * Get document file size in human-readable format
+ * @param bytes Size in bytes
+ * @returns Formatted file size (e.g., "1.5 MB")
  */
-export const syncCategoriesToSupabase = async (categories: DocumentCategory[]): Promise<boolean> => {
-  try {
-    // Prepare data for Supabase format
-    const formattedCategories = categories.map((cat, index) => ({
-      id: cat.id,
-      name: cat.name,
-      description: cat.description || '',
-      access_level: cat.accessLevel || 'all',
-      sort_order: index
-    }));
-    
-    // Upsert the categories (update if exists, insert if not)
-    const { error } = await supabase
-      .from('document_categories')
-      .upsert(formattedCategories);
-    
-    if (error) {
-      console.error('Error upserting document categories:', error);
-      toast.error(`Failed to update document categories: ${error.message}`);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error in syncCategoriesToSupabase:', error);
-    toast.error('An unexpected error occurred while updating document categories');
-    return false;
-  }
+export const formatFileSize = (bytes: number | undefined): string => {
+  if (bytes === undefined || bytes === 0) return '0 B';
+  
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 /**
- * Convert string tag to Tag object if needed
- * @param tag Tag string or object
- * @returns Normalized Tag object
+ * Get a friendly name for a document file type
+ * @param fileType MIME type or file extension
+ * @returns Human-readable file type
  */
-export const normalizeTag = (tag: string | { id: string; name: string }) => {
-  if (typeof tag === 'string') {
-    return { id: tag, name: tag };
+export const getReadableFileType = (fileType: string): string => {
+  // Handle MIME types
+  if (fileType.startsWith('application/pdf')) return 'PDF';
+  if (fileType.startsWith('application/msword') || 
+      fileType.startsWith('application/vnd.openxmlformats-officedocument.wordprocessingml')) return 'Word';
+  if (fileType.startsWith('application/vnd.ms-excel') || 
+      fileType.startsWith('application/vnd.openxmlformats-officedocument.spreadsheetml')) return 'Excel';
+  if (fileType.startsWith('application/vnd.ms-powerpoint') || 
+      fileType.startsWith('application/vnd.openxmlformats-officedocument.presentationml')) return 'PowerPoint';
+  if (fileType.startsWith('image/')) return fileType.split('/')[1].toUpperCase();
+  if (fileType.startsWith('text/')) return 'Text';
+  
+  // Handle file extensions
+  const extension = fileType.split('.').pop()?.toLowerCase();
+  if (extension) {
+    if (['pdf'].includes(extension)) return 'PDF';
+    if (['doc', 'docx'].includes(extension)) return 'Word';
+    if (['xls', 'xlsx'].includes(extension)) return 'Excel';
+    if (['ppt', 'pptx'].includes(extension)) return 'PowerPoint';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) return extension.toUpperCase();
+    if (['txt', 'rtf', 'md'].includes(extension)) return 'Text';
   }
-  return tag;
+  
+  // Default case
+  return fileType || 'Unknown';
+};
+
+/**
+ * Check if a document should be visible based on its category access level and user role
+ * @param doc Document to check
+ * @param userRole User's role
+ * @param categoryAccessLevels Map of category access levels
+ * @returns True if document should be visible
+ */
+export const canUserAccessDocument = (
+  doc: DocumentFile, 
+  userRole: string,
+  categoryAccessLevels: Record<string, string> = {}
+): boolean => {
+  // If no access control, show to everyone
+  if (!doc.accessLevel && !categoryAccessLevels[doc.category || '']) return true;
+  
+  // Get access level, prioritizing document's own setting
+  const accessLevel = doc.accessLevel || categoryAccessLevels[doc.category || ''];
+  
+  // If still no access level, show to everyone
+  if (!accessLevel) return true;
+  
+  // Access level hierarchy: all < homeowner < board < management < admin
+  switch(accessLevel) {
+    case 'all': 
+      return true;
+    case 'homeowner': 
+      return ['homeowner', 'board', 'management', 'admin'].includes(userRole);
+    case 'board': 
+      return ['board', 'management', 'admin'].includes(userRole);
+    case 'management': 
+      return ['management', 'admin'].includes(userRole);
+    case 'admin': 
+      return ['admin'].includes(userRole);
+    default:
+      return true;
+  }
 };
