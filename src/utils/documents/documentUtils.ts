@@ -1,177 +1,111 @@
 
-import { DocumentFile } from '@/types/documents';
+import { DocumentCategory, DocumentFile } from '@/types/documents';
+import { BarChart, FileText, FileCode, Calculator, FileSpreadsheet, Book, Receipt, Gavel, File, FileUp } from 'lucide-react';
 
 /**
- * Get formatted file size with appropriate units (KB, MB, GB)
- * @param bytes File size in bytes
- * @param decimals Number of decimal places to display
- * @returns Formatted file size with units
+ * Format a date string to a human-readable format
+ * @param dateString ISO date string to format
+ * @returns Formatted date string
  */
-export const formatFileSize = (bytes: number, decimals: number = 2): string => {
-  if (bytes === 0) return '0 Bytes';
+export const formatDate = (dateString?: string): string => {
+  if (!dateString) return 'N/A';
   
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
-};
-
-/**
- * Get appropriate icon/color for document based on file type
- * @param fileType MIME type or file extension
- * @returns Object containing icon type and color class
- */
-export const getDocumentTypeInfo = (fileType: string): { icon: string; colorClass: string } => {
-  // Get file extension from MIME type or full file name if needed
-  const fileExt = fileType.includes('/') 
-    ? fileType.split('/')[1]
-    : fileType.includes('.') 
-      ? fileType.split('.').pop() || fileType
-      : fileType;
-  
-  // Map file extensions/types to icons and color classes
-  switch(fileExt.toLowerCase()) {
-    case 'pdf':
-      return { icon: 'file-text', colorClass: 'text-red-500' };
-    case 'doc':
-    case 'docx':
-    case 'odt':
-      return { icon: 'file-text', colorClass: 'text-blue-500' };
-    case 'xls':
-    case 'xlsx':
-    case 'csv':
-      return { icon: 'file-spreadsheet', colorClass: 'text-green-500' };
-    case 'ppt':
-    case 'pptx':
-      return { icon: 'file-presentation', colorClass: 'text-orange-500' };
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-    case 'webp':
-    case 'svg':
-      return { icon: 'image', colorClass: 'text-purple-500' };
-    case 'mp4':
-    case 'avi':
-    case 'mov':
-    case 'webm':
-      return { icon: 'video', colorClass: 'text-pink-500' };
-    case 'mp3':
-    case 'wav':
-    case 'ogg':
-      return { icon: 'audio', colorClass: 'text-indigo-500' };
-    case 'zip':
-    case 'rar':
-    case '7z':
-    case 'tar':
-    case 'gz':
-      return { icon: 'archive', colorClass: 'text-yellow-500' };
-    default:
-      return { icon: 'file', colorClass: 'text-gray-500' };
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (e) {
+    return 'Invalid date';
   }
 };
 
 /**
- * Check if document is viewable in browser
- * @param fileType MIME type or file extension
- * @returns Boolean indicating if file can be previewed in browser
+ * Get information about a file type
+ * @param fileType MIME type of the file
+ * @returns Object with file type information
  */
-export const isPreviewableDocument = (fileType: string): boolean => {
-  // Handle both MIME types and file extensions
-  if (fileType.includes('/')) {
-    // MIME type format
-    const mimeType = fileType.toLowerCase();
-    
-    return (
-      mimeType.startsWith('image/') ||
-      mimeType === 'application/pdf' ||
-      mimeType === 'text/plain' ||
-      mimeType === 'text/html' ||
-      mimeType === 'text/css' ||
-      mimeType === 'text/javascript' ||
-      mimeType === 'text/csv' ||
-      mimeType === 'application/json'
-    );
-  } else {
-    // File extension format
-    const ext = fileType.startsWith('.') ? fileType.substring(1) : fileType;
-    const lowerExt = ext.toLowerCase();
-    
-    return [
-      'pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'webp',
-      'txt', 'html', 'htm', 'css', 'js', 'json', 'csv'
-    ].includes(lowerExt);
+export const getFileTypeInfo = (fileType: string) => {
+  const type = fileType.toLowerCase();
+  
+  if (type.includes('pdf')) {
+    return { icon: FileText, color: 'text-red-500', name: 'PDF' };
+  } else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
+    return { icon: FileSpreadsheet, color: 'text-green-600', name: 'Spreadsheet' };
+  } else if (type.includes('word') || type.includes('document')) {
+    return { icon: FileText, color: 'text-blue-500', name: 'Document' };
+  } else if (type.includes('image')) {
+    return { icon: FileUp, color: 'text-purple-500', name: 'Image' };
+  } else if (type.includes('audio')) {
+    return { icon: File, color: 'text-yellow-500', name: 'Audio' };
+  } else if (type.includes('video')) {
+    return { icon: File, color: 'text-pink-500', name: 'Video' };
+  } else if (type.includes('code') || type.includes('json') || type.includes('xml')) {
+    return { icon: FileCode, color: 'text-gray-700', name: 'Code' };
   }
+  
+  return { icon: File, color: 'text-gray-500', name: 'File' };
 };
 
 /**
- * Check if document should use Google Docs Viewer for preview
- * @param fileType MIME type or file extension
- * @returns Boolean indicating if Google Docs viewer should be used
+ * Get list of document categories
+ * @returns Array of document categories
  */
-export const useGoogleDocsViewer = (fileType: string): boolean => {
-  // Handle both MIME types and file extensions
-  if (fileType.includes('/')) {
-    // MIME type format
-    const mimeType = fileType.toLowerCase();
-    
-    return (
-      mimeType === 'application/pdf' ||
-      mimeType === 'application/msword' ||
-      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      mimeType === 'application/vnd.ms-excel' ||
-      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      mimeType === 'application/vnd.ms-powerpoint' ||
-      mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    );
-  } else {
-    // File extension format
-    const ext = fileType.startsWith('.') ? fileType.substring(1) : fileType;
-    const lowerExt = ext.toLowerCase();
-    
-    return [
-      'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'
-    ].includes(lowerExt);
-  }
+export const getDocumentCategories = (): DocumentCategory[] => {
+  return [
+    {
+      id: 'financial',
+      name: 'Financial',
+      description: 'Financial reports, budgets, and statements',
+      icon: Calculator,
+      color: 'text-green-600'
+    },
+    {
+      id: 'legal',
+      name: 'Legal',
+      description: 'Legal documents, contracts, and agreements',
+      icon: Gavel,
+      color: 'text-blue-600'
+    },
+    {
+      id: 'meeting',
+      name: 'Meeting Minutes',
+      description: 'Board meeting minutes and notes',
+      icon: FileText,
+      color: 'text-purple-600'
+    },
+    {
+      id: 'maintenance',
+      name: 'Maintenance',
+      description: 'Maintenance reports and schedules',
+      icon: FileUp,
+      color: 'text-orange-600'
+    },
+    {
+      id: 'reports',
+      name: 'Reports',
+      description: 'Various reports and analytics',
+      icon: BarChart,
+      color: 'text-indigo-600'
+    },
+    {
+      id: 'general',
+      name: 'General',
+      description: 'General documents and files',
+      icon: File,
+      color: 'text-gray-600'
+    }
+  ];
 };
 
 /**
- * Sort documents by specified field
- * @param documents List of documents to sort
- * @param sortField Field to sort by
- * @param sortDirection 'asc' for ascending, 'desc' for descending
- * @returns Sorted list of documents
+ * Get a specific document category by ID
+ * @param categoryId ID of the category to retrieve
+ * @returns The document category or undefined if not found
  */
-export const sortDocuments = (
-  documents: DocumentFile[],
-  sortField: keyof DocumentFile = 'uploadedDate',
-  sortDirection: 'asc' | 'desc' = 'desc'
-): DocumentFile[] => {
-  return [...documents].sort((a, b) => {
-    let valueA = a[sortField];
-    let valueB = b[sortField];
-    
-    // Handle date fields
-    if (['uploadedDate', 'lastModified'].includes(sortField as string)) {
-      valueA = new Date(valueA as string).getTime();
-      valueB = new Date(valueB as string).getTime();
-    }
-    
-    // Handle string fields
-    if (typeof valueA === 'string' && typeof valueB === 'string') {
-      return sortDirection === 'asc'
-        ? valueA.localeCompare(valueB)
-        : valueB.localeCompare(valueA);
-    }
-    
-    // Handle number fields
-    if (valueA === valueB) return 0;
-    
-    if (sortDirection === 'asc') {
-      return valueA > valueB ? 1 : -1;
-    } else {
-      return valueA < valueB ? 1 : -1;
-    }
-  });
+export const getDocumentCategoryById = (categoryId?: string): DocumentCategory | undefined => {
+  if (!categoryId) return undefined;
+  return getDocumentCategories().find(category => category.id === categoryId);
 };

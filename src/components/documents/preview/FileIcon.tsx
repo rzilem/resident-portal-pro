@@ -5,7 +5,7 @@ import {
   Image, 
   File, 
   FileSpreadsheet,
-  FilePpt,
+  FileType,
   FileArchive,
   FileAudio,
   FileVideo,
@@ -53,7 +53,7 @@ const FileIcon: React.FC<FileIconProps> = ({
   }
   
   if (isType(['ppt', 'pptx', 'odp'])) {
-    return <FilePpt size={size} className={className} />;
+    return <FileType size={size} className={className} />;
   }
   
   if (isType(['zip', 'rar', '7z', 'tar', 'gz'])) {

@@ -244,4 +244,24 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   );
 };
 
-export default DocumentPreview;
+export const isPreviewableDocument = (fileType: string = '') => {
+  return (
+    fileType.startsWith('image/') || 
+    fileType === 'application/pdf' ||
+    fileType.startsWith('text/') ||
+    fileType.includes('word') ||
+    fileType.includes('sheet') ||
+    fileType.includes('presentation')
+  );
+};
+
+export const useGoogleDocsViewer = (fileType: string = '') => {
+  return (
+    fileType.includes('word') ||
+    fileType.includes('sheet') ||
+    fileType.includes('presentation') ||
+    fileType === 'application/pdf'
+  );
+};
+
+export { DocumentPreview };

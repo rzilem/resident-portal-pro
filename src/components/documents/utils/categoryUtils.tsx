@@ -1,225 +1,174 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import { DocumentCategory } from '@/types/documents';
 import { 
-  FolderIcon, 
-  FileTextIcon, 
-  ImageIcon, 
-  FileIcon,
-  PieChartIcon,
-  BookIcon,
-  MapIcon,
-  FileCheckIcon,
-  ShieldIcon,
-  UsersIcon,
-  HomeIcon,
-  BuildingIcon,
-  SettingsIcon
+  FileText, 
+  FileSpreadsheet, 
+  Receipt, 
+  Gavel, 
+  Calendar, 
+  Wrench,
+  FileQuestion,
+  Building,
+  User,
+  MessageSquare,
+  ShieldAlert,
+  Landmark
 } from 'lucide-react';
-import { DocumentAccessLevel, DocumentCategory } from '@/types/documents';
 
-// Common document categories for HOA management
-export const commonCategories: DocumentCategory[] = [
-  {
-    id: 'governing-documents',
-    name: 'Governing Documents',
-    description: 'CC&Rs, Bylaws, Rules & Regulations',
-    accessLevel: 'all',
-    icon: 'book',
-    color: 'blue'
-  },
-  {
-    id: 'financial',
-    name: 'Financial',
-    description: 'Budgets, Financial Statements, Audits',
-    accessLevel: 'management',
-    icon: 'pie-chart',
-    color: 'green'
-  },
-  {
-    id: 'meeting-minutes',
-    name: 'Meeting Minutes',
-    description: 'Board and Annual Meeting Minutes',
-    accessLevel: 'board',
-    icon: 'file-text',
-    color: 'purple'
-  },
-  {
-    id: 'legal',
-    name: 'Legal',
-    description: 'Legal Documents and Correspondence',
-    accessLevel: 'management',
-    icon: 'shield',
-    color: 'red'
-  },
-  {
-    id: 'architectural',
-    name: 'Architectural',
-    description: 'Architectural Guidelines and Applications',
-    accessLevel: 'homeowner',
-    icon: 'home',
-    color: 'orange'
-  },
-  {
-    id: 'maintenance',
-    name: 'Maintenance',
-    description: 'Maintenance Records and Schedules',
-    accessLevel: 'management',
-    icon: 'settings',
-    color: 'yellow'
-  },
-  {
-    id: 'contracts',
-    name: 'Contracts',
-    description: 'Vendor Contracts and Agreements',
-    accessLevel: 'management',
-    icon: 'file-check',
-    color: 'indigo'
-  },
-  {
-    id: 'insurance',
-    name: 'Insurance',
-    description: 'Insurance Policies and Claims',
-    accessLevel: 'board',
-    icon: 'shield',
-    color: 'cyan'
-  },
-  {
-    id: 'property-maps',
-    name: 'Property Maps',
-    description: 'Site Plans and Property Maps',
-    accessLevel: 'homeowner',
-    icon: 'map',
-    color: 'lime'
-  },
-  {
-    id: 'newsletters',
-    name: 'Newsletters',
-    description: 'Community Newsletters and Announcements',
-    accessLevel: 'all',
-    icon: 'file-text',
-    color: 'pink'
-  },
-  {
-    id: 'photos',
-    name: 'Photos',
-    description: 'Property and Event Photos',
-    accessLevel: 'all',
-    icon: 'image',
-    color: 'rose'
-  },
-  {
-    id: 'residents',
-    name: 'Residents',
-    description: 'Resident Documents and Forms',
-    accessLevel: 'management',
-    icon: 'users',
-    color: 'sky'
-  },
-];
-
-// Get category icon component based on category
-export const getCategoryIcon = (category: DocumentCategory | string) => {
-  const categoryId = typeof category === 'string' ? category : category.id;
-  const iconName = typeof category === 'string' 
-    ? commonCategories.find(c => c.id === categoryId)?.icon
-    : category.icon;
-  
-  switch (iconName) {
-    case 'book':
-      return <BookIcon />;
-    case 'pie-chart':
-      return <PieChartIcon />;
-    case 'file-text':
-      return <FileTextIcon />;
-    case 'shield':
-      return <ShieldIcon />;
-    case 'home':
-      return <HomeIcon />;
-    case 'settings':
-      return <SettingsIcon />;
-    case 'file-check':
-      return <FileCheckIcon />;
-    case 'map':
-      return <MapIcon />;
-    case 'image':
-      return <ImageIcon />;
-    case 'users':
-      return <UsersIcon />;
-    case 'building':
-      return <BuildingIcon />;
-    default:
-      return <FolderIcon />;
-  }
+/**
+ * Get a list of document categories with their display properties
+ */
+export const getDocumentCategories = (): DocumentCategory[] => {
+  return [
+    {
+      id: 'general',
+      name: 'General Documents',
+      description: 'General association documents',
+      icon: FileText,
+      color: 'bg-gray-100 text-gray-600'
+    },
+    {
+      id: 'financial',
+      name: 'Financial Documents',
+      description: 'Budgets, financial statements, and reports',
+      icon: Receipt,
+      color: 'bg-green-100 text-green-600'
+    },
+    {
+      id: 'legal',
+      name: 'Legal Documents',
+      description: 'Bylaws, CC&Rs, rules and regulations',
+      icon: Gavel,
+      color: 'bg-blue-100 text-blue-600'
+    },
+    {
+      id: 'meeting',
+      name: 'Meeting Minutes',
+      description: 'Board meeting minutes and annual meeting notes',
+      icon: Calendar,
+      color: 'bg-purple-100 text-purple-600'
+    },
+    {
+      id: 'maintenance',
+      name: 'Maintenance',
+      description: 'Maintenance plans and reports',
+      icon: Wrench,
+      color: 'bg-amber-100 text-amber-600'
+    },
+    {
+      id: 'insurance',
+      name: 'Insurance',
+      description: 'Insurance policies and claims',
+      icon: ShieldAlert,
+      color: 'bg-sky-100 text-sky-600'
+    },
+    {
+      id: 'architectural',
+      name: 'Architectural',
+      description: 'Architectural guidelines and applications',
+      icon: Building,
+      color: 'bg-indigo-100 text-indigo-600'
+    },
+    {
+      id: 'resident',
+      name: 'Resident Documents',
+      description: 'Resident-specific information',
+      icon: User,
+      color: 'bg-rose-100 text-rose-600'
+    },
+    {
+      id: 'communications',
+      name: 'Communications',
+      description: 'Newsletters and community announcements',
+      icon: MessageSquare,
+      color: 'bg-emerald-100 text-emerald-600'
+    },
+    {
+      id: 'taxes',
+      name: 'Tax Documents',
+      description: 'Tax returns and related documents',
+      icon: Landmark,
+      color: 'bg-slate-100 text-slate-600'
+    },
+    {
+      id: 'contracts',
+      name: 'Contracts',
+      description: 'Vendor contracts and agreements',
+      icon: FileSpreadsheet,
+      color: 'bg-orange-100 text-orange-600'
+    },
+    {
+      id: 'other',
+      name: 'Other',
+      description: 'Miscellaneous documents',
+      icon: FileQuestion,
+      color: 'bg-neutral-100 text-neutral-600'
+    }
+  ];
 };
 
-// Get category color class based on category
-export const getCategoryColorClass = (category: DocumentCategory | string): string => {
-  const categoryId = typeof category === 'string' ? category : category.id;
-  const color = typeof category === 'string'
-    ? commonCategories.find(c => c.id === categoryId)?.color
-    : category.color;
-  
-  switch (color) {
-    case 'blue':
-      return 'text-blue-500 bg-blue-50';
-    case 'green':
-      return 'text-green-500 bg-green-50';
-    case 'red':
-      return 'text-red-500 bg-red-50';
-    case 'yellow':
-      return 'text-yellow-600 bg-yellow-50';
-    case 'purple':
-      return 'text-purple-500 bg-purple-50';
-    case 'pink':
-      return 'text-pink-500 bg-pink-50';
-    case 'indigo':
-      return 'text-indigo-500 bg-indigo-50';
-    case 'orange':
-      return 'text-orange-500 bg-orange-50';
-    case 'cyan':
-      return 'text-cyan-500 bg-cyan-50';
-    case 'lime':
-      return 'text-lime-600 bg-lime-50';
-    case 'rose':
-      return 'text-rose-500 bg-rose-50';
-    case 'sky':
-      return 'text-sky-500 bg-sky-50';
-    default:
-      return 'text-gray-500 bg-gray-50';
-  }
+/**
+ * Get a category object by ID
+ */
+export const getCategoryById = (categoryId: string): DocumentCategory | undefined => {
+  return getDocumentCategories().find(category => category.id === categoryId);
 };
 
-// Render a badge with the access level label
-export const renderAccessLevelBadge = (accessLevel: DocumentAccessLevel): JSX.Element => {
-  let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
-  let label = 'All Users';
-  
-  switch (accessLevel) {
-    case 'admin':
-      variant = 'destructive';
-      label = 'Admins Only';
-      break;
-    case 'management':
-      variant = 'default';
-      label = 'Management';
-      break;
-    case 'board':
-      variant = 'secondary';
-      label = 'Board Members';
-      break;
-    case 'homeowner':
-      variant = 'outline';
-      label = 'Homeowners';
-      break;
-    default:
-      variant = 'outline';
-      label = 'All Users';
+/**
+ * Get the icon component for a category
+ */
+export const getCategoryIcon = (categoryId: string): React.ReactNode => {
+  const category = getCategoryById(categoryId);
+  if (!category || !category.icon) {
+    return <FileText />;
   }
-  
-  return (
-    <Badge variant={variant} className="ml-2">
-      {label}
-    </Badge>
-  );
+  const IconComponent = category.icon;
+  return <IconComponent />;
+};
+
+/**
+ * Get color class for a category
+ */
+export const getCategoryColorClass = (categoryId: string): string => {
+  const category = getCategoryById(categoryId);
+  if (!category || !category.color) {
+    return 'bg-gray-100 text-gray-600';
+  }
+  return category.color;
+};
+
+/**
+ * Get the folder icon color for a specific folder/category
+ */
+export const getFolderIconColor = (categoryId: string): string => {
+  const category = getCategoryById(categoryId);
+  if (!category) {
+    return 'text-gray-400';
+  }
+
+  switch (categoryId) {
+    case 'financial':
+      return 'text-green-500';
+    case 'legal':
+      return 'text-blue-500';
+    case 'meeting':
+      return 'text-purple-500';
+    case 'maintenance':
+      return 'text-amber-500';
+    case 'insurance':
+      return 'text-sky-500';
+    case 'architectural':
+      return 'text-indigo-500';
+    case 'resident':
+      return 'text-rose-500';
+    case 'communications':
+      return 'text-emerald-500';
+    case 'taxes':
+      return 'text-slate-500';
+    case 'contracts':
+      return 'text-orange-500';
+    default:
+      return 'text-gray-400';
+  }
 };

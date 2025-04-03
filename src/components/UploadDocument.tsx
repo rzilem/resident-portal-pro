@@ -57,7 +57,7 @@ const UploadDocument = ({ associationId = '00000000-0000-0000-0000-000000000000'
       const result = await uploadDocument(file, {
         description,
         category,
-        is_public: false
+        isPublic: false // Changed from is_public to isPublic to match the expected type
       });
       
       if (result) {
@@ -85,9 +85,9 @@ const UploadDocument = ({ associationId = '00000000-0000-0000-0000-000000000000'
       </CardHeader>
       <CardContent className="space-y-4">
         <FileUploader 
-          file={file} 
-          setFile={setFile} 
-          disabled={uploading} 
+          onFileSelected={setFile} 
+          currentFile={file} 
+          maxSize={10 * 1024 * 1024} // 10MB
         />
         
         <div className="space-y-4">

@@ -1,92 +1,30 @@
 
-export interface DocumentCategory {
+export interface Tag {
   id: string;
   name: string;
-  parent?: string;
-  description?: string;
-  isRestricted?: boolean;
-  requiredPermission?: string;
-  sortOrder?: number;
-  accessLevel?: DocumentAccessLevel;
+  color?: string;
 }
-
-export type DocumentAccessLevel = 'all' | 'homeowner' | 'board' | 'management' | 'admin';
 
 export interface DocumentFile {
   id: string;
   name: string;
-  description?: string;
-  fileSize: number;
-  fileType: string;
   url: string;
-  category: string;
-  tags?: string[];
-  uploadedBy: string;
+  size: number;
+  fileType: string;
   uploadedDate: string;
+  uploadedBy?: string;
   lastModified?: string;
-  version: number;
-  previousVersions?: {
-    version: number;
-    url: string;
-    lastModified: string;
-    modifiedBy: string;
-  }[];
-  expirationDate?: string;
-  isPublic: boolean;
-  isArchived: boolean;
-  properties?: string[];
-  associations?: string[];
-  metadata?: Record<string, any>;
+  description?: string;
+  category?: string;
+  version?: string;
+  tags?: Tag[];
+  isPublic?: boolean;
 }
 
-export interface DocumentTemplate {
+export interface DocumentCategory {
   id: string;
   name: string;
   description?: string;
-  category: string;
-  content: string;
-  createdBy: string;
-  createdDate: string;
-  lastModified?: string;
-  lastModifiedBy?: string;
-  version: number;
-  previousVersions?: {
-    version: number;
-    content: string;
-    lastModified: string;
-    modifiedBy: string;
-  }[];
-  isActive: boolean;
-  usageCount: number;
-  lastUsed?: string;
-  mergeTags?: string[];
-  associationId?: string;
-}
-
-export interface DocumentSearchFilters {
-  query?: string;
-  categories?: string[];
-  fileTypes?: string[];
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-  uploadedBy?: string[];
-  tags?: string[];
-  associations?: string[];
-  properties?: string[];
-  isPublic?: boolean;
-  isArchived?: boolean;
-}
-
-export interface DocumentPermission {
-  documentId: string;
-  roleId: string;
-  permissions: {
-    view: boolean;
-    download: boolean;
-    edit: boolean;
-    delete: boolean;
-    share: boolean;
-  };
+  icon?: React.ComponentType; // Added to fix type errors
+  color?: string; // Added to fix type errors
 }
