@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Bell, Menu, User, Settings, HelpCircle } from 'lucide-react';
 import MainNav from './MainNav';
+import { useCompanySettings } from '@/hooks/use-company-settings';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +27,7 @@ const DashboardHeaderWithNav = ({
   icon
 }: DashboardHeaderWithNavProps) => {
   const location = useLocation();
+  const { settings } = useCompanySettings();
   
   const getPageTitle = () => {
     if (title) return title;

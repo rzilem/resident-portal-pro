@@ -14,6 +14,7 @@ import { TooltipButton } from '@/components/ui/tooltip-button';
 import { useSettings } from '@/hooks/use-settings';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
+import AppHeader from '@/components/layout/AppHeader';
 
 const Settings = () => {
   const isMobile = useIsMobile();

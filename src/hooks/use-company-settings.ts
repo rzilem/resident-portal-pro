@@ -31,6 +31,11 @@ export const useCompanySettings = () => {
           const companySettings = await companySettingsService.getCompanySettings(user.id);
           if (companySettings) {
             setSettings(companySettings);
+            
+            // Update document title when company name changes
+            if (companySettings.companyName) {
+              document.title = companySettings.companyName;
+            }
           }
         } catch (error) {
           console.error('Error loading company settings:', error);
@@ -52,6 +57,11 @@ export const useCompanySettings = () => {
     }
 
     setSettings(prev => ({ ...prev, [key]: value }));
+    
+    // Update document title when company name changes
+    if (key === 'companyName' && value) {
+      document.title = value;
+    }
     
     try {
       await companySettingsService.updateCompanySetting(user.id, key, value);
