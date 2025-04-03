@@ -3,7 +3,8 @@ import {
   User, 
   Mail, 
   FileText, 
-  BarChart4 
+  BarChart4,
+  ClipboardList
 } from 'lucide-react';
 import { NavigationItem } from './types';
 
@@ -42,6 +43,12 @@ export const getLeadsSection = (currentPath: string): NavigationItem => {
         icon: BarChart4,
         href: '/leads?tab=analytics',
         active: currentPath === '/leads?tab=analytics'
+      },
+      {
+        label: 'Onboarding Wizard',
+        icon: ClipboardList,
+        href: '/leads/onboarding',
+        active: currentPath.startsWith('/leads/onboarding')
       }
     ]
   };

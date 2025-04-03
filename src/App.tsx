@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -27,6 +26,7 @@ import LetterTemplates from '@/pages/letter-templates/LetterTemplates';
 import LeadsManagement from '@/pages/leads/LeadsManagement';
 import ProposalCreator from '@/pages/leads/ProposalCreator';
 import ProposalViewer from '@/pages/leads/ProposalViewer';
+import OnboardingWizard from '@/pages/leads/OnboardingWizard';
 
 import AccountingDashboard from '@/pages/accounting/AccountingDashboard';
 import InvoiceQueue from '@/pages/accounting/InvoiceQueue';
@@ -127,6 +127,8 @@ const App = () => {
 
           {/* Lead Management Routes */}
           <Route path="/leads" element={<LeadsManagement />} />
+          <Route path="/leads/onboarding" element={<OnboardingWizard />} />
+          <Route path="/leads/onboarding/:projectId" element={<OnboardingWizard />} />
           <Route path="/leads/proposal-creator" element={<ProposalCreator />} />
           <Route path="/proposal/:id" element={<ProposalViewer />} />
           
