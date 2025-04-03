@@ -1,12 +1,11 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Volume2, Info } from 'lucide-react';
+import { Volume2 } from 'lucide-react';
 import ElevenLabsFormFields from './elevenlabs/ElevenLabsFormFields';
 import ElevenLabsActions from './elevenlabs/ElevenLabsActions';
 import AuthRequiredAlert from './elevenlabs/AuthRequiredAlert';
 import { useElevenLabsDialog } from './elevenlabs/useElevenLabsDialog';
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ElevenLabsDialogProps {
   open: boolean;
@@ -24,7 +23,6 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
     isTesting,
     isLoading,
     isAuthenticated,
-    testLog,
     setApiKey,
     setDefaultVoiceId,
     setDefaultModel,
@@ -55,22 +53,6 @@ const ElevenLabsDialog: React.FC<ElevenLabsDialogProps> = ({
           onVoiceChange={setDefaultVoiceId}
           onModelChange={setDefaultModel}
         />
-
-        {testLog.length > 0 && (
-          <Alert variant="default" className="my-4">
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <details>
-                <summary className="cursor-pointer font-medium">Test Log (click to expand)</summary>
-                <div className="mt-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-40">
-                  {testLog.map((log, index) => (
-                    <div key={index}>{log}</div>
-                  ))}
-                </div>
-              </details>
-            </AlertDescription>
-          </Alert>
-        )}
 
         <ElevenLabsActions
           onCancel={() => onOpenChange(false)}

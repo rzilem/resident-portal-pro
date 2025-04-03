@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
-import { useCompanySettings } from '@/hooks/use-company-settings';
 
 interface NavItem {
   label: string;
@@ -23,7 +22,6 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
-  const { settings, isLoading } = useCompanySettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,8 +35,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
-  console.log('Navbar rendering with logo URL:', settings.logoUrl);
-
   return (
     <nav
       className={cn(
@@ -51,24 +47,9 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         <Link
           to="/"
-          className="flex items-center"
+          className="text-2xl font-bold text-gradient"
         >
-          {settings.logoUrl ? (
-            <img 
-              src={settings.logoUrl} 
-              alt={settings.companyName || "Company Logo"} 
-              className="h-10 max-w-[180px] object-contain" 
-              onError={(e) => {
-                console.error('Logo failed to load:', settings.logoUrl);
-                e.currentTarget.src = ""; // Clear the src to prevent fallback loop
-                e.currentTarget.style.display = "none"; // Hide the image
-              }}
-            />
-          ) : (
-            <span className="text-2xl font-bold text-gradient">
-              {settings.companyName || "Community Intelligence"}
-            </span>
-          )}
+          Community Intelligence
         </Link>
 
         {/* Desktop Menu */}

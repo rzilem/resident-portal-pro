@@ -7,7 +7,6 @@ import { Upload, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
 import { useCompanySettings } from '@/hooks/use-company-settings';
 import { useAuth } from '@/hooks/use-auth';
-import { infoLog, errorLog } from '@/utils/debug';
 
 const LogoUploader = () => {
   const { settings, isLoading, updateSetting, uploadLogo } = useCompanySettings();
@@ -16,8 +15,6 @@ const LogoUploader = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const currentLogo = settings.logoUrl;
-  
-  console.log('LogoUploader current logo URL:', currentLogo);
   
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,21 +42,18 @@ const LogoUploader = () => {
     toast.loading('Uploading logo...');
     
     try {
-      infoLog('Starting logo upload process', file.name);
       // Use the company settings service to upload the logo
       const logoUrl = await uploadLogo(file);
       
       if (logoUrl) {
         toast.dismiss();
         toast.success('Logo uploaded successfully');
-        infoLog('Logo upload complete, URL:', logoUrl);
       } else {
         toast.dismiss();
         toast.error('Failed to upload logo');
-        errorLog('Logo upload failed, no URL returned');
       }
     } catch (error) {
-      errorLog('Error uploading logo:', error);
+      console.error('Error uploading logo:', error);
       toast.dismiss();
       toast.error('Failed to upload logo');
     } finally {
@@ -76,11 +70,10 @@ const LogoUploader = () => {
     if (!currentLogo || !isAuthenticated) return;
     
     try {
-      infoLog('Removing logo');
       await updateSetting('logoUrl', null);
       toast.success('Logo removed successfully');
     } catch (error) {
-      errorLog('Error removing logo:', error);
+      console.error('Error removing logo:', error);
       toast.error('Failed to remove logo');
     }
   }, [currentLogo, updateSetting, isAuthenticated]);
@@ -108,11 +101,6 @@ const LogoUploader = () => {
                 src={currentLogo} 
                 alt="Company Logo" 
                 className="max-h-24 w-auto object-contain mb-4" 
-                onError={(e) => {
-                  console.error('Failed to load logo in uploader:', currentLogo);
-                  // Don't hide the image here, show a placeholder instead
-                  e.currentTarget.src = "";
-                }}
               />
               
               <div className="flex gap-2">

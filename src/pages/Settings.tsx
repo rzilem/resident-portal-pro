@@ -14,7 +14,6 @@ import { TooltipButton } from '@/components/ui/tooltip-button';
 import { useSettings } from '@/hooks/use-settings';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
-import AppHeader from '@/components/layout/AppHeader';
 
 const Settings = () => {
   const isMobile = useIsMobile();
@@ -27,12 +26,6 @@ const Settings = () => {
     if (sessionStorage.getItem('open-display-settings') === 'true') {
       setActiveTab('display');
       sessionStorage.removeItem('open-display-settings');
-    }
-    
-    // Check if we should open the branding tab
-    if (sessionStorage.getItem('open-branding-tab') === 'true') {
-      setActiveTab('branding');
-      sessionStorage.removeItem('open-branding-tab');
     }
   }, []);
   

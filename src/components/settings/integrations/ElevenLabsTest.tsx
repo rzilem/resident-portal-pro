@@ -1,16 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Volume2, Play, Square, Loader2, Info } from 'lucide-react';
+import { Volume2, Play, Square, Loader2 } from 'lucide-react';
 import { useElevenLabs } from '@/hooks/use-elevenlabs';
-import { generateSpeech, playAudioBlob, VOICE_OPTIONS } from '@/utils/elevenlabs';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/use-integrations';
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ElevenLabsTest = () => {
   const [text, setText] = useState("Welcome to ResidentPro. I'm your virtual assistant, how can I help you today?");
@@ -20,22 +18,6 @@ const ElevenLabsTest = () => {
   const { isElevenLabsConnected, settings } = useElevenLabs();
   const { getIntegration } = useIntegrations();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const [testLog, setTestLog] = useState<string[]>([]);
-
-  // Listen for logs and capture them for display
-  useEffect(() => {
-    const originalConsoleLog = console.log;
-    console.log = (...args) => {
-      originalConsoleLog(...args);
-      if (typeof args[0] === 'string' && args[0].includes('ElevenLabs')) {
-        setTestLog(prev => [...prev, args.join(' ')]);
-      }
-    };
-    
-    return () => {
-      console.log = originalConsoleLog;
-    };
-  }, []);
 
   const handleGenerateSpeech = async () => {
     if (!isElevenLabsConnected) {
@@ -49,54 +31,32 @@ const ElevenLabsTest = () => {
     }
 
     setIsGenerating(true);
-    setTestLog([]);
     
     try {
-      const integrationDetails = getIntegration('ElevenLabs');
+      // In a real implementation, this would call the actual ElevenLabs API
+      // For now, we'll simulate it with a timeout and a mock response
       
-      // Log attempt
-      setTestLog(prev => [...prev, `Attempting to generate speech with: ${integrationDetails?.apiKey ? 'API Key Present' : 'No API Key'}`]);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // For testing purposes, we'll use a simulated API response
-      // In a real implementation, this would use the actual API key from integrationDetails
-      const mockApiKey = integrationDetails?.apiKey || 'test-api-key';
-      const voiceId = integrationDetails?.defaultVoiceId || settings.defaultVoiceId;
-      const model = integrationDetails?.defaultModel || settings.defaultModel;
+      // Create a mock audio URL - in a real app you'd get this from the API
+      const mockResponse = new Blob(
+        [new Uint8Array([1, 2, 3, 4])], 
+        { type: 'audio/mpeg' }
+      );
+      const url = URL.createObjectURL(mockResponse);
       
-      setTestLog(prev => [...prev, `Using voice: ${voiceId}, model: ${model}`]);
-      
-      // Generate speech
-      const audioBlob = await generateSpeech(text, mockApiKey, {
-        voiceId,
-        model
-      });
-      
-      if (!audioBlob) {
-        throw new Error("Failed to generate speech");
-      }
-      
-      // Create a URL for the audio blob
-      const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
-      setTestLog(prev => [...prev, `Speech generated successfully, URL created`]);
-      
       toast.success("Speech generated successfully");
       
-      // Set up the audio element
+      // In a real app, you might want to automatically play the audio
       if (audioRef.current) {
         audioRef.current.src = url;
-        audioRef.current.onplay = () => {
-          setIsPlaying(true);
-          setTestLog(prev => [...prev, `Audio playback started`]);
-        };
-        audioRef.current.onended = () => {
-          setIsPlaying(false);
-          setTestLog(prev => [...prev, `Audio playback completed`]);
-        };
+        audioRef.current.play();
+        setIsPlaying(true);
       }
     } catch (error) {
       console.error("Error generating speech:", error);
-      setTestLog(prev => [...prev, `Error: ${error instanceof Error ? error.message : String(error)}`]);
       toast.error("Failed to generate speech");
     } finally {
       setIsGenerating(false);
@@ -109,20 +69,16 @@ const ElevenLabsTest = () => {
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
-      setTestLog(prev => [...prev, `Audio playback paused`]);
     } else {
-      audioRef.current.play().catch(error => {
-        console.error("Error playing audio:", error);
-        setTestLog(prev => [...prev, `Error playing audio: ${error.message}`]);
-        toast.error("Failed to play audio");
-      });
+      audioRef.current.play();
+      setIsPlaying(true);
     }
   };
 
   const integrationDetails = getIntegration('ElevenLabs');
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Volume2 className="h-5 w-5" />
@@ -152,9 +108,7 @@ const ElevenLabsTest = () => {
 
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId ? 
-                  Object.entries(VOICE_OPTIONS).find(([name, id]) => id === integrationDetails.defaultVoiceId)?.[0] || 'Custom' : 
-                  'Default'}</p>
+                <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || 'Default'}</p>
                 <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || 'eleven_multilingual_v2'}</p>
               </div>
               
@@ -188,24 +142,6 @@ const ElevenLabsTest = () => {
                   </p>
                 </div>
                 <audio ref={audioRef} onEnded={() => setIsPlaying(false)} className="hidden" />
-              </div>
-            )}
-            
-            {testLog.length > 0 && (
-              <div className="mt-4">
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    <details>
-                      <summary className="cursor-pointer font-medium">Test Log (click to expand)</summary>
-                      <div className="mt-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-40">
-                        {testLog.map((log, index) => (
-                          <div key={index}>{log}</div>
-                        ))}
-                      </div>
-                    </details>
-                  </AlertDescription>
-                </Alert>
               </div>
             )}
           </>

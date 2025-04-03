@@ -16,7 +16,6 @@ interface AuthContextProps {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
-  resetPassword: (email: string) => Promise<{ data: any, error: any }>;
 }
 
 export const AuthContext = React.createContext<AuthContextProps | undefined>(undefined);
@@ -35,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading
   } = useAuthState();
 
-  const { signIn, signUp, signOut, refreshProfile, resetPassword } = useAuthMethods({ 
+  const { signIn, signUp, signOut, refreshProfile } = useAuthMethods({ 
     user, 
     setUser,
     setProfile, 
@@ -115,8 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signOut,
       refreshProfile,
-      isAuthenticated,
-      resetPassword
+      isAuthenticated
     }}>
       {children}
     </AuthContext.Provider>
