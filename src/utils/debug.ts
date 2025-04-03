@@ -58,3 +58,17 @@ export const errorLog = (...args: any[]) => {
     console.error('[ERROR]', ...args);
   }
 };
+
+/**
+ * Document preview log - specialized logging for document preview functionality
+ * Only shows when log level is DEBUG or lower
+ */
+export const documentPreviewLog = (message: string, data?: any) => {
+  if (currentLogLevel <= LOG_LEVELS.DEBUG) {
+    if (data) {
+      console.log('[DOCUMENT PREVIEW]', message, data);
+    } else {
+      console.log('[DOCUMENT PREVIEW]', message);
+    }
+  }
+};
