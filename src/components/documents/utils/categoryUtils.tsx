@@ -3,11 +3,32 @@ import React from 'react';
 import { DocumentAccessLevel } from '@/types/documents';
 
 /**
+ * Get color for folder icon based on access level
+ * @param accessLevel Access level string
+ * @returns CSS color string
+ */
+export const getFolderIconColorByAccessLevel = (accessLevel: DocumentAccessLevel): string => {
+  switch (accessLevel) {
+    case 'admin':
+      return 'text-red-500';
+    case 'management':
+      return 'text-purple-500';
+    case 'board':
+      return 'text-blue-500';
+    case 'homeowner':
+      return 'text-green-500';
+    case 'all':
+    default:
+      return 'text-yellow-400';
+  }
+};
+
+/**
  * Render an access level badge with appropriate styling
  * @param accessLevel Document access level
  * @returns React component with styled badge
  */
-export const renderAccessLevelBadge = (accessLevel: DocumentAccessLevel) => {
+export const renderAccessLevelBadge = (accessLevel: DocumentAccessLevel): JSX.Element => {
   const getColorClass = () => {
     switch (accessLevel) {
       case 'admin':
@@ -31,4 +52,26 @@ export const renderAccessLevelBadge = (accessLevel: DocumentAccessLevel) => {
       {accessLevel === 'all' ? 'Public' : accessLevel.charAt(0).toUpperCase() + accessLevel.slice(1)}
     </span>
   );
+};
+
+/**
+ * Get display name for access level
+ * @param accessLevel Access level string
+ * @returns Formatted display name
+ */
+export const getAccessLevelDisplayName = (accessLevel: DocumentAccessLevel): string => {
+  switch (accessLevel) {
+    case 'all':
+      return 'Everyone (Public)';
+    case 'homeowner':
+      return 'Homeowners & Above';
+    case 'board':
+      return 'Board Members & Above';
+    case 'management':
+      return 'Management & Admin Only';
+    case 'admin':
+      return 'Administrator Only';
+    default:
+      return 'Unknown';
+  }
 };
