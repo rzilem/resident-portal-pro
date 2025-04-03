@@ -69,3 +69,20 @@ export interface OnboardingStats {
     tasksCount: number;
   }[];
 }
+
+// Add the Project interface that's being used by the components
+export interface Project {
+  id: string;
+  name: string;
+  associationName: string;
+  address?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  startDate: string;
+  estimatedCompletionDate?: string;
+  status: 'active' | 'completed' | 'on_hold';
+  notes?: string;
+  tasks?: any[];
+  documents?: any[];
+}
