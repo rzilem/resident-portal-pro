@@ -38,6 +38,7 @@ export interface OnboardingTemplate {
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
+  processType: 'onboarding' | 'offboarding'; // Added to distinguish between onboarding and offboarding templates
 }
 
 export interface OnboardingProject {
@@ -54,6 +55,7 @@ export interface OnboardingProject {
   createdAt: string;
   updatedAt?: string;
   completedDate?: string;
+  processType: 'onboarding' | 'offboarding'; // Added to distinguish between onboarding and offboarding projects
 }
 
 export interface OnboardingStats {

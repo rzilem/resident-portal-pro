@@ -1,26 +1,43 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus,
-  Save, 
-  Trash2, 
-  ArrowUp, 
-  ArrowDown,
-  CalendarDays
-} from 'lucide-react';
-import { 
   Dialog, 
   DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Form, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl, 
+  FormDescription,
+  FormMessage 
+} from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  CalendarIcon, 
+  Check, 
+  GripVertical, 
+  Plus, 
+  Save, 
+  Trash2 
+} from "lucide-react";
+import { OnboardingTemplate, OnboardingTaskGroup } from '@/types/onboarding';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { cn } from '@/lib/utils';
+import { v4 as uuid } from 'uuid';
 import { 
   Select,
   SelectContent,
@@ -28,29 +45,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { toast } from 'sonner';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { OnboardingTemplate, OnboardingTaskGroup, OnboardingTask } from '@/types/onboarding';
-import { v4 as uuid } from 'uuid';
-
-// Form validation schema
-const templateFormSchema = z.object({
-  name: z.string().min(1, "Template name is required"),
-  description: z.string().optional(),
-  clientType: z.string().min(1, "Client type is required"),
-  isDefault: z.boolean().optional(),
-  tags: z.string().optional()
-});
 
 interface TemplateEditorProps {
   open: boolean;
@@ -59,590 +53,532 @@ interface TemplateEditorProps {
   onSave: (template: OnboardingTemplate) => Promise<void>;
 }
 
-const TemplateEditor: React.FC<TemplateEditorProps> = ({
-  open,
-  onOpenChange,
-  template,
-  onSave
+const formSchema = z.object({
+  name: z.string().min(1, "Template name is required"),
+  description: z.string().min(1, "Template description is required"),
+  clientType: z.string().optional(),
+  isDefault: z.boolean().default(false),
+  tags: z.array(z.string()).default([]),
+  processType: z.enum(['onboarding', 'offboarding']).default('onboarding'),
+});
+
+const TemplateEditor: React.FC<TemplateEditorProps> = ({ 
+  open, 
+  onOpenChange, 
+  template, 
+  onSave 
 }) => {
+  const [activeTab, setActiveTab] = useState('details');
   const [taskGroups, setTaskGroups] = useState<OnboardingTaskGroup[]>([]);
-  const [activeTaskGroupId, setActiveTaskGroupId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newTag, setNewTag] = useState('');
   
-  const form = useForm<z.infer<typeof templateFormSchema>>({
-    resolver: zodResolver(templateFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      clientType: "hoa",
-      isDefault: false,
-      tags: ""
-    }
+      name: template?.name || '',
+      description: template?.description || '',
+      clientType: template?.clientType || '',
+      isDefault: template?.isDefault || false,
+      tags: template?.tags || [],
+      processType: template?.processType || 'onboarding',
+    },
   });
   
-  // Initialize form when template changes
+  // Update form when template changes
   useEffect(() => {
     if (template) {
       form.reset({
         name: template.name,
-        description: template.description || '',
-        clientType: template.clientType || 'hoa',
+        description: template.description,
+        clientType: template.clientType || '',
         isDefault: template.isDefault || false,
-        tags: template.tags?.join(', ') || ''
+        tags: template.tags || [],
+        processType: template.processType || 'onboarding',
       });
-      
-      setTaskGroups([...template.taskGroups]);
-      
-      if (template.taskGroups.length > 0) {
-        setActiveTaskGroupId(template.taskGroups[0].id);
-      }
+      setTaskGroups(template.taskGroups);
     } else {
-      // Default empty form
       form.reset({
-        name: "",
-        description: "",
-        clientType: "hoa",
+        name: '',
+        description: '',
+        clientType: '',
         isDefault: false,
-        tags: ""
+        tags: [],
+        processType: 'onboarding',
       });
-      
-      // Create one empty task group
-      const initialGroup: OnboardingTaskGroup = {
-        id: uuid(),
-        title: 'Day 1',
-        day: 1,
-        tasks: [],
-        completedTasks: 0,
-        totalTasks: 0
-      };
-      
-      setTaskGroups([initialGroup]);
-      setActiveTaskGroupId(initialGroup.id);
+      setTaskGroups([]);
     }
   }, [template, form]);
   
-  const onSubmit = async (values: z.infer<typeof templateFormSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsSaving(true);
+      setIsSubmitting(true);
       
-      // Process tags
-      const tagsList = values.tags
-        ? values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
-        : [];
+      // Calculate total tasks for each group
+      const updatedTaskGroups = taskGroups.map(group => ({
+        ...group,
+        totalTasks: group.tasks.length,
+        completedTasks: group.tasks.filter(task => task.status === 'completed').length
+      }));
       
+      // Create new template or update existing
       const updatedTemplate: OnboardingTemplate = {
         id: template?.id || uuid(),
         name: values.name,
-        description: values.description || '',
-        clientType: values.clientType,
-        isDefault: values.isDefault || false,
-        tags: tagsList,
-        taskGroups: taskGroups.map(group => ({
-          ...group,
-          totalTasks: group.tasks.length
-        }))
+        description: values.description,
+        clientType: values.clientType || undefined,
+        isDefault: values.isDefault,
+        tags: values.tags,
+        taskGroups: updatedTaskGroups,
+        createdAt: template?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        processType: values.processType,
       };
       
       await onSave(updatedTemplate);
-      toast.success('Template saved successfully');
+      setIsSubmitting(false);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving template:', error);
-      toast.error('Failed to save template');
-    } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
   
-  const handleAddTaskGroup = () => {
-    const day = taskGroups.length > 0 
-      ? Math.max(...taskGroups.map(g => g.day)) + 5 
-      : 1;
-    
+  const addTaskGroup = () => {
     const newGroup: OnboardingTaskGroup = {
       id: uuid(),
-      title: `Day ${day}`,
-      day,
+      title: `Task Group ${taskGroups.length + 1}`,
+      day: taskGroups.length > 0 ? Math.max(...taskGroups.map(g => g.day)) + 7 : 1,
       tasks: [],
       completedTasks: 0,
       totalTasks: 0
     };
     
     setTaskGroups([...taskGroups, newGroup]);
-    setActiveTaskGroupId(newGroup.id);
   };
   
-  const handleDeleteTaskGroup = (groupId: string) => {
-    if (taskGroups.length <= 1) {
-      toast.error('You must have at least one task group');
-      return;
+  const updateTaskGroup = (index: number, updates: Partial<OnboardingTaskGroup>) => {
+    const updatedGroups = [...taskGroups];
+    updatedGroups[index] = { ...updatedGroups[index], ...updates };
+    setTaskGroups(updatedGroups);
+  };
+  
+  const deleteTaskGroup = (index: number) => {
+    const updatedGroups = [...taskGroups];
+    updatedGroups.splice(index, 1);
+    setTaskGroups(updatedGroups);
+  };
+  
+  const addTask = (groupIndex: number) => {
+    const updatedGroups = [...taskGroups];
+    const group = { ...updatedGroups[groupIndex] };
+    
+    group.tasks.push({
+      id: uuid(),
+      title: `Task ${group.tasks.length + 1}`,
+      days: 1,
+      status: 'not_started',
+      category: 'internal',
+      teamAssigned: false,
+      clientVisible: true
+    });
+    
+    updatedGroups[groupIndex] = group;
+    setTaskGroups(updatedGroups);
+  };
+  
+  const updateTask = (groupIndex: number, taskIndex: number, updates: Partial<any>) => {
+    const updatedGroups = [...taskGroups];
+    const group = { ...updatedGroups[groupIndex] };
+    group.tasks = [...group.tasks];
+    group.tasks[taskIndex] = { ...group.tasks[taskIndex], ...updates };
+    updatedGroups[groupIndex] = group;
+    setTaskGroups(updatedGroups);
+  };
+  
+  const deleteTask = (groupIndex: number, taskIndex: number) => {
+    const updatedGroups = [...taskGroups];
+    const group = { ...updatedGroups[groupIndex] };
+    group.tasks = [...group.tasks];
+    group.tasks.splice(taskIndex, 1);
+    updatedGroups[groupIndex] = group;
+    setTaskGroups(updatedGroups);
+  };
+  
+  const addTagToForm = () => {
+    if (newTag.trim() && !form.getValues().tags.includes(newTag.trim())) {
+      const currentTags = form.getValues().tags;
+      form.setValue('tags', [...currentTags, newTag.trim()]);
+      setNewTag('');
     }
-    
-    if (confirm('Are you sure you want to delete this task group?')) {
-      const newGroups = taskGroups.filter(g => g.id !== groupId);
-      setTaskGroups(newGroups);
-      
-      if (activeTaskGroupId === groupId && newGroups.length > 0) {
-        setActiveTaskGroupId(newGroups[0].id);
-      }
-    }
   };
   
-  const handleMoveTaskGroup = (groupId: string, direction: 'up' | 'down') => {
-    const index = taskGroups.findIndex(g => g.id === groupId);
-    if (
-      (direction === 'up' && index === 0) || 
-      (direction === 'down' && index === taskGroups.length - 1)
-    ) {
-      return;
-    }
-    
-    const newGroups = [...taskGroups];
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    
-    // Swap positions
-    [newGroups[index], newGroups[newIndex]] = [newGroups[newIndex], newGroups[index]];
-    
-    setTaskGroups(newGroups);
+  const removeTagFromForm = (tag: string) => {
+    const currentTags = form.getValues().tags;
+    form.setValue('tags', currentTags.filter(t => t !== tag));
   };
-  
-  const handleAddTask = (groupId: string) => {
-    const updatedGroups = taskGroups.map(group => {
-      if (group.id === groupId) {
-        const newTask: OnboardingTask = {
-          id: uuid(),
-          title: 'New Task',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        };
-        
-        return {
-          ...group,
-          tasks: [...group.tasks, newTask]
-        };
-      }
-      return group;
-    });
-    
-    setTaskGroups(updatedGroups);
-  };
-  
-  const handleTaskChange = (groupId: string, taskId: string, updates: Partial<OnboardingTask>) => {
-    const updatedGroups = taskGroups.map(group => {
-      if (group.id === groupId) {
-        const updatedTasks = group.tasks.map(task => {
-          if (task.id === taskId) {
-            return { ...task, ...updates };
-          }
-          return task;
-        });
-        
-        return {
-          ...group,
-          tasks: updatedTasks
-        };
-      }
-      return group;
-    });
-    
-    setTaskGroups(updatedGroups);
-  };
-  
-  const handleDeleteTask = (groupId: string, taskId: string) => {
-    const updatedGroups = taskGroups.map(group => {
-      if (group.id === groupId) {
-        return {
-          ...group,
-          tasks: group.tasks.filter(task => task.id !== taskId)
-        };
-      }
-      return group;
-    });
-    
-    setTaskGroups(updatedGroups);
-  };
-  
-  const handleTaskGroupChange = (groupId: string, updates: Partial<OnboardingTaskGroup>) => {
-    const updatedGroups = taskGroups.map(group => {
-      if (group.id === groupId) {
-        return { ...group, ...updates };
-      }
-      return group;
-    });
-    
-    setTaskGroups(updatedGroups);
-  };
-  
-  const activeGroup = taskGroups.find(g => g.id === activeTaskGroupId);
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
-          <DialogTitle>{template ? 'Edit Template' : 'Create Template'}</DialogTitle>
+          <DialogTitle>{template ? 'Edit Template' : 'Create New Template'}</DialogTitle>
           <DialogDescription>
-            {template ? 'Modify the onboarding template settings and tasks' : 'Create a new onboarding template for client onboarding'}
+            {template 
+              ? 'Edit this template to update the onboarding or offboarding process'
+              : 'Create a new template for client onboarding or offboarding'}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6">
-          <Form {...form}>
-            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-              {/* Template Details Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Template Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter template name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="clientType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select client type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="hoa">Homeowners Association</SelectItem>
-                          <SelectItem value="condo">Condominium</SelectItem>
-                          <SelectItem value="apartment">Apartment Complex</SelectItem>
-                          <SelectItem value="commercial">Commercial</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter template description"
-                        {...field}
-                        rows={2}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="tags"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tags (comma separated)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. large, gated, pool" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="isDefault"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-end space-x-2 pt-6">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Set as default template</FormLabel>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </form>
-          </Form>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Template Details</TabsTrigger>
+            <TabsTrigger value="tasks">Task Groups</TabsTrigger>
+          </TabsList>
           
-          {/* Task Groups Section */}
-          <div className="border rounded-md">
-            <div className="p-4 border-b bg-muted/40">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Task Groups</h3>
-                <Button onClick={handleAddTaskGroup} variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Group
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row h-[400px] overflow-hidden">
-              {/* Task Group Tabs */}
-              <div className="sm:w-1/3 border-r overflow-auto">
-                <div className="space-y-1 p-2">
-                  {taskGroups.map((group, index) => (
-                    <div 
-                      key={group.id}
-                      className={`flex items-center justify-between p-2 rounded cursor-pointer ${
-                        activeTaskGroupId === group.id 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'hover:bg-muted'
-                      }`}
-                      onClick={() => setActiveTaskGroupId(group.id)}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <CalendarDays className="h-4 w-4" />
-                        <span>{group.title} ({group.tasks.length})</span>
-                      </div>
-                      
-                      <div className="flex space-x-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMoveTaskGroup(group.id, 'up');
-                          }}
-                          disabled={index === 0}
-                        >
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMoveTaskGroup(group.id, 'down');
-                          }}
-                          disabled={index === taskGroups.length - 1}
-                        >
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
-                        
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6 text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTaskGroup(group.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Task Group Content */}
-              <div className="sm:w-2/3 overflow-auto">
-                {activeGroup ? (
-                  <div className="p-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="group-title">Group Title</Label>
-                        <Input 
-                          id="group-title"
-                          value={activeGroup.title}
-                          onChange={(e) => handleTaskGroupChange(activeGroup.id, { title: e.target.value })}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="group-day">Day Number</Label>
-                        <Input 
-                          id="group-day"
-                          type="number"
-                          min="1"
-                          value={activeGroup.day}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            if (!isNaN(value) && value > 0) {
-                              handleTaskGroupChange(activeGroup.id, { day: value });
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+              <TabsContent value="details" className="flex-1 overflow-y-auto">
+                <div className="space-y-6 p-1">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Template Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter template name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter template description"
+                            className="min-h-[120px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="clientType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client Type</FormLabel>
+                          <Select 
+                            value={field.value} 
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select client type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="hoa">HOA</SelectItem>
+                              <SelectItem value="condo">Condo</SelectItem>
+                              <SelectItem value="apartment">Apartment</SelectItem>
+                              <SelectItem value="commercial">Commercial</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Specify what type of client this template is for
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
                     
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <Label>Tasks ({activeGroup.tasks.length})</Label>
-                        <Button 
-                          onClick={() => handleAddTask(activeGroup.id)} 
-                          variant="outline" 
-                          size="sm"
-                        >
+                    <FormField
+                      control={form.control}
+                      name="processType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Process Type</FormLabel>
+                          <Select 
+                            value={field.value} 
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select process type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="onboarding">Onboarding</SelectItem>
+                              <SelectItem value="offboarding">Offboarding</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Is this an onboarding or offboarding process?
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="isDefault"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Default Template</FormLabel>
+                          <FormDescription>
+                            Set as the default template for new clients
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Tags</FormLabel>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {form.getValues().tags.map(tag => (
+                            <Badge 
+                              key={tag} 
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeTagFromForm(tag)}
+                                className="text-muted-foreground hover:text-foreground ml-1"
+                              >
+                                &times;
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newTag}
+                            onChange={(e) => setNewTag(e.target.value)}
+                            placeholder="Add a tag"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addTagToForm();
+                              }
+                            }}
+                          />
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={addTagToForm}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                        <FormDescription>
+                          Add tags to help organize and filter templates
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="tasks" className="flex-1 flex flex-col overflow-hidden">
+                <ScrollArea className="flex-1">
+                  <div className="space-y-6 p-1">
+                    {taskGroups.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground mb-4">No task groups defined yet</p>
+                        <Button type="button" onClick={addTaskGroup}>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Task
+                          Add First Task Group
                         </Button>
                       </div>
-                      
-                      <div className="space-y-2 max-h-[250px] overflow-y-auto border rounded-md p-2">
-                        {activeGroup.tasks.length === 0 ? (
-                          <div className="text-center py-4 text-muted-foreground">
-                            No tasks in this group. Click 'Add Task' to create one.
-                          </div>
-                        ) : (
-                          activeGroup.tasks.map((task) => (
-                            <div key={task.id} className="border rounded-md p-3 space-y-2">
-                              <div className="flex justify-between">
-                                <Input 
-                                  value={task.title}
-                                  onChange={(e) => handleTaskChange(activeGroup.id, task.id, { title: e.target.value })}
-                                  placeholder="Task title"
-                                  className="flex-1 mr-2"
+                    ) : (
+                      taskGroups.map((group, groupIndex) => (
+                        <div 
+                          key={group.id} 
+                          className="border rounded-md overflow-hidden"
+                        >
+                          <div className="bg-muted p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <GripVertical className="h-5 w-5 text-muted-foreground" />
+                              <Input
+                                value={group.title}
+                                onChange={(e) => updateTaskGroup(groupIndex, { title: e.target.value })}
+                                className="font-medium w-[250px]"
+                              />
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground mr-1">Day:</span>
+                                <Input
+                                  type="number"
+                                  value={group.day}
+                                  onChange={(e) => updateTaskGroup(groupIndex, { day: parseInt(e.target.value) || 0 })}
+                                  className="w-[70px]"
+                                  min={0}
                                 />
-                                
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteTask(activeGroup.id, task.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
                               </div>
                               
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <Label htmlFor={`task-days-${task.id}`} className="text-xs">Days to Complete</Label>
-                                  <Input 
-                                    id={`task-days-${task.id}`}
-                                    type="number"
-                                    min="1"
-                                    value={task.days}
-                                    onChange={(e) => {
-                                      const value = parseInt(e.target.value);
-                                      if (!isNaN(value) && value > 0) {
-                                        handleTaskChange(activeGroup.id, task.id, { days: value });
-                                      }
-                                    }}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteTaskGroup(groupIndex)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="p-4 space-y-2">
+                            {group.tasks.map((task, taskIndex) => (
+                              <div 
+                                key={task.id}
+                                className="border border-border rounded-md p-3 flex flex-col gap-3"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <Input
+                                    value={task.title}
+                                    onChange={(e) => updateTask(groupIndex, taskIndex, { title: e.target.value })}
+                                    className="font-medium flex-1 mr-2"
+                                    placeholder="Task title"
                                   />
+                                  
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => deleteTask(groupIndex, taskIndex)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
                                 </div>
                                 
-                                <div>
-                                  <Label htmlFor={`task-category-${task.id}`} className="text-xs">Category</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">Estimated time:</span>
+                                    <Input
+                                      type="number"
+                                      value={task.days}
+                                      onChange={(e) => updateTask(groupIndex, taskIndex, { days: parseInt(e.target.value) || 1 })}
+                                      className="w-[70px]"
+                                      min={1}
+                                    />
+                                    <span className="text-sm text-muted-foreground">days</span>
+                                  </div>
+                                  
                                   <Select
                                     value={task.category}
-                                    onValueChange={(value: 'internal' | 'client') => 
-                                      handleTaskChange(activeGroup.id, task.id, { category: value })
-                                    }
+                                    onValueChange={(value) => updateTask(groupIndex, taskIndex, { category: value })}
                                   >
-                                    <SelectTrigger id={`task-category-${task.id}`}>
-                                      <SelectValue />
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Task category" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="internal">Internal</SelectItem>
                                       <SelectItem value="client">Client</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                </div>
-                              </div>
-                              
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`team-assigned-${task.id}`}
-                                    checked={task.teamAssigned}
-                                    onCheckedChange={(checked) => 
-                                      handleTaskChange(activeGroup.id, task.id, { teamAssigned: !!checked })
-                                    }
-                                  />
-                                  <Label 
-                                    htmlFor={`team-assigned-${task.id}`}
-                                    className="text-xs"
-                                  >
-                                    Team Assigned
-                                  </Label>
+                                  
+                                  <div className="flex items-center justify-between space-x-2">
+                                    <span className="text-sm">Client visible:</span>
+                                    <Switch
+                                      checked={task.clientVisible}
+                                      onCheckedChange={(checked) => updateTask(groupIndex, taskIndex, { clientVisible: checked })}
+                                    />
+                                  </div>
                                 </div>
                                 
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`client-visible-${task.id}`}
-                                    checked={task.clientVisible}
-                                    onCheckedChange={(checked) => 
-                                      handleTaskChange(activeGroup.id, task.id, { clientVisible: !!checked })
-                                    }
-                                  />
-                                  <Label 
-                                    htmlFor={`client-visible-${task.id}`}
-                                    className="text-xs"
-                                  >
-                                    Client Visible
-                                  </Label>
-                                </div>
+                                <Textarea
+                                  value={task.description || ''}
+                                  onChange={(e) => updateTask(groupIndex, taskIndex, { description: e.target.value })}
+                                  placeholder="Task description (optional)"
+                                  className="min-h-[80px]"
+                                />
                               </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
+                            ))}
+                            
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => addTask(groupIndex)}
+                              className="w-full mt-2"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Task
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    
+                    {taskGroups.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addTaskGroup}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Task Group
+                      </Button>
+                    )}
                   </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No task group selected
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          
-          <Button
-            type="submit"
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving...' : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Template
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+                </ScrollArea>
+              </TabsContent>
+              
+              <DialogFooter className="mt-6">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>Saving...</>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Template
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

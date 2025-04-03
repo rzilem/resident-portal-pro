@@ -1,524 +1,528 @@
+import { OnboardingTemplate, OnboardingProject, OnboardingStats } from '@/types/onboarding';
 
-import { v4 as uuid } from 'uuid';
-import { OnboardingProject, OnboardingTask, OnboardingTemplate, OnboardingTaskGroup, OnboardingStats } from '@/types/onboarding';
+// Mock data for templates
+const mockOnboardingTemplates: OnboardingTemplate[] = [
+  {
+    id: '1',
+    name: 'Standard HOA Onboarding',
+    description: 'A standard process for onboarding new HOA clients',
+    clientType: 'hoa',
+    processType: 'onboarding',
+    isDefault: true,
+    tags: ['standard', 'comprehensive'],
+    taskGroups: [
+      {
+        id: '101',
+        title: 'Initial Setup',
+        day: 1,
+        description: 'Tasks to complete within the first week',
+        tasks: [
+          {
+            id: '1001',
+            title: 'Collect association documents',
+            description: 'Gather CC&Rs, bylaws, rules and regulations',
+            days: 5,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '1002',
+            title: 'Setup client in management software',
+            days: 2,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: false
+          },
+          {
+            id: '1003',
+            title: 'Schedule kickoff meeting',
+            days: 3,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 3
+      },
+      {
+        id: '102',
+        title: 'Financial Setup',
+        day: 14,
+        description: 'Financial tasks for the second and third weeks',
+        tasks: [
+          {
+            id: '2001',
+            title: 'Setup bank accounts',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '2002',
+            title: 'Import financial history',
+            days: 10,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      },
+      {
+        id: '103',
+        title: 'Community Setup',
+        day: 28,
+        description: 'Setup community information and engagement',
+        tasks: [
+          {
+            id: '3001',
+            title: 'Setup community website',
+            days: 14,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '3002',
+            title: 'Send welcome letters to residents',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      }
+    ],
+    createdAt: '2023-01-15T08:00:00Z',
+    updatedAt: '2023-01-15T08:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'Condo Association Onboarding',
+    description: 'Specialized process for onboarding condo associations',
+    clientType: 'condo',
+    processType: 'onboarding',
+    tags: ['condos', 'specialized'],
+    taskGroups: [
+      {
+        id: '201',
+        title: 'Initial Assessment',
+        day: 1,
+        tasks: [
+          {
+            id: '1001',
+            title: 'Property inspection',
+            days: 3,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '1002',
+            title: 'Review maintenance history',
+            days: 5,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      }
+    ],
+    createdAt: '2023-02-10T10:15:00Z',
+    updatedAt: '2023-02-10T10:15:00Z'
+  },
+  {
+    id: '3',
+    name: 'Standard HOA Offboarding',
+    description: 'Standard process for offboarding HOA clients',
+    clientType: 'hoa',
+    processType: 'offboarding',
+    tags: ['offboarding', 'transition'],
+    taskGroups: [
+      {
+        id: '301',
+        title: 'Document Preparation',
+        day: 1,
+        tasks: [
+          {
+            id: '3001',
+            title: 'Prepare transition documents',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '3002',
+            title: 'Export financial records',
+            days: 5,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      },
+      {
+        id: '302',
+        title: 'Handover',
+        day: 14,
+        tasks: [
+          {
+            id: '3003',
+            title: 'Schedule handover meeting',
+            days: 3,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '3004',
+            title: 'Transfer bank account access',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      }
+    ],
+    createdAt: '2023-03-05T14:30:00Z',
+    updatedAt: '2023-03-05T14:30:00Z'
+  }
+];
 
-// Default onboarding template with task groups based on provided screenshots
-const defaultTemplate: OnboardingTemplate = {
-  id: 'default-template',
-  name: 'New Community Template',
-  description: 'Client Onboarding',
-  isDefault: true,
-  clientType: 'hoa',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  taskGroups: [
-    {
-      id: 'day-1',
-      title: 'Day 1',
-      day: 1,
-      tasks: [
-        {
-          id: uuid(),
-          title: 'Gather Information from Prior Management',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: false
-        },
-        {
-          id: uuid(),
-          title: 'Create New Association',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Let Bank know - open new accounts, if applicable',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Order Debit Card',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Enter Bank Accounts',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Setup Funds',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Mark Association LIVE in system',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        }
-      ],
-      completedTasks: 0,
-      totalTasks: 7
-    },
-    {
-      id: 'day-5',
-      title: 'Day 5',
-      day: 5,
-      tasks: [
-        {
-          id: uuid(),
-          title: 'Send Welcome/Intro Letter',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Create Portal Logins',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Enter Board Members & Committees (after logins are created)',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Setup Homeowner Tags (Board Member Tags and Charge Tags)',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Update Customer Service Team',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Setup in Smartwebs, if applicable (based on Contract - Contact Ricky)',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Create connection in mailing system',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Logo, Banner, & Dashboard Pages',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        }
-      ],
-      completedTasks: 0,
-      totalTasks: 8
-    },
-    {
-      id: 'day-10',
-      title: 'Day 10',
-      day: 10,
-      tasks: [],
-      completedTasks: 0,
-      totalTasks: 0
-    },
-    {
-      id: 'day-15',
-      title: 'Day 15',
-      day: 15,
-      tasks: [],
-      completedTasks: 0,
-      totalTasks: 0
-    },
-    {
-      id: 'day-30',
-      title: 'Day 30',
-      day: 30,
-      tasks: [
-        {
-          id: uuid(),
-          title: 'Association Property Request',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Request Homeowner Ledgers and AR Report',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Request Access to Gate System (if applicable)',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Homeowner Transaction History Import',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Request Final Financials',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Request remaining accounts be closed and funds sent over',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Request zero balance statements after start date',
-          days: 35,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        }
-      ],
-      completedTasks: 0,
-      totalTasks: 7
-    },
-    {
-      id: 'day-60',
-      title: 'Day 60',
-      day: 60,
-      tasks: [],
-      completedTasks: 0,
-      totalTasks: 0
-    }
-  ]
-};
+// Mock data for onboarding projects
+const mockOnboardingProjects: OnboardingProject[] = [
+  {
+    id: '1',
+    name: 'Sunset Valley HOA Onboarding',
+    associationId: '101',
+    associationName: 'Sunset Valley HOA',
+    templateId: '1',
+    startDate: '2023-05-01T08:00:00Z',
+    status: 'active',
+    progress: 33,
+    processType: 'onboarding',
+    taskGroups: [
+      {
+        id: '101',
+        title: 'Initial Setup',
+        day: 1,
+        description: 'Tasks to complete within the first week',
+        tasks: [
+          {
+            id: '1001',
+            title: 'Collect association documents',
+            description: 'Gather CC&Rs, bylaws, rules and regulations',
+            days: 5,
+            status: 'completed',
+            completedDate: '2023-05-06T15:30:00Z',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '1002',
+            title: 'Setup client in management software',
+            days: 2,
+            status: 'completed',
+            completedDate: '2023-05-03T11:15:00Z',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: false
+          },
+          {
+            id: '1003',
+            title: 'Schedule kickoff meeting',
+            days: 3,
+            status: 'in_progress',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 2,
+        totalTasks: 3
+      },
+      {
+        id: '102',
+        title: 'Financial Setup',
+        day: 14,
+        description: 'Financial tasks for the second and third weeks',
+        tasks: [
+          {
+            id: '2001',
+            title: 'Setup bank accounts',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '2002',
+            title: 'Import financial history',
+            days: 10,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      },
+      {
+        id: '103',
+        title: 'Community Setup',
+        day: 28,
+        description: 'Setup community information and engagement',
+        tasks: [
+          {
+            id: '3001',
+            title: 'Setup community website',
+            days: 14,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '3002',
+            title: 'Send welcome letters to residents',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      }
+    ],
+    shareableLink: 'https://example.com/share/sunset-valley-hoa',
+    createdAt: '2023-04-28T10:00:00Z',
+    updatedAt: '2023-05-06T15:30:00Z'
+  },
+  {
+    id: '2',
+    name: 'Oakridge Condos Offboarding',
+    associationId: '102',
+    associationName: 'Oakridge Condos',
+    templateId: '3',
+    startDate: '2023-06-15T09:00:00Z',
+    status: 'active',
+    progress: 25,
+    processType: 'offboarding',
+    taskGroups: [
+      {
+        id: '301',
+        title: 'Document Preparation',
+        day: 1,
+        tasks: [
+          {
+            id: '3001',
+            title: 'Prepare transition documents',
+            days: 7,
+            status: 'completed',
+            completedDate: '2023-06-22T16:45:00Z',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '3002',
+            title: 'Export financial records',
+            days: 5,
+            status: 'in_progress',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 1,
+        totalTasks: 2
+      },
+      {
+        id: '302',
+        title: 'Handover',
+        day: 14,
+        tasks: [
+          {
+            id: '3003',
+            title: 'Schedule handover meeting',
+            days: 3,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          },
+          {
+            id: '3004',
+            title: 'Transfer bank account access',
+            days: 7,
+            status: 'not_started',
+            category: 'internal',
+            teamAssigned: true,
+            clientVisible: true
+          }
+        ],
+        completedTasks: 0,
+        totalTasks: 2
+      }
+    ],
+    shareableLink: 'https://example.com/share/oakridge-condos',
+    createdAt: '2023-06-10T14:30:00Z',
+    updatedAt: '2023-06-22T16:45:00Z'
+  }
+];
 
-// Additional templates for different client types
-const condoTemplate: OnboardingTemplate = {
-  id: 'condo-template',
-  name: 'Condominium Onboarding',
-  description: 'Specialized onboarding process for condominium associations',
-  isDefault: false,
-  clientType: 'condo',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  tags: ['condo', 'multi-unit'],
-  taskGroups: [
-    {
-      id: 'day-1',
-      title: 'Day 1',
-      day: 1,
-      tasks: [
-        {
-          id: uuid(),
-          title: 'Gather Condominium Documents',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: false
-        },
-        {
-          id: uuid(),
-          title: 'Create New Association',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Setup Condo Reserves Account',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Request Floor Plans & Unit Documentation',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        }
-      ],
-      completedTasks: 0,
-      totalTasks: 4
-    },
-    {
-      id: 'day-5',
-      title: 'Day 5',
-      day: 5,
-      tasks: [
-        {
-          id: uuid(),
-          title: 'Setup Common Area Maintenance Schedule',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        },
-        {
-          id: uuid(),
-          title: 'Create Unit Owner Directory',
-          days: 10,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        }
-      ],
-      completedTasks: 0,
-      totalTasks: 2
-    }
-  ]
-};
-
-const apartmentTemplate: OnboardingTemplate = {
-  id: 'apartment-template',
-  name: 'Apartment Complex Onboarding',
-  description: 'Specialized onboarding process for apartment complexes',
-  isDefault: false,
-  clientType: 'apartment',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  tags: ['apartment', 'rental'],
-  taskGroups: [
-    {
-      id: 'day-1',
-      title: 'Day 1',
-      day: 1,
-      tasks: [
-        {
-          id: uuid(),
-          title: 'Obtain Lease Agreements & Tenant Information',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: false
-        },
-        {
-          id: uuid(),
-          title: 'Setup Rental Management System',
-          days: 5,
-          status: 'not_started',
-          category: 'internal',
-          teamAssigned: true,
-          clientVisible: true
-        }
-      ],
-      completedTasks: 0,
-      totalTasks: 2
-    }
-  ]
-};
-
-// Mock data store for onboarding projects
-let onboardingProjects: OnboardingProject[] = [];
-let onboardingTemplates: OnboardingTemplate[] = [defaultTemplate, condoTemplate, apartmentTemplate];
+// Helper for simulating API delays
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const onboardingService = {
-  // Get all onboarding templates
+  // Get all templates
   getTemplates: async (): Promise<OnboardingTemplate[]> => {
-    return Promise.resolve([...onboardingTemplates]);
-  },
-  
-  // Get templates by client type
-  getTemplatesByClientType: async (clientType: string): Promise<OnboardingTemplate[]> => {
-    const templates = onboardingTemplates.filter(t => t.clientType === clientType);
-    return Promise.resolve([...templates]);
+    // Simulate API delay
+    await delay(500);
+    return mockOnboardingTemplates;
   },
   
   // Get template by ID
   getTemplateById: async (id: string): Promise<OnboardingTemplate | null> => {
-    const template = onboardingTemplates.find(t => t.id === id);
-    return Promise.resolve(template || null);
+    // Simulate API delay
+    await delay(300);
+    return mockOnboardingTemplates.find(t => t.id === id) || null;
   },
-
-  // Create a new template
+  
+  // Create new template
   createTemplate: async (template: Omit<OnboardingTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<OnboardingTemplate> => {
-    const now = new Date().toISOString();
+    // Simulate API delay
+    await delay(800);
+    
     const newTemplate: OnboardingTemplate = {
       ...template,
-      id: uuid(),
-      createdAt: now,
-      updatedAt: now
+      id: Math.random().toString(36).substring(2, 11),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      processType: template.processType || 'onboarding', // Default to onboarding if not specified
     };
     
-    onboardingTemplates.push(newTemplate);
-    return Promise.resolve(newTemplate);
+    mockOnboardingTemplates.push(newTemplate);
+    return newTemplate;
   },
   
   // Update existing template
   updateTemplate: async (id: string, updates: Partial<OnboardingTemplate>): Promise<OnboardingTemplate | null> => {
-    const templateIndex = onboardingTemplates.findIndex(t => t.id === id);
+    // Simulate API delay
+    await delay(800);
     
-    if (templateIndex === -1) {
-      return Promise.resolve(null);
-    }
+    const index = mockOnboardingTemplates.findIndex(t => t.id === id);
+    if (index === -1) return null;
     
-    const template = { ...onboardingTemplates[templateIndex] };
-    
-    // Apply updates
-    const updatedTemplate: OnboardingTemplate = {
-      ...template,
+    const updatedTemplate = {
+      ...mockOnboardingTemplates[index],
       ...updates,
-      id: template.id, // Ensure ID doesn't change
       updatedAt: new Date().toISOString()
     };
     
-    onboardingTemplates[templateIndex] = updatedTemplate;
-    return Promise.resolve(updatedTemplate);
+    mockOnboardingTemplates[index] = updatedTemplate;
+    return updatedTemplate;
   },
   
   // Delete template
   deleteTemplate: async (id: string): Promise<boolean> => {
-    const initialLength = onboardingTemplates.length;
-    onboardingTemplates = onboardingTemplates.filter(t => t.id !== id);
+    // Simulate API delay
+    await delay(500);
     
-    return Promise.resolve(initialLength !== onboardingTemplates.length);
-  },
-  
-  // Create a new onboarding project
-  createProject: async (
-    associationId: string, 
-    associationName: string, 
-    templateId: string
-  ): Promise<OnboardingProject> => {
-    const template = onboardingTemplates.find(t => t.id === templateId);
+    const index = mockOnboardingTemplates.findIndex(t => t.id === id);
+    if (index === -1) return false;
     
-    if (!template) {
-      throw new Error(`Template with ID ${templateId} not found`);
-    }
-    
-    const startDate = new Date().toISOString();
-    
-    // Create a deep copy of template task groups
-    const taskGroups = JSON.parse(JSON.stringify(template.taskGroups));
-    
-    // Generate new IDs for all tasks
-    taskGroups.forEach((group: OnboardingTaskGroup) => {
-      group.tasks.forEach((task: OnboardingTask) => {
-        task.id = uuid();
-        task.associationId = associationId;
-        
-        // Set due date based on days
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + task.days);
-        task.dueDate = dueDate.toISOString();
-      });
-    });
-    
-    const newProject: OnboardingProject = {
-      id: uuid(),
-      name: `Onboarding: ${associationName}`,
-      associationId,
-      associationName,
-      templateId,
-      startDate,
-      status: 'active',
-      progress: 0,
-      taskGroups,
-      createdAt: startDate,
-      shareableLink: `https://share.residentpro.org/onboarding/${uuid()}`
-    };
-    
-    onboardingProjects.push(newProject);
-    return Promise.resolve(newProject);
+    mockOnboardingTemplates.splice(index, 1);
+    return true;
   },
   
   // Get all onboarding projects
   getProjects: async (): Promise<OnboardingProject[]> => {
-    return Promise.resolve([...onboardingProjects]);
+    // Simulate API delay
+    await delay(500);
+    return mockOnboardingProjects;
   },
   
   // Get project by ID
   getProjectById: async (id: string): Promise<OnboardingProject | null> => {
-    const project = onboardingProjects.find(p => p.id === id);
-    return Promise.resolve(project || null);
+    // Simulate API delay
+    await delay(300);
+    return mockOnboardingProjects.find(p => p.id === id) || null;
   },
   
-  // Get projects by association ID
-  getProjectsByAssociationId: async (associationId: string): Promise<OnboardingProject[]> => {
-    const projects = onboardingProjects.filter(p => p.associationId === associationId);
-    return Promise.resolve(projects);
+  // Create new project
+  createProject: async (
+    associationId: string, 
+    associationName: string, 
+    templateId: string,
+    processType: 'onboarding' | 'offboarding' = 'onboarding'
+  ): Promise<OnboardingProject> => {
+    // Simulate API delay
+    await delay(1000);
+    
+    // Get template to use
+    const template = await onboardingService.getTemplateById(templateId);
+    if (!template) {
+      throw new Error('Template not found');
+    }
+    
+    // Create a new project based on the template
+    const newProject: OnboardingProject = {
+      id: Math.random().toString(36).substring(2, 11),
+      name: `${associationName} ${processType === 'onboarding' ? 'Onboarding' : 'Offboarding'}`,
+      associationId,
+      associationName,
+      templateId,
+      startDate: new Date().toISOString(),
+      status: 'active',
+      progress: 0,
+      processType,
+      taskGroups: template.taskGroups.map(group => ({
+        ...group,
+        tasks: group.tasks.map(task => ({
+          ...task,
+          status: 'not_started'
+        })),
+        completedTasks: 0
+      })),
+      shareableLink: `https://example.com/share/${associationId}`,
+      createdAt: new Date().toISOString()
+    };
+    
+    mockOnboardingProjects.push(newProject);
+    return newProject;
   },
   
   // Update task status
@@ -526,134 +530,129 @@ export const onboardingService = {
     projectId: string,
     taskGroupId: string,
     taskId: string,
-    status: OnboardingTask['status']
+    status: 'not_started' | 'in_progress' | 'completed' | 'blocked'
   ): Promise<OnboardingProject | null> => {
-    const projectIndex = onboardingProjects.findIndex(p => p.id === projectId);
-    
-    if (projectIndex === -1) {
-      return Promise.resolve(null);
+    try {
+      // Find the project in our mock data
+      const projectIndex = mockOnboardingProjects.findIndex(p => p.id === projectId);
+      if (projectIndex === -1) return null;
+
+      const project = { ...mockOnboardingProjects[projectIndex] };
+      let taskGroupIndex = -1;
+      let taskIndex = -1;
+
+      // Find the task group and task
+      project.taskGroups.forEach((group, groupIdx) => {
+        const tIndex = group.tasks.findIndex(t => t.id === taskId);
+        if (tIndex !== -1) {
+          taskGroupIndex = groupIdx;
+          taskIndex = tIndex;
+        }
+      });
+
+      if (taskGroupIndex === -1 || taskIndex === -1) return null;
+
+      // Create deep copies for immutability
+      const updatedTaskGroups = [...project.taskGroups];
+      const updatedTaskGroup = { ...updatedTaskGroups[taskGroupIndex] };
+      const updatedTasks = [...updatedTaskGroup.tasks];
+      const updatedTask = { ...updatedTasks[taskIndex] };
+
+      // Update task status
+      const previousStatus = updatedTask.status;
+      updatedTask.status = status;
+
+      // Update completedDate if task is marked as completed, or clear it if moving from completed to another status
+      if (status === 'completed') {
+        updatedTask.completedDate = new Date().toISOString();
+      } else if (previousStatus === 'completed') {
+        updatedTask.completedDate = undefined;
+      }
+
+      // Replace objects in the arrays
+      updatedTasks[taskIndex] = updatedTask;
+      updatedTaskGroup.tasks = updatedTasks;
+
+      // Recalculate completed tasks count
+      updatedTaskGroup.completedTasks = updatedTaskGroup.tasks.filter(t => t.status === 'completed').length;
+
+      updatedTaskGroups[taskGroupIndex] = updatedTaskGroup;
+
+      // Update project task groups
+      const updatedProject = {
+        ...project,
+        taskGroups: updatedTaskGroups,
+      };
+
+      // Recalculate overall project progress
+      const totalTasks = updatedProject.taskGroups.reduce((total, group) => total + group.totalTasks, 0);
+      const completedTasks = updatedProject.taskGroups.reduce((total, group) => total + group.completedTasks, 0);
+      updatedProject.progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      // Check if project should be marked as completed
+      if (totalTasks > 0 && completedTasks === totalTasks) {
+        updatedProject.status = 'completed';
+        updatedProject.completedDate = new Date().toISOString();
+      }
+
+      // Update mock data
+      mockOnboardingProjects[projectIndex] = updatedProject;
+
+      // Simulate API delay
+      await delay(300);
+
+      return updatedProject;
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      return null;
     }
-    
-    const project = { ...onboardingProjects[projectIndex] };
-    const taskGroupIndex = project.taskGroups.findIndex(g => g.id === taskGroupId);
-    
-    if (taskGroupIndex === -1) {
-      return Promise.resolve(null);
-    }
-    
-    const taskGroup = { ...project.taskGroups[taskGroupIndex] };
-    const taskIndex = taskGroup.tasks.findIndex(t => t.id === taskId);
-    
-    if (taskIndex === -1) {
-      return Promise.resolve(null);
-    }
-    
-    // Update the task status
-    const updatedTask = { ...taskGroup.tasks[taskIndex], status };
-    
-    // If completing the task, set completed date
-    if (status === 'completed') {
-      updatedTask.completedDate = new Date().toISOString();
-      taskGroup.completedTasks++;
-    } else if (taskGroup.tasks[taskIndex].status === 'completed' && status !== 'completed') {
-      // If un-completing a task
-      updatedTask.completedDate = undefined;
-      taskGroup.completedTasks--;
-    }
-    
-    // Update task in task group
-    const updatedTasks = [...taskGroup.tasks];
-    updatedTasks[taskIndex] = updatedTask;
-    
-    // Update task group in project
-    const updatedTaskGroups = [...project.taskGroups];
-    updatedTaskGroups[taskGroupIndex] = { ...taskGroup, tasks: updatedTasks };
-    
-    // Calculate new progress
-    let totalTasks = 0;
-    let completedTasks = 0;
-    
-    updatedTaskGroups.forEach(group => {
-      totalTasks += group.totalTasks;
-      completedTasks += group.completedTasks;
-    });
-    
-    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    
-    // Update project
-    const updatedProject = {
-      ...project,
-      taskGroups: updatedTaskGroups,
-      progress,
-      updatedAt: new Date().toISOString()
-    };
-    
-    // If all tasks completed, mark project as completed
-    if (progress === 100) {
-      updatedProject.status = 'completed';
-      updatedProject.completedDate = new Date().toISOString();
-    }
-    
-    // Update in collection
-    onboardingProjects[projectIndex] = updatedProject;
-    
-    return Promise.resolve(updatedProject);
   },
   
-  // Get onboarding project statistics
+  // Get project statistics
   getProjectStats: async (projectId: string): Promise<{ stats: OnboardingStats } | null> => {
-    const project = onboardingProjects.find(p => p.id === projectId);
+    // Simulate API delay
+    await delay(400);
     
-    if (!project) {
-      return Promise.resolve(null);
-    }
+    const project = mockOnboardingProjects.find(p => p.id === projectId);
+    if (!project) return null;
     
-    let totalTasks = 0;
-    let completedTasks = 0;
-    const upcomingDeadlines: { day: number; tasksCount: number }[] = [];
-    
-    // Collect deadline data and count tasks
-    project.taskGroups.forEach(group => {
-      totalTasks += group.tasks.length;
-      completedTasks += group.tasks.filter(t => t.status === 'completed').length;
-      
-      if (group.tasks.length > 0) {
-        upcomingDeadlines.push({
-          day: group.day,
-          tasksCount: group.tasks.filter(t => t.status !== 'completed').length
-        });
-      }
-    });
+    // Calculate stats
+    const totalTasks = project.taskGroups.reduce((total, group) => total + group.totalTasks, 0);
+    const completedTasks = project.taskGroups.reduce((total, group) => total + group.completedTasks, 0);
     
     // Calculate days elapsed
     const startDate = new Date(project.startDate);
     const currentDate = new Date();
     const daysElapsed = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Estimate days remaining based on incomplete tasks and their due dates
-    let maxDaysRemaining = 0;
-    project.taskGroups.forEach(group => {
-      group.tasks.forEach(task => {
-        if (task.status !== 'completed' && task.dueDate) {
-          const dueDate = new Date(task.dueDate);
-          const daysUntilDue = Math.ceil((dueDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (daysUntilDue > maxDaysRemaining) {
-            maxDaysRemaining = daysUntilDue;
-          }
-        }
-      });
-    });
+    // Estimate days remaining based on progress
+    let daysRemaining = 0;
+    if (project.progress < 100) {
+      // Simple calculation: if 33% complete in 10 days, then 100% would take 30 days total, so 20 days remaining
+      daysRemaining = project.progress > 0 
+        ? Math.round((daysElapsed * (100 - project.progress)) / project.progress)
+        : 30; // Default if no progress yet
+    }
     
-    const stats: OnboardingStats = {
-      totalTasks,
-      completedTasks,
-      progress: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-      daysElapsed,
-      daysRemaining: maxDaysRemaining,
-      upcomingDeadlines: upcomingDeadlines.filter(d => d.tasksCount > 0)
+    // Get upcoming deadlines
+    const upcomingDeadlines = project.taskGroups
+      .filter(group => group.day > daysElapsed)
+      .map(group => ({
+        day: group.day,
+        tasksCount: group.tasks.filter(t => t.status !== 'completed').length
+      }))
+      .sort((a, b) => a.day - b.day)
+      .slice(0, 3);
+    
+    return {
+      stats: {
+        totalTasks,
+        completedTasks,
+        progress: project.progress,
+        daysElapsed,
+        daysRemaining,
+        upcomingDeadlines
+      }
     };
-    
-    return Promise.resolve({ stats });
   }
 };

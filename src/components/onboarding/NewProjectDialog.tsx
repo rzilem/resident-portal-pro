@@ -1,15 +1,30 @@
 
 import React, { useState, useEffect } from 'react';
-import { Building2, Copy, Folder, FileText } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
+import { 
+  Form, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl, 
+  FormDescription,
+  FormMessage 
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
+import { LogIn, LogOut } from 'lucide-react';
+import { OnboardingTemplate } from '@/types/onboarding';
+import { onboardingService } from '@/services/onboardingService';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { 
   Select,
   SelectContent,
@@ -17,138 +32,122 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { onboardingService } from '@/services/onboardingService';
-import { OnboardingTemplate } from '@/types/onboarding';
-import { associationService } from '@/services/associationService';
-import { Badge } from '@/components/ui/badge';
+import { Label } from "@/components/ui/label";
 
 interface NewProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateProject: (associationId: string, associationName: string, templateId: string) => void;
+  onCreateProject: (
+    associationId: string, 
+    associationName: string, 
+    templateId: string,
+    processType?: 'onboarding' | 'offboarding'
+  ) => Promise<void>;
 }
 
+// Mock data for associations
+const mockAssociations = [
+  { id: '101', name: 'Sunset Valley HOA' },
+  { id: '102', name: 'Oakridge Condos' },
+  { id: '103', name: 'Pine Creek Apartments' },
+  { id: '104', name: 'Meadow Ridge Community' },
+];
+
 const formSchema = z.object({
-  associationId: z.string({
-    required_error: "Please select an association",
-  }),
-  templateId: z.string({
-    required_error: "Please select a template",
-  }),
+  associationId: z.string().min(1, "Association is required"),
+  templateId: z.string().min(1, "Template is required"),
+  processType: z.enum(['onboarding', 'offboarding']).default('onboarding'),
 });
 
-const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
-  open,
-  onOpenChange,
-  onCreateProject
+const NewProjectDialog: React.FC<NewProjectDialogProps> = ({ 
+  open, 
+  onOpenChange, 
+  onCreateProject 
 }) => {
-  const [associations, setAssociations] = useState<any[]>([]);
   const [templates, setTemplates] = useState<OnboardingTemplate[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<OnboardingTemplate[]>([]);
-  const [selectedClientType, setSelectedClientType] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      associationId: "",
-      templateId: "",
-    },
+      associationId: '',
+      templateId: '',
+      processType: 'onboarding'
+    }
   });
   
+  // Load templates when dialog opens
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Load associations
-        const associationsData = await associationService.getAssociations();
-        setAssociations(associationsData);
-        
-        // Load templates
-        const templatesData = await onboardingService.getTemplates();
-        setTemplates(templatesData);
-        setFilteredTemplates(templatesData);
-        
-        // Set default template if available
-        const defaultTemplate = templatesData.find(t => t.isDefault);
-        if (defaultTemplate) {
-          form.setValue('templateId', defaultTemplate.id);
-        }
-      } catch (error) {
-        console.error('Error loading data for new project:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     if (open) {
-      loadData();
+      loadTemplates();
+    } else {
+      form.reset({
+        associationId: '',
+        templateId: '',
+        processType: 'onboarding'
+      });
     }
   }, [open, form]);
   
-  // Filter templates when client type changes
+  // Filter templates based on process type
   useEffect(() => {
-    if (selectedClientType === 'all') {
-      setFilteredTemplates(templates);
-    } else {
-      setFilteredTemplates(
-        templates.filter(t => !t.clientType || t.clientType === selectedClientType)
-      );
-    }
-    
-    // Reset template selection if the current selection is not in filtered list
-    const currentTemplateId = form.getValues('templateId');
-    const templateStillAvailable = filteredTemplates.some(t => t.id === currentTemplateId);
-    
-    if (currentTemplateId && !templateStillAvailable) {
-      // Find a default template in the filtered list or just the first one
-      const defaultTemplate = filteredTemplates.find(t => t.isDefault);
-      if (defaultTemplate) {
-        form.setValue('templateId', defaultTemplate.id);
-      } else if (filteredTemplates.length > 0) {
-        form.setValue('templateId', filteredTemplates[0].id);
-      } else {
-        form.setValue('templateId', '');
-      }
-    }
-  }, [selectedClientType, templates, form]);
+    const processType = form.watch('processType');
+    const filtered = templates.filter(t => t.processType === processType);
+    setFilteredTemplates(filtered);
+  }, [templates, form.watch('processType')]);
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const association = associations.find(a => a.id === values.associationId);
-    if (!association) return;
-    
-    onCreateProject(
-      values.associationId,
-      association.name,
-      values.templateId
-    );
+  const loadTemplates = async () => {
+    try {
+      setIsLoading(true);
+      const templatesData = await onboardingService.getTemplates();
+      setTemplates(templatesData);
+      
+      // Initially filter for onboarding templates
+      setFilteredTemplates(templatesData.filter(t => t.processType === 'onboarding'));
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast.error('Failed to load templates');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  // Get unique client types from templates
-  const clientTypes = Array.from(
-    new Set(['all', ...(templates.map(t => t.clientType || 'undefined').filter(Boolean))])
-  );
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setIsLoading(true);
+      
+      // Find association name
+      const association = mockAssociations.find(a => a.id === values.associationId);
+      if (!association) {
+        toast.error('Association not found');
+        return;
+      }
+      
+      await onCreateProject(
+        values.associationId, 
+        association.name, 
+        values.templateId,
+        values.processType
+      );
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast.error('Failed to create project');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Create Onboarding Project</DialogTitle>
+          <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>
-            Create a new association onboarding project to track the process
+            Create a new onboarding or offboarding project for a client association
           </DialogDescription>
         </DialogHeader>
         
@@ -156,129 +155,129 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="associationId"
+              name="processType"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Select Association</FormLabel>
-                  <Select
-                    disabled={isLoading}
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select an association" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {associations.map((association) => (
-                        <SelectItem
-                          key={association.id}
-                          value={association.id}
-                        >
-                          <div className="flex items-center">
-                            <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {association.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                      {associations.length === 0 && (
-                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                          No associations found
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="space-y-3">
+                  <FormLabel>Process Type</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="onboarding" id="onboarding" />
+                        <Label htmlFor="onboarding" className="flex items-center cursor-pointer">
+                          <LogIn className="h-4 w-4 mr-2 text-green-500" />
+                          Onboarding Process
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="offboarding" id="offboarding" />
+                        <Label htmlFor="offboarding" className="flex items-center cursor-pointer">
+                          <LogOut className="h-4 w-4 mr-2 text-amber-500" />
+                          Offboarding Process
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormDescription>
+                    Select whether you're creating an onboarding or offboarding process
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <div>
-              <label className="text-sm font-medium">Template Type</label>
-              <RadioGroup 
-                defaultValue="all" 
-                className="flex flex-wrap gap-2 mt-2"
-                value={selectedClientType}
-                onValueChange={setSelectedClientType}
-              >
-                {clientTypes.map(type => (
-                  <div key={type} className="flex items-center space-x-2">
-                    <RadioGroupItem value={type} id={`type-${type}`} />
-                    <label 
-                      htmlFor={`type-${type}`} 
-                      className="text-sm cursor-pointer capitalize"
-                    >
-                      {type === 'all' ? 'All Types' : type}
-                    </label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
+            <FormField
+              control={form.control}
+              name="associationId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Association</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select association" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {mockAssociations.map(association => (
+                        <SelectItem 
+                          key={association.id} 
+                          value={association.id}
+                        >
+                          {association.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select the association for this project
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}
               name="templateId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Onboarding Template</FormLabel>
-                  <Select
-                    disabled={isLoading || filteredTemplates.length === 0}
-                    onValueChange={field.onChange}
+                  <FormLabel>Template</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
                     defaultValue={field.value}
+                    disabled={isLoading}
                   >
                     <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select an onboarding template" />
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          isLoading 
+                            ? "Loading templates..." 
+                            : filteredTemplates.length === 0 
+                              ? `No ${form.watch('processType')} templates available` 
+                              : "Select template"
+                        } />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {filteredTemplates.map((template) => (
-                        <SelectItem
-                          key={template.id}
+                      {filteredTemplates.map(template => (
+                        <SelectItem 
+                          key={template.id} 
                           value={template.id}
                         >
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
-                              <span>{template.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              {template.isDefault && (
-                                <Badge variant="secondary" className="text-xs">Default</Badge>
-                              )}
-                              {template.clientType && (
-                                <Badge variant="outline" className="text-xs capitalize">{template.clientType}</Badge>
-                              )}
-                            </div>
-                          </div>
+                          {template.name}
+                          {template.clientType && ` (${template.clientType})`}
                         </SelectItem>
                       ))}
-                      {filteredTemplates.length === 0 && (
-                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                          No matching templates found
-                        </div>
-                      )}
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    Select a template for the {form.watch('processType')} process
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <DialogFooter className="pt-4">
-              <Button
-                type="button"
-                variant="outline"
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={isLoading || associations.length === 0 || filteredTemplates.length === 0}
+                disabled={isLoading || filteredTemplates.length === 0}
               >
-                Create Onboarding Project
+                {isLoading ? 'Creating...' : 'Create Project'}
               </Button>
             </DialogFooter>
           </form>

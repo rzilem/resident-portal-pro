@@ -4,6 +4,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { onboardingService } from '@/services/onboardingService';
 import { OnboardingTemplate } from '@/types/onboarding';
 import TemplateList from './TemplateList';
@@ -16,6 +17,7 @@ const TemplateManagement: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<OnboardingTemplate | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'all' | 'onboarding' | 'offboarding'>('all');
   
   // Load templates
   useEffect(() => {
@@ -36,23 +38,28 @@ const TemplateManagement: React.FC = () => {
     loadTemplates();
   }, []);
   
-  // Filter templates based on search query
+  // Filter templates based on search query and active tab
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredTemplates(templates);
-      return;
+    let filtered = templates;
+    
+    // Filter by tab (process type)
+    if (activeTab !== 'all') {
+      filtered = filtered.filter(template => template.processType === activeTab);
     }
     
-    const query = searchQuery.toLowerCase();
-    const filtered = templates.filter(template => 
-      template.name.toLowerCase().includes(query) ||
-      template.description.toLowerCase().includes(query) ||
-      template.clientType?.toLowerCase().includes(query) ||
-      template.tags?.some(tag => tag.toLowerCase().includes(query))
-    );
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(template => 
+        template.name.toLowerCase().includes(query) ||
+        template.description.toLowerCase().includes(query) ||
+        template.clientType?.toLowerCase().includes(query) ||
+        template.tags?.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
     
     setFilteredTemplates(filtered);
-  }, [searchQuery, templates]);
+  }, [searchQuery, templates, activeTab]);
   
   const handleCreateTemplate = () => {
     setSelectedTemplate(null);
@@ -131,7 +138,7 @@ const TemplateManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:items-center">
-        <h1 className="text-2xl font-bold">Onboarding Templates</h1>
+        <h1 className="text-2xl font-bold">Process Templates</h1>
         
         <div className="flex space-x-2">
           <Input
@@ -147,6 +154,14 @@ const TemplateManagement: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'onboarding' | 'offboarding')}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="all">All Templates</TabsTrigger>
+          <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+          <TabsTrigger value="offboarding">Offboarding</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {isLoading ? (
         <div className="text-center py-10">Loading templates...</div>

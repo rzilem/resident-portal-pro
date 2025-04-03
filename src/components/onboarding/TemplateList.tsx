@@ -7,7 +7,9 @@ import {
   FileText, 
   Trash2, 
   PlusCircle,
-  Tag 
+  Tag,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 import { 
   Card, 
@@ -20,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { OnboardingTemplate } from '@/types/onboarding';
+import { cn } from '@/lib/utils';
 
 interface TemplateListProps {
   templates: OnboardingTemplate[];
@@ -89,9 +92,27 @@ const TemplateList: React.FC<TemplateListProps> = ({
                   <Badge variant={template.isDefault ? "default" : "secondary"}>
                     {template.clientType || 'Generic'}
                   </Badge>
-                  {template.isDefault && (
-                    <Badge variant="outline">Default</Badge>
-                  )}
+                  <div className="flex gap-1">
+                    {template.isDefault && (
+                      <Badge variant="outline">Default</Badge>
+                    )}
+                    <Badge 
+                      variant={template.processType === 'onboarding' ? 'default' : 'destructive'}
+                      className="flex items-center gap-1"
+                    >
+                      {template.processType === 'onboarding' ? (
+                        <>
+                          <LogIn className="h-3 w-3 mr-1" />
+                          Onboarding
+                        </>
+                      ) : (
+                        <>
+                          <LogOut className="h-3 w-3 mr-1" />
+                          Offboarding
+                        </>
+                      )}
+                    </Badge>
+                  </div>
                 </div>
                 <CardTitle className="text-xl">{template.name}</CardTitle>
                 <CardDescription>{template.description}</CardDescription>
