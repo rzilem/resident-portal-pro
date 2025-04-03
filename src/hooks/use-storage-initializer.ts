@@ -1,55 +1,58 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-import { useEffect, useState } from 'react';
-import { initializeDocumentStorage } from '@/utils/documents/bucketUtils';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { infoLog, errorLog } from '@/utils/debug';
-
-/**
- * Hook to initialize storage buckets when the application loads
- * Should be used in a high-level component like _app or layout
- */
 export const useStorageInitializer = () => {
-  const [initialized, setInitialized] = useState(false);
-  const [initializing, setInitializing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    const initStorage = async () => {
-      if (isAuthenticated && !initialized && !initializing) {
-        setInitializing(true);
-        setError(null);
-        
-        try {
-          infoLog('Initializing storage buckets...');
-          const { bucketExists, bucketAccessible } = await initializeDocumentStorage();
-          
-          if (!bucketExists) {
-            setError('Failed to initialize document storage: bucket could not be created');
-            infoLog('Document bucket could not be created');
-          } else if (!bucketAccessible) {
-            setError('Document storage is not accessible');
-            infoLog('Document bucket is not accessible');
-          } else {
-            setInitialized(true);
-            infoLog('Document storage initialized successfully');
-          }
-        } catch (e) {
-          const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-          errorLog('Error initializing storage:', e);
-          setError(`Error initializing storage: ${errorMessage}`);
-        } finally {
-          setInitializing(false);
+  
+  const checkBucketExists = async () => {
+    try {
+      const { data, error } = await supabase.storage.getBucket('documents');
+      
+      if (error) {
+        if (error.message.includes('Bucket not found')) {
+          return { bucketExists: false, bucketAccessible: false };
+        } else {
+          console.error('Error checking bucket:', error);
+          return { bucketExists: false, bucketAccessible: false };
         }
       }
-    };
-
-    initStorage();
-  }, [isAuthenticated, initialized, initializing]);
-
-  return {
-    initialized,
-    initializing,
-    error
+      
+      return { bucketExists: true, bucketAccessible: true };
+    } catch (err) {
+      console.error('Unexpected error checking bucket:', err);
+      return { bucketExists: false, bucketAccessible: false };
+    }
   };
+  
+  const initializeStorage = async () => {
+    try {
+      setIsLoading(true);
+      
+      const bucketStatus = await checkBucketExists();
+      
+      if (bucketStatus && typeof bucketStatus === 'object') {
+        if (bucketStatus.bucketExists && bucketStatus.bucketAccessible) {
+          setIsInitialized(true);
+        } else {
+          setError('Bucket does not exist or is not accessible.');
+          setIsInitialized(false);
+        }
+      }
+      
+    } catch (error) {
+      setError('Failed to initialize storage.');
+      console.error('Storage initialization error:', error);
+      setIsInitialized(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    initializeStorage();
+  }, []);
+  
+  return { isInitialized, isLoading, error };
 };

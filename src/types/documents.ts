@@ -111,11 +111,11 @@ export interface DocumentTemplate {
   category?: string;
   content: string;
   createdBy?: string;
-  createdAt: string;
+  createdAt: string;  // Changed from createdDate to createdAt
   updatedAt?: string;
   tags?: string[];
   isPublic?: boolean;
-  // Add missing properties to fix TypeScript errors
+  // Add missing properties
   lastUsed?: string;
   lastModified?: string;
   usageCount?: number;

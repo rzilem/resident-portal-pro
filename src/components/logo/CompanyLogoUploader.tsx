@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +13,7 @@ interface CompanyLogoUploaderProps {
 const CompanyLogoUploader: React.FC<CompanyLogoUploaderProps> = ({
   onUploadComplete
 }) => {
-  const { logoUrl, uploadLogo, removeLogo } = useCompanyLogo();
+  const { logoUrl, uploadLogo, deleteLogo } = useCompanyLogo();
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,10 +44,11 @@ const CompanyLogoUploader: React.FC<CompanyLogoUploaderProps> = ({
     }
   };
   
-  const handleRemove = async () => {
-    try {
-      await removeLogo();
-    } catch (err) {
+  const handleRemoveLogo = async () => {
+    const success = await deleteLogo();
+    if (success) {
+      toast.success('Logo removed successfully');
+    } else {
       console.error('Error removing logo:', err);
       toast.error('Failed to remove logo');
     }
@@ -76,7 +76,7 @@ const CompanyLogoUploader: React.FC<CompanyLogoUploaderProps> = ({
             {logoUrl && (
               <Button 
                 variant="destructive" 
-                onClick={handleRemove}
+                onClick={handleRemoveLogo}
                 disabled={isUploading}
                 className="flex items-center"
               >

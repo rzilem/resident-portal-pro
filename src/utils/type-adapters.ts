@@ -1,168 +1,103 @@
 
-import { Association as HookAssociation } from '@/hooks/use-associations';
 import { Association as TypeAssociation } from '@/types/association';
+import { Association as HookAssociation } from '@/hooks/use-associations';
 
 /**
- * Converts a simple Association from hooks/use-associations to the full Association type
- * used in the application
+ * Convert Association from type definition to hook type
  */
-export const adaptAssociationToFullType = (association: any): TypeAssociation => {
-  if (!association) {
-    return {
-      id: '',
-      name: '',
-      address: {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: 'USA'
-      },
-      contactInfo: {
-        email: '',
-        phone: '',
-        website: ''
-      },
-      type: 'hoa',
-      foundedDate: new Date().toISOString(),
-      units: 0,
-      status: 'active',
-      description: '',
-      settings: {
-        fiscalYearStart: '01-01',
-        feesFrequency: 'monthly',
-        documents: {
-          storageLimit: 1000,
-          allowedTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png']
-        },
-        board: {
-          termLength: 24,
-          maximumMembers: 7
-        },
-        communications: {
-          emailEnabled: true,
-          smsEnabled: true,
-          announcementsEnabled: true
-        },
-        modules: {
-          maintenance: true,
-          violations: true,
-          voting: true,
-          accounting: true,
-          documents: true,
-          calendar: true
-        }
-      }
-    };
-  }
-  
-  // Create a base association object
-  const fullAssociation: TypeAssociation = {
-    id: association.id || '',
-    name: association.name || '',
-    
-    // Ensure address is properly structured
-    address: {
-      street: association.address || association.street || '',
-      city: association.city || '',
-      state: association.state || '',
-      zipCode: association.zip || association.zipCode || '',
-      country: association.country || 'USA'
-    },
-    
-    // Ensure contactInfo is properly initialized
-    contactInfo: {
-      email: association.contact_email || (association.contactInfo ? association.contactInfo.email : '') || '',
-      phone: association.contact_phone || (association.contactInfo ? association.contactInfo.phone : '') || '',
-      website: association.contact_website || (association.contactInfo ? association.contactInfo.website : '') || ''
-    },
-    
-    type: association.type || 'hoa',
-    description: association.description || '',
-    foundedDate: association.founded_date || association.foundedDate || new Date().toISOString(),
-    units: association.units || 0,
-    status: association.status || 'active',
-    
-    // Map any settings or ensure they exist
-    settings: association.settings || {
-      fiscalYearStart: '01-01',
-      feesFrequency: 'monthly',
-      documents: {
-        storageLimit: 1000,
-        allowedTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png']
-      },
-      board: {
-        termLength: 24,
-        maximumMembers: 7
-      },
-      communications: {
-        emailEnabled: true,
-        smsEnabled: true,
-        announcementsEnabled: true
-      },
-      modules: {
-        maintenance: true,
-        violations: true,
-        voting: true,
-        accounting: true,
-        documents: true,
-        calendar: true
-      }
-    }
-  };
-  
-  return fullAssociation;
-};
-
-/**
- * Converts an array of simple Associations from hooks/use-associations to an array of
- * full Association types
- */
-export const adaptAssociationsToFullType = (associations: HookAssociation[]): TypeAssociation[] => {
-  // Handle null or undefined associations
-  if (!associations) return [];
-  return associations.map(adaptAssociationToFullType);
-};
-
-/**
- * Converts a full Association from types/association to the simple Association type
- * used in hooks/use-associations
- */
-export const adaptFullTypeToAssociation = (association: TypeAssociation): HookAssociation => {
+export const adaptFullTypeToAssociation = (assoc: TypeAssociation): HookAssociation => {
   return {
-    id: association.id,
-    name: association.name,
-    type: association.type,
-    address: association.address.street,
-    city: association.address.city,
-    state: association.address.state,
-    zip: association.address.zipCode,
-    units: association.units,
-    status: association.status,
+    id: assoc.id,
+    name: assoc.name,
+    type: assoc.type,
+    status: assoc.status,
+    units: assoc.units,
+    // Convert object address to string if needed by HookAssociation
+    address: typeof assoc.address === 'object' 
+      ? `${assoc.address.street}, ${assoc.address.city}, ${assoc.address.state} ${assoc.address.zipCode}`
+      : assoc.address,
+    // Handle other properties safely
+    managementCompanyId: assoc.managementCompanyId || null,
+    settings: assoc.settings || {},
   };
 };
 
 /**
- * Converts a partial full Association to a partial simple Association
+ * Convert Association from hook type to full type definition
  */
-export const adaptPartialFullTypeToAssociation = (
-  updates: Partial<TypeAssociation>
-): Partial<HookAssociation> => {
-  const result: Partial<HookAssociation> = { ...updates } as any;
+export const adaptAssociationsToFullType = (assocs: HookAssociation[]): TypeAssociation[] => {
+  return assocs.map(assoc => ({
+    id: assoc.id,
+    name: assoc.name,
+    type: assoc.type,
+    status: assoc.status,
+    units: assoc.units,
+    // Convert string address to object if needed by TypeAssociation
+    address: typeof assoc.address === 'string'
+      ? parseAddressString(assoc.address)
+      : {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'USA'
+        },
+    contactInfo: {
+      email: '',
+      phone: '',
+      website: ''
+    },
+    foundedDate: '',
+    managementCompanyId: assoc.managementCompanyId,
+    settings: assoc.settings || {},
+    description: '',
+  }));
+};
+
+/**
+ * Helper to parse an address string into components
+ */
+const parseAddressString = (addressStr: string) => {
+  // Simple parsing logic - in real app would be more robust
+  const parts = addressStr.split(',').map(p => p.trim());
+  return {
+    street: parts[0] || '',
+    city: parts[1] || '',
+    state: (parts[2] || '').split(' ')[0] || '',
+    zipCode: (parts[2] || '').split(' ')[1] || '',
+    country: 'USA'
+  };
+};
+
+/**
+ * Convert a single Association from hook type to full type definition
+ */
+export const adaptAssociationToFullType = (assoc: HookAssociation | null): TypeAssociation | null => {
+  if (!assoc) return null;
   
-  // Handle address conversion
-  if (updates.address) {
-    result.address = updates.address.street;
-    result.city = updates.address.city;
-    result.state = updates.address.state;
-    result.zip = updates.address.zipCode;
-    
-    // Remove the original address object
-    delete (result as any).address;
-  }
-  
-  // Remove other complex properties
-  delete (result as any).contactInfo;
-  
-  return result;
+  return {
+    id: assoc.id,
+    name: assoc.name,
+    type: assoc.type,
+    status: assoc.status,
+    units: assoc.units,
+    address: typeof assoc.address === 'string'
+      ? parseAddressString(assoc.address)
+      : {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'USA'
+        },
+    contactInfo: {
+      email: '',
+      phone: '',
+      website: ''
+    },
+    foundedDate: '',
+    managementCompanyId: assoc.managementCompanyId,
+    settings: assoc.settings || {},
+    description: '',
+  };
 };

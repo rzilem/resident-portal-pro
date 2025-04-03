@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,18 +12,18 @@ import { getDocumentCategories, formatCategoriesForSelection } from '@/utils/doc
 import { useDocuments } from '@/hooks/use-documents';
 
 interface DocumentUploaderProps {
-  associationId?: string;
-  onUploadComplete?: (document: any) => void;
-  onCancel?: () => void;
-  category?: string;
+  associationId: string;
+  initialCategory?: string;
+  onUploadComplete: () => void;
+  onCancel: () => void;
 }
 
-const DocumentUploader = ({
-  associationId,
-  onUploadComplete,
-  onCancel,
-  category: initialCategory
-}: DocumentUploaderProps) => {
+const DocumentUploader: React.FC<DocumentUploaderProps> = ({ 
+  associationId, 
+  initialCategory, 
+  onUploadComplete, 
+  onCancel 
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -37,22 +36,29 @@ const DocumentUploader = ({
   const { uploadDocument } = useDocuments(associationId);
 
   useEffect(() => {
-    // Load categories
     const fetchCategories = async () => {
       try {
-        const cats = getDocumentCategories();
-        setCategories(formatCategoriesForSelection(cats));
-      } catch (err) {
-        console.error('Error loading categories:', err);
-        setCategories([]);
+        const categoriesData = await getDocumentCategories();
+        
+        const formattedCategories = categoriesData.map(cat => ({
+          id: cat.value || cat.id,
+          name: cat.label || cat.name,
+        }));
+        
+        setCategories(formattedCategories);
+      } catch (error) {
+        console.error("Error fetching document categories:", error);
       }
     };
-
+    
     fetchCategories();
-  }, []);
+    
+    if (initialCategory) {
+      setCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   useEffect(() => {
-    // Update name when file changes
     if (file) {
       setName(file.name);
     } else {
@@ -82,10 +88,9 @@ const DocumentUploader = ({
         toast.success('Document uploaded successfully');
         
         if (onUploadComplete) {
-          onUploadComplete(result);
+          onUploadComplete();
         }
         
-        // Reset form
         setFile(null);
         setName('');
         setDescription('');

@@ -1,62 +1,40 @@
+import React, { useState, useEffect } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getCategories } from '@/utils/documents/documentDbUtils';
 
-import React from 'react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { FilterIcon, CheckIcon } from 'lucide-react';
-import { getDocumentCategories } from '@/utils/documents/documentUtils';
-import { cn } from '@/lib/utils';
+const DocumentCategorySelector = ({ selectedCategory, onChange }) => {
+  const [categories, setCategories] = useState([]);
 
-interface DocumentCategorySelectorProps {
-  selectedCategory: string;
-  onChange: (category: string) => void;
-}
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await getCategories();
+        
+        for (const category of categoriesData) {
+          
+        }
+      } catch (error) {
+        console.error("Error fetching document categories:", error);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
-const DocumentCategorySelector: React.FC<DocumentCategorySelectorProps> = ({
-  selectedCategory,
-  onChange
-}) => {
-  const categories = [
-    { value: 'all', label: 'All Categories' },
-    ...getDocumentCategories()
-  ];
-  
-  const getSelectedCategoryLabel = () => {
-    const category = categories.find(c => c.value === selectedCategory);
-    return category ? category.label : 'All Categories';
-  };
-  
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <FilterIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">{getSelectedCategoryLabel()}</span>
-          <span className="sm:hidden">Filter</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 max-h-[300px] overflow-y-auto">
+    <Select value={selectedCategory} onValueChange={onChange}>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select Category" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Categories</SelectItem>
         {categories.map((category) => (
-          <DropdownMenuItem
-            key={category.value}
-            onClick={() => onChange(category.value)}
-            className={cn(
-              "flex items-center justify-between",
-              selectedCategory === category.value && "font-medium"
-            )}
-          >
-            <span>{category.label}</span>
-            {selectedCategory === category.value && (
-              <CheckIcon className="h-4 w-4" />
-            )}
-          </DropdownMenuItem>
+          <SelectItem key={category.id} value={category.id}>
+            {category.name}
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   );
 };
 

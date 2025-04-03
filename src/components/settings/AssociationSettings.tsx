@@ -1,11 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 
-// Import components
 import AssociationList from './associations/AssociationList';
 import AssociationDialog from './associations/AssociationDialog';
 import SettingTabs from './associations/SettingTabs';
@@ -13,9 +11,8 @@ import { SettingSection, AssociationMenuCategory } from './associations/types';
 import { useAssociations } from '@/hooks/use-associations';
 import { Association as TypeAssociation } from '@/types/association';
 import { Association as HookAssociation } from '@/hooks/use-associations';
-import { adaptFullTypeToAssociation, adaptAssociationsToFullType } from '@/utils/type-adapters';
+import { adaptFullTypeToAssociation, adaptAssociationsToFullType, adaptAssociationToFullType } from '@/utils/type-adapters';
 
-// Define setting sections and menu categories
 const settingSections: SettingSection[] = [
   { id: 'basic', title: 'Basic', icon: Building, description: 'Basic association information' },
   { id: 'financial', title: 'Financial', icon: DollarSign, description: 'Financial settings' },
@@ -203,7 +200,6 @@ const AssociationSettings = () => {
           activeAssociation={adaptAssociationToFullType(activeAssociation)}
           handleSettingChange={handleSettingChange}
           getSetting={(key, defaultValue) => {
-            // Safe access to settings
             if (activeAssociation && activeAssociation.settings) {
               return activeAssociation.settings[key] ?? defaultValue;
             }

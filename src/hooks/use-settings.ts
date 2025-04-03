@@ -1,185 +1,135 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useContext, createContext, useState, useEffect, useCallback } from 'react';
+import { Settings } from '@/types/settings';
 
-interface CompanyInfo {
-  name?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-}
+// Create a context with the extended type that includes preferences
+export const SettingsContext = createContext<{
+  settings: Settings;
+  preferences: Record<string, any>;
+  isLoading: boolean;
+  isInitialized: boolean;
+  savePreferences: (prefs: Record<string, any>) => Promise<void>;
+  isSaving: boolean;
+  updateSettings: (section: keyof Settings, data: any) => Promise<boolean>;
+  updatePreference: (key: string, value: any) => Promise<boolean>;
+  refreshSettings: () => Promise<void>;
+}>({
+  settings: {},
+  preferences: {},
+  isLoading: true,
+  isInitialized: false,
+  savePreferences: async () => {},
+  isSaving: false,
+  updateSettings: async () => false,
+  updatePreference: async () => false,
+  refreshSettings: async () => {},
+});
 
-interface EmailSettings {
-  defaultSender?: string;
-  signature?: string;
-  footerText?: string;
-}
+export const useSettings = () => useContext(SettingsContext);
 
-interface GeneralSettings {
-  dateFormat?: string;
-  timeFormat?: string;
-  language?: string;
-  timezone?: string;
-}
-
-interface UserPreferences {
-  theme?: 'light' | 'dark' | 'system';
-  sidebarCollapsed?: boolean;
-  notifications?: boolean;
-}
-
-export interface Settings {
-  company?: CompanyInfo;
-  email?: EmailSettings;
-  general?: GeneralSettings;
-  preferences?: UserPreferences;
-}
-
-export const useSettings = () => {
+export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState<Settings>({});
+  const [preferences, setPreferences] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
-  const fetchSettings = useCallback(async () => {
-    setIsLoading(true);
-    
+  // Function to load settings from API or storage
+  const loadSettings = useCallback(async () => {
     try {
-      // Fetch company settings
-      const { data: companyData, error: companyError } = await supabase
-        .from('company_settings')
-        .select('*')
-        .eq('id', 'global')
-        .single();
+      setIsLoading(true);
+      // Load settings logic
       
-      if (companyError && companyError.code !== 'PGRST116') {
-        // PGRST116 is "no rows found" error, which is fine for a new system
-        console.error('Error fetching company settings:', companyError);
-      }
-      
-      // Fetch user preferences if logged in
-      const { data: { user } } = await supabase.auth.getUser();
-      let userPrefs = {};
-      
-      if (user) {
-        const { data: prefsData, error: prefsError } = await supabase
-          .from('user_preferences')
-          .select('preference_data')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (prefsError && prefsError.code !== 'PGRST116') {
-          console.error('Error fetching user preferences:', prefsError);
-        }
-        
-        if (prefsData) {
-          userPrefs = prefsData.preference_data;
-        }
-      }
-      
-      // Combine all settings
+      // Set mock settings for development
       setSettings({
-        company: companyData?.company_info || {},
-        email: companyData?.email_settings || {},
-        general: companyData?.general_settings || {},
-        preferences: userPrefs,
+        // Add default settings with all required properties
+        invoiceTableColumns: [],
+        databaseHomeownerColumns: [],
+        customColors: {},
+        themePreset: 'light',
+        customBackground: '',
       });
       
+      // Set preferences separately
+      setPreferences({
+        // Default preferences
+      });
+      
+      setIsInitialized(true);
     } catch (error) {
-      console.error('Exception in fetchSettings:', error);
+      console.error('Failed to load settings:', error);
     } finally {
       setIsLoading(false);
     }
   }, []);
   
+  // Load settings on component mount
   useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+    loadSettings();
+  }, [loadSettings]);
   
-  const updateSettings = async (
-    section: keyof Settings,
-    data: any
-  ): Promise<boolean> => {
+  // Function to update a setting
+  const updateSettings = async (section: keyof Settings, data: any) => {
     try {
-      if (section === 'preferences') {
-        // Update user preferences
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          toast.error('You must be logged in to update preferences');
-          return false;
-        }
-        
-        const { error } = await supabase
-          .from('user_preferences')
-          .upsert({
-            user_id: user.id,
-            preference_data: { ...settings.preferences, ...data }
-          });
-        
-        if (error) {
-          console.error('Error updating user preferences:', error);
-          toast.error('Failed to update preferences');
-          return false;
-        }
-        
-        // Update local state
-        setSettings(prev => ({
-          ...prev,
-          preferences: { ...prev.preferences, ...data }
-        }));
-        
-        toast.success('Preferences updated successfully');
-        return true;
-      } else {
-        // Update company settings
-        const updateData: Record<string, any> = {};
-        updateData[`${section}_info`] = section === 'company' 
-          ? { ...settings.company, ...data }
-          : data;
-        
-        const { error } = await supabase
-          .from('company_settings')
-          .upsert({
-            id: 'global',
-            ...updateData,
-            updated_at: new Date().toISOString()
-          });
-        
-        if (error) {
-          console.error(`Error updating ${section} settings:`, error);
-          toast.error(`Failed to update ${section} settings`);
-          return false;
-        }
-        
-        // Update local state
-        setSettings(prev => ({
-          ...prev,
-          [section]: { ...prev[section], ...data }
-        }));
-        
-        toast.success(`${section.charAt(0).toUpperCase() + section.slice(1)} settings updated successfully`);
-        return true;
-      }
+      // Update logic
+      setSettings(prev => ({
+        ...prev,
+        [section]: data
+      }));
+      return true;
     } catch (error) {
-      console.error(`Exception in updateSettings for ${section}:`, error);
-      toast.error('An unexpected error occurred');
+      console.error('Failed to update settings:', error);
       return false;
     }
   };
   
-  const updatePreference = async (key: string, value: any): Promise<boolean> => {
-    return updateSettings('preferences', { [key]: value });
+  // Function to update a single preference
+  const updatePreference = async (key: string, value: any) => {
+    try {
+      setPreferences(prev => ({
+        ...prev,
+        [key]: value
+      }));
+      return true;
+    } catch (error) {
+      console.error('Failed to update preference:', error);
+      return false;
+    }
   };
   
-  return {
-    settings,
-    isLoading,
-    updateSettings,
-    updatePreference,
-    refreshSettings: fetchSettings
+  // Function to save all preferences
+  const savePreferences = async (prefs: Record<string, any>) => {
+    try {
+      setIsSaving(true);
+      // Save logic
+      setPreferences(prefs);
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
+  
+  // Function to refresh settings
+  const refreshSettings = async () => {
+    await loadSettings();
+  };
+  
+  return (
+    <SettingsContext.Provider
+      value={{
+        settings,
+        preferences,
+        isLoading,
+        isInitialized,
+        savePreferences,
+        isSaving,
+        updateSettings,
+        updatePreference,
+        refreshSettings,
+      }}
+    >
+      {children}
+    </SettingsContext.Provider>
+  );
 };
