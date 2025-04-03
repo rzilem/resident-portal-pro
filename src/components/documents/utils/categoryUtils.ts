@@ -1,3 +1,4 @@
+
 // src/components/documents/utils/categoryUtils.ts
 import { SupabaseClient } from '@supabase/supabase-js';
 
