@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { errorLog, infoLog } from "@/utils/debug";
+import { ensureDocumentsBucketExists } from "@/utils/documents/bucketUtils";
 
 /**
  * Generic file upload utility for Supabase storage
@@ -38,36 +39,12 @@ export const uploadFile = async (
     const fileName = `${timestamp}-${randomString}-${file.name.split('.')[0]}.${fileExt}`;
     const filePath = path ? `${path}/${fileName}` : fileName;
     
-    // First check if the bucket exists
-    try {
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-      
-      if (bucketError) {
-        // If we can't list buckets, we'll assume it exists
-        infoLog('Unable to list buckets, will attempt upload anyway');
-      } else {
-        const bucketExists = buckets.some(b => b.name === bucket);
-        
-        if (!bucketExists) {
-          infoLog(`Bucket ${bucket} not found, attempting to create...`);
-          try {
-            const { error: createError } = await supabase.storage.createBucket(bucket, {
-              public: true // Make bucket public to ensure files are accessible
-            });
-            
-            if (createError) {
-              // If we can't create the bucket, try upload anyway
-              infoLog(`Could not create bucket ${bucket}, but will attempt upload: ${createError.message}`);
-            } else {
-              infoLog(`Created bucket ${bucket} successfully`);
-            }
-          } catch (bucketError) {
-            infoLog('Error creating bucket, but will attempt upload anyway:', bucketError);
-          }
-        }
-      }
-    } catch (bucketCheckError) {
-      infoLog('Exception checking bucket, will attempt upload anyway:', bucketCheckError);
+    // First ensure the bucket exists
+    const bucketExists = await ensureBucketExists(bucket);
+    if (!bucketExists) {
+      errorLog(`Bucket ${bucket} does not exist and could not be created`);
+      toast.error('Storage unavailable. Please contact system administrator.');
+      return null;
     }
     
     // Upload to Supabase with better error handling
@@ -115,7 +92,6 @@ export const uploadFile = async (
     
     // Add a version parameter to prevent caching issues
     const publicUrl = publicUrlData.publicUrl;
-    // We don't add the timestamp here as we'll add it when displaying the image
     
     infoLog('Generated public URL:', publicUrl);
     
@@ -126,3 +102,49 @@ export const uploadFile = async (
     return null;
   }
 };
+
+/**
+ * Helper function to ensure a bucket exists
+ * @param bucketName Name of the bucket to check/create
+ * @returns Boolean indicating if bucket exists or was created
+ */
+async function ensureBucketExists(bucketName: string): Promise<boolean> {
+  try {
+    // Check if bucket exists
+    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+    
+    if (bucketError) {
+      // If we can't list buckets, we'll assume it exists
+      infoLog('Unable to list buckets, will attempt upload anyway');
+      return true;
+    } 
+    
+    const bucketExists = buckets.some(b => b.name === bucketName);
+    
+    if (!bucketExists) {
+      infoLog(`Bucket ${bucketName} not found, attempting to create...`);
+      try {
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true // Make bucket public to ensure files are accessible
+        });
+        
+        if (createError) {
+          // If we can't create the bucket, log and continue
+          infoLog(`Could not create bucket ${bucketName}: ${createError.message}`);
+          return false;
+        } else {
+          infoLog(`Created bucket ${bucketName} successfully`);
+          return true;
+        }
+      } catch (bucketError) {
+        infoLog('Error creating bucket:', bucketError);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    errorLog('Exception checking/creating bucket:', error);
+    return false;
+  }
+}
