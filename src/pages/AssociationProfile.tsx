@@ -128,7 +128,7 @@ const AssociationProfile = () => {
         <AssociationHeader 
           association={association} 
           fullAddress={fullAddress} 
-          hideIdentification={true}  // This will hide the association code
+          hideIdentification={true}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -27,6 +27,7 @@ export const adaptAssociationToFullType = (association: any): TypeAssociation =>
       foundedDate: new Date().toISOString(),
       units: 0,
       status: 'active',
+      description: '',
       settings: {
         fiscalYearStart: '01-01',
         feesFrequency: 'monthly',
@@ -77,6 +78,7 @@ export const adaptAssociationToFullType = (association: any): TypeAssociation =>
     },
     
     type: association.type || 'hoa',
+    description: association.description || '',
     foundedDate: association.founded_date || association.foundedDate || new Date().toISOString(),
     units: association.units || 0,
     status: association.status || 'active',

@@ -25,6 +25,7 @@ export interface Association {
   units: number;
   managementCompanyId?: string;
   status: 'active' | 'inactive';
+  description?: string; // Added description property
   settings?: AssociationSettings;
   communicationTemplates?: CommunicationTemplate[];
   customMergeTags?: CustomMergeTag[];

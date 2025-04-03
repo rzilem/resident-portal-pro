@@ -110,25 +110,7 @@ export const getDocuments = async (
   }
 };
 
-// Create a utility object to expose methods
-export const documentService = {
-  getDocumentCategories,
-  getDocuments,
-  uploadDocument,
-  deleteDocument,
-  downloadDocument,
-  updateDocumentMetadata
-};
-
-interface UploadDocumentParams {
-  file: File;
-  associationId: string;
-  description?: string;
-  category?: string;
-  tags?: string[];
-  isPublic?: boolean;
-}
-
+// Define uploadDocument function
 export const uploadDocument = async ({
   file,
   associationId,
@@ -136,7 +118,14 @@ export const uploadDocument = async ({
   category = 'general',
   tags,
   isPublic = false
-}: UploadDocumentParams): Promise<DocumentFile | null> => {
+}: {
+  file: File;
+  associationId: string;
+  description?: string;
+  category?: string;
+  tags?: string[];
+  isPublic?: boolean;
+}): Promise<DocumentFile | null> => {
   try {
     // Validate the file
     if (!validateFileSize(file, 50)) { // 50MB limit
@@ -238,6 +227,7 @@ export const uploadDocument = async ({
   }
 };
 
+// Define deleteDocument function
 export const deleteDocument = async (documentId: string): Promise<boolean> => {
   try {
     // First get the document details to get the file path
@@ -292,6 +282,7 @@ export const deleteDocument = async (documentId: string): Promise<boolean> => {
   }
 };
 
+// Define downloadDocument function
 export const downloadDocument = async (url: string, filename: string): Promise<boolean> => {
   try {
     if (!url) {
@@ -319,6 +310,7 @@ export const downloadDocument = async (url: string, filename: string): Promise<b
   }
 };
 
+// Define updateDocumentMetadata function
 export const updateDocumentMetadata = async (
   documentId: string,
   metadata: {
@@ -354,4 +346,14 @@ export const updateDocumentMetadata = async (
     toast.error('An unexpected error occurred while updating the document');
     return false;
   }
+};
+
+// Create a utility object to expose methods
+export const documentService = {
+  getDocumentCategories,
+  getDocuments,
+  uploadDocument,
+  deleteDocument,
+  downloadDocument,
+  updateDocumentMetadata
 };
