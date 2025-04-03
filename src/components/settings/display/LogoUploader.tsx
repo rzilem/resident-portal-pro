@@ -3,7 +3,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, Trash2, Image as ImageIcon, Loader2, RefreshCw } from "lucide-react";
+import { Upload, Trash2, Image as ImageIcon, Loader2, RefreshCw, Check } from "lucide-react";
 import { toast } from 'sonner';
 import { useCompanySettings } from '@/hooks/use-company-settings';
 import { useAuth } from '@/hooks/use-auth';
@@ -16,6 +16,7 @@ const LogoUploader = () => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Update local state when settings change or from localStorage
@@ -54,6 +55,16 @@ const LogoUploader = () => {
   useEffect(() => {
     refreshSettings();
   }, [refreshSettings]);
+  
+  // Clear success state after a timeout
+  useEffect(() => {
+    if (uploadSuccess) {
+      const timer = setTimeout(() => {
+        setUploadSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [uploadSuccess]);
   
   infoLog('LogoUploader rendering with logo URL:', logoUrl);
   
@@ -95,6 +106,7 @@ const LogoUploader = () => {
         // Update local state
         setLogoUrl(newLogoUrl);
         setImgError(false);
+        setUploadSuccess(true);
       } else {
         toast.dismiss();
         toast.error('Failed to upload logo');
@@ -178,6 +190,12 @@ const LogoUploader = () => {
                   }}
                 />
               </div>
+              
+              {uploadSuccess && (
+                <div className="absolute top-2 right-2 bg-green-100 text-green-800 p-1.5 rounded-full">
+                  <Check className="h-4 w-4" />
+                </div>
+              )}
               
               <div className="flex gap-2 flex-wrap">
                 <Button
