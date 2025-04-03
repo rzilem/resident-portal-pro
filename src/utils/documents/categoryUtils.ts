@@ -73,6 +73,28 @@ export const getFolderIconColor = (category: DocumentCategory): string => {
 };
 
 /**
+ * Get folder icon color by access level
+ * @param accessLevel Access level to get color for
+ * @returns Tailwind CSS color class
+ */
+export const getFolderIconColorByAccessLevel = (accessLevel?: DocumentAccessLevel): string => {
+  switch (accessLevel) {
+    case 'admin':
+      return 'text-red-500';
+    case 'management':
+      return 'text-purple-500';
+    case 'board':
+      return 'text-blue-500';
+    case 'homeowner':
+      return 'text-green-500';
+    case 'all':
+      return 'text-yellow-400';
+    default:
+      return 'text-gray-500';
+  }
+};
+
+/**
  * Render an access level badge with appropriate styling
  * @param accessLevel Access level to render
  * @returns JSX Element
