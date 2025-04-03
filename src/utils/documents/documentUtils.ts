@@ -122,3 +122,44 @@ export const canUserAccessDocument = (
       return true;
   }
 };
+
+/**
+ * Format a date string to a readable format
+ * @param dateString Date string to format
+ * @param format Format to use (default, short, long)
+ * @returns Formatted date string
+ */
+export const formatDate = (dateString: string, format: 'default' | 'short' | 'long' = 'default'): string => {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return dateString; // Return original string if invalid date
+    }
+    
+    switch (format) {
+      case 'short':
+        return date.toLocaleDateString();
+      case 'long':
+        return date.toLocaleDateString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      case 'default':
+      default:
+        return date.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+    }
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString; // Return original on error
+  }
+};
