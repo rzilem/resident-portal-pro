@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { useCompanySettings } from '@/hooks/use-company-settings';
 
 const LoginHeader = () => {
-  const { settings } = useCompanySettings();
+  const { settings, isLoading } = useCompanySettings();
+  
+  console.log('LoginHeader rendering with logo URL:', settings.logoUrl);
   
   return (
     <div className="mb-6 text-center">
@@ -14,6 +16,11 @@ const LoginHeader = () => {
             src={settings.logoUrl} 
             alt={settings.companyName || "Company Logo"} 
             className="h-10 mx-auto max-w-[180px] object-contain" 
+            onError={(e) => {
+              console.error('Logo failed to load in LoginHeader:', settings.logoUrl);
+              e.currentTarget.src = ""; // Clear the src
+              e.currentTarget.style.display = "none"; // Hide the image
+            }}
           />
         ) : (
           <h1 className="text-2xl font-bold text-gradient">{settings.companyName || "ResidentPro"}</h1>

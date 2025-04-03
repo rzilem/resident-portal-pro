@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { errorLog, infoLog } from '@/utils/debug';
 
 /**
  * Service for managing company settings and assets in Supabase
@@ -34,8 +35,10 @@ export const companySettingsService = {
       
       // Create a unique file path
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${file.name.split('.')[0]}.${fileExt}`;
+      const fileName = `${Date.now()}-${user.id}-${file.name.split('.')[0]}.${fileExt}`;
       const filePath = `logos/${fileName}`;
+      
+      infoLog('Uploading logo to:', filePath);
       
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
@@ -46,8 +49,9 @@ export const companySettingsService = {
         });
       
       if (uploadError) {
-        console.error('Error uploading logo:', uploadError);
-        throw uploadError;
+        errorLog('Error uploading logo:', uploadError);
+        toast.error(`Upload failed: ${uploadError.message}`);
+        return null;
       }
       
       // Get the public URL
@@ -56,13 +60,18 @@ export const companySettingsService = {
         .getPublicUrl(filePath);
       
       const logoUrl = publicUrlData.publicUrl;
+      infoLog('Logo uploaded successfully, URL:', logoUrl);
       
       // Update the user's preferences
-      const { data: existingPref } = await supabase
+      const { data: existingPref, error: prefError } = await supabase
         .from('user_preferences')
         .select('preference_data')
         .eq('user_id', user.id)
         .maybeSingle();
+      
+      if (prefError) {
+        errorLog('Error retrieving user preferences:', prefError);
+      }
       
       if (existingPref) {
         const updatedPrefs = {
@@ -70,23 +79,33 @@ export const companySettingsService = {
           logoUrl: logoUrl
         };
         
-        await supabase
+        const { error: updateError } = await supabase
           .from('user_preferences')
           .update({ preference_data: updatedPrefs })
           .eq('user_id', user.id);
+          
+        if (updateError) {
+          errorLog('Error updating user preferences:', updateError);
+          toast.error('Failed to save logo preferences');
+        }
       } else {
-        await supabase
+        const { error: insertError } = await supabase
           .from('user_preferences')
           .insert({
             user_id: user.id,
             preference_data: { logoUrl: logoUrl }
           });
+          
+        if (insertError) {
+          errorLog('Error creating user preferences:', insertError);
+          toast.error('Failed to save logo preferences');
+        }
       }
       
       toast.success('Logo uploaded successfully');
       return logoUrl;
     } catch (error) {
-      console.error('Error in uploadCompanyLogo:', error);
+      errorLog('Exception in uploadCompanyLogo:', error);
       toast.error('Failed to upload logo');
       return null;
     }
@@ -103,19 +122,30 @@ export const companySettingsService = {
         .eq('user_id', userId)
         .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        errorLog('Error getting company settings:', error);
+        throw error;
+      }
       
-      if (!data) return null;
+      if (!data) return { 
+        logoUrl: null,
+        companyName: 'ResidentPro'
+      };
       
+      // Ensure we explicitly return a logoUrl even if it's null
       const settings = {
-        logoUrl: data.preference_data.logoUrl,
+        logoUrl: data.preference_data.logoUrl || null,
         companyName: data.preference_data.companyName || 'ResidentPro'
       };
       
+      infoLog('Retrieved company settings:', settings);
       return settings;
     } catch (error) {
-      console.error('Error getting company settings:', error);
-      return null;
+      errorLog('Error getting company settings:', error);
+      return {
+        logoUrl: null,
+        companyName: 'ResidentPro'
+      };
     }
   },
   
@@ -124,11 +154,16 @@ export const companySettingsService = {
    */
   async updateCompanySetting(userId: string, key: string, value: any): Promise<boolean> {
     try {
-      const { data: existingPref } = await supabase
+      const { data: existingPref, error: prefError } = await supabase
         .from('user_preferences')
         .select('preference_data')
         .eq('user_id', userId)
         .maybeSingle();
+      
+      if (prefError) {
+        errorLog('Error retrieving user preferences:', prefError);
+        throw prefError;
+      }
       
       if (existingPref) {
         const updatedPrefs = {
@@ -136,13 +171,20 @@ export const companySettingsService = {
           [key]: value
         };
         
+        infoLog(`Updating user preference: ${key}`, value);
+        
         const { error } = await supabase
           .from('user_preferences')
           .update({ preference_data: updatedPrefs })
           .eq('user_id', userId);
         
-        if (error) throw error;
+        if (error) {
+          errorLog('Error updating user preferences:', error);
+          throw error;
+        }
       } else {
+        infoLog(`Creating new user preference: ${key}`, value);
+        
         const { error } = await supabase
           .from('user_preferences')
           .insert({
@@ -150,12 +192,15 @@ export const companySettingsService = {
             preference_data: { [key]: value }
           });
         
-        if (error) throw error;
+        if (error) {
+          errorLog('Error creating user preferences:', error);
+          throw error;
+        }
       }
       
       return true;
     } catch (error) {
-      console.error('Error updating company setting:', error);
+      errorLog('Error updating company setting:', error);
       toast.error('Failed to update company setting');
       return false;
     }

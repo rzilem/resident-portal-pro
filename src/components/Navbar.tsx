@@ -23,7 +23,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
-  const { settings } = useCompanySettings();
+  const { settings, isLoading } = useCompanySettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +36,8 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
+
+  console.log('Navbar rendering with logo URL:', settings.logoUrl);
 
   return (
     <nav
@@ -56,6 +58,11 @@ const Navbar = () => {
               src={settings.logoUrl} 
               alt={settings.companyName || "Company Logo"} 
               className="h-10 max-w-[180px] object-contain" 
+              onError={(e) => {
+                console.error('Logo failed to load:', settings.logoUrl);
+                e.currentTarget.src = ""; // Clear the src to prevent fallback loop
+                e.currentTarget.style.display = "none"; // Hide the image
+              }}
             />
           ) : (
             <span className="text-2xl font-bold text-gradient">

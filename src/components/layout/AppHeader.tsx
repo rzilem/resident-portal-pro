@@ -8,7 +8,9 @@ interface AppHeaderProps {
 }
 
 const AppHeader = ({ className }: AppHeaderProps) => {
-  const { settings } = useCompanySettings();
+  const { settings, isLoading } = useCompanySettings();
+  
+  console.log('AppHeader rendering with logo URL:', settings.logoUrl);
   
   return (
     <div className={className}>
@@ -18,6 +20,11 @@ const AppHeader = ({ className }: AppHeaderProps) => {
             src={settings.logoUrl} 
             alt={settings.companyName || "Company Logo"} 
             className="h-10 max-w-[180px] object-contain" 
+            onError={(e) => {
+              console.error('Logo failed to load in AppHeader:', settings.logoUrl);
+              e.currentTarget.src = ""; // Clear the src
+              e.currentTarget.style.display = "none"; // Hide the image
+            }}
           />
         ) : (
           <span className="text-2xl font-bold text-gradient">
