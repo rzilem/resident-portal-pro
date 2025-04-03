@@ -1,113 +1,188 @@
 
-import React from 'react';
-import {
-  CheckCircle,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
-import { OnboardingProject } from '@/types/onboarding';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react';
+import { Calendar, Clock, AlertCircle, Edit, Save, Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TooltipButton } from '@/components/ui/tooltip-button';
+import { Project } from '@/types/onboarding';
+import { format, addDays } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+
+interface TimelineEvent {
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  description: string;
+  status: 'completed' | 'upcoming' | 'overdue';
+}
 
 interface ProjectTimelineProps {
-  project: OnboardingProject;
+  project: Project;
 }
 
 const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ project }) => {
-  // Sort task groups by day
-  const sortedTaskGroups = [...project.taskGroups].sort((a, b) => a.day - b.day);
-  
-  // Calculate the number of days since the start
+  const { toast } = useToast();
   const startDate = new Date(project.startDate);
-  const currentDate = new Date();
-  const daysSinceStart = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  const [events, setEvents] = useState<TimelineEvent[]>([
+    {
+      id: '1',
+      title: 'Project Kickoff',
+      date: format(startDate, 'yyyy-MM-dd'),
+      time: '09:00 AM',
+      description: 'Initial meeting to discuss onboarding plan and collect necessary information',
+      status: 'completed'
+    },
+    {
+      id: '2',
+      title: 'Documentation Collection',
+      date: format(addDays(startDate, 7), 'yyyy-MM-dd'),
+      description: 'Deadline for the client to submit all required documentation',
+      status: 'upcoming'
+    },
+    {
+      id: '3',
+      title: 'Data Migration',
+      date: format(addDays(startDate, 14), 'yyyy-MM-dd'),
+      description: 'Transfer all association data to the management system',
+      status: 'upcoming'
+    },
+    {
+      id: '4',
+      title: 'Financial Setup',
+      date: format(addDays(startDate, 21), 'yyyy-MM-dd'),
+      description: 'Set up banking, payments, and accounting systems',
+      status: 'upcoming'
+    },
+    {
+      id: '5',
+      title: 'Board Training',
+      date: format(addDays(startDate, 28), 'yyyy-MM-dd'),
+      time: '10:00 AM',
+      description: 'Training session for board members on using the management platform',
+      status: 'upcoming'
+    },
+  ]);
+  
+  const [editing, setEditing] = useState(false);
+  
+  const handleToggleEditing = () => {
+    if (editing) {
+      toast({
+        title: "Timeline Saved",
+        description: "Your changes to the timeline have been saved"
+      });
+    }
+    setEditing(!editing);
+  };
+  
+  const getStatusColor = (status: TimelineEvent['status']) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'upcoming':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'overdue':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
+    }
+  };
+  
+  const handleAddEvent = () => {
+    const lastEvent = events[events.length - 1];
+    const lastDate = new Date(lastEvent.date);
+    
+    const newEvent: TimelineEvent = {
+      id: Math.random().toString(36).substring(2, 9),
+      title: 'New Milestone',
+      date: format(addDays(lastDate, 7), 'yyyy-MM-dd'),
+      description: 'Description for this milestone',
+      status: 'upcoming'
+    };
+    
+    setEvents([...events, newEvent]);
+    
+    toast({
+      title: "Event Added",
+      description: "A new milestone has been added to the timeline"
+    });
+  };
   
   return (
-    <div className="border rounded-md p-4">
-      <h3 className="font-semibold mb-4">Timeline</h3>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Onboarding Timeline</h2>
+        <div className="flex gap-2">
+          <TooltipButton 
+            tooltipText="Add a new milestone"
+            variant="outline" 
+            size="sm"
+            onClick={handleAddEvent}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Milestone
+          </TooltipButton>
+          
+          <TooltipButton 
+            tooltipText={editing ? "Save timeline changes" : "Edit timeline"}
+            variant={editing ? "default" : "outline"} 
+            size="sm"
+            onClick={handleToggleEditing}
+            className="gap-2"
+          >
+            {editing ? (
+              <>
+                <Save className="h-4 w-4" />
+                Save
+              </>
+            ) : (
+              <>
+                <Edit className="h-4 w-4" />
+                Edit
+              </>
+            )}
+          </TooltipButton>
+        </div>
+      </div>
       
-      <div className="relative pl-6">
-        {/* Vertical line */}
-        <div className="absolute left-2.5 top-0 bottom-0 w-px bg-gray-200" />
-        
-        {sortedTaskGroups.map((group, index) => {
-          const isCompleted = group.completedTasks === group.totalTasks;
-          const isCurrent = daysSinceStart >= group.day && 
-                           (index === sortedTaskGroups.length - 1 || 
-                            daysSinceStart < sortedTaskGroups[index + 1].day);
-          const isPast = daysSinceStart >= group.day && !isCurrent;
-          const isFuture = daysSinceStart < group.day;
-          
-          let statusIcon = null;
-          let statusColorClass = '';
-          
-          if (isCompleted) {
-            statusIcon = <CheckCircle className="h-5 w-5 text-green-500" />;
-            statusColorClass = 'text-green-500 border-green-500';
-          } else if (isCurrent) {
-            statusIcon = <Clock className="h-5 w-5 text-amber-500" />;
-            statusColorClass = 'text-amber-500 border-amber-500';
-          } else if (isPast && !isCompleted) {
-            statusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
-            statusColorClass = 'text-red-500 border-red-500';
-          } else {
-            statusIcon = <Clock className="h-5 w-5 text-gray-400" />;
-            statusColorClass = 'text-gray-400 border-gray-400';
-          }
-          
-          return (
-            <div key={group.id} className="mb-6 relative">
-              {/* Status dot */}
-              <div className={cn(
-                "absolute left-[-22px] -top-0.5 w-5 h-5 rounded-full bg-white border-2",
-                statusColorClass
-              )}>
-                {statusIcon}
-              </div>
-              
-              <div>
-                <h4 className={cn(
-                  "font-medium",
-                  isCompleted && "text-green-600",
-                  isCurrent && "text-amber-600",
-                  isPast && !isCompleted && "text-red-600",
-                  isFuture && "text-gray-600"
-                )}>
-                  {group.title}
-                </h4>
-                
-                <p className="text-xs text-muted-foreground mt-1">
-                  {group.completedTasks} of {group.totalTasks} tasks completed
-                </p>
-                
-                {group.tasks.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {group.tasks.slice(0, 3).map(task => (
-                      <div 
-                        key={task.id} 
-                        className={cn(
-                          "text-xs border-l-2 pl-2",
-                          task.status === 'completed' ? "border-green-500" : "border-gray-300"
-                        )}
-                      >
-                        <span className={cn(
-                          task.status === 'completed' && "line-through text-muted-foreground"
-                        )}>
-                          {task.title}
-                        </span>
-                      </div>
-                    ))}
-                    
-                    {group.tasks.length > 3 && (
-                      <div className="text-xs text-muted-foreground">
-                        + {group.tasks.length - 3} more tasks
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+      <div className="relative border-l border-gray-200 dark:border-gray-700 ml-3 pl-6 space-y-6">
+        {events.map((event, index) => (
+          <div key={event.id} className="relative">
+            <div className="absolute -left-9 mt-1.5 w-5 h-5 rounded-full bg-blue-500 border-4 border-white dark:border-gray-900 flex items-center justify-center">
+              {index === 0 && <div className="w-2 h-2 rounded-full bg-white"></div>}
             </div>
-          );
-        })}
+            
+            <Card className="shadow-sm">
+              <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base font-semibold">{event.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-0 space-y-2">
+                <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>{format(new Date(event.date), 'MMM d, yyyy')}</span>
+                  </div>
+                  
+                  {event.time && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{event.time}</span>
+                    </div>
+                  )}
+                  
+                  <Badge className={`ml-auto ${getStatusColor(event.status)}`} variant="secondary">
+                    {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                  </Badge>
+                </div>
+                
+                <p className="text-sm">{event.description}</p>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
       </div>
     </div>
   );

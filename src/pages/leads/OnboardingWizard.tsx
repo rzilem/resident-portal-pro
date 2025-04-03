@@ -1,372 +1,285 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  PlusCircle, 
-  Clock, 
-  CheckCircle2, 
-  Users, 
-  Building, 
-  Share2, 
-  Calendar,
-  FileText
-} from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from '@/components/ui/progress';
-import { onboardingService } from '@/services/onboardingService';
-import { OnboardingProject, OnboardingStats } from '@/types/onboarding';
-import { toast } from 'sonner';
-import OnboardingTaskList from '@/components/onboarding/OnboardingTaskList';
+import { TooltipButton } from '@/components/ui/tooltip-button';
+import { Stepper, Step } from '@/components/ui/stepper';
+import { Check, ArrowLeft, ArrowRight, Save, Clock } from 'lucide-react';
 import NewProjectDialog from '@/components/onboarding/NewProjectDialog';
-import ProjectTimeline from '@/components/onboarding/ProjectTimeline';
+import OnboardingTaskList from '@/components/onboarding/OnboardingTaskList';
 import ClientSharingInfo from '@/components/onboarding/ClientSharingInfo';
+import ProjectTimeline from '@/components/onboarding/ProjectTimeline';
 import TemplateManagement from '@/components/onboarding/TemplateManagement';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { Project } from '@/types/onboarding';
 
 const OnboardingWizard = () => {
-  const navigate = useNavigate();
   const { projectId } = useParams();
-  const [activeTab, setActiveTab] = useState('tasks');
-  const [activeSection, setActiveSection] = useState<'projects' | 'templates'>('projects');
-  const [isLoading, setIsLoading] = useState(true);
-  const [project, setProject] = useState<OnboardingProject | null>(null);
-  const [projects, setProjects] = useState<OnboardingProject[]>([]);
-  const [stats, setStats] = useState<OnboardingStats | null>(null);
-  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
-  
-  // Load initial data
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(!projectId);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Steps for the wizard
+  const steps = [
+    { id: 'basics', label: 'Project Details' },
+    { id: 'tasks', label: 'Task Management' },
+    { id: 'timeline', label: 'Project Timeline' },
+    { id: 'templates', label: 'Templates' },
+    { id: 'sharing', label: 'Client Sharing' }
+  ];
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Load all projects first
-        const allProjects = await onboardingService.getProjects();
-        setProjects(allProjects);
-        
-        // If a project ID is specified in URL, load that project
-        if (projectId) {
-          const projectData = await onboardingService.getProjectById(projectId);
-          if (projectData) {
-            setProject(projectData);
-            
-            // Load stats for the project
-            const statsData = await onboardingService.getProjectStats(projectId);
-            if (statsData) {
-              setStats(statsData.stats);
-            }
-          } else {
-            toast.error('Project not found');
-            navigate('/leads/onboarding');
-          }
-        } else if (allProjects.length > 0) {
-          // If no project ID in URL but projects exist, use the first one
-          setProject(allProjects[0]);
-          
-          // Load stats for the first project
-          const statsData = await onboardingService.getProjectStats(allProjects[0].id);
-          if (statsData) {
-            setStats(statsData.stats);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading onboarding data:', error);
-        toast.error('Failed to load onboarding data');
-      } finally {
-        setIsLoading(false);
-      }
+    if (projectId) {
+      // Fetch project data
+      fetchProjectData(projectId);
+    }
+  }, [projectId]);
+
+  const fetchProjectData = async (id: string) => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      setTimeout(() => {
+        setProject({
+          id,
+          name: 'Demo Association Onboarding',
+          associationName: 'Lakeside HOA',
+          address: '123 Main St, Austin, TX',
+          contactName: 'John Smith',
+          contactEmail: 'john@example.com',
+          contactPhone: '(512) 555-1234',
+          startDate: new Date().toISOString(),
+          estimatedCompletionDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active',
+          notes: 'New association onboarding project',
+          tasks: [],
+          documents: []
+        });
+        setLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Error fetching project data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load project data',
+        variant: 'destructive'
+      });
+      setLoading(false);
+    }
+  };
+
+  const handleCreateProject = (newProject: Partial<Project>) => {
+    // Simulate creating a new project
+    const createdProject = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: newProject.name || 'New Onboarding Project',
+      associationName: newProject.associationName || 'Unnamed Association',
+      address: newProject.address || '',
+      contactName: newProject.contactName || '',
+      contactEmail: newProject.contactEmail || '',
+      contactPhone: newProject.contactPhone || '',
+      startDate: new Date().toISOString(),
+      estimatedCompletionDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'active',
+      notes: newProject.notes || '',
+      tasks: [],
+      documents: []
     };
     
-    loadData();
-  }, [projectId, navigate]);
-  
-  const handleCreateProject = async (
-    associationId: string, 
-    associationName: string, 
-    templateId: string
-  ) => {
-    try {
-      const newProject = await onboardingService.createProject(
-        associationId, 
-        associationName, 
-        templateId
-      );
-      
-      setProjects(prev => [...prev, newProject]);
-      setProject(newProject);
-      
-      // Navigate to the new project
-      navigate(`/leads/onboarding/${newProject.id}`);
-      
-      toast.success('New onboarding project created');
-      setShowNewProjectDialog(false);
-    } catch (error) {
-      console.error('Error creating project:', error);
-      toast.error('Failed to create onboarding project');
+    setProject(createdProject as Project);
+    setShowNewProjectDialog(false);
+    
+    // Update URL with new project ID
+    navigate(`/leads/onboarding/${createdProject.id}`, { replace: true });
+    
+    toast({
+      title: 'Project Created',
+      description: `Successfully created '${createdProject.name}'`
+    });
+  };
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
     }
   };
-  
-  const handleChangeProject = (projectId: string) => {
-    navigate(`/leads/onboarding/${projectId}`);
-  };
-  
-  const handleUpdateTaskStatus = async (
-    taskGroupId: string,
-    taskId: string,
-    status: 'not_started' | 'in_progress' | 'completed' | 'blocked'
-  ) => {
-    if (!project) return;
-    
-    try {
-      const updatedProject = await onboardingService.updateTaskStatus(
-        project.id,
-        taskGroupId,
-        taskId,
-        status
-      );
-      
-      if (updatedProject) {
-        setProject(updatedProject);
-        
-        // Refresh stats
-        const statsData = await onboardingService.getProjectStats(project.id);
-        if (statsData) {
-          setStats(statsData.stats);
-        }
-        
-        // Update in projects list
-        setProjects(prev => prev.map(p => 
-          p.id === updatedProject.id ? updatedProject : p
-        ));
-        
-        toast.success(`Task ${status === 'completed' ? 'completed' : 'updated'}`);
-      }
-    } catch (error) {
-      console.error('Error updating task:', error);
-      toast.error('Failed to update task');
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
-  
-  const renderContent = () => {
-    if (activeSection === 'templates') {
-      return <TemplateManagement />;
-    }
+
+  const handleFinish = () => {
+    toast({
+      title: 'Onboarding Complete',
+      description: 'Project has been successfully set up'
+    });
+    navigate('/leads');
+  };
+
+  const handleSaveProgress = () => {
+    toast({
+      title: 'Progress Saved',
+      description: 'Your changes have been saved'
+    });
+  };
+
+  // Render current step content
+  const renderStepContent = () => {
+    if (!project) return null;
     
-    if (isLoading) {
-      return (
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-[400px] w-full" />
-        </div>
-      );
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Association Details</h3>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Name:</span> {project.associationName}</p>
+                  <p><span className="font-medium">Address:</span> {project.address}</p>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2">Contact Information</h3>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Name:</span> {project.contactName}</p>
+                  <p><span className="font-medium">Email:</span> {project.contactEmail}</p>
+                  <p><span className="font-medium">Phone:</span> {project.contactPhone}</p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-2">Project Notes</h3>
+              <p className="border p-2 rounded-md min-h-[80px] bg-muted/50">{project.notes || 'No notes added'}</p>
+            </div>
+          </div>
+        );
+      case 1:
+        return <OnboardingTaskList project={project} />;
+      case 2:
+        return <ProjectTimeline project={project} />;
+      case 3:
+        return <TemplateManagement project={project} />;
+      case 4:
+        return <ClientSharingInfo project={project} />;
+      default:
+        return null;
     }
-    
-    if (projects.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center h-[400px] text-center">
-          <Building className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-xl font-medium mb-2">No Onboarding Projects</h3>
-          <p className="text-muted-foreground mb-6">
-            Create a new association onboarding project to get started
-          </p>
-          <Button onClick={() => setShowNewProjectDialog(true)}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Create Onboarding Project
-          </Button>
-        </div>
-      );
-    }
-    
-    if (!project) {
-      return (
-        <div className="flex flex-col items-center justify-center h-[400px] text-center">
-          <h3 className="text-xl font-medium mb-2">No Project Selected</h3>
-          <p className="text-muted-foreground mb-6">
-            Please select a project or create a new one
-          </p>
-          <Button onClick={() => setShowNewProjectDialog(true)}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Create Onboarding Project
-          </Button>
-        </div>
-      );
-    }
-    
+  };
+
+  if (loading) {
     return (
-      <div className="space-y-6">
-        {/* Project header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">{project.associationName}</h2>
-            <p className="text-muted-foreground text-sm">
-              Started {new Date(project.startDate).toLocaleDateString()} 
-              {project.status === 'completed' && ' • Completed'}
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => navigate('/leads')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Leads
-            </Button>
-            <Button variant="outline" onClick={() => setShowNewProjectDialog(true)}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              New Project
-            </Button>
-          </div>
+      <div className="container mx-auto py-6">
+        <div className="flex animate-pulse flex-col space-y-4">
+          <div className="h-12 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-80 bg-gray-200 rounded"></div>
         </div>
-        
-        {/* Overall progress */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Onboarding Progress</CardTitle>
-            <CardDescription>
-              {stats?.completedTasks || 0} of {stats?.totalTasks || 0} tasks completed
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Progress value={project.progress} className="h-2" />
-              
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  <div>
-                    <p className="text-muted-foreground text-sm">Completed</p>
-                    <p className="font-medium">{stats?.completedTasks || 0} tasks</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-amber-500" />
-                  <div>
-                    <p className="text-muted-foreground text-sm">Days Since Start</p>
-                    <p className="font-medium">{stats?.daysElapsed || 0} days</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <p className="text-muted-foreground text-sm">Est. Days Remaining</p>
-                    <p className="font-medium">{stats?.daysRemaining || 0} days</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-purple-500" />
-                  <div>
-                    <p className="text-muted-foreground text-sm">Client Access</p>
-                    <p className="font-medium">Active</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Tabs for different sections */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tasks">Tasks & Timeline</TabsTrigger>
-            <TabsTrigger value="docs">Documents</TabsTrigger>
-            <TabsTrigger value="sharing">Client Sharing</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="tasks" className="space-y-4 py-4">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-              <div className="md:col-span-1">
-                <ProjectTimeline project={project} />
-              </div>
-              
-              <div className="md:col-span-3">
-                <OnboardingTaskList 
-                  project={project}
-                  onUpdateTaskStatus={handleUpdateTaskStatus}
-                />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="docs" className="py-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Documents</CardTitle>
-                <CardDescription>
-                  Manage documents related to the onboarding process
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center justify-center h-[200px] text-center">
-                  <p className="text-muted-foreground mb-4">
-                    No documents uploaded yet
-                  </p>
-                  <Button>
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Upload Document
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="sharing" className="py-4">
-            <ClientSharingInfo 
-              project={project}
-              shareableLink={project.shareableLink || ''}
-            />
-          </TabsContent>
-        </Tabs>
       </div>
     );
-  };
-  
+  }
+
   return (
-    <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+    <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Community Onboarding</h1>
-          <div className="flex space-x-2">
-            <Button 
-              variant={activeSection === 'projects' ? 'default' : 'outline'}
-              onClick={() => setActiveSection('projects')}
-            >
-              <Building className="h-4 w-4 mr-2" />
-              Projects
-            </Button>
-            <Button 
-              variant={activeSection === 'templates' ? 'default' : 'outline'}
-              onClick={() => setActiveSection('templates')}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Templates
-            </Button>
-          </div>
-        </div>
+        <h1 className="text-3xl font-bold">
+          {project ? `Onboarding: ${project.associationName}` : 'New Onboarding Project'}
+        </h1>
         <p className="text-muted-foreground">
-          {activeSection === 'projects' 
-            ? 'Manage the onboarding process for new communities and associations'
-            : 'Create and manage templates for different types of client onboarding'}
+          Guide new associations through the onboarding process
         </p>
       </div>
       
-      {renderContent()}
-      
-      <NewProjectDialog
-        open={showNewProjectDialog}
-        onOpenChange={setShowNewProjectDialog}
-        onCreateProject={handleCreateProject}
+      <NewProjectDialog 
+        open={showNewProjectDialog} 
+        onClose={() => navigate('/leads')}
+        onSubmit={handleCreateProject}
       />
+      
+      <Card className="mb-8 shadow-sm">
+        <CardHeader>
+          <CardTitle>Association Onboarding</CardTitle>
+          <CardDescription>
+            Follow the steps below to complete the onboarding process
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Stepper currentStep={currentStep}>
+            {steps.map((step, index) => (
+              <Step 
+                key={step.id} 
+                label={step.label} 
+                completed={currentStep > index}
+                active={currentStep === index}
+              />
+            ))}
+          </Stepper>
+          
+          <div className="mt-8">
+            {renderStepContent()}
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div>
+            {currentStep > 0 && (
+              <TooltipButton 
+                tooltipText="Go back to previous step"
+                variant="outline" 
+                onClick={handleBack}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </TooltipButton>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <TooltipButton 
+              tooltipText="Cancel and return to leads"
+              variant="outline" 
+              onClick={() => navigate('/leads')}
+            >
+              Cancel
+            </TooltipButton>
+            
+            <TooltipButton 
+              tooltipText="Save your current progress"
+              variant="outline" 
+              onClick={handleSaveProgress}
+              className="gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save Progress
+            </TooltipButton>
+            
+            {currentStep < steps.length - 1 ? (
+              <TooltipButton 
+                tooltipText="Proceed to next step"
+                onClick={handleNext}
+                className="gap-2"
+              >
+                Next
+                <ArrowRight className="h-4 w-4" />
+              </TooltipButton>
+            ) : (
+              <TooltipButton 
+                tooltipText="Complete the onboarding process"
+                onClick={handleFinish}
+                className="gap-2"
+              >
+                <Check className="h-4 w-4" />
+                Complete Onboarding
+              </TooltipButton>
+            )}
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
