@@ -113,7 +113,6 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     await loadSettings();
   };
   
-  // Fixed syntax: In React JSX, props are passed without using the word "value"
   return (
     <SettingsContext.Provider
       value={{
