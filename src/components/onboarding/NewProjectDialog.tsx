@@ -1,143 +1,189 @@
 
-import React, { useState } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useState, useEffect } from 'react';
 import { 
-  Dialog,
-  DialogContent,
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+  DialogDescription
+} from "@/components/ui/dialog";
 import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
+  Form, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl, 
+  FormDescription,
   FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { OnboardingTemplate, OnboardingProject } from '@/types/onboarding';
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
+import { LogIn, LogOut } from 'lucide-react';
+import { OnboardingTemplate } from '@/types/onboarding';
+import { onboardingService } from '@/services/onboardingService';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface NewProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  templates: OnboardingTemplate[];
-  onCreateProject: (data: ProjectFormData) => Promise<void>;
-  isCreating: boolean;
+  onCreateProject: (
+    associationId: string, 
+    associationName: string, 
+    templateId: string,
+    processType?: 'onboarding' | 'offboarding'
+  ) => Promise<void>;
 }
 
-export interface ProjectFormData {
-  name: string;
-  associationId: string;
-  associationName: string;
-  templateId: string;
-  startDate: Date;
-  processType: 'onboarding' | 'offboarding';
-}
+// Mock data for associations
+const mockAssociations = [
+  { id: '101', name: 'Sunset Valley HOA' },
+  { id: '102', name: 'Oakridge Condos' },
+  { id: '103', name: 'Pine Creek Apartments' },
+  { id: '104', name: 'Meadow Ridge Community' },
+];
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Project name is required'),
-  associationId: z.string().min(1, 'Association is required'),
-  associationName: z.string().min(1, 'Association name is required'),
-  templateId: z.string().min(1, 'Template is required'),
-  startDate: z.date(),
+  associationId: z.string().min(1, "Association is required"),
+  templateId: z.string().min(1, "Template is required"),
   processType: z.enum(['onboarding', 'offboarding']).default('onboarding'),
 });
 
-const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
-  open,
-  onOpenChange,
-  templates,
-  onCreateProject,
-  isCreating
+const NewProjectDialog: React.FC<NewProjectDialogProps> = ({ 
+  open, 
+  onOpenChange, 
+  onCreateProject 
 }) => {
-  const [associations, setAssociations] = useState([
-    { id: 'assoc-1', name: 'Sunny Heights HOA' },
-    { id: 'assoc-2', name: 'Oakwood Condominiums' },
-    { id: 'assoc-3', name: 'Riverside Community Association' },
-    { id: 'assoc-4', name: 'Pine Valley Estates' },
-  ]);
+  const [templates, setTemplates] = useState<OnboardingTemplate[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<OnboardingTemplate[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const form = useForm<ProjectFormData>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
       associationId: '',
-      associationName: '',
       templateId: '',
-      startDate: new Date(),
-      processType: 'onboarding',
-    },
+      processType: 'onboarding'
+    }
   });
   
-  const handleSubmit = async (data: ProjectFormData) => {
+  // Load templates when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadTemplates();
+    } else {
+      form.reset({
+        associationId: '',
+        templateId: '',
+        processType: 'onboarding'
+      });
+    }
+  }, [open, form]);
+  
+  // Filter templates based on process type
+  useEffect(() => {
+    const processType = form.watch('processType');
+    const filtered = templates.filter(t => t.processType === processType);
+    setFilteredTemplates(filtered);
+  }, [templates, form.watch('processType')]);
+  
+  const loadTemplates = async () => {
     try {
-      await onCreateProject(data);
-      form.reset();
+      setIsLoading(true);
+      const templatesData = await onboardingService.getTemplates();
+      setTemplates(templatesData);
+      
+      // Initially filter for onboarding templates
+      setFilteredTemplates(templatesData.filter(t => t.processType === 'onboarding'));
     } catch (error) {
-      console.error('Error creating project:', error);
-      // Error handling is done in the parent component
+      console.error('Error loading templates:', error);
+      toast.error('Failed to load templates');
+    } finally {
+      setIsLoading(false);
     }
   };
   
-  // Filter templates based on process type
-  const processType = form.watch('processType');
-  const filteredTemplates = templates.filter(
-    template => template.processType === processType
-  );
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setIsLoading(true);
+      
+      // Find association name
+      const association = mockAssociations.find(a => a.id === values.associationId);
+      if (!association) {
+        toast.error('Association not found');
+        return;
+      }
+      
+      await onCreateProject(
+        values.associationId, 
+        association.name, 
+        values.templateId,
+        values.processType
+      );
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast.error('Failed to create project');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription>
+            Create a new onboarding or offboarding project for a client association
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="processType"
               render={({ field }) => (
-                <div className="flex items-center space-x-4 mb-4">
-                  <Button
-                    type="button"
-                    variant={field.value === 'onboarding' ? 'default' : 'outline'}
-                    onClick={() => field.onChange('onboarding')}
-                    className="flex-1"
-                  >
-                    Onboarding
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={field.value === 'offboarding' ? 'default' : 'outline'}
-                    onClick={() => field.onChange('offboarding')}
-                    className="flex-1"
-                  >
-                    Offboarding
-                  </Button>
-                </div>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Project Name</FormLabel>
+                <FormItem className="space-y-3">
+                  <FormLabel>Process Type</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter project name" {...field} />
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="onboarding" id="onboarding" />
+                        <Label htmlFor="onboarding" className="flex items-center cursor-pointer">
+                          <LogIn className="h-4 w-4 mr-2 text-green-500" />
+                          Onboarding Process
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="offboarding" id="offboarding" />
+                        <Label htmlFor="offboarding" className="flex items-center cursor-pointer">
+                          <LogOut className="h-4 w-4 mr-2 text-amber-500" />
+                          Offboarding Process
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </FormControl>
+                  <FormDescription>
+                    Select whether you're creating an onboarding or offboarding process
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -147,55 +193,31 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
               control={form.control}
               name="associationId"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem>
                   <FormLabel>Association</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select association" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {mockAssociations.map(association => (
+                        <SelectItem 
+                          key={association.id} 
+                          value={association.id}
                         >
-                          {field.value
-                            ? associations.find((association) => association.id === field.value)?.name
-                            : "Select association"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search association..." />
-                        <CommandEmpty>No association found.</CommandEmpty>
-                        <CommandGroup>
-                          {associations.map((association) => (
-                            <CommandItem
-                              value={association.name}
-                              key={association.id}
-                              onSelect={() => {
-                                form.setValue("associationId", association.id);
-                                form.setValue("associationName", association.name);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  association.id === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {association.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                          {association.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select the association for this project
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -205,83 +227,57 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
               control={form.control}
               name="templateId"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Template</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value
-                            ? filteredTemplates.find((template) => template.id === field.value)?.name
-                            : "Select template"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search template..." />
-                        <CommandEmpty>No template found.</CommandEmpty>
-                        <CommandGroup>
-                          {filteredTemplates.map((template) => (
-                            <CommandItem
-                              value={template.name}
-                              key={template.id}
-                              onSelect={() => {
-                                form.setValue("templateId", template.id);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  template.id === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {template.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Start Date</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      date={field.value}
-                      onDateChange={field.onChange}
-                      className="w-full"
-                    />
-                  </FormControl>
+                  <FormLabel>Template</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={isLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          isLoading 
+                            ? "Loading templates..." 
+                            : filteredTemplates.length === 0 
+                              ? `No ${form.watch('processType')} templates available` 
+                              : "Select template"
+                        } />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filteredTemplates.map(template => (
+                        <SelectItem 
+                          key={template.id} 
+                          value={template.id}
+                        >
+                          {template.name}
+                          {template.clientType && ` (${template.clientType})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a template for the {form.watch('processType')} process
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? 'Creating...' : 'Create Project'}
+              <Button 
+                type="submit" 
+                disabled={isLoading || filteredTemplates.length === 0}
+              >
+                {isLoading ? 'Creating...' : 'Create Project'}
               </Button>
             </DialogFooter>
           </form>
