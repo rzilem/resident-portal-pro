@@ -10,7 +10,9 @@ import {
   Building, 
   Share2, 
   Calendar,
-  FileText
+  FileText,
+  BarChart3,
+  PieChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,6 +25,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from '@/components/ui/progress';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { onboardingService } from '@/services/onboardingService';
 import { OnboardingProject, OnboardingStats } from '@/types/onboarding';
 import { toast } from 'sonner';
@@ -69,15 +72,9 @@ const OnboardingWizard = () => {
             toast.error('Project not found');
             navigate('/leads/onboarding');
           }
-        } else if (allProjects.length > 0) {
-          // If no project ID in URL but projects exist, use the first one
-          setProject(allProjects[0]);
-          
-          // Load stats for the first project
-          const statsData = await onboardingService.getProjectStats(allProjects[0].id);
-          if (statsData) {
-            setStats(statsData.stats);
-          }
+        } else {
+          // If no project ID, just show the dashboard with all projects
+          setProject(null);
         }
       } catch (error) {
         console.error('Error loading onboarding data:', error);
@@ -156,12 +153,9 @@ const OnboardingWizard = () => {
       toast.error('Failed to update task');
     }
   };
-  
-  const renderContent = () => {
-    if (activeSection === 'templates') {
-      return <TemplateManagement />;
-    }
-    
+
+  // Render the dashboard view when no project is selected
+  const renderDashboard = () => {
     if (isLoading) {
       return (
         <div className="space-y-4">
@@ -171,7 +165,7 @@ const OnboardingWizard = () => {
         </div>
       );
     }
-    
+
     if (projects.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-[400px] text-center">
@@ -187,7 +181,227 @@ const OnboardingWizard = () => {
         </div>
       );
     }
-    
+
+    // Calculate some summary statistics
+    const activeProjects = projects.filter(p => p.status === 'active').length;
+    const completedProjects = projects.filter(p => p.status === 'completed').length;
+    const onHoldProjects = projects.filter(p => p.status === 'on_hold').length;
+    const onboardingProjects = projects.filter(p => p.processType === 'onboarding').length;
+    const offboardingProjects = projects.filter(p => p.processType === 'offboarding').length;
+
+    return (
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Active Projects</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">{activeProjects}</div>
+                <div className="p-2 bg-blue-100 text-blue-700 rounded-full">
+                  <Clock className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                {activeProjects === 1 ? '1 association' : `${activeProjects} associations`} in progress
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Completed</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">{completedProjects}</div>
+                <div className="p-2 bg-green-100 text-green-700 rounded-full">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                {completedProjects === 1 ? '1 project' : `${completedProjects} projects`} completed
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">By Process Type</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center mb-1">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-sm">Onboarding: {onboardingProjects}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                    <span className="text-sm">Offboarding: {offboardingProjects}</span>
+                  </div>
+                </div>
+                <div className="p-2 bg-purple-100 text-purple-700 rounded-full">
+                  <PieChart className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Projects Table */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Active Onboarding Projects</CardTitle>
+              <Button onClick={() => setShowNewProjectDialog(true)}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                New Project
+              </Button>
+            </div>
+            <CardDescription>
+              Manage and track your community onboarding projects
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Association</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Process Type</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {projects.map((project) => (
+                  <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleChangeProject(project.id)}>
+                    <TableCell className="font-medium">{project.associationName}</TableCell>
+                    <TableCell>{new Date(project.startDate).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full mr-2 ${
+                          project.status === 'active' 
+                            ? 'bg-green-500' 
+                            : project.status === 'on_hold'
+                              ? 'bg-amber-500'
+                              : 'bg-blue-500'
+                        }`}></div>
+                        {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Progress value={project.progress} className="h-2 w-full max-w-[100px]" />
+                        <span className="text-xs">{project.progress}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        project.processType === 'onboarding' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {project.processType.charAt(0).toUpperCase() + project.processType.slice(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChangeProject(project.id);
+                        }}
+                      >
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Recently Completed Projects */}
+        {completedProjects > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Recently Completed</CardTitle>
+              <CardDescription>
+                Projects that have completed the onboarding process
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Association</TableHead>
+                    <TableHead>Completed Date</TableHead>
+                    <TableHead>Process Type</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects
+                    .filter(p => p.status === 'completed')
+                    .sort((a, b) => {
+                      if (!a.completedDate || !b.completedDate) return 0;
+                      return new Date(b.completedDate).getTime() - new Date(a.completedDate).getTime();
+                    })
+                    .slice(0, 5)
+                    .map((project) => (
+                      <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleChangeProject(project.id)}>
+                        <TableCell className="font-medium">{project.associationName}</TableCell>
+                        <TableCell>{project.completedDate ? new Date(project.completedDate).toLocaleDateString() : '-'}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            project.processType === 'onboarding' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-purple-100 text-purple-800'
+                          }`}>
+                            {project.processType.charAt(0).toUpperCase() + project.processType.slice(1)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleChangeProject(project.id);
+                            }}
+                          >
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+  
+  const renderDetailedProject = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      );
+    }
+
     if (!project) {
       return (
         <div className="flex flex-col items-center justify-center h-[400px] text-center">
@@ -215,9 +429,9 @@ const OnboardingWizard = () => {
             </p>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => navigate('/leads')}>
+            <Button variant="outline" onClick={() => navigate('/leads/onboarding')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Leads
+              Back to Dashboard
             </Button>
             <Button variant="outline" onClick={() => setShowNewProjectDialog(true)}>
               <PlusCircle className="h-4 w-4 mr-2" />
@@ -329,6 +543,18 @@ const OnboardingWizard = () => {
         </Tabs>
       </div>
     );
+  };
+  
+  const renderContent = () => {
+    if (activeSection === 'templates') {
+      return <TemplateManagement />;
+    }
+    
+    if (projectId && project) {
+      return renderDetailedProject();
+    } else {
+      return renderDashboard();
+    }
   };
   
   return (
