@@ -1,65 +1,83 @@
 
 import React from 'react';
 import { 
-  File, 
   FileText, 
   Image, 
-  FileSpreadsheet, 
-  FileCode, 
-  FilePen, 
+  File, 
+  FileSpreadsheet,
+  FilePpt,
   FileArchive,
-  FileVideo,
   FileAudio,
-  File3d
+  FileVideo,
+  FileCode,
+  FileCog
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface FileIconProps {
   fileType: string;
-  className?: string;
   size?: number;
+  className?: string;
 }
 
 const FileIcon: React.FC<FileIconProps> = ({ 
   fileType, 
-  className,
-  size = 36
+  size = 24,
+  className = ''
 }) => {
-  const getIcon = () => {
-    const type = fileType?.toLowerCase() || '';
-    
-    if (type.includes('pdf')) {
-      return <FilePen size={size} className="text-red-500" />;
-    } else if (type.includes('word') || type.includes('document')) {
-      return <FileText size={size} className="text-blue-500" />;
-    } else if (type.includes('excel') || type.includes('spreadsheet') || type.includes('csv')) {
-      return <FileSpreadsheet size={size} className="text-green-500" />;
-    } else if (type.includes('powerpoint') || type.includes('presentation')) {
-      return <FileText size={size} className="text-orange-500" />;
-    } else if (type.includes('image') || type.includes('png') || type.includes('jpeg') || type.includes('jpg') || type.includes('gif')) {
-      return <Image size={size} className="text-purple-500" />;
-    } else if (type.includes('text') || type.includes('txt')) {
-      return <FileText size={size} className="text-gray-500" />;
-    } else if (type.includes('code') || type.includes('json') || type.includes('xml') || type.includes('html')) {
-      return <FileCode size={size} className="text-yellow-500" />;
-    } else if (type.includes('zip') || type.includes('compressed') || type.includes('archive')) {
-      return <FileArchive size={size} className="text-yellow-500" />;
-    } else if (type.includes('video')) {
-      return <FileVideo size={size} className="text-pink-500" />;
-    } else if (type.includes('audio')) {
-      return <FileAudio size={size} className="text-indigo-500" />;
-    } else if (type.includes('3d') || type.includes('model')) {
-      return <File3d size={size} className="text-blue-400" />;
-    } else {
-      return <File size={size} className="text-gray-500" />;
-    }
+  // Get file extension if it's not a MIME type
+  const extension = fileType.includes('/') 
+    ? fileType.split('/')[1] 
+    : fileType.split('.').pop()?.toLowerCase();
+  
+  // Helper function to detect type category
+  const isType = (exts: string[]): boolean => {
+    if (!extension) return false;
+    return exts.some(ext => extension.includes(ext));
   };
   
-  return (
-    <div className={cn("flex items-center justify-center", className)}>
-      {getIcon()}
-    </div>
-  );
+  // Return appropriate icon based on file type
+  if (fileType.startsWith('image/') || isType(['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'])) {
+    return <Image size={size} className={className} />;
+  }
+  
+  if (fileType === 'application/pdf' || extension === 'pdf') {
+    return <FileText size={size} className={className} />;
+  }
+  
+  if (isType(['doc', 'docx', 'txt', 'rtf', 'odt'])) {
+    return <FileText size={size} className={className} />;
+  }
+  
+  if (isType(['xls', 'xlsx', 'csv', 'ods'])) {
+    return <FileSpreadsheet size={size} className={className} />;
+  }
+  
+  if (isType(['ppt', 'pptx', 'odp'])) {
+    return <FilePpt size={size} className={className} />;
+  }
+  
+  if (isType(['zip', 'rar', '7z', 'tar', 'gz'])) {
+    return <FileArchive size={size} className={className} />;
+  }
+  
+  if (fileType.startsWith('audio/') || isType(['mp3', 'wav', 'ogg', 'flac'])) {
+    return <FileAudio size={size} className={className} />;
+  }
+  
+  if (fileType.startsWith('video/') || isType(['mp4', 'avi', 'mov', 'webm'])) {
+    return <FileVideo size={size} className={className} />;
+  }
+  
+  if (isType(['html', 'css', 'js', 'json', 'xml', 'php', 'py', 'java', 'c', 'cpp', 'h'])) {
+    return <FileCode size={size} className={className} />;
+  }
+  
+  if (isType(['exe', 'dll', 'app', 'msi'])) {
+    return <FileCog size={size} className={className} />;
+  }
+  
+  // Default file icon
+  return <File size={size} className={className} />;
 };
 
 export default FileIcon;
