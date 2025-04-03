@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
+import { useCompanySettings } from '@/hooks/use-company-settings';
 
 interface NavItem {
   label: string;
@@ -22,6 +23,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
+  const { settings } = useCompanySettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,9 +49,19 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         <Link
           to="/"
-          className="text-2xl font-bold text-gradient"
+          className="flex items-center gap-2"
         >
-          Community Intelligence
+          {settings.logoUrl ? (
+            <img 
+              src={settings.logoUrl} 
+              alt={settings.companyName || "Community Intelligence"} 
+              className="h-8 w-auto" 
+            />
+          ) : (
+            <span className="text-2xl font-bold text-gradient">
+              {settings.companyName || "Community Intelligence"}
+            </span>
+          )}
         </Link>
 
         {/* Desktop Menu */}
