@@ -26,6 +26,7 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from '@/components/ui/tooltip';
+import { useLocation } from 'react-router-dom';
 
 interface FixThisButtonProps extends ButtonProps {
   alert: Alert;
@@ -41,11 +42,16 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
   const [selectedSolutionId, setSelectedSolutionId] = useState<string>('');
   const [isApplying, setIsApplying] = useState(false);
   const [isResolved, setIsResolved] = useState(false);
+  const location = useLocation();
 
   // Get solution options based on alert type
   const solutions: AlertSolution[] = getAlertSolutions(alert.title);
 
-  const handleApplySolution = async () => {
+  const handleApplySolution = async (e: React.MouseEvent) => {
+    // Prevent event propagation to avoid navigation
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!selectedSolutionId) {
       toast.error("Please select a solution");
       return;
@@ -76,7 +82,11 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
     }
   };
 
-  const handleMarkResolved = async () => {
+  const handleMarkResolved = async (e: React.MouseEvent) => {
+    // Prevent event propagation to avoid navigation
+    e.preventDefault();
+    e.stopPropagation();
+    
     try {
       setIsApplying(true);
       
@@ -99,6 +109,13 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
   };
 
   const selectedSolution = solutions.find(s => s.id === selectedSolutionId);
+  
+  const handleOpenDialog = (e: React.MouseEvent) => {
+    // Prevent default action and propagation
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDialogOpen(true);
+  };
 
   return (
     <>
@@ -108,7 +125,7 @@ const FixThisButton: React.FC<FixThisButtonProps> = ({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setIsDialogOpen(true)}
+              onClick={handleOpenDialog}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7 px-2 py-0 whitespace-nowrap"
               {...buttonProps}
             >

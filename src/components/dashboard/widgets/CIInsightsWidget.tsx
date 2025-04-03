@@ -44,19 +44,23 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
     }
   };
 
-  const handleFixAlert = (alert: Alert) => {
+  const handleFixAlert = (alert: Alert, e: React.MouseEvent) => {
+    // Prevent default behavior
+    e.preventDefault();
+    e.stopPropagation();
+    
     toast({
       title: "Fixing Issue",
       description: `Starting fix workflow for: ${alert.title}`,
     });
     
-    // Navigate to the appropriate fix page based on alert type
-    navigate(`/alerts/fix/${alert.id}`, {
-      state: { alertDetails: alert }
-    });
+    // Instead of navigating away, we handle the fix in place
+    // The FixThisButton dialog will now be shown
   };
   
-  const handleViewAllAlerts = () => {
+  const handleViewAllAlerts = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
     if (totalAlerts <= 3) {
       return; // Don't do anything if there are 3 or fewer alerts
     }
@@ -68,14 +72,16 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
     }
   };
   
-  const handleAlertClick = (alert: Alert) => {
-    navigate(`/alerts/${alert.id}`, {
-      state: { alertDetails: alert }
-    });
+  const handleAlertClick = (alert: Alert, e: React.MouseEvent) => {
+    // Prevent default navigation
+    e.preventDefault();
+    e.stopPropagation();
     
+    // Display the alert information in a toast instead of navigating
     toast({
       title: "Alert Selected",
-      description: `Viewing details for: ${alert.title}`,
+      description: `${alert.title}: ${alert.description}`,
+      duration: 5000,
     });
   };
   
@@ -116,7 +122,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
                 <li 
                   key={alert.id} 
                   className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950 cursor-pointer"
-                  onClick={() => handleAlertClick(alert)}
+                  onClick={(e) => handleAlertClick(alert, e)}
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -136,7 +142,7 @@ const CIInsightsWidget: React.FC<CIInsightsWidgetProps> = ({ className, size, ca
                         className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-0.5 h-6 px-2 ml-2 shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFixAlert(alert);
+                          handleFixAlert(alert, e);
                         }}
                       />
                     </div>

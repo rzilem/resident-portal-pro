@@ -8,6 +8,7 @@ import AnalysisAlert from '@/components/alerts/AnalysisAlert';
 import { getAlertsForAssociation } from '@/utils/alerts/alertQueries';
 import FixThisButton from '@/components/alerts/FixThisButton';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface AIAnalysisCardProps {
   className?: string;
@@ -35,6 +36,24 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ className = '', associa
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
     }
   };
+
+  const handleFixAlert = (alert: Alert, e: React.MouseEvent) => {
+    // Prevent default navigation
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Show a toast instead of navigating
+    toast.info(`Fixing issue: ${alert.title}`);
+  };
+  
+  const handleAlertClick = (alert: Alert, e: React.MouseEvent) => {
+    // Prevent default navigation
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Show alert details in a toast
+    toast.info(`Alert: ${alert.title} - ${alert.description}`);
+  };
   
   return (
     <Card className={className}>
@@ -51,7 +70,11 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ className = '', associa
         {alerts.length > 0 ? (
           <div className="space-y-3">
             {alerts.map(alert => (
-              <div key={alert.id} className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950">
+              <div 
+                key={alert.id} 
+                className="relative border rounded-lg p-3 hover:shadow-sm transition-shadow bg-white dark:bg-gray-950 cursor-pointer"
+                onClick={(e) => handleAlertClick(alert, e)}
+              >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -65,6 +88,10 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({ className = '', associa
                       variant="default" 
                       size="sm"
                       className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow text-xs py-0.5 h-6 px-2 ml-2 shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFixAlert(alert, e);
+                      }}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">{alert.description}</p>

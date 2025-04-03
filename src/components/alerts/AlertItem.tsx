@@ -56,8 +56,17 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onStatusUpdate }) => {
     }
   };
   
+  const handleAlertClick = (e: React.MouseEvent) => {
+    // Prevent navigating away from the current page
+    e.preventDefault();
+    // Any other alert click handling could go here
+  };
+  
   return (
-    <div className="p-3 border rounded-md hover:bg-muted/50 transition-colors">
+    <div 
+      className="p-3 border rounded-md hover:bg-muted/50 transition-colors"
+      onClick={handleAlertClick}
+    >
       <div className="flex items-start gap-2">
         <div className="mt-0.5">{getAlertIcon(alert.category)}</div>
         <div className="flex-1">
