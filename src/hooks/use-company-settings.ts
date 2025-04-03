@@ -42,9 +42,12 @@ export const useCompanySettings = () => {
             document.title = companySettings.companyName;
           }
           
-          // Verify logo URL is valid if present
+          // Store logo URL in localStorage for immediate access across components
           if (companySettings.logoUrl) {
             infoLog('Logo URL found:', companySettings.logoUrl);
+            localStorage.setItem('company_logo_url', companySettings.logoUrl);
+            // Dispatch event to notify components
+            window.dispatchEvent(new Event('logoUpdate'));
           }
         } else {
           infoLog('No company settings found, using defaults');
@@ -94,6 +97,17 @@ export const useCompanySettings = () => {
       document.title = value;
     }
     
+    // Immediately update logo in localStorage if it's being changed
+    if (key === 'logoUrl') {
+      if (value) {
+        localStorage.setItem('company_logo_url', value);
+      } else {
+        localStorage.removeItem('company_logo_url');
+      }
+      // Notify components of logo change
+      window.dispatchEvent(new Event('logoUpdate'));
+    }
+    
     try {
       const success = await companySettingsService.updateCompanySetting(user.id, key, value);
       if (success) {
@@ -124,6 +138,12 @@ export const useCompanySettings = () => {
     if (logoUrl) {
       infoLog('Logo uploaded successfully, setting state:', logoUrl);
       setSettings(prev => ({ ...prev, logoUrl }));
+      
+      // Update localStorage immediately
+      localStorage.setItem('company_logo_url', logoUrl);
+      
+      // Notify components of logo change
+      window.dispatchEvent(new Event('logoUpdate'));
       
       // Force a refresh to ensure all components have the latest data
       await loadSettings();

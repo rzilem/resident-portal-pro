@@ -18,15 +18,37 @@ const LogoUploader = () => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Update local state when settings change
+  // Update local state when settings change or from localStorage
   useEffect(() => {
-    if (settings.logoUrl) {
+    // Check localStorage first for immediate updates
+    const storedLogo = localStorage.getItem('company_logo_url');
+    
+    if (storedLogo) {
+      setLogoUrl(storedLogo);
+      setImgError(false);
+    } else if (settings.logoUrl) {
       setLogoUrl(settings.logoUrl);
       setImgError(false);
     } else {
       setLogoUrl(null);
     }
   }, [settings.logoUrl]);
+  
+  // Listen for logo update events
+  useEffect(() => {
+    const handleLogoUpdate = () => {
+      const storedLogo = localStorage.getItem('company_logo_url');
+      if (storedLogo) {
+        setLogoUrl(storedLogo);
+        setImgError(false);
+      } else {
+        setLogoUrl(null);
+      }
+    };
+    
+    window.addEventListener('logoUpdate', handleLogoUpdate);
+    return () => window.removeEventListener('logoUpdate', handleLogoUpdate);
+  }, []);
   
   // Try to refresh settings when component mounts
   useEffect(() => {
@@ -73,11 +95,6 @@ const LogoUploader = () => {
         // Update local state
         setLogoUrl(newLogoUrl);
         setImgError(false);
-        
-        // Force settings refresh after a short delay to ensure database sync
-        setTimeout(() => {
-          refreshSettings();
-        }, 500);
       } else {
         toast.dismiss();
         toast.error('Failed to upload logo');
@@ -95,7 +112,7 @@ const LogoUploader = () => {
         fileInputRef.current.value = '';
       }
     }
-  }, [isAuthenticated, uploadLogo, refreshSettings]);
+  }, [isAuthenticated, uploadLogo]);
   
   const handleRemoveLogo = useCallback(async () => {
     if (!logoUrl || !isAuthenticated) return;
@@ -110,11 +127,6 @@ const LogoUploader = () => {
         toast.success('Logo removed successfully');
         infoLog('Logo removed successfully');
         setLogoUrl(null);
-        
-        // Force settings refresh
-        setTimeout(() => {
-          refreshSettings();
-        }, 500);
       } else {
         toast.error('Failed to remove logo');
         errorLog('Failed to remove logo');
@@ -125,7 +137,7 @@ const LogoUploader = () => {
     } finally {
       setIsRemoving(false);
     }
-  }, [logoUrl, updateSetting, isAuthenticated, refreshSettings]);
+  }, [logoUrl, updateSetting, isAuthenticated]);
   
   const handleRefreshSettings = useCallback(() => {
     toast.info('Refreshing settings...');

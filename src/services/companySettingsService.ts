@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { errorLog, infoLog } from '@/utils/debug';
@@ -56,6 +55,12 @@ export const companySettingsService = {
       
       // Force a refresh of the company settings in local storage to ensure immediate availability
       localStorage.setItem('company_settings_timestamp', Date.now().toString());
+      
+      // Store the logo URL directly in localStorage for immediate access
+      localStorage.setItem('company_logo_url', logoUrl);
+      
+      // Dispatch event to notify components about the logo change
+      window.dispatchEvent(new Event('logoUpdate'));
       
       return logoUrl;
     } catch (error) {
@@ -151,6 +156,17 @@ export const companySettingsService = {
   async updateCompanySetting(userId: string, key: string, value: any): Promise<boolean> {
     try {
       infoLog(`Updating company setting: ${key}`, value);
+      
+      // Update logoUrl in localStorage immediately if that's what's being updated
+      if (key === 'logoUrl') {
+        if (value === null) {
+          localStorage.removeItem('company_logo_url');
+        } else {
+          localStorage.setItem('company_logo_url', value);
+        }
+        // Dispatch event to notify components
+        window.dispatchEvent(new Event('logoUpdate'));
+      }
       
       const { data: existingPref, error: prefError } = await supabase
         .from('user_preferences')

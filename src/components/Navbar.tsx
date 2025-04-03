@@ -40,19 +40,37 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
-  // Update local logo state when settings change
-  useEffect(() => {
-    if (settings.logoUrl) {
+  // Function to update logo from localStorage or settings
+  const updateLogoFromStorage = () => {
+    // First check localStorage for most up-to-date logo
+    const storedLogo = localStorage.getItem('company_logo_url');
+    
+    if (storedLogo) {
+      setLogoUrl(storedLogo);
+      setImgError(false);
+    } else if (settings.logoUrl) {
       setLogoUrl(settings.logoUrl);
       setImgError(false);
     } else {
       setLogoUrl(null);
     }
+  };
+  
+  // Update local logo state when settings change
+  useEffect(() => {
+    updateLogoFromStorage();
   }, [settings.logoUrl]);
+  
+  // Listen for logo update events
+  useEffect(() => {
+    window.addEventListener('logoUpdate', updateLogoFromStorage);
+    return () => window.removeEventListener('logoUpdate', updateLogoFromStorage);
+  }, []);
   
   // Try to refresh settings when component mounts
   useEffect(() => {
     refreshSettings();
+    updateLogoFromStorage();
   }, [refreshSettings]);
 
   infoLog('Navbar rendering with logo URL:', logoUrl);
