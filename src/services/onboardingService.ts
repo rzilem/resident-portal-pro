@@ -1,6 +1,6 @@
-
 import { v4 as uuid } from 'uuid';
 import { OnboardingProject, OnboardingTask, OnboardingTemplate, OnboardingTaskGroup } from '@/types/onboarding';
+import { OnboardingStats } from '@/types/onboarding';
 
 // Default onboarding template with task groups based on provided screenshots
 const defaultTemplate: OnboardingTemplate = {
