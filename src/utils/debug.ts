@@ -1,74 +1,104 @@
 
-/**
- * Utility functions for debugging
- */
-
-// Log levels
-export const LOG_LEVELS = {
-  DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-  NONE: 4
+// Enable or disable different types of logging
+const DEBUG = {
+  GENERAL: true,
+  ERROR: true,
+  INFO: true,
+  WARNING: true,
+  DOCUMENT_PREVIEW: true,
+  AUTH: true,
+  API: true,
+  PERFORMANCE: false
 };
 
-// Current log level (can be changed at runtime)
-let currentLogLevel = LOG_LEVELS.INFO;
-
-/**
- * Set the current log level
- * @param level The log level to set
- */
-export const setLogLevel = (level: number) => {
-  currentLogLevel = level;
-};
-
-/**
- * Debug log - only shows when log level is DEBUG or lower
- */
-export const debugLog = (...args: any[]) => {
-  if (currentLogLevel <= LOG_LEVELS.DEBUG) {
-    console.log('[DEBUG]', ...args);
-  }
-};
-
-/**
- * Info log - only shows when log level is INFO or lower
- */
-export const infoLog = (...args: any[]) => {
-  if (currentLogLevel <= LOG_LEVELS.INFO) {
-    console.log('[INFO]', ...args);
-  }
-};
-
-/**
- * Warning log - only shows when log level is WARN or lower
- */
-export const warnLog = (...args: any[]) => {
-  if (currentLogLevel <= LOG_LEVELS.WARN) {
-    console.warn('[WARN]', ...args);
-  }
-};
-
-/**
- * Error log - only shows when log level is ERROR or lower
- */
-export const errorLog = (...args: any[]) => {
-  if (currentLogLevel <= LOG_LEVELS.ERROR) {
-    console.error('[ERROR]', ...args);
-  }
-};
-
-/**
- * Document preview log - specialized logging for document preview functionality
- * Only shows when log level is DEBUG or lower
- */
-export const documentPreviewLog = (message: string, data?: any) => {
-  if (currentLogLevel <= LOG_LEVELS.DEBUG) {
+// General purpose debug logger
+export const debugLog = (message: string, data?: any) => {
+  if (DEBUG.GENERAL) {
     if (data) {
-      console.log('[DOCUMENT PREVIEW]', message, data);
+      console.log(`[DEBUG] ${message}`, data);
     } else {
-      console.log('[DOCUMENT PREVIEW]', message);
+      console.log(`[DEBUG] ${message}`);
     }
   }
+};
+
+// Error logger
+export const errorLog = (message: string, error?: any) => {
+  if (DEBUG.ERROR) {
+    if (error) {
+      console.error(`[ERROR] ${message}`, error);
+    } else {
+      console.error(`[ERROR] ${message}`);
+    }
+  }
+};
+
+// Info logger
+export const infoLog = (message: string, data?: any) => {
+  if (DEBUG.INFO) {
+    if (data) {
+      console.info(`[INFO] ${message}`, data);
+    } else {
+      console.info(`[INFO] ${message}`);
+    }
+  }
+};
+
+// Warning logger
+export const warningLog = (message: string, data?: any) => {
+  if (DEBUG.WARNING) {
+    if (data) {
+      console.warn(`[WARNING] ${message}`, data);
+    } else {
+      console.warn(`[WARNING] ${message}`);
+    }
+  }
+};
+
+// Document preview logger
+export const documentPreviewLog = (message: string, data?: any) => {
+  if (DEBUG.DOCUMENT_PREVIEW) {
+    if (data) {
+      console.log(`[DOCUMENT PREVIEW] ${message}`, data);
+    } else {
+      console.log(`[DOCUMENT PREVIEW] ${message}`);
+    }
+  }
+};
+
+// Authentication logger
+export const authLog = (message: string, data?: any) => {
+  if (DEBUG.AUTH) {
+    if (data) {
+      console.log(`[AUTH] ${message}`, data);
+    } else {
+      console.log(`[AUTH] ${message}`);
+    }
+  }
+};
+
+// API request logger
+export const apiLog = (message: string, data?: any) => {
+  if (DEBUG.API) {
+    if (data) {
+      console.log(`[API] ${message}`, data);
+    } else {
+      console.log(`[API] ${message}`);
+    }
+  }
+};
+
+// Performance logger with timing
+export const perfLog = (label: string) => {
+  if (!DEBUG.PERFORMANCE) return { end: () => {} };
+  
+  const start = performance.now();
+  console.log(`[PERF] Started: ${label}`);
+  
+  return {
+    end: () => {
+      const duration = performance.now() - start;
+      console.log(`[PERF] Ended: ${label} (${duration.toFixed(2)}ms)`);
+    }
+  };
 };

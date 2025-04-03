@@ -1,7 +1,9 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Select, 
   SelectContent, 
@@ -9,282 +11,307 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Upload,
-  File,
-  AlertCircle,
-  X,
-  Tag
-} from "lucide-react";
-import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FileUp, X, Plus, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { getDocumentCategories } from '@/utils/documents';
+import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import { useDocuments } from '@/hooks/use-documents';
 
-export interface DocumentUploaderProps {
+interface DocumentUploaderProps {
   associationId?: string;
-  onUploadComplete: () => void;
-  onCancel: () => void;
   initialCategory?: string;
+  onUploadComplete?: () => void;
+  onCancel?: () => void;
 }
 
 const DocumentUploader: React.FC<DocumentUploaderProps> = ({
   associationId,
+  initialCategory,
   onUploadComplete,
-  onCancel,
-  initialCategory = 'general'
+  onCancel
 }) => {
-  const { uploadDocument } = useDocuments(associationId);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [category, setCategory] = useState(initialCategory || 'general');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState(initialCategory);
+  const [isPublic, setIsPublic] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dragActive, setDragActive] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [dragging, setDragging] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const tagInputRef = useRef<HTMLInputElement>(null);
+  const { uploadDocument } = useDocuments(associationId);
   
-  const categories = getDocumentCategories();
-
+  useEffect(() => {
+    if (initialCategory) {
+      setCategory(initialCategory);
+    }
+  }, [initialCategory]);
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setError(null);
+    setFileError(null);
+    
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      
+      // Validate file size (limit to 30MB)
+      if (selectedFile.size > 30 * 1024 * 1024) {
+        setFileError('File size exceeds the maximum limit of 30MB');
+        return;
+      }
+      
+      setFile(selectedFile);
     }
   };
   
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(true);
+    setDragging(true);
   };
   
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+    setDragging(false);
   };
   
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+    setDragging(false);
+    setFileError(null);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0]);
-      setError(null);
-    }
-  };
-
-  const handleAddTag = () => {
-    if (currentTag && !tags.includes(currentTag)) {
-      setTags([...tags, currentTag]);
-      setCurrentTag('');
-      if (tagInputRef.current) {
-        tagInputRef.current.focus();
+      const droppedFile = e.dataTransfer.files[0];
+      
+      // Validate file size (limit to 30MB)
+      if (droppedFile.size > 30 * 1024 * 1024) {
+        setFileError('File size exceeds the maximum limit of 30MB');
+        return;
       }
+      
+      setFile(droppedFile);
     }
   };
   
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
+  const handleAddTag = () => {
+    if (tagInput && !tags.includes(tagInput) && tags.length < 10) {
+      setTags([...tags, tagInput]);
+      setTagInput('');
     }
   };
   
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
   };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a file to upload');
+  
+  const handleSubmit = async () => {
+    if (!file) {
+      setFileError('Please select a file');
       return;
     }
     
-    setIsUploading(true);
-    setError(null);
-    
     try {
-      const result = await uploadDocument(selectedFile, {
+      const result = await uploadDocument(file, {
         description,
         category,
-        tags
+        tags,
+        isPublic
       });
       
       if (result) {
-        toast.success(`${selectedFile.name} uploaded successfully`);
-        onUploadComplete();
-      } else {
-        setError('Failed to upload document. Please try again.');
+        resetForm();
+        if (onUploadComplete) {
+          onUploadComplete();
+        }
       }
     } catch (err) {
       console.error('Error uploading document:', err);
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsUploading(false);
+      setFileError('Failed to upload document');
     }
   };
-
+  
+  const resetForm = () => {
+    setFile(null);
+    setDescription('');
+    setTags([]);
+    setTagInput('');
+    setIsPublic(false);
+    setFileError(null);
+  };
+  
+  const handleCancel = () => {
+    resetForm();
+    if (onCancel) {
+      onCancel();
+    }
+  };
+  
   return (
-    <div className="space-y-6">
-      {/* File upload area */}
-      {!selectedFile ? (
-        <div 
-          className={`border-2 border-dashed rounded-lg p-8 text-center ${
-            dragActive ? 'border-primary bg-primary/5' : 'border-border'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center space-y-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Upload className="h-8 w-8 text-primary" />
+    <div className="space-y-4">
+      <div
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+          dragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'
+        } ${fileError ? 'border-destructive bg-destructive/5' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => document.getElementById('file-upload')?.click()}
+      >
+        <input
+          id="file-upload"
+          type="file"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        
+        {file ? (
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-between w-full max-w-xs bg-primary/10 rounded p-2 mb-2">
+              <span className="text-sm font-medium truncate">{file.name}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFile(null);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="space-y-2">
-              <h3 className="font-medium">Drag and drop your file here</h3>
-              <p className="text-sm text-muted-foreground">
-                Support for PDF, Word, Excel, PowerPoint, and image files
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground">or</span>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Browse files
-            </Button>
-            <input
-              type="file"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-            />
+            <p className="text-sm text-muted-foreground">
+              Click to replace or drag and drop a different file
+            </p>
           </div>
-        </div>
-      ) : (
-        <div className="border rounded-lg p-6 relative">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-2 right-2 h-6 w-6"
-            onClick={() => setSelectedFile(null)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center space-x-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <File className="h-8 w-8 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-medium truncate">{selectedFile.name}</div>
-              <div className="text-sm text-muted-foreground">
-                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • {selectedFile.type || 'Unknown type'}
-              </div>
-            </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <FileUp className="h-10 w-10 text-muted-foreground mb-2" />
+            <p className="text-sm font-medium mb-1">
+              Drag and drop or click to upload
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Supports PDF, Word, Excel, PowerPoint, images, and more (Max 30MB)
+            </p>
           </div>
-        </div>
-      )}
+        )}
+        
+        {fileError && (
+          <p className="text-sm text-destructive mt-2">{fileError}</p>
+        )}
+      </div>
       
-      {/* Document metadata */}
-      <div className="space-y-4">
+      <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {getDocumentCategories().map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="visibility">Visibility</Label>
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="is-public" 
+                checked={isPublic} 
+                onCheckedChange={(checked) => setIsPublic(checked === true)}
+              />
+              <Label htmlFor="is-public" className="font-normal cursor-pointer">
+                Make this document available to all users
+              </Label>
+            </div>
+          </div>
+        </div>
+        
         <div className="space-y-2">
-          <Label htmlFor="doc-description">Description</Label>
+          <Label htmlFor="description">Description (Optional)</Label>
           <Textarea
-            id="doc-description"
-            placeholder="Enter a description for this document"
+            id="description"
+            placeholder="Enter a description of the document"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="doc-category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger id="doc-category">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="doc-tags">Tags</Label>
-          <div className="flex space-x-2">
-            <Input
-              id="doc-tags"
-              ref={tagInputRef}
-              placeholder="Add tags"
-              value={currentTag}
-              onChange={(e) => setCurrentTag(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-            />
+          <Label htmlFor="tags">Tags (Optional)</Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                id="tags"
+                placeholder="Add tags..."
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
             <Button 
               type="button" 
-              variant="outline"
+              variant="outline" 
               onClick={handleAddTag}
-              disabled={!currentTag || tags.includes(currentTag)}
+              disabled={!tagInput || tags.includes(tagInput) || tags.length >= 10}
             >
-              <Tag className="h-4 w-4 mr-1" />
-              Add
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
+          
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="gap-1">
                   {tag}
-                  <button
+                  <Button
                     type="button"
-                    className="text-muted-foreground hover:text-foreground p-0 h-4 w-4 ml-1"
+                    variant="ghost"
+                    size="icon"
+                    className="h-3 w-3 ml-1 p-0"
                     onClick={() => handleRemoveTag(tag)}
                   >
                     <X className="h-3 w-3" />
-                  </button>
+                  </Button>
                 </Badge>
               ))}
             </div>
           )}
+          
+          <p className="text-xs text-muted-foreground mt-1">
+            Add up to 10 tags to help organize and find this document later
+          </p>
         </div>
-      </div>
-      
-      {error && (
-        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md flex items-start space-x-2">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
+        
+        <div className="flex justify-end gap-2 pt-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleCancel}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="button" 
+            onClick={handleSubmit}
+            disabled={!file}
+          >
+            Upload Document
+          </Button>
         </div>
-      )}
-      
-      <div className="flex justify-end space-x-2">
-        <Button 
-          variant="outline" 
-          onClick={onCancel}
-          disabled={isUploading}
-        >
-          Cancel
-        </Button>
-        <Button 
-          onClick={handleUpload}
-          disabled={!selectedFile || isUploading}
-        >
-          {isUploading ? 'Uploading...' : 'Upload Document'}
-        </Button>
       </div>
     </div>
   );

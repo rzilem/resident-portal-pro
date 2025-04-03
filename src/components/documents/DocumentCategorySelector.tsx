@@ -1,13 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { FolderIcon } from "lucide-react";
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { FilterIcon, CheckIcon } from 'lucide-react';
+import { getDocumentCategories } from '@/utils/documents/documentUtils';
+import { cn } from '@/lib/utils';
 
 interface DocumentCategorySelectorProps {
   selectedCategory: string;
@@ -18,44 +20,43 @@ const DocumentCategorySelector: React.FC<DocumentCategorySelectorProps> = ({
   selectedCategory,
   onChange
 }) => {
-  const [categories, setCategories] = useState<string[]>([
-    'all',
-    'general',
-    'financial',
-    'legal',
-    'meeting',
-    'maintenance'
-  ]);
-
-  // In a real implementation, you would fetch the categories from the backend
-  useEffect(() => {
-    // This is just a placeholder for future implementation
-    // You could add a call to the backend to fetch the categories
-    // For example:
-    // const fetchCategories = async () => {
-    //   const data = await fetch('/api/document-categories');
-    //   const json = await data.json();
-    //   setCategories(['all', ...json.categories]);
-    // };
-    // fetchCategories();
-  }, []);
-
+  const categories = [
+    { value: 'all', label: 'All Categories' },
+    ...getDocumentCategories()
+  ];
+  
+  const getSelectedCategoryLabel = () => {
+    const category = categories.find(c => c.value === selectedCategory);
+    return category ? category.label : 'All Categories';
+  };
+  
   return (
-    <div className="flex items-center gap-2">
-      <FolderIcon className="h-4 w-4 text-muted-foreground" />
-      <Select value={selectedCategory} onValueChange={onChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select category" />
-        </SelectTrigger>
-        <SelectContent>
-          {categories.map((category) => (
-            <SelectItem key={category} value={category} className="capitalize">
-              {category === 'all' ? 'All Categories' : category}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="flex items-center gap-2">
+          <FilterIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">{getSelectedCategoryLabel()}</span>
+          <span className="sm:hidden">Filter</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56 max-h-[300px] overflow-y-auto">
+        {categories.map((category) => (
+          <DropdownMenuItem
+            key={category.value}
+            onClick={() => onChange(category.value)}
+            className={cn(
+              "flex items-center justify-between",
+              selectedCategory === category.value && "font-medium"
+            )}
+          >
+            <span>{category.label}</span>
+            {selectedCategory === category.value && (
+              <CheckIcon className="h-4 w-4" />
+            )}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

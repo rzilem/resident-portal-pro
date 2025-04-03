@@ -1,150 +1,95 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { errorLog, infoLog } from "@/utils/debug";
-import { ensureDocumentsBucketExists } from "@/utils/documents/bucketUtils";
+import { supabase } from '@/integrations/supabase/client';
+import { errorLog, infoLog } from '@/utils/debug';
+import { v4 as uuidv4 } from 'uuid';
+import { validateFileSize, validateFileType } from './validators';
+
+interface UploadFileOptions {
+  maxSize?: number; // Max size in MB
+  allowedTypes?: string[];
+  path?: string;
+  cacheControl?: string;
+  upsert?: boolean;
+}
 
 /**
- * Generic file upload utility for Supabase storage
+ * Uploads a file to Supabase storage
  * @param file The file to upload
- * @param bucket The storage bucket name
- * @param path The path within the bucket
- * @param options Additional upload options
- * @returns URL of the uploaded file or null if upload failed
+ * @param bucket The bucket to upload to
+ * @param folder Optional folder within the bucket
+ * @param options Upload options
+ * @returns The URL of the uploaded file, or null if upload failed
  */
 export const uploadFile = async (
-  file: File, 
+  file: File,
   bucket: string,
-  path: string = '',
-  options: {
-    cacheControl?: string;
-    upsert?: boolean;
-    contentType?: string;
-    useDemo?: boolean;
-  } = {}
+  folder?: string,
+  options?: UploadFileOptions
 ): Promise<string | null> => {
+  const {
+    maxSize = 10, // Default 10MB
+    allowedTypes,
+    path,
+    cacheControl = '3600',
+    upsert = false
+  } = options || {};
+  
   try {
-    // Validate file
-    if (!file) {
-      toast.error('No file provided');
+    infoLog(`Starting file upload to bucket: ${bucket}, folder: ${folder || 'root'}`);
+    
+    // Validate file size
+    if (!validateFileSize(file, maxSize)) {
+      errorLog(`File size exceeds maximum of ${maxSize}MB`);
       return null;
     }
     
-    infoLog(`Uploading file: ${file.name} to ${bucket}/${path}`);
-    
-    // Create a unique filename that includes the original extension
-    const fileExt = file.name.split('.').pop();
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const fileName = `${timestamp}-${randomString}-${file.name.split('.')[0]}.${fileExt}`;
-    const filePath = path ? `${path}/${fileName}` : fileName;
-    
-    // First ensure the bucket exists
-    const bucketExists = await ensureBucketExists(bucket);
-    if (!bucketExists) {
-      errorLog(`Bucket ${bucket} does not exist and could not be created`);
-      toast.error('Storage unavailable. Please contact system administrator.');
+    // Validate file type if allowedTypes is provided
+    if (allowedTypes && !validateFileType(file, allowedTypes)) {
+      errorLog('File type not allowed');
       return null;
     }
     
-    // Upload to Supabase with better error handling
-    infoLog(`Uploading to path: ${filePath}`);
+    // Check if a path is provided, otherwise generate one
+    let uploadPath: string;
+    if (path) {
+      uploadPath = path;
+    } else {
+      // Generate a unique file path
+      const uniqueId = uuidv4();
+      const fileExtension = file.name.split('.').pop() || '';
+      const fileName = `${uniqueId}.${fileExtension}`;
+      
+      uploadPath = folder 
+        ? `${folder}/${fileName}`
+        : fileName;
+    }
+    
+    infoLog(`Uploading file to path: ${uploadPath}`);
+    
+    // Upload the file
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file, {
-        cacheControl: options.cacheControl || '3600',
-        upsert: options.upsert !== undefined ? options.upsert : true,
-        contentType: options.contentType || file.type
+      .upload(uploadPath, file, {
+        cacheControl,
+        upsert
       });
     
     if (error) {
-      errorLog(`Error uploading file to ${bucket}:`, error);
-      
-      // Handle specific errors
-      if (error.message.includes('storage.objects') || 
-          error.message.includes('row-level security policy')) {
-        toast.error('Permission denied: You may not have access to upload files.');
-        return null;
-      }
-      
-      toast.error(`Upload failed: ${error.message}`);
+      errorLog('Error uploading file:', error);
       return null;
     }
     
-    if (!data) {
-      errorLog('No data returned from upload but no error');
-      toast.error('Upload failed for unknown reason');
-      return null;
-    }
-    
-    infoLog('File uploaded successfully to path:', data.path);
-    
-    // Get public URL with a cache busting parameter
-    const { data: publicUrlData } = supabase.storage
+    // Get the public URL
+    const { data: urlData } = await supabase.storage
       .from(bucket)
       .getPublicUrl(data.path);
     
-    if (!publicUrlData || !publicUrlData.publicUrl) {
-      errorLog('Failed to get public URL for uploaded file');
-      toast.error('Failed to generate public URL for uploaded file');
-      return null;
-    }
-    
-    // Add a version parameter to prevent caching issues
-    const publicUrl = publicUrlData.publicUrl;
-    
-    infoLog('Generated public URL:', publicUrl);
+    const publicUrl = urlData?.publicUrl || null;
+    infoLog(`File uploaded successfully. Public URL: ${publicUrl}`);
     
     return publicUrl;
   } catch (error) {
-    errorLog(`Exception in uploadFile to ${bucket}:`, error);
-    toast.error('An unexpected error occurred while uploading the file');
+    errorLog('Unexpected error during file upload:', error);
     return null;
   }
 };
-
-/**
- * Helper function to ensure a bucket exists
- * @param bucketName Name of the bucket to check/create
- * @returns Boolean indicating if bucket exists or was created
- */
-async function ensureBucketExists(bucketName: string): Promise<boolean> {
-  try {
-    // Check if bucket exists
-    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-    
-    if (bucketError) {
-      // If we can't list buckets, we'll assume it exists
-      infoLog('Unable to list buckets, will attempt upload anyway');
-      return true;
-    } 
-    
-    const bucketExists = buckets.some(b => b.name === bucketName);
-    
-    if (!bucketExists) {
-      infoLog(`Bucket ${bucketName} not found, attempting to create...`);
-      try {
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true // Make bucket public to ensure files are accessible
-        });
-        
-        if (createError) {
-          // If we can't create the bucket, log and continue
-          infoLog(`Could not create bucket ${bucketName}: ${createError.message}`);
-          return false;
-        } else {
-          infoLog(`Created bucket ${bucketName} successfully`);
-          return true;
-        }
-      } catch (bucketError) {
-        infoLog('Error creating bucket:', bucketError);
-        return false;
-      }
-    }
-    
-    return true;
-  } catch (error) {
-    errorLog('Exception checking/creating bucket:', error);
-    return false;
-  }
-}
