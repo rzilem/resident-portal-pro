@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { toast } from 'sonner';
 import { handleDocumentStorageError } from '@/utils/documents/initializeBucket';
-import { formatBytes } from '@/utils/documents/fileUtils';
 
 interface FileUploaderProps {
   onFileSelected: (file: File | null) => void;
@@ -31,7 +30,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     try {
       // Check file size
       if (file.size > maxSize) {
-        toast.error(`File is too large. Maximum size is ${formatBytes(maxSize)}.`);
+        toast.error(`File is too large. Maximum size is ${(maxSize / (1024 * 1024)).toFixed(0)}MB.`);
         return false;
       }
       
@@ -121,7 +120,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 <Upload className="h-5 w-5 flex-shrink-0 text-primary" />
                 <span className="text-sm font-medium truncate">{currentFile.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  ({formatBytes(currentFile.size, 0)})
+                  ({(currentFile.size / 1024).toFixed(0)} KB)
                 </span>
               </div>
               <Button 
@@ -142,7 +141,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             <Upload className="h-10 w-10 text-muted-foreground mb-2" />
             <p className="text-sm font-medium mb-1">Drag and drop a file here or click to browse</p>
             <p className="text-xs text-muted-foreground">
-              PDF, Word, or Excel files up to {formatBytes(maxSize, 0)}
+              PDF, Word, or Excel files up to {(maxSize / (1024 * 1024)).toFixed(0)}MB
             </p>
           </>
         )}

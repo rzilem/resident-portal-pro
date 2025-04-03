@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -15,55 +16,29 @@ import { supabase } from '@/integrations/supabase/client';
 import NoDocumentsPlaceholder from './NoDocumentsPlaceholder';
 
 interface DocumentTableProps {
-  documents?: DocumentFile[];
   category?: string;
   searchQuery?: string;
   filter?: 'recent' | 'shared' | 'important';
   associationId?: string;
   refreshTrigger?: number;
-  onViewDocument?: (document: DocumentFile) => void;
-  onDeleteDocument?: (id: string) => Promise<void>;
-  onDownloadDocument?: (document: DocumentFile) => Promise<boolean>;
 }
 
 const DocumentTable: React.FC<DocumentTableProps> = ({
-  documents: providedDocuments,
   category,
   searchQuery = '',
   filter,
   associationId,
-  refreshTrigger = 0,
-  onViewDocument,
-  onDeleteDocument,
-  onDownloadDocument
+  refreshTrigger = 0
 }) => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(providedDocuments ? false : true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (providedDocuments) {
-      setDocuments(providedDocuments);
-      setIsLoading(false);
-      return;
-    }
-
     loadDocuments();
-  }, [providedDocuments, category, searchQuery, filter, associationId, refreshTrigger]);
+  }, [category, searchQuery, filter, associationId, refreshTrigger]);
 
   const loadDocuments = async () => {
-    if (providedDocuments) {
-      setDocuments(providedDocuments);
-      setIsLoading(false);
-      return;
-    }
-
-    if (!associationId) {
-      setDocuments([]);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     
@@ -74,6 +49,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         .from('documents')
         .select('*');
       
+      // Apply filters based on props
       if (category) {
         query = query.eq('category', category);
       }
@@ -87,6 +63,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       }
       
       if (filter === 'recent') {
+        // Last 30 days
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         query = query.gte('uploaded_date', thirtyDaysAgo.toISOString());
@@ -96,6 +73,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         query = query.containedBy('tags', ['important']);
       }
       
+      // Order by most recent first
       query = query.order('uploaded_date', { ascending: false });
       
       const { data, error } = await query;
@@ -107,12 +85,12 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         setDocuments([]);
       } else {
         console.log(`Loaded ${data.length} documents`);
+        // Transform the data to match our DocumentFile interface
         const transformedData: DocumentFile[] = data.map(doc => ({
           id: doc.id,
           name: doc.name,
           description: doc.description || '',
           fileSize: doc.file_size,
-          size: doc.file_size,
           fileType: doc.file_type,
           url: doc.url,
           category: doc.category,
@@ -139,41 +117,59 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
   const handleDocumentView = (doc: DocumentFile) => {
     console.log('Viewing document:', doc.name);
-    if (onViewDocument) {
-      onViewDocument(doc);
-    }
+    // This will be handled by the parent component via the onView prop
   };
 
-  const handleDocumentDownload = async (doc: DocumentFile) => {
+  const handleDocumentDownload = (doc: DocumentFile) => {
     console.log('Downloading document:', doc.name);
-    if (onDownloadDocument) {
-      return onDownloadDocument(doc);
-    }
-    
-    try {
-      const link = document.createElement('a');
-      link.href = doc.url;
-      link.download = doc.name;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      return true;
-    } catch (error) {
-      console.error('Error downloading document:', error);
-      toast.error('Failed to download document');
-      return false;
-    }
+    // Download logic is handled in DocumentTableRow
   };
 
-  const handleDeleteClick = async (doc: DocumentFile) => {
+  const handleDocumentDelete = async (doc: DocumentFile) => {
+    console.log('Deleting document:', doc.name);
     try {
-      await onDeleteDocument(doc);
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', doc.id);
+      
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
+      
+      // Delete from storage if it's a Supabase URL
+      if (doc.url && (doc.url.includes('supabase') || doc.url.includes('storage'))) {
+        try {
+          // Extract path from URL if possible
+          const match = doc.url.match(/public\/([^/]+)\/(.+)$/);
+          if (match) {
+            const bucket = match[1];
+            const path = match[2];
+            console.log(`Deleting file from bucket: ${bucket}, path: ${path}`);
+            
+            const { error: storageError } = await supabase.storage
+              .from(bucket)
+              .remove([path]);
+            
+            if (storageError) {
+              console.error('Error deleting file from storage:', storageError);
+            }
+          }
+        } catch (storageErr) {
+          console.error('Error deleting file from storage:', storageErr);
+          // Continue anyway since the database record is deleted
+        }
+      }
+      
+      toast.success(`Document "${doc.name}" deleted successfully`);
+      
+      // Update documents state
+      setDocuments(documents.filter(d => d.id !== doc.id));
+      
     } catch (error) {
       console.error('Error deleting document:', error);
+      toast.error(`Failed to delete document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -229,7 +225,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               doc={doc}
               onView={handleDocumentView}
               onDownload={handleDocumentDownload}
-              onDelete={handleDeleteClick}
+              onDelete={handleDocumentDelete}
               refreshDocuments={loadDocuments}
             />
           ))}

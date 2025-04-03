@@ -11,10 +11,6 @@ interface GeneralInfoCardProps {
 }
 
 const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
-  // Ensure contactInfo and address exist to prevent "Cannot read properties of undefined" errors
-  const contactInfo = association?.contactInfo || { email: '', phone: '', website: '' };
-  const address = association?.address || { street: '', city: '', state: '', zipCode: '', country: '' };
-  
   return (
     <Card>
       <CardHeader>
@@ -28,7 +24,7 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 <Building className="h-4 w-4 text-muted-foreground" />
                 Association Type
               </h3>
-              <p className="capitalize">{association.type || 'N/A'}</p>
+              <p className="capitalize">{association.type}</p>
             </div>
             
             <div>
@@ -36,7 +32,7 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 Founded Date
               </h3>
-              <p>{association.foundedDate ? formatDate(association.foundedDate) : 'N/A'}</p>
+              <p>{formatDate(association.foundedDate)}</p>
             </div>
             
             <div>
@@ -44,7 +40,7 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 Total Units
               </h3>
-              <p>{association.units || 0} units</p>
+              <p>{association.units} units</p>
             </div>
             
             <div>
@@ -62,9 +58,9 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 Address
               </h3>
-              <p>{address.street || 'N/A'}</p>
-              <p>{address.city || 'N/A'}, {address.state || 'N/A'} {address.zipCode || 'N/A'}</p>
-              <p>{address.country || 'N/A'}</p>
+              <p>{association.address.street}</p>
+              <p>{association.address.city}, {association.address.state} {association.address.zipCode}</p>
+              <p>{association.address.country}</p>
             </div>
             
             <div>
@@ -72,7 +68,7 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 Email
               </h3>
-              <p>{contactInfo.email || 'N/A'}</p>
+              <p>{association.contactInfo.email}</p>
             </div>
             
             <div>
@@ -80,10 +76,10 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 Phone
               </h3>
-              <p>{contactInfo.phone || 'N/A'}</p>
+              <p>{association.contactInfo.phone}</p>
             </div>
             
-            {contactInfo.website && (
+            {association.contactInfo.website && (
               <div>
                 <h3 className="font-medium text-sm flex items-center gap-1.5 mb-1">
                   <Globe className="h-4 w-4 text-muted-foreground" />
@@ -91,12 +87,12 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
                 </h3>
                 <p>
                   <a 
-                    href={contactInfo.website} 
+                    href={association.contactInfo.website} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    {contactInfo.website}
+                    {association.contactInfo.website}
                   </a>
                 </p>
               </div>
@@ -109,7 +105,19 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
         <div>
           <h3 className="font-medium mb-2">Association Description</h3>
           <p className="text-muted-foreground">
-            {association?.description || 'No description available for this association.'}
+            {association.type === 'hoa' ? (
+              `${association.name} is a Homeowners Association founded in ${new Date(association.foundedDate).getFullYear()} 
+              and consists of ${association.units} units. The association is located in ${association.address.city}, 
+              ${association.address.state} and is currently ${association.status === 'active' ? 'active' : 'inactive'}.`
+            ) : association.type === 'condo' ? (
+              `${association.name} is a Condominium Association founded in ${new Date(association.foundedDate).getFullYear()} 
+              and consists of ${association.units} units. The association is located in ${association.address.city}, 
+              ${association.address.state} and is currently ${association.status === 'active' ? 'active' : 'inactive'}.`
+            ) : (
+              `${association.name} is a ${association.type} Association founded in ${new Date(association.foundedDate).getFullYear()} 
+              and consists of ${association.units} units. The association is located in ${association.address.city}, 
+              ${association.address.state} and is currently ${association.status === 'active' ? 'active' : 'inactive'}.`
+            )}
           </p>
         </div>
       </CardContent>

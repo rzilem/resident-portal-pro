@@ -1,115 +1,67 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Check if documents bucket exists and is accessible
-const checkBucketExists = async (bucketName: string = 'documents'): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.storage.getBucket(bucketName);
-    if (error) {
-      console.error('Error checking if bucket exists:', error);
-      return false;
-    }
-    return !!data;
-  } catch (error) {
-    console.error('Exception checking if bucket exists:', error);
-    return false;
-  }
-};
-
-// Create documents bucket if it doesn't exist
-const createBucket = async (bucketName: string = 'documents'): Promise<boolean> => {
-  try {
-    const { error } = await supabase.storage.createBucket(bucketName, {
-      public: false,
-      fileSizeLimit: 52428800, // 50MB
-    });
-    
-    if (error) {
-      console.error('Error creating bucket:', error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Exception creating bucket:', error);
-    return false;
-  }
-};
-
-// Test bucket access by listing files
-const testBucketAccess = async (bucketName: string = 'documents'): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.storage.from(bucketName).list();
-    if (error) {
-      console.error('Error testing bucket access:', error);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error('Exception testing bucket access:', error);
-    return false;
-  }
-};
-
-// Initialize document storage - ensures bucket exists and is accessible
-export const initializeDocumentStorage = async (bucketName: string = 'documents'): Promise<{
-  bucketExists: boolean;
-  bucketAccessible: boolean;
-}> => {
-  let bucketExists = await checkBucketExists(bucketName);
-  
-  if (!bucketExists) {
-    // Try to create the bucket
-    const created = await createBucket(bucketName);
-    bucketExists = created;
-  }
-  
-  const bucketAccessible = bucketExists ? await testBucketAccess(bucketName) : false;
-  
-  return { bucketExists, bucketAccessible };
-};
-
-export const useDocumentsBucket = (bucketName: string = 'documents') => {
+export const useDocumentsBucket = () => {
   const [bucketReady, setBucketReady] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const checkBucket = useCallback(async () => {
+  const checkBucket = async () => {
     setChecking(true);
-    setError(null);
-    
     try {
-      const { bucketExists, bucketAccessible } = await initializeDocumentStorage(bucketName);
+      // Check if bucket exists
+      const { data: buckets, error } = await supabase.storage.listBuckets();
       
-      if (!bucketExists) {
-        setError('Document storage is not available. Please contact your administrator.');
+      if (error) {
+        console.error('Error checking buckets:', error);
+        toast.error('Error accessing document storage. Please try again later.');
         setBucketReady(false);
-      } else if (!bucketAccessible) {
-        setError('Cannot access document storage. You may not have permissions.');
-        setBucketReady(false);
-      } else {
-        setError(null);
-        setBucketReady(true);
+        setChecking(false);
+        return;
       }
-    } catch (e) {
-      console.error('Unexpected error in useDocumentsBucket:', e);
-      setError('An unexpected error occurred with document storage.');
+      
+      const documentsBucket = buckets.find(b => b.name === 'documents');
+      setBucketReady(!!documentsBucket);
+      
+      if (!documentsBucket) {
+        // Try to create the bucket
+        try {
+          const { error: createError } = await supabase.storage.createBucket('documents', {
+            public: true,
+            fileSizeLimit: 50 * 1024 * 1024 // 50MB
+          });
+          
+          if (createError) {
+            console.error('Error creating documents bucket:', createError);
+            toast.error('Could not create documents storage. Please try again later.');
+            setBucketReady(false);
+          } else {
+            console.log('Created documents bucket');
+            setBucketReady(true);
+          }
+        } catch (e) {
+          console.error('Exception creating bucket:', e);
+          toast.error('Error setting up document storage. Please try again later.');
+          setBucketReady(false);
+        }
+      }
+    } catch (error) {
+      console.error('Exception in useDocumentsBucket:', error);
+      toast.error('Unexpected error accessing document storage. Please try again later.');
       setBucketReady(false);
     } finally {
       setChecking(false);
     }
-  }, [bucketName]);
+  };
 
   useEffect(() => {
     checkBucket();
-  }, [checkBucket]);
+  }, []);
 
   return {
     bucketReady,
     checking,
-    error,
     retryCheck: checkBucket
   };
 };

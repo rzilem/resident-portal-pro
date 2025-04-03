@@ -1,72 +1,23 @@
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, Trash2, Image as ImageIcon, Loader2, RefreshCw, Check } from "lucide-react";
+import { Upload, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
 import { useCompanySettings } from '@/hooks/use-company-settings';
 import { useAuth } from '@/hooks/use-auth';
 import { infoLog, errorLog } from '@/utils/debug';
 
 const LogoUploader = () => {
-  const { settings, isLoading, updateSetting, uploadLogo, refreshSettings } = useCompanySettings();
+  const { settings, isLoading, updateSetting, uploadLogo } = useCompanySettings();
   const { isAuthenticated } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Update local state when settings change or from localStorage
-  useEffect(() => {
-    // Check localStorage first for immediate updates
-    const storedLogo = localStorage.getItem('company_logo_url');
-    
-    if (storedLogo) {
-      setLogoUrl(storedLogo);
-      setImgError(false);
-    } else if (settings.logoUrl) {
-      setLogoUrl(settings.logoUrl);
-      setImgError(false);
-    } else {
-      setLogoUrl(null);
-    }
-  }, [settings.logoUrl]);
+  const currentLogo = settings.logoUrl;
   
-  // Listen for logo update events
-  useEffect(() => {
-    const handleLogoUpdate = () => {
-      const storedLogo = localStorage.getItem('company_logo_url');
-      if (storedLogo) {
-        setLogoUrl(storedLogo);
-        setImgError(false);
-      } else {
-        setLogoUrl(null);
-      }
-    };
-    
-    window.addEventListener('logoUpdate', handleLogoUpdate);
-    return () => window.removeEventListener('logoUpdate', handleLogoUpdate);
-  }, []);
-  
-  // Try to refresh settings when component mounts
-  useEffect(() => {
-    refreshSettings();
-  }, [refreshSettings]);
-  
-  // Clear success state after a timeout
-  useEffect(() => {
-    if (uploadSuccess) {
-      const timer = setTimeout(() => {
-        setUploadSuccess(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [uploadSuccess]);
-  
-  infoLog('LogoUploader rendering with logo URL:', logoUrl);
+  console.log('LogoUploader current logo URL:', currentLogo);
   
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,17 +47,12 @@ const LogoUploader = () => {
     try {
       infoLog('Starting logo upload process', file.name);
       // Use the company settings service to upload the logo
-      const newLogoUrl = await uploadLogo(file);
+      const logoUrl = await uploadLogo(file);
       
-      if (newLogoUrl) {
+      if (logoUrl) {
         toast.dismiss();
         toast.success('Logo uploaded successfully');
-        infoLog('Logo upload complete, URL:', newLogoUrl);
-        
-        // Update local state
-        setLogoUrl(newLogoUrl);
-        setImgError(false);
-        setUploadSuccess(true);
+        infoLog('Logo upload complete, URL:', logoUrl);
       } else {
         toast.dismiss();
         toast.error('Failed to upload logo');
@@ -127,34 +73,17 @@ const LogoUploader = () => {
   }, [isAuthenticated, uploadLogo]);
   
   const handleRemoveLogo = useCallback(async () => {
-    if (!logoUrl || !isAuthenticated) return;
-    
-    setIsRemoving(true);
+    if (!currentLogo || !isAuthenticated) return;
     
     try {
       infoLog('Removing logo');
-      const success = await updateSetting('logoUrl', null);
-      
-      if (success) {
-        toast.success('Logo removed successfully');
-        infoLog('Logo removed successfully');
-        setLogoUrl(null);
-      } else {
-        toast.error('Failed to remove logo');
-        errorLog('Failed to remove logo');
-      }
+      await updateSetting('logoUrl', null);
+      toast.success('Logo removed successfully');
     } catch (error) {
       errorLog('Error removing logo:', error);
       toast.error('Failed to remove logo');
-    } finally {
-      setIsRemoving(false);
     }
-  }, [logoUrl, updateSetting, isAuthenticated]);
-  
-  const handleRefreshSettings = useCallback(() => {
-    toast.info('Refreshing settings...');
-    refreshSettings();
-  }, [refreshSettings]);
+  }, [currentLogo, updateSetting, isAuthenticated]);
   
   return (
     <div className="space-y-4">
@@ -171,38 +100,27 @@ const LogoUploader = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </CardContent>
         </Card>
-      ) : logoUrl && !imgError ? (
+      ) : currentLogo ? (
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="flex flex-col items-center p-6 relative">
-              <div className="mb-4 border border-muted p-2 rounded-md">
-                <img 
-                  src={`${logoUrl}?t=${Date.now()}`} 
-                  alt="Company Logo" 
-                  className="max-h-24 w-auto object-contain" 
-                  onError={(e) => {
-                    errorLog('Failed to load logo in uploader:', logoUrl);
-                    setImgError(true);
-                    e.currentTarget.src = "";
-                    e.currentTarget.style.display = "none";
-                    // Try refreshing settings on error
-                    refreshSettings();
-                  }}
-                />
-              </div>
+              <img 
+                src={currentLogo} 
+                alt="Company Logo" 
+                className="max-h-24 w-auto object-contain mb-4" 
+                onError={(e) => {
+                  console.error('Failed to load logo in uploader:', currentLogo);
+                  // Don't hide the image here, show a placeholder instead
+                  e.currentTarget.src = "";
+                }}
+              />
               
-              {uploadSuccess && (
-                <div className="absolute top-2 right-2 bg-green-100 text-green-800 p-1.5 rounded-full">
-                  <Check className="h-4 w-4" />
-                </div>
-              )}
-              
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()} 
-                  disabled={isLoading || isUploading || isRemoving}
+                  disabled={isLoading || isUploading}
                 >
                   {isUploading ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -216,23 +134,10 @@ const LogoUploader = () => {
                   variant="destructive"
                   size="sm"
                   onClick={handleRemoveLogo}
-                  disabled={isLoading || isUploading || isRemoving}
+                  disabled={isLoading || isUploading}
                 >
-                  {isRemoving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4 mr-2" />
-                  )}
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Remove
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefreshSettings}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
                 </Button>
               </div>
             </div>
@@ -249,29 +154,18 @@ const LogoUploader = () => {
                 Upload your company logo to display in the header and sidebar.
               </p>
               
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading || isUploading}
-                >
-                  {isUploading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-2" />
-                  )}
-                  Upload Logo
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefreshSettings}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Settings
-                </Button>
-              </div>
+              <Button
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Upload Logo
+              </Button>
             </div>
           </CardContent>
         </Card>

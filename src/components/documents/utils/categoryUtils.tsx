@@ -1,77 +1,48 @@
 
 import React from 'react';
 import { DocumentAccessLevel } from '@/types/documents';
+import { Badge } from '@/components/ui/badge';
+import { LockIcon, Shield, Users, UserIcon, FolderIcon } from 'lucide-react';
+import { getSecurityLevelColor } from './categoryUtils';
 
-/**
- * Get color for folder icon based on access level
- * @param accessLevel Access level string
- * @returns CSS color string
- */
-export const getFolderIconColorByAccessLevel = (accessLevel: DocumentAccessLevel): string => {
+// Get a colored folder icon for a document access level
+export const getFolderIconColor = (accessLevel: DocumentAccessLevel): JSX.Element => {
+  const colorClass = getSecurityLevelColor(accessLevel);
+  return <FolderIcon className={`h-4 w-4 ${colorClass}`} />;
+};
+
+// Get a badge component for a document access level
+export const getAccessLevelBadge = (accessLevel: DocumentAccessLevel): JSX.Element => {
   switch (accessLevel) {
-    case 'admin':
-      return 'text-red-500';
-    case 'management':
-      return 'text-purple-500';
-    case 'board':
-      return 'text-blue-500';
-    case 'homeowner':
-      return 'text-green-500';
     case 'all':
+      return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">All Users</Badge>;
+    case 'homeowner':
+      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Homeowners</Badge>;
+    case 'board':
+      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Board Members</Badge>;
+    case 'management':
+      return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Management</Badge>;
+    case 'admin':
+      return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Administrators</Badge>;
     default:
-      return 'text-yellow-400';
+      return <Badge variant="outline">Unknown</Badge>;
   }
 };
 
-/**
- * Render an access level badge with appropriate styling
- * @param accessLevel Document access level
- * @returns React component with styled badge
- */
+// Render a badge for document access level with icon
 export const renderAccessLevelBadge = (accessLevel: DocumentAccessLevel): JSX.Element => {
-  const getColorClass = () => {
-    switch (accessLevel) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'management':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'board':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'homeowner':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'all':
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  return (
-    <span 
-      className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded border ${getColorClass()}`}
-    >
-      {accessLevel === 'all' ? 'Public' : accessLevel.charAt(0).toUpperCase() + accessLevel.slice(1)}
-    </span>
-  );
-};
-
-/**
- * Get display name for access level
- * @param accessLevel Access level string
- * @returns Formatted display name
- */
-export const getAccessLevelDisplayName = (accessLevel: DocumentAccessLevel): string => {
   switch (accessLevel) {
-    case 'all':
-      return 'Everyone (Public)';
-    case 'homeowner':
-      return 'Homeowners & Above';
-    case 'board':
-      return 'Board Members & Above';
-    case 'management':
-      return 'Management & Admin Only';
     case 'admin':
-      return 'Administrator Only';
+      return <Badge variant="destructive" className="flex items-center gap-1"><LockIcon className="h-3 w-3" /> Admin Only</Badge>;
+    case 'management':
+      return <Badge variant="secondary" className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> Management</Badge>;
+    case 'board':
+      return <Badge variant="default" className="flex items-center gap-1"><Shield className="h-3 w-3" /> Board</Badge>;
+    case 'homeowner':
+      return <Badge variant="outline" className="flex items-center gap-1"><Users className="h-3 w-3" /> Homeowner</Badge>;
+    case 'all':
+      return <Badge variant="outline" className="flex items-center gap-1">All Users</Badge>;
     default:
-      return 'Unknown';
+      return <Badge variant="outline">Unknown</Badge>;
   }
 };

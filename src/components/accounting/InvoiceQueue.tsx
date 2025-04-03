@@ -18,7 +18,7 @@ interface InvoiceQueueProps {
 }
 
 const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId }) => {
-  const { settings, updatePreference } = useSettings();
+  const { preferences, updatePreference } = useSettings();
   
   // Define default columns
   const defaultColumns: InvoiceColumn[] = [
@@ -36,7 +36,7 @@ const InvoiceQueue: React.FC<InvoiceQueueProps> = ({ className, associationId })
   
   // Load columns from user preferences or use defaults
   const [columns, setColumns] = useState<InvoiceColumn[]>(
-    settings?.invoiceTableColumns || defaultColumns
+    preferences?.invoiceTableColumns || defaultColumns
   );
   
   // Use our custom hook for invoice data and state management

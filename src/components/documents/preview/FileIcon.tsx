@@ -1,83 +1,68 @@
 
 import React from 'react';
-import { 
-  FileText, 
-  Image, 
-  File, 
-  FileSpreadsheet,
-  FileType,
-  FileArchive,
-  FileAudio,
-  FileVideo,
-  FileCode,
-  FileCog
-} from 'lucide-react';
+import { FileText, FileImage, FileCode, FileSpreadsheet, File, Presentation } from 'lucide-react';
 
 interface FileIconProps {
   fileType: string;
-  size?: number;
   className?: string;
 }
 
-const FileIcon: React.FC<FileIconProps> = ({ 
-  fileType, 
-  size = 24,
-  className = ''
-}) => {
-  // Get file extension if it's not a MIME type
-  const extension = fileType.includes('/') 
-    ? fileType.split('/')[1] 
-    : fileType.split('.').pop()?.toLowerCase();
+const FileIcon: React.FC<FileIconProps> = ({ fileType, className = "h-10 w-10 text-muted-foreground" }) => {
+  // Normalize file type
+  const normalizedType = fileType ? fileType.toLowerCase() : '';
   
-  // Helper function to detect type category
-  const isType = (exts: string[]): boolean => {
-    if (!extension) return false;
-    return exts.some(ext => extension.includes(ext));
-  };
-  
-  // Return appropriate icon based on file type
-  if (fileType.startsWith('image/') || isType(['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'])) {
-    return <Image size={size} className={className} />;
+  // Determine icon based on file type or extension
+  if (
+    normalizedType.includes('image') || 
+    normalizedType.includes('jpg') || 
+    normalizedType.includes('jpeg') || 
+    normalizedType.includes('png') || 
+    normalizedType.includes('gif') || 
+    normalizedType.includes('svg') || 
+    normalizedType.includes('webp')
+  ) {
+    return <FileImage className={className} />;
   }
   
-  if (fileType === 'application/pdf' || extension === 'pdf') {
-    return <FileText size={size} className={className} />;
+  if (normalizedType.includes('pdf')) {
+    return <FileText className={`${className} text-red-500`} />; // Use FileText for PDF
   }
   
-  if (isType(['doc', 'docx', 'txt', 'rtf', 'odt'])) {
-    return <FileText size={size} className={className} />;
+  if (
+    normalizedType.includes('excel') || 
+    normalizedType.includes('spreadsheet') || 
+    normalizedType.includes('csv')
+  ) {
+    return <FileSpreadsheet className={className} />;
   }
   
-  if (isType(['xls', 'xlsx', 'csv', 'ods'])) {
-    return <FileSpreadsheet size={size} className={className} />;
+  if (
+    normalizedType.includes('powerpoint') || 
+    normalizedType.includes('presentation')
+  ) {
+    return <Presentation className={className} />; // Changed from FilePresentation
   }
   
-  if (isType(['ppt', 'pptx', 'odp'])) {
-    return <FileType size={size} className={className} />;
+  if (
+    normalizedType.includes('code') || 
+    normalizedType.includes('json') || 
+    normalizedType.includes('xml') || 
+    normalizedType.includes('html') || 
+    normalizedType.includes('css') || 
+    normalizedType.includes('javascript')
+  ) {
+    return <FileCode className={className} />;
   }
   
-  if (isType(['zip', 'rar', '7z', 'tar', 'gz'])) {
-    return <FileArchive size={size} className={className} />;
+  if (
+    normalizedType.includes('text') || 
+    normalizedType.includes('doc') || 
+    normalizedType.includes('word')
+  ) {
+    return <FileText className={className} />;
   }
   
-  if (fileType.startsWith('audio/') || isType(['mp3', 'wav', 'ogg', 'flac'])) {
-    return <FileAudio size={size} className={className} />;
-  }
-  
-  if (fileType.startsWith('video/') || isType(['mp4', 'avi', 'mov', 'webm'])) {
-    return <FileVideo size={size} className={className} />;
-  }
-  
-  if (isType(['html', 'css', 'js', 'json', 'xml', 'php', 'py', 'java', 'c', 'cpp', 'h'])) {
-    return <FileCode size={size} className={className} />;
-  }
-  
-  if (isType(['exe', 'dll', 'app', 'msi'])) {
-    return <FileCog size={size} className={className} />;
-  }
-  
-  // Default file icon
-  return <File size={size} className={className} />;
+  return <File className={className} />;
 };
 
 export default FileIcon;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Building } from 'lucide-react';
@@ -6,7 +5,6 @@ import { useAssociations } from '@/hooks/use-associations';
 import { Association } from '@/types/association';
 import { getPropertiesFromAssociations } from '@/components/properties/PropertyHelpers';
 import { toast } from 'sonner';
-import { adaptAssociationToFullType } from '@/utils/type-adapters';
 
 // Imported Components
 import AssociationHeader from '@/components/associations/AssociationHeader';
@@ -23,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const AssociationProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { associations, loading: associationsLoading } = useAssociations();
+  const { associations, isLoading: associationsLoading } = useAssociations();
   const [association, setAssociation] = useState<Association | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePhotoTab, setActivePhotoTab] = useState<string>('view');
@@ -32,19 +30,14 @@ const AssociationProfile = () => {
     console.log('Association ID from URL:', id);
     
     const loadAssociation = async () => {
-      if (!id) {
-        setLoading(false);
-        return;
-      }
+      if (!id) return;
       
       try {
         // Try to find in the cache first
         const cachedAssociation = associations.find(a => a.id === id);
         if (cachedAssociation) {
           console.log('Found association in cache:', cachedAssociation);
-          // Convert the hook Association to the full type Association
-          const fullAssociation = adaptAssociationToFullType(cachedAssociation);
-          setAssociation(fullAssociation);
+          setAssociation(cachedAssociation);
           setLoading(false);
           return;
         }
@@ -61,9 +54,7 @@ const AssociationProfile = () => {
         
         if (fetchedAssociation) {
           console.log('Fetched association directly:', fetchedAssociation);
-          // Convert the fetched Association to the full type Association
-          const fullAssociation = adaptAssociationToFullType(fetchedAssociation);
-          setAssociation(fullAssociation);
+          setAssociation(fetchedAssociation);
         } else {
           console.log('Association not found, even after direct fetch.');
           toast.error('Association not found');
@@ -79,7 +70,6 @@ const AssociationProfile = () => {
     loadAssociation();
   }, [id, associations, associationsLoading]);
 
-  // If still loading or associations are still loading, show a loading indicator
   if (loading || associationsLoading) {
     return (
       <div className="flex-1 p-8 flex items-center justify-center">
@@ -91,7 +81,6 @@ const AssociationProfile = () => {
     );
   }
 
-  // If association was not found, display an error
   if (!association) {
     return (
       <div className="flex-1 p-8">
@@ -112,12 +101,10 @@ const AssociationProfile = () => {
     );
   }
 
-  // Ensure address exists for fullAddress
-  const address = association.address || { street: '', city: '', state: '', zipCode: '', country: '' };
-  const fullAddress = `${address.street}, ${address.city}, ${address.state} ${address.zipCode}, ${address.country}`;
-
-  const properties = getPropertiesFromAssociations([association]);
+  const properties = association ? getPropertiesFromAssociations([association]) : [];
   
+  const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
+
   // Standard user ID and access level for calendar - same as in Calendar.tsx
   const userId = 'current-user';
   const userAccessLevel = 'admin' as const;
@@ -128,7 +115,7 @@ const AssociationProfile = () => {
         <AssociationHeader 
           association={association} 
           fullAddress={fullAddress} 
-          hideIdentification={true}
+          hideIdentification={true}  // This will hide the association code
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

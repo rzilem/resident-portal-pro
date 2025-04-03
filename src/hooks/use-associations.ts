@@ -1,194 +1,178 @@
-
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { Association } from '@/types/association';
 import { toast } from 'sonner';
-
-export interface Association {
-  id: string;
-  name: string;
-  type?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  units?: number;
-  created_at?: string;
-  updated_at?: string;
-  status?: 'active' | 'inactive';
-}
+import { 
+  fetchAssociations,
+  createAssociation,
+  updateAssociation,
+  updateAssociationSetting,
+  deleteAssociation,
+  setDefaultAssociation,
+  toggleAssociationStatus
+} from '@/utils/supabase/association';
 
 export const useAssociations = () => {
   const [associations, setAssociations] = useState<Association[]>([]);
   const [activeAssociation, setActiveAssociation] = useState<Association | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const fetchAssociations = useCallback(async () => {
-    setLoading(true);
+  const loadAssociations = useCallback(async () => {
+    setIsLoading(true);
     setError(null);
-    
     try {
-      const { data, error: fetchError } = await supabase
-        .from('associations')
-        .select('*')
-        .order('name');
+      console.log("Loading associations...");
+      const data = await fetchAssociations();
+      console.log("Loaded associations:", data);
+      setAssociations(data);
       
-      if (fetchError) {
-        throw fetchError;
+      if (!activeAssociation && data.length > 0) {
+        const defaultAssociation = data.find(a => a.settings?.isDefault) || data[0];
+        console.log("Setting default association:", defaultAssociation);
+        setActiveAssociation(defaultAssociation);
       }
-      
-      setAssociations(data || []);
-      
-      // Set active association to the first one if no active association
-      if (data && data.length > 0 && !activeAssociation) {
-        setActiveAssociation(data[0]);
-      }
-    } catch (err: any) {
-      console.error('Error fetching associations:', err);
-      setError(err.message || 'Failed to load associations');
+    } catch (err) {
+      console.error("Error loading associations:", err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch associations'));
       toast.error('Failed to load associations');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [activeAssociation]);
 
   useEffect(() => {
-    fetchAssociations();
-  }, [fetchAssociations]);
+    loadAssociations();
+  }, [loadAssociations]);
 
-  const selectAssociation = (association: Association) => {
+  const selectAssociation = useCallback((association: Association) => {
+    console.log("Selecting association:", association);
     setActiveAssociation(association);
-  };
+  }, []);
 
-  const createAssociation = async (association: Omit<Association, 'id' | 'created_at' | 'updated_at'>) => {
+  const addAssociation = useCallback(async (newAssociation: Omit<Association, 'id'>) => {
     try {
-      const { data, error } = await supabase
-        .from('associations')
-        .insert(association)
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
+      const created = await createAssociation(newAssociation);
+      if (created) {
+        setAssociations(prev => [...prev, created]);
+        toast.success('Association created successfully');
+        return created;
       }
-      
-      setAssociations(prev => [...prev, data]);
-      toast.success('Association created successfully');
-      
-      return data;
-    } catch (err: any) {
-      console.error('Error creating association:', err);
+      throw new Error('Failed to create association');
+    } catch (err) {
       toast.error('Failed to create association');
       throw err;
     }
-  };
+  }, []);
 
-  const updateAssociation = async (id: string, updates: Partial<Association>) => {
+  const updateAssociationData = useCallback(async (id: string, updates: Partial<Association>) => {
     try {
-      const { data, error } = await supabase
-        .from('associations')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
+      const updated = await updateAssociation(id, updates);
+      if (updated) {
+        setAssociations(prev => prev.map(a => a.id === id ? updated : a));
+        
+        if (activeAssociation && activeAssociation.id === id) {
+          setActiveAssociation(updated);
+        }
+        
+        toast.success('Association updated successfully');
+        return updated;
       }
-      
-      setAssociations(prev => 
-        prev.map(assoc => assoc.id === id ? data : assoc)
-      );
-      
-      // Update activeAssociation if it's the one being updated
-      if (activeAssociation && activeAssociation.id === id) {
-        setActiveAssociation(data);
-      }
-      
-      toast.success('Association updated successfully');
-      
-      return data;
-    } catch (err: any) {
-      console.error('Error updating association:', err);
+      throw new Error('Failed to update association');
+    } catch (err) {
       toast.error('Failed to update association');
       throw err;
     }
-  };
+  }, [activeAssociation]);
 
-  const deleteAssociation = async (id: string) => {
+  const updateSetting = useCallback(async (
+    associationId: string,
+    settingName: string,
+    value: any
+  ) => {
     try {
-      const { error } = await supabase
-        .from('associations')
-        .delete()
-        .eq('id', id);
-      
-      if (error) {
-        throw error;
+      const updated = await updateAssociationSetting(associationId, settingName, value);
+      if (updated) {
+        setAssociations(prev => prev.map(a => a.id === associationId ? updated : a));
+        
+        if (activeAssociation && activeAssociation.id === associationId) {
+          setActiveAssociation(updated);
+        }
+        
+        return updated;
       }
-      
-      setAssociations(prev => 
-        prev.filter(assoc => assoc.id !== id)
-      );
-      
-      // Clear activeAssociation if it's the one being deleted
-      if (activeAssociation && activeAssociation.id === id) {
-        setActiveAssociation(associations.length > 1 ? 
-          associations.find(a => a.id !== id) || null : null);
+      throw new Error(`Failed to update ${settingName}`);
+    } catch (err) {
+      toast.error(`Failed to update ${settingName}`);
+      throw err;
+    }
+  }, [activeAssociation]);
+
+  const removeAssociation = useCallback(async (id: string) => {
+    try {
+      const success = await deleteAssociation(id);
+      if (success) {
+        setAssociations(prev => prev.filter(a => a.id !== id));
+        
+        if (activeAssociation && activeAssociation.id === id) {
+          const nextAssociation = associations.find(a => a.id !== id);
+          setActiveAssociation(nextAssociation || null);
+        }
+        
+        toast.success('Association deleted successfully');
+        return true;
       }
-      
-      toast.success('Association deleted successfully');
-      
-      return true;
-    } catch (err: any) {
-      console.error('Error deleting association:', err);
+      throw new Error('Failed to delete association');
+    } catch (err) {
       toast.error('Failed to delete association');
       throw err;
     }
-  };
+  }, [activeAssociation, associations]);
 
-  // Add additional methods needed by components
-  const addAssociation = createAssociation;
-  
-  const updateSetting = async (id: string, settingName: string, value: any) => {
-    // This would typically update a specific setting in the association
-    return updateAssociation(id, { [settingName]: value });
-  };
-  
-  const removeAssociation = deleteAssociation;
-  
-  const makeDefaultAssociation = async (id: string) => {
-    // Implement logic for making an association the default
-    // For now, just set it as the active association
-    const assoc = associations.find(a => a.id === id);
-    if (assoc) {
-      setActiveAssociation(assoc);
-      toast.success(`${assoc.name} set as default association`);
-      return true;
+  const makeDefaultAssociation = useCallback(async (id: string) => {
+    try {
+      const updated = await setDefaultAssociation(id);
+      if (updated && updated.length > 0) {
+        setAssociations(updated);
+        toast.success('Default association updated');
+        return updated;
+      }
+      throw new Error('Failed to set default association');
+    } catch (err) {
+      toast.error('Failed to set default association');
+      throw err;
     }
-    return false;
-  };
-  
-  const toggleStatus = async (id: string) => {
-    const assoc = associations.find(a => a.id === id);
-    if (assoc) {
-      const newStatus = assoc.status === 'active' ? 'inactive' : 'active';
-      return updateAssociation(id, { status: newStatus });
+  }, []);
+
+  const toggleStatus = useCallback(async (id: string) => {
+    try {
+      const updated = await toggleAssociationStatus(id);
+      if (updated) {
+        setAssociations(prev => prev.map(a => a.id === id ? updated : a));
+        
+        if (activeAssociation && activeAssociation.id === id) {
+          setActiveAssociation(updated);
+        }
+        
+        toast.success(`Association ${updated.status === 'active' ? 'activated' : 'deactivated'}`);
+        return updated;
+      }
+      throw new Error('Failed to toggle association status');
+    } catch (err) {
+      toast.error('Failed to toggle association status');
+      throw err;
     }
-    return null;
-  };
+  }, [activeAssociation]);
 
   return {
     associations,
     activeAssociation,
-    loading,
-    isLoading: loading, // Alias for components expecting 'isLoading'
+    setActiveAssociation,
+    isLoading,
     error,
-    fetchAssociations,
-    createAssociation,
-    updateAssociation,
-    deleteAssociation,
+    fetchAssociations: loadAssociations,
     selectAssociation,
     addAssociation,
+    updateAssociation: updateAssociationData,
     updateSetting,
     removeAssociation,
     makeDefaultAssociation,

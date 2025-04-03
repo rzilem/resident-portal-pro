@@ -1,125 +1,115 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth/AuthProvider';
+import { companySettingsService } from '@/services/companySettingsService';
+import { toast } from 'sonner';
+import { infoLog, errorLog } from '@/utils/debug';
 
-interface CompanySettings {
-  name: string;
-  companyName: string; // Added this property to fix errors
+export interface CompanySettings {
   logoUrl: string | null;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phone: string;
-  email: string;
-  website: string;
-  taxId?: string; // Added for CompanyInfo component
-  description?: string; // Added for CompanyInfo component
+  companyName: string;
+  taxId?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  description?: string;
+  [key: string]: any; // Allow for dynamic keys
 }
 
 export const useCompanySettings = () => {
   const [settings, setSettings] = useState<CompanySettings>({
-    name: 'ResidentPro',
-    companyName: 'ResidentPro',
     logoUrl: null,
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    phone: '',
-    email: '',
-    website: ''
+    companyName: 'ResidentPro'
   });
   const [isLoading, setIsLoading] = useState(true);
-  
-  const refreshSettings = useCallback(async () => {
-    setIsLoading(true);
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (isAuthenticated && user?.id) {
+        setIsLoading(true);
+        try {
+          infoLog('Loading company settings for user:', user.id);
+          const companySettings = await companySettingsService.getCompanySettings(user.id);
+          
+          if (companySettings) {
+            infoLog('Company settings loaded:', companySettings);
+            setSettings(companySettings);
+            
+            // Update document title when company name changes
+            if (companySettings.companyName) {
+              document.title = companySettings.companyName;
+            }
+          } else {
+            infoLog('No company settings found, using defaults');
+          }
+        } catch (error) {
+          errorLog('Error loading company settings:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        infoLog('User not authenticated, using default settings');
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [isAuthenticated, user?.id]);
+
+  const updateSetting = useCallback(async (key: string, value: any) => {
+    if (!isAuthenticated || !user?.id) {
+      toast.error('You must be logged in to update settings');
+      return false;
+    }
+
+    infoLog(`Updating company setting: ${key}`, value);
+    setSettings(prev => ({ ...prev, [key]: value }));
+    
+    // Update document title when company name changes
+    if (key === 'companyName' && value) {
+      document.title = value;
+    }
     
     try {
-      // First check localStorage for cached logo
-      const cachedLogo = localStorage.getItem('company_logo_url');
-      
-      // Fetch company settings
-      const { data, error } = await supabase
-        .from('company_settings')
-        .select('*')
-        .eq('id', 'global')
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "no rows found" error, which is fine for a new system
-        console.error('Error fetching company settings:', error);
-      }
-      
-      if (data) {
-        // Prioritize cached logo over database if it exists
-        const logoUrl = cachedLogo || data.logo_url;
-        
-        // If logo is in database but not cached, update cache
-        if (data.logo_url && !cachedLogo) {
-          localStorage.setItem('company_logo_url', data.logo_url);
-        }
-        
-        setSettings({
-          name: data.company_info?.name || 'ResidentPro',
-          companyName: data.company_info?.name || 'ResidentPro',
-          logoUrl: logoUrl,
-          address: data.company_info?.address || '',
-          city: data.company_info?.city || '',
-          state: data.company_info?.state || '',
-          zipCode: data.company_info?.zipCode || '',
-          phone: data.company_info?.phone || '',
-          email: data.company_info?.email || '',
-          website: data.company_info?.website || ''
-        });
-      } else if (cachedLogo) {
-        // If we only have cached logo but no settings, just update the logo
-        setSettings(prev => ({ ...prev, logoUrl: cachedLogo }));
-      }
+      await companySettingsService.updateCompanySetting(user.id, key, value);
+      toast.success('Setting updated successfully');
+      return true;
     } catch (error) {
-      console.error('Exception in refreshSettings:', error);
-    } finally {
-      setIsLoading(false);
+      errorLog('Error updating company setting:', error);
+      toast.error('Failed to update setting');
+      return false;
     }
-  }, []);
-  
-  // Add needed methods to fix errors
-  const updateSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
-    // This is a stub implementation
-    setSettings(prev => ({ ...prev, [key]: value }));
-    return true;
-  }, []);
-  
-  const getSetting = useCallback((key: string): any => {
-    return settings[key as keyof CompanySettings];
+  }, [isAuthenticated, user?.id]);
+
+  const uploadLogo = useCallback(async (file: File) => {
+    if (!isAuthenticated || !user?.id) {
+      toast.error('You must be logged in to upload a logo');
+      return null;
+    }
+
+    infoLog('Uploading logo', file.name);
+    const logoUrl = await companySettingsService.uploadCompanyLogo(file);
+    
+    if (logoUrl) {
+      infoLog('Logo uploaded successfully, setting state:', logoUrl);
+      setSettings(prev => ({ ...prev, logoUrl }));
+    } else {
+      errorLog('Logo upload failed');
+    }
+    
+    return logoUrl;
+  }, [isAuthenticated, user?.id]);
+
+  const getSetting = useCallback((key: keyof CompanySettings) => {
+    return settings[key] || '';
   }, [settings]);
-  
-  const uploadLogo = useCallback(async (file: File): Promise<string | null> => {
-    // This is a stub implementation
-    return URL.createObjectURL(file);
-  }, []);
-  
-  useEffect(() => {
-    refreshSettings();
-    
-    // Listen for logo updates
-    const handleLogoUpdate = () => {
-      refreshSettings();
-    };
-    
-    window.addEventListener('logoUpdate', handleLogoUpdate);
-    
-    return () => {
-      window.removeEventListener('logoUpdate', handleLogoUpdate);
-    };
-  }, [refreshSettings]);
-  
-  return { 
-    settings, 
-    isLoading, 
-    refreshSettings,
+
+  return {
+    settings,
+    isLoading,
     updateSetting,
-    getSetting,
-    uploadLogo
+    uploadLogo,
+    getSetting
   };
 };

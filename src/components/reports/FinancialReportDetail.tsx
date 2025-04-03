@@ -12,7 +12,6 @@ import IncomeExpenseReport from './financial/IncomeExpenseReport';
 import CashFlowReport from './financial/CashFlowReport';
 import CashForecastReport from './financial/CashForecastReport';
 import BillingReport from './financial/BillingReport';
-import { adaptAssociationsToFullType } from '@/utils/type-adapters';
 
 const FinancialReportDetail = () => {
   const { reportId } = useParams<{ reportId: string }>();
@@ -158,7 +157,7 @@ const FinancialReportDetail = () => {
         setTimeRange={setTimeRange}
         association={association}
         setAssociation={setAssociation}
-        associations={adaptAssociationsToFullType(associations)}
+        associations={associations}
         reportType="financial"
         selectedReport={reportId || ''}
         setSelectedReport={() => {}}

@@ -7,7 +7,6 @@ import FileUploader from './document-upload/FileUploader';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDocuments } from '@/hooks/use-documents';
-import { DocumentUploadOptions } from '@/types/documents';
 
 const UploadDocument = ({ associationId = '00000000-0000-0000-0000-000000000000' }) => {
   const { user, isAuthenticated } = useAuth();
@@ -55,13 +54,11 @@ const UploadDocument = ({ associationId = '00000000-0000-0000-0000-000000000000'
     setError(null);
     
     try {
-      const options: DocumentUploadOptions = {
+      const result = await uploadDocument(file, {
         description,
         category,
-        isPublic: false
-      };
-      
-      const result = await uploadDocument(file, options);
+        is_public: false
+      });
       
       if (result) {
         toast.success('Document uploaded successfully');
@@ -88,9 +85,9 @@ const UploadDocument = ({ associationId = '00000000-0000-0000-0000-000000000000'
       </CardHeader>
       <CardContent className="space-y-4">
         <FileUploader 
-          file={file}
-          setFile={setFile}
-          maxSize={10 * 1024 * 1024} // 10MB
+          file={file} 
+          setFile={setFile} 
+          disabled={uploading} 
         />
         
         <div className="space-y-4">

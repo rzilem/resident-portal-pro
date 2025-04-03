@@ -14,7 +14,6 @@ import ReportDashboard from '@/components/reports/ReportDashboard';
 import { useAssociations } from '@/hooks/use-associations';
 import { Association } from '@/types/association';
 import { exportToExcel } from '@/utils/exportToExcel';
-import { adaptAssociationToFullType, adaptAssociationsToFullType } from '@/utils/type-adapters';
 
 const Reports = () => {
   const navigate = useNavigate();
@@ -29,6 +28,7 @@ const Reports = () => {
   const [selectedAssociation, setSelectedAssociation] = useState<Association | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   
+  // Update selected association whenever the association ID changes
   useEffect(() => {
     if (association === 'all') {
       setSelectedAssociation(null);
@@ -40,6 +40,7 @@ const Reports = () => {
     console.log("Selected association changed to:", association);
   }, [association, associations]);
   
+  // Reset selected report when changing report type
   useEffect(() => {
     setSelectedReport('');
   }, [reportType]);
@@ -48,6 +49,7 @@ const Reports = () => {
     setIsGeneratingReport(true);
     setSelectedReport(report);
     
+    // Simulate report generation with a delay
     setTimeout(() => {
       setIsGeneratingReport(false);
       toast({
@@ -65,6 +67,7 @@ const Reports = () => {
     
     setTimeout(() => {
       if (format === 'excel') {
+        // Example data
         const data = [
           { 
             'Date': '2023-01-01', 
@@ -85,10 +88,6 @@ const Reports = () => {
     }, 2000);
   };
   
-  const handleAssociationChange = (association: Association) => {
-    setSelectedAssociation(() => association);
-  };
-  
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -103,6 +102,7 @@ const Reports = () => {
             className="gap-2"
             tooltipText="Refresh report data"
             onClick={() => {
+              // Existing refresh logic
               toast({
                 title: "Data Refreshed",
                 description: "Report data has been updated"
@@ -129,7 +129,7 @@ const Reports = () => {
         setTimeRange={setTimeRange}
         association={association}
         setAssociation={setAssociation}
-        associations={adaptAssociationsToFullType(associations)}
+        associations={associations}
         reportType={reportType}
         selectedReport={selectedReport}
         setSelectedReport={setSelectedReport}

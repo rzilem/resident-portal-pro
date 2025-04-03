@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -7,7 +8,6 @@ import { Plus, Settings } from 'lucide-react';
 import CalendarEventDialog from '@/components/calendar/CalendarEventDialog';
 import { useAssociations } from '@/hooks/use-associations';
 import { useAuthRole } from '@/hooks/use-auth-role';
-import { adaptAssociationsToFullType, adaptAssociationToFullType } from '@/utils/type-adapters';
 
 const Calendar = () => {
   const [searchParams] = useSearchParams();
@@ -18,29 +18,27 @@ const Calendar = () => {
   const [activeTab, setActiveTab] = useState(tabFromUrl || "association");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   
+  // Get associations for the dropdown
   const { associations, activeAssociation, selectAssociation } = useAssociations();
   
+  // Log associations and active association to help with debugging
   useEffect(() => {
     console.log("Associations:", associations);
     console.log("Active Association:", activeAssociation);
   }, [associations, activeAssociation]);
   
+  // Sync URL with tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     navigate(`/calendar?tab=${value}`);
   };
   
+  // Default user access level based on role
   const userAccessLevel = isManager ? 'admin' as const : 'residents' as const;
   
+  // Create event handler that respects the current tab (association vs global)
   const handleCreateEvent = (eventData: any) => {
     setShowCreateEvent(false);
-  };
-  
-  const fullTypeAssociations = adaptAssociationsToFullType(associations);
-  const fullTypeActiveAssociation = activeAssociation ? adaptAssociationsToFullType([activeAssociation])[0] : undefined;
-  
-  const handleSelectAssociation = (association: any) => {
-    const fullTypeAssociation = adaptAssociationToFullType(association);
   };
   
   return (
@@ -74,8 +72,8 @@ const Calendar = () => {
               userAccessLevel={userAccessLevel}
               associationId={activeAssociation?.id}
               isGlobalAdmin={false}
-              associations={fullTypeAssociations}
-              activeAssociation={fullTypeActiveAssociation}
+              associations={associations}
+              activeAssociation={activeAssociation}
               onAssociationChange={selectAssociation}
             />
           )}
@@ -87,7 +85,7 @@ const Calendar = () => {
               userId={currentUser.id}
               userAccessLevel={userAccessLevel}
               isGlobalAdmin={true}
-              associations={fullTypeAssociations}
+              associations={associations}
             />
           )}
         </TabsContent>
@@ -101,7 +99,7 @@ const Calendar = () => {
           associationId={activeTab === 'association' ? activeAssociation?.id : undefined}
           userAccessLevel={userAccessLevel}
           isGlobalView={activeTab === 'global'}
-          associations={activeTab === 'global' ? fullTypeAssociations : undefined}
+          associations={activeTab === 'global' ? associations : undefined}
         />
       )}
     </div>

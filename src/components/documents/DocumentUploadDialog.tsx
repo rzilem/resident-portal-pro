@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,14 +16,6 @@ interface DocumentUploadDialogProps {
   associationId?: string;
   category?: string;
   refreshDocuments?: () => void;
-}
-
-interface DocumentUploadOptions {
-  description?: string;
-  category?: string;
-  tags?: string[];
-  isPublic?: boolean;
-  is_public?: boolean; // For backward compatibility
 }
 
 const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
@@ -57,25 +50,25 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
     setUploading(true);
     
     try {
-      const selectedTags = tags.split(',').map(tag => tag.trim()).filter(Boolean);
-      const metadata: DocumentUploadOptions = {
-        description: description || '',
-        category: category || 'general',
-        tags: selectedTags,
-        is_public: isPublic,
-      };
-      
-      const result = await uploadDocument(file, metadata);
+      const result = await uploadDocument(file, {
+        description,
+        category,
+        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        is_public: isPublic
+      });
       
       if (result) {
         toast.success('Document uploaded successfully');
+        // Reset form and close dialog
         resetForm();
         setOpen(false);
         
+        // Call success callback
         if (onSuccess) {
           onSuccess();
         }
         
+        // Call refreshDocuments if provided
         if (refreshDocuments) {
           refreshDocuments();
         }
@@ -100,6 +93,7 @@ const DocumentUploadDialog: React.FC<DocumentUploadDialogProps> = ({
 
   const closeDialog = () => {
     setOpen(false);
+    // Small delay to reset form after dialog animation completes
     setTimeout(resetForm, 300);
   };
 

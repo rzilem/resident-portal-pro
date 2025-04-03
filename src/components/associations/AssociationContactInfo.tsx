@@ -9,9 +9,6 @@ interface AssociationContactInfoProps {
 }
 
 const AssociationContactInfo: React.FC<AssociationContactInfoProps> = ({ association }) => {
-  // Ensure contactInfo exists to prevent "Cannot read properties of undefined" errors
-  const contactInfo = association?.contactInfo || { email: '', phone: '', website: '' };
-
   return (
     <Card>
       <CardHeader>
@@ -20,22 +17,22 @@ const AssociationContactInfo: React.FC<AssociationContactInfoProps> = ({ associa
       <CardContent className="space-y-4">
         <div className="flex items-center gap-3">
           <Mail className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{contactInfo.email || 'No email provided'}</span>
+          <span className="text-sm">{association.contactInfo.email}</span>
         </div>
         <div className="flex items-center gap-3">
           <Phone className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{contactInfo.phone || 'No phone provided'}</span>
+          <span className="text-sm">{association.contactInfo.phone}</span>
         </div>
-        {contactInfo.website && (
+        {association.contactInfo.website && (
           <div className="flex items-center gap-3">
             <Globe className="h-4 w-4 text-muted-foreground" />
             <a 
-              href={contactInfo.website} 
+              href={association.contactInfo.website} 
               target="_blank" 
               rel="noopener noreferrer" 
               className="text-sm text-primary hover:underline"
             >
-              {contactInfo.website.replace(/^https?:\/\//, '')}
+              {association.contactInfo.website.replace(/^https?:\/\//, '')}
             </a>
           </div>
         )}

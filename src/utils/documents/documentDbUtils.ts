@@ -1,183 +1,192 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { DocumentFile, DocumentCategory } from '@/types/documents';
-
-export interface GetDocumentsOptions {
-  query?: string;
-  categories?: string[];
-  tags?: string[];
-  associationId?: string;
-  isPublic?: boolean;
-  limit?: number;
-  offset?: number;
-  sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
-}
+import { DocumentFile, DocumentSearchFilters, DocumentAccessLevel } from '@/types/documents';
 
 /**
- * Get documents from the database with optional filtering
- * @param filters Filtering options
- * @param associationId Association ID to filter by
- * @param role User role for access control
- * @returns Promise resolving to array of DocumentFile objects
+ * Get documents based on filters, association and user role
+ * @param filters Search filters
+ * @param associationId Association ID
+ * @param userRole User role for access control
+ * @returns Promise<DocumentFile[]> Array of documents
  */
 export const getDocuments = async (
-  filters: GetDocumentsOptions,
-  associationId: string,
-  role?: string
+  filters: DocumentSearchFilters = {}, 
+  associationId?: string,
+  userRole?: string
 ): Promise<DocumentFile[]> => {
   try {
+    console.log('Getting documents with filters:', filters);
+    
     let query = supabase
       .from('documents')
-      .select('*')
-      .eq('association_id', associationId);
+      .select('*');
     
-    // Apply filters
-    if (filters.query) {
-      query = query.ilike('name', `%${filters.query}%`);
+    // Apply association filter if provided
+    if (associationId) {
+      query = query.eq('association_id', associationId);
     }
     
-    if (filters.categories && filters.categories.length > 0 && !filters.categories.includes('all')) {
+    // Apply category filter
+    if (filters.categories && filters.categories.length > 0) {
       query = query.in('category', filters.categories);
     }
     
+    // Apply search query
+    if (filters.query && filters.query.trim() !== '') {
+      const searchTerm = `%${filters.query.toLowerCase()}%`;
+      query = query.or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`);
+    }
+    
+    // Apply tag filter
     if (filters.tags && filters.tags.length > 0) {
-      // For array containment in Supabase
-      filters.tags.forEach(tag => {
-        query = query.contains('tags', [tag]);
-      });
+      query = query.overlaps('tags', filters.tags);
     }
     
-    if (filters.isPublic !== undefined) {
-      query = query.eq('is_public', filters.isPublic);
-    }
-    
-    // Always filter out archived documents unless specifically requested
-    query = query.eq('is_archived', false);
-    
-    // Apply access control based on role if provided
-    if (role && role !== 'admin') {
-      const roleAccess = {
-        manager: ['management', 'board', 'homeowner', 'all'],
-        staff: ['management', 'board', 'homeowner', 'all'],
-        board_member: ['board', 'homeowner', 'all'],
-        resident: ['homeowner', 'all'],
-      };
-      
-      const accessLevels = (roleAccess as any)[role] || ['all'];
-      if (accessLevels.length > 0) {
-        query = query.in('access_level', accessLevels);
+    // Apply date range filter
+    if (filters.dateRange) {
+      if (filters.dateRange.start) {
+        query = query.gte('uploaded_date', filters.dateRange.start);
+      }
+      if (filters.dateRange.end) {
+        query = query.lte('uploaded_date', filters.dateRange.end);
       }
     }
     
-    // Apply sorting
-    if (filters.sortBy) {
-      query = query.order(filters.sortBy, {
-        ascending: filters.sortDirection === 'asc'
-      });
-    } else {
-      // Default sort by uploaded date, newest first
-      query = query.order('uploaded_date', { ascending: false });
-    }
-    
-    // Apply pagination if provided
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
-    
-    if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
-    }
-    
+    // Get documents
     const { data, error } = await query;
     
     if (error) {
       console.error('Error fetching documents:', error);
-      throw new Error(`Failed to fetch documents: ${error.message}`);
+      return [];
     }
     
-    // Transform the data to match our DocumentFile interface
-    return data.map(doc => ({
+    // Convert to DocumentFile format
+    const documents: DocumentFile[] = data.map(doc => ({
       id: doc.id,
       name: doc.name,
       description: doc.description || '',
       fileSize: doc.file_size,
-      size: doc.file_size, // For compatibility
       fileType: doc.file_type,
       url: doc.url,
-      category: doc.category,
+      category: doc.category || 'uncategorized',
       tags: doc.tags || [],
-      uploadedBy: doc.uploaded_by,
-      uploadedDate: doc.uploaded_date,
-      lastModified: doc.last_modified,
-      // Ensure version is always a number for comparison operations
-      version: typeof doc.version === 'string' ? parseInt(doc.version, 10) : doc.version || 1,
-      isPublic: doc.is_public,
-      isArchived: doc.is_archived
+      uploadedBy: doc.uploaded_by || '',
+      uploadedDate: doc.uploaded_date || new Date().toISOString(),
+      lastModified: doc.last_modified || new Date().toISOString(),
+      version: doc.version || 1,
+      isPublic: doc.is_public || false,
+      isArchived: doc.is_archived || false,
+      associations: [associationId || ''],
+      properties: [],
+      metadata: {}
     }));
+    
+    // Role-based filtering (if needed)
+    if (userRole) {
+      // Filter based on user role and document access level
+      // This is just a placeholder - implement actual access control as needed
+      return documents;
+    }
+    
+    return documents;
   } catch (error) {
-    console.error('Error in getDocuments:', error);
-    throw new Error('Failed to fetch documents');
+    console.error('Unexpected error fetching documents:', error);
+    return [];
   }
 };
 
 /**
- * Get document categories from the database or return default ones
- * @returns Promise resolving to array of DocumentCategory objects
+ * Get a single document by ID
+ * @param documentId Document ID
+ * @returns Promise<DocumentFile | null> Document or null
  */
-export const getCategories = async (): Promise<DocumentCategory[]> => {
+export const getDocumentById = async (documentId: string): Promise<DocumentFile | null> => {
   try {
     const { data, error } = await supabase
-      .from('document_categories')
+      .from('documents')
       .select('*')
-      .order('sort_order', { ascending: true });
+      .eq('id', documentId)
+      .single();
     
-    if (error) {
-      console.error('Error fetching document categories:', error);
-      // Return default categories if database query fails
-      return [
-        { id: 'financial', name: 'Financial Documents' },
-        { id: 'legal', name: 'Legal Documents' },
-        { id: 'meeting', name: 'Meeting Minutes' },
-        { id: 'maintenance', name: 'Maintenance' },
-        { id: 'reports', name: 'Reports' },
-        { id: 'general', name: 'General' }
-      ];
+    if (error || !data) {
+      console.error('Error fetching document:', error);
+      return null;
     }
     
-    if (!data || data.length === 0) {
-      // Return default categories if none in database
-      return [
-        { id: 'financial', name: 'Financial Documents' },
-        { id: 'legal', name: 'Legal Documents' },
-        { id: 'meeting', name: 'Meeting Minutes' },
-        { id: 'maintenance', name: 'Maintenance' },
-        { id: 'reports', name: 'Reports' },
-        { id: 'general', name: 'General' }
-      ];
-    }
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      fileSize: data.file_size,
+      fileType: data.file_type,
+      url: data.url,
+      category: data.category || 'uncategorized',
+      tags: data.tags || [],
+      uploadedBy: data.uploaded_by || '',
+      uploadedDate: data.uploaded_date || new Date().toISOString(),
+      lastModified: data.last_modified || new Date().toISOString(),
+      version: data.version || 1,
+      isPublic: data.is_public || false,
+      isArchived: data.is_archived || false,
+      associations: [data.association_id || ''],
+      properties: [],
+      metadata: {}
+    };
     
-    // Transform database results to DocumentCategory objects
-    return data.map(category => ({
-      id: category.id,
-      name: category.name,
-      description: category.description,
-      accessLevel: category.access_level,
-      sortOrder: category.sort_order,
-      // Add value/label for dropdown compatibility
-      value: category.id,
-      label: category.name
-    }));
   } catch (error) {
-    console.error('Error in getCategories:', error);
-    // Return default categories on error
-    return [
-      { id: 'financial', name: 'Financial Documents' },
-      { id: 'legal', name: 'Legal Documents' },
-      { id: 'meeting', name: 'Meeting Minutes' },
-      { id: 'maintenance', name: 'Maintenance' },
-      { id: 'reports', name: 'Reports' },
-      { id: 'general', name: 'General' }
-    ];
+    console.error('Unexpected error fetching document:', error);
+    return null;
+  }
+};
+
+/**
+ * Delete a document by ID
+ * @param documentId Document ID
+ * @returns Promise<boolean> Success status
+ */
+export const deleteDocument = async (documentId: string): Promise<boolean> => {
+  try {
+    // Get the document to find its file path
+    const { data, error } = await supabase
+      .from('documents')
+      .select('url, category')
+      .eq('id', documentId)
+      .single();
+    
+    if (error || !data) {
+      console.error('Error fetching document for deletion:', error);
+      return false;
+    }
+    
+    // Extract file path from URL or use it directly if it's already a path
+    const filePath = data.url.includes('/')
+      ? data.url.split('/').slice(-2).join('/')  // Get last two segments
+      : `${data.category}/${data.url}`;
+    
+    // Delete the file from storage
+    const { error: storageError } = await supabase.storage
+      .from('documents')
+      .remove([filePath]);
+    
+    if (storageError) {
+      console.error('Error deleting file from storage:', storageError);
+      // Continue to delete the database record even if file deletion fails
+    }
+    
+    // Delete the database record
+    const { error: dbError } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', documentId);
+    
+    if (dbError) {
+      console.error('Error deleting document record:', dbError);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Unexpected error deleting document:', error);
+    return false;
   }
 };

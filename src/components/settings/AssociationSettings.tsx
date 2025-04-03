@@ -4,15 +4,14 @@ import { toast } from "sonner";
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 
+// Import components
 import AssociationList from './associations/AssociationList';
 import AssociationDialog from './associations/AssociationDialog';
 import SettingTabs from './associations/SettingTabs';
-import { SettingSection, AssociationMenuCategory } from './associations/types';
+import { Association, SettingSection, AssociationMenuCategory } from './associations/types';
 import { useAssociations } from '@/hooks/use-associations';
-import { Association as TypeAssociation } from '@/types/association';
-import { Association as HookAssociation } from '@/hooks/use-associations';
-import { adaptFullTypeToAssociation, adaptAssociationsToFullType, adaptAssociationToFullType } from '@/utils/type-adapters';
 
+// Define setting sections and menu categories
 const settingSections: SettingSection[] = [
   { id: 'basic', title: 'Basic', icon: Building, description: 'Basic association information' },
   { id: 'financial', title: 'Financial', icon: DollarSign, description: 'Financial settings' },
@@ -78,7 +77,7 @@ const AssociationSettings = () => {
 
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [associationToEdit, setAssociationToEdit] = useState<HookAssociation | null>(null);
+  const [associationToEdit, setAssociationToEdit] = useState<Association | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState('basic');
 
   useEffect(() => {
@@ -89,7 +88,7 @@ const AssociationSettings = () => {
     setShowNewDialog(true);
   };
 
-  const handleOpenEditDialog = (association: HookAssociation) => {
+  const handleOpenEditDialog = (association: Association) => {
     setAssociationToEdit(association);
     setShowEditDialog(true);
   };
@@ -103,27 +102,13 @@ const AssociationSettings = () => {
     setShowEditDialog(false);
   };
 
-  const handleSaveNew = async (data: Partial<TypeAssociation>) => {
-    try {
-      const adaptedData = adaptFullTypeToAssociation(data as TypeAssociation);
-      return await addAssociation(adaptedData as Omit<HookAssociation, 'id'>);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      console.error('Error adding association:', msg);
-      throw error;
-    }
+  const handleSaveNew = async (data: Partial<Association>) => {
+    return await addAssociation(data as Omit<Association, 'id'>);
   };
 
-  const handleSaveEdit = async (data: Partial<TypeAssociation>) => {
+  const handleSaveEdit = async (data: Partial<Association>) => {
     if (associationToEdit) {
-      try {
-        const adaptedData = adaptFullTypeToAssociation({...data} as TypeAssociation);
-        return await updateAssociation(associationToEdit.id, adaptedData);
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.error('Error updating association:', msg);
-        throw error;
-      }
+      return await updateAssociation(associationToEdit.id, data);
     }
     throw new Error('No association to edit');
   };
@@ -148,7 +133,7 @@ const AssociationSettings = () => {
     return (
       <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-md">
         <h3 className="font-bold">Error</h3>
-        <p>{error}</p>
+        <p>{error.message}</p>
         <button 
           onClick={() => fetchAssociations()} 
           className="mt-2 px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200"
@@ -172,43 +157,22 @@ const AssociationSettings = () => {
       </div>
 
       <AssociationList 
-        associations={adaptAssociationsToFullType(associations)}
-        activeAssociation={adaptAssociationToFullType(activeAssociation)}
-        selectAssociation={(assoc: TypeAssociation) => {
-          const hookAssoc = associations.find(a => a.id === assoc.id);
-          if (hookAssoc) {
-            selectAssociation(hookAssoc);
-          }
-        }}
+        associations={associations}
+        activeAssociation={activeAssociation}
+        selectAssociation={selectAssociation}
         openNewAssociationDialog={handleOpenNewDialog}
-        openEditDialog={(assoc: TypeAssociation) => {
-          const hookAssoc = associations.find(a => a.id === assoc.id);
-          if (hookAssoc) {
-            handleOpenEditDialog(hookAssoc);
-          }
-        }}
+        openEditDialog={handleOpenEditDialog}
         toggleStatus={toggleStatus}
-        removeAssociation={async (id: string) => {
-          await removeAssociation(id);
-          return true; // Return boolean instead of association list
-        }}
+        removeAssociation={removeAssociation}
         makeDefaultAssociation={makeDefaultAssociation}
       />
 
       {activeAssociation && (
         <SettingTabs 
-          activeAssociation={adaptAssociationToFullType(activeAssociation)}
+          activeAssociation={activeAssociation}
           handleSettingChange={handleSettingChange}
-          getSetting={(key, defaultValue) => {
-            if (activeAssociation && activeAssociation.settings) {
-              return activeAssociation.settings[key] ?? defaultValue;
-            }
-            return defaultValue;
-          }}
-          updateAssociation={async (id: string, updates: Partial<TypeAssociation>) => {
-            const adaptedUpdates = adaptFullTypeToAssociation(updates as TypeAssociation);
-            return await updateAssociation(id, adaptedUpdates);
-          }}
+          getSetting={(key, defaultValue) => activeAssociation.settings?.[key] ?? defaultValue}
+          updateAssociation={updateAssociation}
         />
       )}
 
@@ -224,7 +188,7 @@ const AssociationSettings = () => {
           isOpen={showEditDialog}
           onClose={handleCloseEditDialog}
           onSave={handleSaveEdit}
-          association={adaptAssociationToFullType(associationToEdit)}
+          association={associationToEdit}
           title={`Edit ${associationToEdit.name}`}
         />
       )}

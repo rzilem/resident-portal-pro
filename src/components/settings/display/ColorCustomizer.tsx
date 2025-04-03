@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/use-settings';
 import { Label } from '@/components/ui/label';
@@ -27,23 +28,23 @@ const defaultColors: ColorState = {
 };
 
 const ColorCustomizer: React.FC = () => {
-  const { settings, updatePreference } = useSettings();
+  const { preferences, updatePreference } = useSettings();
   const [colors, setColors] = useState<ColorState>(defaultColors);
   const [activeColor, setActiveColor] = useState<keyof ColorState>('primary');
   const [isApplied, setIsApplied] = useState(false);
 
-  // Initialize from saved settings
+  // Initialize from saved preferences
   useEffect(() => {
-    if (settings?.customColors) {
-      setColors(settings.customColors);
+    if (preferences?.customColors) {
+      setColors(preferences.customColors);
       setIsApplied(true);
       
       // Apply saved colors to CSS variables
-      applyColorsToDOM(settings.customColors);
+      applyColorsToDOM(preferences.customColors);
     } else {
       setIsApplied(false);
     }
-  }, [settings?.customColors]);
+  }, [preferences?.customColors]);
 
   const applyColorsToDOM = (colorState: ColorState) => {
     // Clear any theme preset first
@@ -86,7 +87,7 @@ const ColorCustomizer: React.FC = () => {
     applyColorsToDOM(colors);
     
     // Clear theme preset if one is active
-    if (settings?.themePreset) {
+    if (preferences?.themePreset) {
       updatePreference('themePreset', null);
     }
     
@@ -258,3 +259,4 @@ const ColorCustomizer: React.FC = () => {
 };
 
 export default ColorCustomizer;
+

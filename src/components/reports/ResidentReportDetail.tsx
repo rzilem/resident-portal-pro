@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,6 @@ import ReportFilters from './ReportFilters';
 import { useAssociations } from '@/hooks/use-associations';
 import { useToast } from '@/components/ui/use-toast';
 import { sampleReportDataService } from '@/services/SampleReportDataService';
-import { adaptAssociationsToFullType } from '@/utils/type-adapters';
 
 const ResidentReportDetail = () => {
   const { reportId } = useParams<{ reportId: string }>();
@@ -264,7 +264,7 @@ const ResidentReportDetail = () => {
         setTimeRange={setTimeRange}
         association={association}
         setAssociation={setAssociation}
-        associations={adaptAssociationsToFullType(associations)}
+        associations={associations}
         reportType="resident"
         selectedReport={reportId || ''}
         setSelectedReport={() => {}}

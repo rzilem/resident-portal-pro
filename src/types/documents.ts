@@ -1,62 +1,67 @@
 
-import { ReactNode, ComponentType } from 'react';
-
-export interface Tag {
+export interface DocumentCategory {
   id: string;
   name: string;
-  color?: string;
+  parent?: string;
+  description?: string;
+  isRestricted?: boolean;
+  requiredPermission?: string;
+  sortOrder?: number;
+  accessLevel?: DocumentAccessLevel;
 }
+
+export type DocumentAccessLevel = 'all' | 'homeowner' | 'board' | 'management' | 'admin';
 
 export interface DocumentFile {
   id: string;
   name: string;
-  url: string;
-  size?: number; // Make size optional but prefer using fileSize for consistency
-  fileSize?: number; // Added for backward compatibility
-  fileType: string;
-  uploadedDate: string;
-  uploadedBy?: string;
-  lastModified?: string;
   description?: string;
-  category?: string;
-  version?: string | number;
-  tags?: string[] | Tag[];
-  isPublic?: boolean;
-  isArchived?: boolean;
-  previousVersions?: DocumentVersion[];
+  fileSize: number;
+  fileType: string;
+  url: string;
+  category: string;
+  tags?: string[];
+  uploadedBy: string;
+  uploadedDate: string;
+  lastModified?: string;
+  version: number;
+  previousVersions?: {
+    version: number;
+    url: string;
+    lastModified: string;
+    modifiedBy: string;
+  }[];
   expirationDate?: string;
-  accessLevel?: DocumentAccessLevel;
+  isPublic: boolean;
+  isArchived: boolean;
   properties?: string[];
   associations?: string[];
   metadata?: Record<string, any>;
 }
 
-export interface DocumentVersion {
-  version: number;
-  url: string;
-  lastModified: string;
-  modifiedBy: string;
-  fileSize?: number;
-  size?: number;
-}
-
-export interface DocumentCategory {
+export interface DocumentTemplate {
   id: string;
   name: string;
   description?: string;
-  icon?: ComponentType; 
-  color?: string;
-  parent?: string;
-  isRestricted?: boolean;
-  requiredPermission?: string;
-  sortOrder?: number;
-  accessLevel?: DocumentAccessLevel;
-  // For compatibility with dropdown selectors
-  value?: string;
-  label?: string;
+  category: string;
+  content: string;
+  createdBy: string;
+  createdDate: string;
+  lastModified?: string;
+  lastModifiedBy?: string;
+  version: number;
+  previousVersions?: {
+    version: number;
+    content: string;
+    lastModified: string;
+    modifiedBy: string;
+  }[];
+  isActive: boolean;
+  usageCount: number;
+  lastUsed?: string;
+  mergeTags?: string[];
+  associationId?: string;
 }
-
-export type DocumentAccessLevel = 'all' | 'homeowner' | 'board' | 'management' | 'admin';
 
 export interface DocumentSearchFilters {
   query?: string;
@@ -84,49 +89,4 @@ export interface DocumentPermission {
     delete: boolean;
     share: boolean;
   };
-}
-
-export interface DocumentStats {
-  totalCount: number;
-  sizeByCategory: Record<string, number>;
-  countByType: Record<string, number>;
-  uploadsByMonth: Record<string, number>;
-  topTags: { tag: string; count: number }[];
-}
-
-export interface DocumentViewerConfig {
-  showToolbar?: boolean;
-  canDownload?: boolean;
-  canPrint?: boolean;
-  canAnnotate?: boolean;
-  canShare?: boolean;
-  highlightSearch?: boolean;
-  fullscreenEnabled?: boolean;
-}
-
-export interface DocumentTemplate {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  content: string;
-  createdBy?: string;
-  createdAt: string;  // Changed from createdDate to createdAt
-  updatedAt?: string;
-  tags?: string[];
-  isPublic?: boolean;
-  // Add missing properties
-  lastUsed?: string;
-  lastModified?: string;
-  usageCount?: number;
-  version?: number | string;
-}
-
-export interface DocumentUploadOptions {
-  description?: string;
-  category?: string;
-  tags?: string[];
-  isPublic?: boolean;
-  is_public?: boolean; // For backward compatibility
-  useDemo?: boolean; // Add this to support the useDemo parameter in UploadDataTab.tsx
 }

@@ -1,95 +1,116 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { errorLog, infoLog } from '@/utils/debug';
-import { v4 as uuidv4 } from 'uuid';
-import { validateFileSize, validateFileType } from './validators';
-
-interface UploadFileOptions {
-  maxSize?: number; // Max size in MB
-  allowedTypes?: string[];
-  path?: string;
-  cacheControl?: string;
-  upsert?: boolean;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { errorLog, infoLog } from "@/utils/debug";
 
 /**
- * Uploads a file to Supabase storage
+ * Generic file upload utility for Supabase storage
  * @param file The file to upload
- * @param bucket The bucket to upload to
- * @param folder Optional folder within the bucket
- * @param options Upload options
- * @returns The URL of the uploaded file, or null if upload failed
+ * @param bucket The storage bucket name
+ * @param path The path within the bucket
+ * @param options Additional upload options
+ * @returns URL of the uploaded file or null if upload failed
  */
 export const uploadFile = async (
-  file: File,
+  file: File, 
   bucket: string,
-  folder?: string,
-  options?: UploadFileOptions
+  path: string = '',
+  options: {
+    cacheControl?: string;
+    upsert?: boolean;
+    contentType?: string;
+    useDemo?: boolean;
+  } = {}
 ): Promise<string | null> => {
-  const {
-    maxSize = 10, // Default 10MB
-    allowedTypes,
-    path,
-    cacheControl = '3600',
-    upsert = false
-  } = options || {};
-  
   try {
-    infoLog(`Starting file upload to bucket: ${bucket}, folder: ${folder || 'root'}`);
-    
-    // Validate file size
-    if (!validateFileSize(file, maxSize)) {
-      errorLog(`File size exceeds maximum of ${maxSize}MB`);
+    // Validate file
+    if (!file) {
+      toast.error('No file provided');
       return null;
     }
     
-    // Validate file type if allowedTypes is provided
-    if (allowedTypes && !validateFileType(file, allowedTypes)) {
-      errorLog('File type not allowed');
-      return null;
-    }
+    infoLog(`Uploading file: ${file.name} to ${bucket}/${path}`);
     
-    // Check if a path is provided, otherwise generate one
-    let uploadPath: string;
-    if (path) {
-      uploadPath = path;
-    } else {
-      // Generate a unique file path
-      const uniqueId = uuidv4();
-      const fileExtension = file.name.split('.').pop() || '';
-      const fileName = `${uniqueId}.${fileExtension}`;
+    // Create a unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${file.name.split('.')[0]}.${fileExt}`;
+    const filePath = path ? `${path}/${fileName}` : fileName;
+    
+    // First check if the bucket exists
+    try {
+      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
       
-      uploadPath = folder 
-        ? `${folder}/${fileName}`
-        : fileName;
+      if (bucketError) {
+        // If we can't list buckets, we'll assume it exists
+        infoLog('Unable to list buckets, will attempt upload anyway');
+      } else {
+        const bucketExists = buckets.some(b => b.name === bucket);
+        
+        if (!bucketExists) {
+          infoLog(`Bucket ${bucket} not found, attempting to create...`);
+          try {
+            const { error: createError } = await supabase.storage.createBucket(bucket, {
+              public: true // Make bucket public to ensure files are accessible
+            });
+            
+            if (createError) {
+              // If we can't create the bucket, try upload anyway
+              infoLog(`Could not create bucket ${bucket}, but will attempt upload: ${createError.message}`);
+            } else {
+              infoLog(`Created bucket ${bucket} successfully`);
+            }
+          } catch (bucketError) {
+            infoLog('Error creating bucket, but will attempt upload anyway:', bucketError);
+          }
+        }
+      }
+    } catch (bucketCheckError) {
+      infoLog('Exception checking bucket, will attempt upload anyway:', bucketCheckError);
     }
     
-    infoLog(`Uploading file to path: ${uploadPath}`);
-    
-    // Upload the file
+    // Upload to Supabase with better error handling
+    infoLog(`Uploading to path: ${filePath}`);
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(uploadPath, file, {
-        cacheControl,
-        upsert
+      .upload(filePath, file, {
+        cacheControl: options.cacheControl || '3600',
+        upsert: options.upsert !== undefined ? options.upsert : true,
+        contentType: options.contentType || file.type
       });
     
     if (error) {
-      errorLog('Error uploading file:', error);
+      errorLog(`Error uploading file to ${bucket}:`, error);
+      
+      // Handle specific errors
+      if (error.message.includes('storage.objects') || 
+          error.message.includes('row-level security policy')) {
+        toast.error('Permission denied: You may not have access to upload files.');
+        return null;
+      }
+      
+      toast.error(`Upload failed: ${error.message}`);
       return null;
     }
     
-    // Get the public URL
-    const { data: urlData } = await supabase.storage
+    if (!data) {
+      errorLog('No data returned from upload but no error');
+      toast.error('Upload failed for unknown reason');
+      return null;
+    }
+    
+    infoLog('File uploaded successfully to path:', data.path);
+    
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(data.path);
     
-    const publicUrl = urlData?.publicUrl || null;
-    infoLog(`File uploaded successfully. Public URL: ${publicUrl}`);
+    infoLog('Generated public URL:', publicUrlData.publicUrl);
     
-    return publicUrl;
+    return publicUrlData.publicUrl;
   } catch (error) {
-    errorLog('Unexpected error during file upload:', error);
+    errorLog(`Exception in uploadFile to ${bucket}:`, error);
+    toast.error('An unexpected error occurred while uploading the file');
     return null;
   }
 };

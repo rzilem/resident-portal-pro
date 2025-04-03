@@ -1,8 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { errorLog, infoLog } from '@/utils/debug';
-import { uploadFile } from '@/utils/supabase/storage/uploadFile';
-import { validateFileType, validateFileSize } from '@/utils/supabase/storage/validators';
 
 /**
  * Service for managing company settings and assets in Supabase
@@ -23,45 +22,87 @@ export const companySettingsService = {
       }
       
       // Validate file type
-      if (!validateFileType(file, ['image/'])) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
         return null;
       }
       
       // Validate file size (5MB limit)
-      if (!validateFileSize(file, 5)) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
         return null;
       }
       
-      infoLog('Uploading logo...');
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${user.id}-${file.name.split('.')[0]}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
       
-      // Use the uploadFile utility for consistent file upload handling
-      const logoUrl = await uploadFile(file, 'company_assets', 'logos');
+      infoLog('Uploading logo to:', filePath);
       
-      if (!logoUrl) {
-        errorLog('Logo upload failed in uploadFile utility');
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('company_assets')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (uploadError) {
+        errorLog('Error uploading logo:', uploadError);
+        toast.error(`Upload failed: ${uploadError.message}`);
         return null;
       }
       
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('company_assets')
+        .getPublicUrl(filePath);
+      
+      const logoUrl = publicUrlData.publicUrl;
       infoLog('Logo uploaded successfully, URL:', logoUrl);
       
-      // Update the user's preferences with the logo URL
-      const success = await this.updateCompanySetting(user.id, 'logoUrl', logoUrl);
+      // Update the user's preferences
+      const { data: existingPref, error: prefError } = await supabase
+        .from('user_preferences')
+        .select('preference_data')
+        .eq('user_id', user.id)
+        .maybeSingle();
       
-      if (!success) {
-        errorLog('Failed to update user preferences with logo URL');
-        toast.error('Logo uploaded but failed to save to your profile');
-        return null;
+      if (prefError) {
+        errorLog('Error retrieving user preferences:', prefError);
       }
       
-      // Force a refresh of the company settings in local storage to ensure immediate availability
-      localStorage.setItem('company_settings_timestamp', Date.now().toString());
+      if (existingPref) {
+        const updatedPrefs = {
+          ...existingPref.preference_data,
+          logoUrl: logoUrl
+        };
+        
+        const { error: updateError } = await supabase
+          .from('user_preferences')
+          .update({ preference_data: updatedPrefs })
+          .eq('user_id', user.id);
+          
+        if (updateError) {
+          errorLog('Error updating user preferences:', updateError);
+          toast.error('Failed to save logo preferences');
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            preference_data: { logoUrl: logoUrl }
+          });
+          
+        if (insertError) {
+          errorLog('Error creating user preferences:', insertError);
+          toast.error('Failed to save logo preferences');
+        }
+      }
       
-      // Store the logo URL directly in localStorage for immediate access
-      localStorage.setItem('company_logo_url', logoUrl);
-      
-      // Dispatch event to notify components about the logo change
-      window.dispatchEvent(new Event('logoUpdate'));
-      
+      toast.success('Logo uploaded successfully');
       return logoUrl;
     } catch (error) {
       errorLog('Exception in uploadCompanyLogo:', error);
@@ -75,23 +116,6 @@ export const companySettingsService = {
    */
   async getCompanySettings(userId: string): Promise<any> {
     try {
-      infoLog('Getting company settings for user:', userId);
-      
-      // Check if we have a recently cached version (less than 1 minute old)
-      const cachedTimestamp = localStorage.getItem('company_settings_timestamp');
-      const cachedSettings = localStorage.getItem('company_settings_' + userId);
-      const now = Date.now();
-      
-      if (cachedTimestamp && cachedSettings) {
-        const timestamp = parseInt(cachedTimestamp);
-        // If cache is less than 1 minute old, use it
-        if (now - timestamp < 60000) {
-          const settings = JSON.parse(cachedSettings);
-          infoLog('Using cached company settings:', settings);
-          return settings;
-        }
-      }
-      
       const { data, error } = await supabase
         .from('user_preferences')
         .select('preference_data')
@@ -103,46 +127,21 @@ export const companySettingsService = {
         throw error;
       }
       
-      // Default settings if nothing is found
-      if (!data || !data.preference_data) {
-        infoLog('No preference data found, returning defaults');
-        const defaultSettings = { 
-          logoUrl: null,
-          companyName: 'ResidentPro'
-        };
-        
-        // Cache the default settings
-        localStorage.setItem('company_settings_' + userId, JSON.stringify(defaultSettings));
-        localStorage.setItem('company_settings_timestamp', now.toString());
-        
-        return defaultSettings;
-      }
-      
-      // Ensure we explicitly return logoUrl even if it's null
-      const settings = {
-        logoUrl: data.preference_data.logoUrl || null,
-        companyName: data.preference_data.companyName || 'ResidentPro',
-        ...data.preference_data
+      if (!data) return { 
+        logoUrl: null,
+        companyName: 'ResidentPro'
       };
       
-      // Cache the settings for quick retrieval
-      localStorage.setItem('company_settings_' + userId, JSON.stringify(settings));
-      localStorage.setItem('company_settings_timestamp', now.toString());
+      // Ensure we explicitly return a logoUrl even if it's null
+      const settings = {
+        logoUrl: data.preference_data.logoUrl || null,
+        companyName: data.preference_data.companyName || 'ResidentPro'
+      };
       
       infoLog('Retrieved company settings:', settings);
       return settings;
     } catch (error) {
       errorLog('Error getting company settings:', error);
-      // Try to return cached settings if available
-      const cachedSettings = localStorage.getItem('company_settings_' + userId);
-      if (cachedSettings) {
-        try {
-          return JSON.parse(cachedSettings);
-        } catch (e) {
-          // Ignore parse errors
-        }
-      }
-      
       return {
         logoUrl: null,
         companyName: 'ResidentPro'
@@ -155,19 +154,6 @@ export const companySettingsService = {
    */
   async updateCompanySetting(userId: string, key: string, value: any): Promise<boolean> {
     try {
-      infoLog(`Updating company setting: ${key}`, value);
-      
-      // Update logoUrl in localStorage immediately if that's what's being updated
-      if (key === 'logoUrl') {
-        if (value === null) {
-          localStorage.removeItem('company_logo_url');
-        } else {
-          localStorage.setItem('company_logo_url', value);
-        }
-        // Dispatch event to notify components
-        window.dispatchEvent(new Event('logoUpdate'));
-      }
-      
       const { data: existingPref, error: prefError } = await supabase
         .from('user_preferences')
         .select('preference_data')
@@ -179,13 +165,13 @@ export const companySettingsService = {
         throw prefError;
       }
       
-      if (existingPref && existingPref.preference_data) {
+      if (existingPref) {
         const updatedPrefs = {
           ...existingPref.preference_data,
           [key]: value
         };
         
-        infoLog(`Updating existing preference for ${key}:`, value);
+        infoLog(`Updating user preference: ${key}`, value);
         
         const { error } = await supabase
           .from('user_preferences')
@@ -196,21 +182,8 @@ export const companySettingsService = {
           errorLog('Error updating user preferences:', error);
           throw error;
         }
-        
-        // Update the cache immediately
-        try {
-          const cachedSettings = localStorage.getItem('company_settings_' + userId);
-          if (cachedSettings) {
-            const settings = JSON.parse(cachedSettings);
-            settings[key] = value;
-            localStorage.setItem('company_settings_' + userId, JSON.stringify(settings));
-            localStorage.setItem('company_settings_timestamp', Date.now().toString());
-          }
-        } catch (e) {
-          // Ignore errors updating cache
-        }
       } else {
-        infoLog(`Creating new preference for ${key}:`, value);
+        infoLog(`Creating new user preference: ${key}`, value);
         
         const { error } = await supabase
           .from('user_preferences')
@@ -223,17 +196,8 @@ export const companySettingsService = {
           errorLog('Error creating user preferences:', error);
           throw error;
         }
-        
-        // Set initial cache
-        try {
-          localStorage.setItem('company_settings_' + userId, JSON.stringify({ [key]: value }));
-          localStorage.setItem('company_settings_timestamp', Date.now().toString());
-        } catch (e) {
-          // Ignore errors updating cache
-        }
       }
       
-      infoLog('Setting updated successfully');
       return true;
     } catch (error) {
       errorLog('Error updating company setting:', error);

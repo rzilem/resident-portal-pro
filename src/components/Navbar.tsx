@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
 import { useCompanySettings } from '@/hooks/use-company-settings';
-import { infoLog, errorLog } from '@/utils/debug';
 
 interface NavItem {
   label: string;
@@ -24,9 +23,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
-  const { settings, isLoading, refreshSettings } = useCompanySettings();
-  const [imgError, setImgError] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const { settings, isLoading } = useCompanySettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,40 +37,7 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
-  // Function to update logo from localStorage or settings
-  const updateLogoFromStorage = () => {
-    // First check localStorage for most up-to-date logo
-    const storedLogo = localStorage.getItem('company_logo_url');
-    
-    if (storedLogo) {
-      setLogoUrl(storedLogo);
-      setImgError(false);
-    } else if (settings.logoUrl) {
-      setLogoUrl(settings.logoUrl);
-      setImgError(false);
-    } else {
-      setLogoUrl(null);
-    }
-  };
-  
-  // Update local logo state when settings change
-  useEffect(() => {
-    updateLogoFromStorage();
-  }, [settings.logoUrl]);
-  
-  // Listen for logo update events
-  useEffect(() => {
-    window.addEventListener('logoUpdate', updateLogoFromStorage);
-    return () => window.removeEventListener('logoUpdate', updateLogoFromStorage);
-  }, []);
-  
-  // Try to refresh settings when component mounts
-  useEffect(() => {
-    refreshSettings();
-    updateLogoFromStorage();
-  }, [refreshSettings]);
-
-  infoLog('Navbar rendering with logo URL:', logoUrl);
+  console.log('Navbar rendering with logo URL:', settings.logoUrl);
 
   return (
     <nav
@@ -89,16 +53,13 @@ const Navbar = () => {
           to="/"
           className="flex items-center"
         >
-          {logoUrl && !imgError ? (
+          {settings.logoUrl ? (
             <img 
-              src={`${logoUrl}?t=${Date.now()}`} // Add cache busting
+              src={settings.logoUrl} 
               alt={settings.companyName || "Company Logo"} 
               className="h-10 max-w-[180px] object-contain" 
               onError={(e) => {
-                errorLog('Logo failed to load in Navbar:', logoUrl);
-                setImgError(true);
-                // Try refreshing settings once on error
-                refreshSettings();
+                console.error('Logo failed to load:', settings.logoUrl);
                 e.currentTarget.src = ""; // Clear the src to prevent fallback loop
                 e.currentTarget.style.display = "none"; // Hide the image
               }}

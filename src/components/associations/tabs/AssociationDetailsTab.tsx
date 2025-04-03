@@ -9,11 +9,8 @@ interface AssociationDetailsTabProps {
 }
 
 const AssociationDetailsTab: React.FC<AssociationDetailsTabProps> = ({ association }) => {
-  // Ensure address exists to prevent "Cannot read properties of undefined" errors
-  const address = association?.address || { street: '', city: '', state: '', zipCode: '', country: '' };
-  
   // Create fullAddress string for QuickContactCard
-  const fullAddress = `${address.street}, ${address.city}, ${address.state} ${address.zipCode}, ${address.country}`;
+  const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
   
   // Extract properties needed for CriticalDatesCard from association
   const mockCriticalDates = {
@@ -24,8 +21,8 @@ const AssociationDetailsTab: React.FC<AssociationDetailsTabProps> = ({ associati
     buildingPermit: '2024-10-15',
   };
   
-  const hasPool = association?.settings?.hasPool;
-  const hasElevator = association?.settings?.hasElevator;
+  const hasPool = association.settings?.hasPool;
+  const hasElevator = association.settings?.hasElevator;
   
   return (
     <div className="space-y-6 mt-4">

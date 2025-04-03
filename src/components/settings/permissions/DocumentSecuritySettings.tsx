@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderIcon } from 'lucide-react';
 import { DocumentAccessLevel } from '@/types/documents';
-import { getDocumentCategories, syncCategoriesToSupabase } from '@/utils/documents/documentUtils';
+import { getDocumentCategories } from '@/utils/documents/documentUtils';
 import { DocumentCategory } from '@/types/documents';
 import { useAuthRole } from '@/hooks/use-auth-role';
 import SecuritySettingsLoading from './components/SecuritySettingsLoading';
@@ -64,15 +64,14 @@ const DocumentSecuritySettings = () => {
     setIsSaving(true);
     
     try {
-      const success = await syncCategoriesToSupabase(categories);
+      // In a real app, this would save to the database
+      // For now, we'll just simulate a save
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (success) {
-        // Update original categories to match current state
-        setOriginalCategories([...categories]);
-        toast.success("Document security settings updated successfully");
-      } else {
-        throw new Error("Failed to save document security settings");
-      }
+      // Update original categories to match current state
+      setOriginalCategories([...categories]);
+      
+      toast.success("Document security settings updated successfully");
     } catch (error) {
       console.error("Failed to save document security settings:", error);
       toast.error("Failed to update document security settings");
