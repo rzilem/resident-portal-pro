@@ -41,16 +41,6 @@ const AssociationProfile = () => {
           console.log('Found association in cache:', cachedAssociation);
           // Convert the hook Association to the full type Association
           const fullAssociation = adaptAssociationToFullType(cachedAssociation);
-          
-          // Ensure contactInfo and address exist to prevent "Cannot read properties of undefined" errors
-          if (!fullAssociation.contactInfo) {
-            fullAssociation.contactInfo = { email: '', phone: '', website: '' };
-          }
-          
-          if (!fullAssociation.address) {
-            fullAssociation.address = { street: '', city: '', state: '', zipCode: '', country: '' };
-          }
-          
           setAssociation(fullAssociation);
           setLoading(false);
           return;
@@ -70,16 +60,6 @@ const AssociationProfile = () => {
           console.log('Fetched association directly:', fetchedAssociation);
           // Convert the fetched Association to the full type Association
           const fullAssociation = adaptAssociationToFullType(fetchedAssociation);
-          
-          // Ensure contactInfo and address exist to prevent "Cannot read properties of undefined" errors
-          if (!fullAssociation.contactInfo) {
-            fullAssociation.contactInfo = { email: '', phone: '', website: '' };
-          }
-          
-          if (!fullAssociation.address) {
-            fullAssociation.address = { street: '', city: '', state: '', zipCode: '', country: '' };
-          }
-          
           setAssociation(fullAssociation);
         } else {
           console.log('Association not found, even after direct fetch.');
@@ -96,6 +76,7 @@ const AssociationProfile = () => {
     loadAssociation();
   }, [id, associations, associationsLoading]);
 
+  // If still loading or associations are still loading, show a loading indicator
   if (loading || associationsLoading) {
     return (
       <div className="flex-1 p-8 flex items-center justify-center">
@@ -107,6 +88,7 @@ const AssociationProfile = () => {
     );
   }
 
+  // If association was not found, display an error
   if (!association) {
     return (
       <div className="flex-1 p-8">

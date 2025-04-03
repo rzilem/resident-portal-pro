@@ -20,11 +20,11 @@ const AssociationContactInfo: React.FC<AssociationContactInfoProps> = ({ associa
       <CardContent className="space-y-4">
         <div className="flex items-center gap-3">
           <Mail className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{contactInfo.email}</span>
+          <span className="text-sm">{contactInfo.email || 'No email provided'}</span>
         </div>
         <div className="flex items-center gap-3">
           <Phone className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{contactInfo.phone}</span>
+          <span className="text-sm">{contactInfo.phone || 'No phone provided'}</span>
         </div>
         {contactInfo.website && (
           <div className="flex items-center gap-3">
