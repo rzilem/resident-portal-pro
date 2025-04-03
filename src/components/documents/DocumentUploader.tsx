@@ -12,7 +12,7 @@ export interface DocumentUploaderProps {
   associationId: string;
   onUploadComplete: (document: DocumentFile) => void;
   category?: string;
-  onCancel?: () => void; // Make this prop optional
+  onCancel?: () => void; // Optional cancel handler
 }
 
 const DocumentUploader: React.FC<DocumentUploaderProps> = ({

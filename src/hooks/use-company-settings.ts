@@ -1,169 +1,97 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { companySettingsService } from '@/services/companySettingsService';
-import { toast } from 'sonner';
-import { infoLog, errorLog } from '@/utils/debug';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-export interface CompanySettings {
+interface CompanySettings {
+  name: string;
   logoUrl: string | null;
-  companyName: string;
-  taxId?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  description?: string;
-  [key: string]: any; // Allow for dynamic keys
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  email: string;
+  website: string;
 }
 
 export const useCompanySettings = () => {
   const [settings, setSettings] = useState<CompanySettings>({
+    name: 'ResidentPro',
     logoUrl: null,
-    companyName: 'ResidentPro'
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    phone: '',
+    email: '',
+    website: ''
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isAuthenticated } = useAuth();
-  const initialLoadComplete = useRef(false);
-
-  // Function to load settings that can be called from anywhere
-  const loadSettings = useCallback(async () => {
-    if (isAuthenticated && user?.id) {
-      setIsLoading(true);
-      try {
-        infoLog('Loading company settings for user:', user.id);
-        const companySettings = await companySettingsService.getCompanySettings(user.id);
-        
-        if (companySettings) {
-          infoLog('Company settings loaded:', companySettings);
-          setSettings(companySettings);
-          
-          // Update document title when company name changes
-          if (companySettings.companyName) {
-            document.title = companySettings.companyName;
-          }
-          
-          // Store logo URL in localStorage for immediate access across components
-          if (companySettings.logoUrl) {
-            infoLog('Logo URL found:', companySettings.logoUrl);
-            localStorage.setItem('company_logo_url', companySettings.logoUrl);
-            // Dispatch event to notify components
-            window.dispatchEvent(new Event('logoUpdate'));
-          }
-        } else {
-          infoLog('No company settings found, using defaults');
-        }
-      } catch (error) {
-        errorLog('Error loading company settings:', error);
-      } finally {
-        setIsLoading(false);
-        initialLoadComplete.current = true;
-      }
-    } else {
-      infoLog('User not authenticated, using default settings');
-      setIsLoading(false);
-      initialLoadComplete.current = true;
-    }
-  }, [isAuthenticated, user?.id]);
-
-  // Load settings when the component mounts or auth state changes
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
-
-  // Handle storage events from other tabs
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'company_settings_timestamp' && initialLoadComplete.current) {
-        infoLog('Company settings updated in another tab, reloading');
-        loadSettings();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [loadSettings]);
-
-  const updateSetting = useCallback(async (key: string, value: any) => {
-    if (!isAuthenticated || !user?.id) {
-      toast.error('You must be logged in to update settings');
-      return false;
-    }
-
-    infoLog(`Updating company setting: ${key}`, value);
-    setSettings(prev => ({ ...prev, [key]: value }));
-    
-    // Update document title when company name changes
-    if (key === 'companyName' && value) {
-      document.title = value;
-    }
-    
-    // Immediately update logo in localStorage if it's being changed
-    if (key === 'logoUrl') {
-      if (value) {
-        localStorage.setItem('company_logo_url', value);
-      } else {
-        localStorage.removeItem('company_logo_url');
-      }
-      // Notify components of logo change
-      window.dispatchEvent(new Event('logoUpdate'));
-    }
+  
+  const refreshSettings = useCallback(async () => {
+    setIsLoading(true);
     
     try {
-      const success = await companySettingsService.updateCompanySetting(user.id, key, value);
-      if (success) {
-        // Refresh settings after update to ensure consistency
-        await loadSettings();
-        return true;
-      } else {
-        // Revert local state if server update failed
-        await loadSettings();
-        return false;
+      // First check localStorage for cached logo
+      const cachedLogo = localStorage.getItem('company_logo_url');
+      
+      // Fetch company settings
+      const { data, error } = await supabase
+        .from('company_settings')
+        .select('*')
+        .eq('id', 'global')
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 is "no rows found" error, which is fine for a new system
+        console.error('Error fetching company settings:', error);
+      }
+      
+      if (data) {
+        // Prioritize cached logo over database if it exists
+        const logoUrl = cachedLogo || data.logo_url;
+        
+        // If logo is in database but not cached, update cache
+        if (data.logo_url && !cachedLogo) {
+          localStorage.setItem('company_logo_url', data.logo_url);
+        }
+        
+        setSettings({
+          name: data.company_info?.name || 'ResidentPro',
+          logoUrl: logoUrl,
+          address: data.company_info?.address || '',
+          city: data.company_info?.city || '',
+          state: data.company_info?.state || '',
+          zipCode: data.company_info?.zipCode || '',
+          phone: data.company_info?.phone || '',
+          email: data.company_info?.email || '',
+          website: data.company_info?.website || ''
+        });
+      } else if (cachedLogo) {
+        // If we only have cached logo but no settings, just update the logo
+        setSettings(prev => ({ ...prev, logoUrl: cachedLogo }));
       }
     } catch (error) {
-      errorLog('Error updating company setting:', error);
-      toast.error('Failed to update setting');
-      return false;
+      console.error('Exception in refreshSettings:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isAuthenticated, user?.id, loadSettings]);
-
-  const uploadLogo = useCallback(async (file: File) => {
-    if (!isAuthenticated || !user?.id) {
-      toast.error('You must be logged in to upload a logo');
-      return null;
-    }
-
-    infoLog('Uploading logo', file.name);
-    const logoUrl = await companySettingsService.uploadCompanyLogo(file);
+  }, []);
+  
+  useEffect(() => {
+    refreshSettings();
     
-    if (logoUrl) {
-      infoLog('Logo uploaded successfully, setting state:', logoUrl);
-      setSettings(prev => ({ ...prev, logoUrl }));
-      
-      // Update localStorage immediately
-      localStorage.setItem('company_logo_url', logoUrl);
-      
-      // Notify components of logo change
-      window.dispatchEvent(new Event('logoUpdate'));
-      
-      // Force a refresh to ensure all components have the latest data
-      await loadSettings();
-    } else {
-      errorLog('Logo upload failed');
-    }
+    // Listen for logo updates
+    const handleLogoUpdate = () => {
+      refreshSettings();
+    };
     
-    return logoUrl;
-  }, [isAuthenticated, user?.id, loadSettings]);
-
-  const getSetting = useCallback((key: keyof CompanySettings) => {
-    return settings[key] || '';
-  }, [settings]);
-
-  return {
-    settings,
-    isLoading,
-    updateSetting,
-    uploadLogo,
-    getSetting,
-    refreshSettings: loadSettings // Expose the refresh function
-  };
+    window.addEventListener('logoUpdate', handleLogoUpdate);
+    
+    return () => {
+      window.removeEventListener('logoUpdate', handleLogoUpdate);
+    };
+  }, [refreshSettings]);
+  
+  return { settings, isLoading, refreshSettings };
 };

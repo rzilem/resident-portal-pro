@@ -1,196 +1,185 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/auth/AuthProvider';
-import { toast } from "sonner";
-import { userPreferencesService } from '@/services/userPreferencesService';
-import { companySettingsService } from '@/services/companySettingsService';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface CompanyInfo {
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+}
+
+interface EmailSettings {
+  defaultSender?: string;
+  signature?: string;
+  footerText?: string;
+}
+
+interface GeneralSettings {
+  dateFormat?: string;
+  timeFormat?: string;
+  language?: string;
+  timezone?: string;
+}
 
 interface UserPreferences {
   theme?: 'light' | 'dark' | 'system';
-  cardStyle?: 'default' | 'flat' | 'glass' | 'rounded';
-  colorMode?: 'default' | 'grayscale' | 'high-contrast';
-  fontSize?: 'small' | 'medium' | 'large';
-  dashboardLayout?: any;
-  dashboardWidgets?: any[];
-  dashboardColumns?: number;
-  databaseHomeownerColumns?: any[];
-  tableDensity?: 'compact' | 'default' | 'spacious';
-  notificationsEnabled?: boolean;
-  documentCategories?: any[];
-  logoUrl?: string | null;
-  companyName?: string;
-  voiceGreetingEnabled?: boolean;
-  voiceGreetingType?: 'default' | 'custom' | 'preset';
-  customGreeting?: string;
-  selectedPresetGreeting?: string;
-  lastGreetingTime?: string | null;
-  [key: string]: any;
+  sidebarCollapsed?: boolean;
+  notifications?: boolean;
 }
 
-const defaultPreferences: UserPreferences = {
-  theme: 'system',
-  cardStyle: 'default',
-  colorMode: 'default',
-  fontSize: 'medium',
-  dashboardLayout: null,
-  dashboardWidgets: [],
-  dashboardColumns: 2,
-  databaseHomeownerColumns: [],
-  tableDensity: 'default',
-  notificationsEnabled: true,
-  documentCategories: [],
-  logoUrl: null,
-  companyName: 'ResidentPro',
-  voiceGreetingEnabled: true,
-  voiceGreetingType: 'default',
-  customGreeting: null,
-  selectedPresetGreeting: null,
-  lastGreetingTime: null
-};
+export interface Settings {
+  company?: CompanyInfo;
+  email?: EmailSettings;
+  general?: GeneralSettings;
+  preferences?: UserPreferences;
+}
 
 export const useSettings = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
+  const [settings, setSettings] = useState<Settings>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    const loadPreferences = async () => {
-      if (isAuthenticated && user?.id) {
-        setIsLoading(true);
-        try {
-          const storedPreferences = await userPreferencesService.getPreferences(user.id);
-          
-          if (storedPreferences) {
-            console.log('Loaded preferences from Supabase:', storedPreferences);
-            setPreferences({ ...defaultPreferences, ...storedPreferences });
-          } else {
-            console.log('No stored preferences found, using defaults');
-            setPreferences(defaultPreferences);
-            
-            // Initialize preferences in database
-            await userPreferencesService.savePreferences(user.id, defaultPreferences);
-          }
-        } catch (error) {
-          console.error('Error loading preferences:', error);
-          toast.error('Failed to load preferences');
-        } finally {
-          setIsLoading(false);
-          setIsInitialized(true);
-        }
-      } else {
-        console.log('Not authenticated, using default preferences');
-        setPreferences(defaultPreferences);
-        setIsLoading(false);
-        setIsInitialized(true);
+  
+  const fetchSettings = useCallback(async () => {
+    setIsLoading(true);
+    
+    try {
+      // Fetch company settings
+      const { data: companyData, error: companyError } = await supabase
+        .from('company_settings')
+        .select('*')
+        .eq('id', 'global')
+        .single();
+      
+      if (companyError && companyError.code !== 'PGRST116') {
+        // PGRST116 is "no rows found" error, which is fine for a new system
+        console.error('Error fetching company settings:', companyError);
       }
-    };
-
-    loadPreferences();
-  }, [isAuthenticated, user?.id]);
-
-  const savePreferences = useCallback(async (newPreferences: Partial<UserPreferences>) => {
-    if (!isInitialized) {
-      console.log('Settings not initialized yet, waiting...');
-      toast.error('Settings not initialized yet, please try again');
-      return false;
+      
+      // Fetch user preferences if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      let userPrefs = {};
+      
+      if (user) {
+        const { data: prefsData, error: prefsError } = await supabase
+          .from('user_preferences')
+          .select('preference_data')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (prefsError && prefsError.code !== 'PGRST116') {
+          console.error('Error fetching user preferences:', prefsError);
+        }
+        
+        if (prefsData) {
+          userPrefs = prefsData.preference_data;
+        }
+      }
+      
+      // Combine all settings
+      setSettings({
+        company: companyData?.company_info || {},
+        email: companyData?.email_settings || {},
+        general: companyData?.general_settings || {},
+        preferences: userPrefs,
+      });
+      
+    } catch (error) {
+      console.error('Exception in fetchSettings:', error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsSaving(true);
-    setPreferences(current => ({ ...current, ...newPreferences }));
-    
-    if (isAuthenticated && user?.id) {
-      const updatedPreferences = { ...preferences, ...newPreferences };
-      console.log('Saving preferences to Supabase:', updatedPreferences);
-      try {
-        const success = await userPreferencesService.savePreferences(user.id, updatedPreferences);
-        if (success) {
-          toast.success('Preferences saved');
-          return true;
-        } else {
-          toast.error('Failed to save preferences');
+  }, []);
+  
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+  
+  const updateSettings = async (
+    section: keyof Settings,
+    data: any
+  ): Promise<boolean> => {
+    try {
+      if (section === 'preferences') {
+        // Update user preferences
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          toast.error('You must be logged in to update preferences');
           return false;
         }
-      } catch (error) {
-        console.error('Error saving preferences:', error);
-        toast.error('Failed to save preferences');
-        return false;
-      } finally {
-        setIsSaving(false);
+        
+        const { error } = await supabase
+          .from('user_preferences')
+          .upsert({
+            user_id: user.id,
+            preference_data: { ...settings.preferences, ...data }
+          });
+        
+        if (error) {
+          console.error('Error updating user preferences:', error);
+          toast.error('Failed to update preferences');
+          return false;
+        }
+        
+        // Update local state
+        setSettings(prev => ({
+          ...prev,
+          preferences: { ...prev.preferences, ...data }
+        }));
+        
+        toast.success('Preferences updated successfully');
+        return true;
+      } else {
+        // Update company settings
+        const updateData: Record<string, any> = {};
+        updateData[`${section}_info`] = section === 'company' 
+          ? { ...settings.company, ...data }
+          : data;
+        
+        const { error } = await supabase
+          .from('company_settings')
+          .upsert({
+            id: 'global',
+            ...updateData,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (error) {
+          console.error(`Error updating ${section} settings:`, error);
+          toast.error(`Failed to update ${section} settings`);
+          return false;
+        }
+        
+        // Update local state
+        setSettings(prev => ({
+          ...prev,
+          [section]: { ...prev[section], ...data }
+        }));
+        
+        toast.success(`${section.charAt(0).toUpperCase() + section.slice(1)} settings updated successfully`);
+        return true;
       }
-    } else {
-      console.log('Not authenticated, preferences only saved locally');
-      toast.warning('Changes saved locally only. Login to save permanently.');
-      setIsSaving(false);
-      return false;
-    }
-  }, [preferences, isAuthenticated, user?.id, isInitialized]);
-
-  const updatePreference = useCallback(async (keyOrObject: string | Partial<UserPreferences>, value?: any) => {
-    if (!isInitialized) {
-      console.log('Settings not initialized yet, waiting...');
-      return false;
-    }
-    
-    let updateData: Partial<UserPreferences>;
-    
-    if (typeof keyOrObject === 'string') {
-      // Handle single key-value update
-      updateData = { [keyOrObject]: value };
-    } else {
-      // Handle object update
-      updateData = keyOrObject;
-    }
-    
-    setPreferences(current => ({ ...current, ...updateData }));
-    
-    if (isAuthenticated && user?.id) {
-      const updatedPreferences = { ...preferences, ...updateData };
-      console.log(`Saving preference update to Supabase:`, updateData);
-      try {
-        const success = await userPreferencesService.savePreferences(user.id, updatedPreferences);
-        return success;
-      } catch (error) {
-        console.error('Error updating preferences:', error);
-        return false;
-      }
-    } else {
-      console.log('Not authenticated, preference only saved locally');
-      return false;
-    }
-  }, [preferences, isAuthenticated, user?.id, isInitialized]);
-
-  const uploadCompanyLogo = useCallback(async (file: File): Promise<string | null> => {
-    if (!isAuthenticated || !user?.id) {
-      toast.error('You must be logged in to upload a logo');
-      return null;
-    }
-
-    try {
-      return await companySettingsService.uploadCompanyLogo(file);
     } catch (error) {
-      console.error('Error uploading company logo:', error);
-      return null;
+      console.error(`Exception in updateSettings for ${section}:`, error);
+      toast.error('An unexpected error occurred');
+      return false;
     }
-  }, [isAuthenticated, user?.id]);
-
-  const updateCompanySetting = updatePreference;
-
-  const companySettings = {
-    logoUrl: preferences.logoUrl,
-    companyName: preferences.companyName
   };
-
+  
+  const updatePreference = async (key: string, value: any): Promise<boolean> => {
+    return updateSettings('preferences', { [key]: value });
+  };
+  
   return {
-    preferences,
-    companySettings,
+    settings,
     isLoading,
-    isSaving,
-    isInitialized,
-    savePreferences,
+    updateSettings,
     updatePreference,
-    uploadCompanyLogo,
-    updateCompanySetting
+    refreshSettings: fetchSettings
   };
 };

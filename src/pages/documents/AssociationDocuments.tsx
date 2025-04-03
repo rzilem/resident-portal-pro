@@ -1,206 +1,123 @@
+
 import React, { useState } from 'react';
-import DocumentManager from '@/components/documents/DocumentManager';
-import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { useDocumentsBucket } from '@/hooks/use-documents-bucket';
-import { FolderIcon, SettingsIcon, RefreshCwIcon, AlertTriangleIcon, Upload } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, FolderPlus } from 'lucide-react';
+import DocumentList from '@/components/documents/DocumentList';
+import { useDocuments } from '@/hooks/use-documents';
+import { getDocumentCategories } from '@/services/documentService';
 import DocumentUploader from '@/components/documents/DocumentUploader';
-import { toast } from 'sonner';
-import { useAssociations } from '@/hooks/use-associations';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useParams, useNavigate } from 'react-router-dom';
+import { DocumentFile } from '@/types/documents';
+import { useEffect } from 'react';
 
 const AssociationDocuments = () => {
-  const { associationId: routeAssociationId } = useParams<{ associationId: string }>();
-  const navigate = useNavigate();
-  
-  // This hook checks if the document storage is ready (e.g., Supabase bucket exists)
-  const { bucketReady, checking, error, retryCheck } = useDocumentsBucket();
-  const [selectedAssociationId, setSelectedAssociationId] = useState<string | undefined>(routeAssociationId);
-  const [activeTab, setActiveTab] = useState<string>('documents');
+  const { id: associationId } = useParams<{ id: string }>();
+  const [activeTab, setActiveTab] = useState('all');
   const [showUploader, setShowUploader] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
   
-  // Fetch associations the user has access to
-  const { associations, loading: loadingAssociations } = useAssociations();
+  // Use our documents hook
+  const {
+    documents,
+    isLoading,
+    fetchDocuments,
+    deleteDocument,
+    downloadDocument
+  } = useDocuments(associationId, activeTab !== 'all' ? activeTab : undefined);
   
-  const handleUploadComplete = () => {
-    toast.success('Document uploaded successfully');
+  // Fetch document categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getDocumentCategories();
+        setCategories(['all', ...fetchedCategories]);
+      } catch (error) {
+        console.error('Error fetching document categories:', error);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
+  
+  const handleUploadComplete = (document: DocumentFile) => {
     setShowUploader(false);
+    fetchDocuments();
   };
   
-  const handleAssociationChange = (id: string) => {
-    setSelectedAssociationId(id);
-    navigate(`/documents/association/${id}`);
-    toast.info(`Switched to ${associations.find(a => a.id === id)?.name || 'association'} documents`);
-  };
-  
-  return (
-    <div className="container mx-auto py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
-          <p className="text-muted-foreground">
-            Manage and organize your association documents
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          {bucketReady && (
-            <Button 
-              variant={showUploader ? "secondary" : "outline"}
-              onClick={() => setShowUploader(!showUploader)}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {showUploader ? "Cancel Upload" : "Upload Document"}
-            </Button>
-          )}
-          
-          <Button variant="outline">
-            <SettingsIcon className="h-4 w-4 mr-2" />
-            Document Settings
-          </Button>
-        </div>
-      </div>
-      
-      {loadingAssociations ? (
-        <div className="flex justify-center py-4">
-          <RefreshCwIcon className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      ) : associations.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <FolderIcon className="h-5 w-5 text-muted-foreground" />
-            <span className="text-muted-foreground">Association:</span>
-          </div>
-          <Select 
-            value={selectedAssociationId || ''} 
-            onValueChange={handleAssociationChange}
-          >
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Select an association" />
-            </SelectTrigger>
-            <SelectContent>
-              {associations.map(association => (
-                <SelectItem key={association.id} value={association.id}>
-                  {association.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      
-      {error && (
-        <Card className="bg-amber-50 border-amber-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-amber-800 flex items-center gap-2">
-              <AlertTriangleIcon className="h-5 w-5" />
-              Document Storage Issue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="text-amber-700">
-              {error}
-            </CardDescription>
-            <div className="mt-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={retryCheck}
-                disabled={checking}
-                className="border-amber-500 text-amber-700 hover:bg-amber-100"
-              >
-                {checking ? (
-                  <>
-                    <RefreshCwIcon className="h-4 w-4 mr-2 animate-spin" />
-                    Checking...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCwIcon className="h-4 w-4 mr-2" />
-                    Retry
-                  </>
-                )}
-              </Button>
-            </div>
+  if (!associationId) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-medium mb-2">No Association Selected</h2>
+            <p className="text-muted-foreground">
+              Please select an association to view its documents.
+            </p>
           </CardContent>
         </Card>
-      )}
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Association Documents</h1>
+        <Button onClick={() => setShowUploader(true)} disabled={showUploader}>
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Upload Document
+        </Button>
+      </div>
       
-      {showUploader && bucketReady && (
+      {showUploader ? (
         <Card>
-          <CardHeader>
-            <CardTitle>Upload Document</CardTitle>
-            <CardDescription>
-              Upload a new document to your association
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DocumentUploader
-              associationId={selectedAssociationId}
+          <CardContent className="p-6">
+            <DocumentUploader 
+              associationId={associationId}
               onUploadComplete={handleUploadComplete}
+              onCancel={() => setShowUploader(false)}
+              category={activeTab !== 'all' ? activeTab : undefined}
             />
           </CardContent>
         </Card>
-      )}
+      ) : null}
       
-      {bucketReady && !showUploader && (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="all"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <div className="flex justify-between items-center mb-4">
           <TabsList>
-            <TabsTrigger value="documents">All Documents</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
+            {categories.map((category) => (
+              <TabsTrigger key={category} value={category} className="capitalize">
+                {category === 'all' ? 'All Documents' : category.replace(/-/g, ' ')}
+              </TabsTrigger>
+            ))}
           </TabsList>
           
-          <TabsContent value="documents" className="mt-6">
-            <DocumentManager associationId={selectedAssociationId} />
+          <Button variant="outline" size="sm">
+            <FolderPlus className="h-4 w-4 mr-2" />
+            Manage Categories
+          </Button>
+        </div>
+        
+        {categories.map((category) => (
+          <TabsContent key={category} value={category} className="mt-0">
+            <DocumentList 
+              documents={documents}
+              isLoading={isLoading}
+              onDelete={deleteDocument}
+              onDownload={downloadDocument}
+              associationId={associationId}
+              category={category !== 'all' ? category : undefined}
+            />
           </TabsContent>
-          
-          <TabsContent value="templates" className="mt-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <FolderIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Document Templates</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create and manage reusable document templates for your association.
-                </p>
-                <Button>Browse Templates</Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="recent" className="mt-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <FolderIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Recently Viewed</h3>
-                <p className="text-muted-foreground mb-4">
-                  Quick access to your recently viewed documents.
-                </p>
-                <Button>View History</Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      )}
-      
-      {checking && !error && !bucketReady && (
-        <Card>
-          <CardContent className="flex items-center justify-center p-12">
-            <div className="flex flex-col items-center">
-              <RefreshCwIcon className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Checking document storage...</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        ))}
+      </Tabs>
     </div>
   );
 };

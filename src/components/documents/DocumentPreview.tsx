@@ -1,130 +1,116 @@
 
-import React, { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, FileText } from 'lucide-react';
+import { Download, ExternalLink, X } from 'lucide-react';
 import { DocumentFile } from '@/types/documents';
-import FileIcon from './preview/FileIcon';
-import PreviewContent from './preview/PreviewContent';
-import DocumentDetailsContent from './preview/DocumentDetailsContent';
-import VersionHistoryContent from './preview/VersionHistoryContent';
-import { useDocumentPreview } from './preview/useDocumentPreview';
-import { documentPreviewLog } from '@/utils/debug';
-import { toast } from 'sonner';
+import { formatFileSize, formatDate } from '@/utils/formatting';
+import { Badge } from '@/components/ui/badge';
 
 interface DocumentPreviewProps {
-  document: DocumentFile | null;
-  isOpen: boolean;
+  document: DocumentFile;
   onClose: () => void;
+  onDownload?: (document: DocumentFile) => Promise<boolean>;
 }
 
-const DocumentPreview: React.FC<DocumentPreviewProps> = ({
+export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   document,
-  isOpen,
-  onClose
+  onClose,
+  onDownload
 }) => {
-  const {
-    activeTab,
-    setActiveTab,
-    isLoading,
-    previewError,
-    useOfficeViewer,
-    previewUrl,
-    handleLoadError,
-    handleLoadSuccess,
-    handleDownload
-  } = useDocumentPreview(document, isOpen);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Log component render for debugging
-  useEffect(() => {
-    if (isOpen && document) {
-      documentPreviewLog('DocumentPreview opened', {
-        documentId: document.id,
-        documentName: document.name,
-        fileType: document.fileType
-      });
+  // Check if file is an image
+  const isImage = document.fileType.startsWith('image/');
+  
+  // Check if file is a PDF
+  const isPdf = document.fileType === 'application/pdf';
+  
+  // Handle download
+  const handleDownload = async () => {
+    if (onDownload) {
+      await onDownload(document);
+    } else {
+      // Fallback direct download
+      window.open(document.url, '_blank');
     }
-  }, [isOpen, document]);
-
-  // Log URL availability
-  useEffect(() => {
-    if (document && !document.url) {
-      documentPreviewLog('Document has no URL', { documentId: document.id, documentName: document.name });
-      toast.error("Document URL is unavailable");
-    }
-  }, [document]);
-  
-  if (!document) {
-    documentPreviewLog('No document provided, not rendering');
-    return null;
-  }
-  
-  const showVersionHistory = document.previousVersions && document.previousVersions.length > 0;
+  };
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      documentPreviewLog('Dialog onOpenChange triggered', { newOpenState: open });
-      if (!open) onClose();
-    }}>
-      <DialogContent className="max-w-4xl max-h-[80vh] h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileIcon fileType={document.fileType} className="h-5 w-5" />
-            <span className="truncate">{document.name}</span>
-          </DialogTitle>
-          <DialogDescription>
-            {document.description || 'No description provided'}
-          </DialogDescription>
+    <Dialog open={!!document} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-4xl h-[80vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <div>
+            <DialogTitle className="text-xl">{document.name}</DialogTitle>
+            <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+              <Badge variant="outline">
+                {document.category || 'General'}
+              </Badge>
+              <span>{formatFileSize(document.fileSize)}</span>
+              <span>Uploaded: {formatDate(document.uploadedDate)}</span>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="mb-4">
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            {showVersionHistory && (
-              <TabsTrigger value="versions">Version History</TabsTrigger>
-            )}
-          </TabsList>
-          
-          <TabsContent value="preview" className="flex-1 flex flex-col">
-            <div className="bg-muted/30 border rounded-md flex-1 overflow-hidden">
-              <PreviewContent 
-                isLoading={isLoading}
-                previewError={previewError}
-                document={document}
-                previewUrl={previewUrl}
-                useOfficeViewer={useOfficeViewer}
-                onLoadSuccess={handleLoadSuccess}
-                onLoadError={handleLoadError}
-                onDownload={handleDownload}
-              />
+        <div className="flex-1 overflow-hidden bg-muted rounded-md">
+          {isImage ? (
+            <img
+              src={document.url}
+              alt={document.name}
+              className="w-full h-full object-contain"
+              onLoad={() => setIsLoading(false)}
+            />
+          ) : isPdf ? (
+            <iframe
+              src={`${document.url}#toolbar=0`}
+              className="w-full h-full"
+              onLoad={() => setIsLoading(false)}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="text-5xl mb-4">📄</div>
+              <p className="mb-2">Preview not available for this file type</p>
+              <Button onClick={handleDownload} className="mt-4">
+                <Download className="h-4 w-4 mr-2" />
+                Download to view
+              </Button>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="details" className="space-y-4 flex-1 overflow-auto">
-            <DocumentDetailsContent document={document} />
-          </TabsContent>
-          
-          {showVersionHistory && (
-            <TabsContent value="versions" className="flex-1 overflow-auto">
-              <VersionHistoryContent document={document} />
-            </TabsContent>
           )}
-        </Tabs>
-        
-        <div className="flex justify-between mt-4">
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-          <Button onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
+          
+          {isLoading && (isImage || isPdf) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+            </div>
+          )}
         </div>
+        
+        <DialogFooter className="flex justify-between items-center">
+          {document.description && (
+            <p className="text-sm text-muted-foreground">
+              {document.description}
+            </p>
+          )}
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={() => window.open(document.url, '_blank')}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open in New Tab
+            </Button>
+            <Button onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
-
-export default DocumentPreview;

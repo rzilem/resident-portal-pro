@@ -1,13 +1,18 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Document, documentsService } from '@/services/documentsService';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { DocumentFile } from '@/types/documents';
 import { toast } from 'sonner';
+import { 
+  getDocuments,
+  uploadDocument as uploadDocumentService,
+  deleteDocument as deleteDocumentService,
+  downloadDocument as downloadDocumentService
+} from '@/services/documentService';
 
 export const useDocuments = (associationId?: string, category?: string) => {
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const [error, setError] = useState<string | null>(null);
 
   const fetchDocuments = useCallback(async () => {
     if (!associationId) {
@@ -17,11 +22,14 @@ export const useDocuments = (associationId?: string, category?: string) => {
     }
 
     setIsLoading(true);
+    setError(null);
+    
     try {
-      const docs = await documentsService.getDocuments(associationId, category);
+      const docs = await getDocuments(associationId, category);
       setDocuments(docs);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
+    } catch (err) {
+      console.error('Error fetching documents:', err);
+      setError('Failed to load documents');
       toast.error('Failed to load documents');
     } finally {
       setIsLoading(false);
@@ -29,81 +37,76 @@ export const useDocuments = (associationId?: string, category?: string) => {
   }, [associationId, category]);
 
   useEffect(() => {
-    if (isAuthenticated && associationId) {
-      fetchDocuments();
-    } else {
-      setDocuments([]);
-      setIsLoading(false);
-    }
-  }, [fetchDocuments, isAuthenticated, associationId]);
+    fetchDocuments();
+  }, [fetchDocuments]);
 
-  const uploadDocument = useCallback(async (
+  const uploadDocument = async (
     file: File,
     metadata: {
       description?: string;
       category?: string;
       tags?: string[];
-      is_public?: boolean;
     }
   ) => {
-    if (!isAuthenticated) {
-      toast.error('You must be logged in to upload documents');
-      return null;
-    }
-
     if (!associationId) {
-      toast.error('Association ID is required to upload documents');
+      toast.error('Association ID is required');
       return null;
     }
 
-    const doc = await documentsService.uploadDocument(file, {
-      ...metadata,
-      association_id: associationId
-    });
-
-    if (doc) {
-      setDocuments(prev => [doc, ...prev]);
+    try {
+      const uploadedDoc = await uploadDocumentService({
+        file,
+        associationId,
+        description: metadata.description,
+        category: metadata.category || category,
+        tags: metadata.tags
+      });
+      
+      // Add to local state
+      setDocuments(prevDocs => [uploadedDoc, ...prevDocs]);
+      
+      return uploadedDoc;
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      toast.error('Failed to upload document');
+      return null;
     }
+  };
 
-    return doc;
-  }, [associationId, isAuthenticated]);
-
-  const archiveDocument = useCallback(async (documentId: string) => {
-    if (!isAuthenticated) {
-      toast.error('You must be logged in to archive documents');
+  const deleteDocument = async (documentId: string) => {
+    try {
+      await deleteDocumentService(documentId);
+      
+      // Remove from local state
+      setDocuments(prevDocs => prevDocs.filter(doc => doc.id !== documentId));
+      
+      toast.success('Document deleted successfully');
+      return true;
+    } catch (err) {
+      console.error('Error deleting document:', err);
+      toast.error('Failed to delete document');
       return false;
     }
+  };
 
-    const success = await documentsService.archiveDocument(documentId);
-    
-    if (success) {
-      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
-    }
-    
-    return success;
-  }, [isAuthenticated]);
-
-  const deleteDocument = useCallback(async (documentId: string) => {
-    if (!isAuthenticated) {
-      toast.error('You must be logged in to delete documents');
+  const downloadDocument = async (document: DocumentFile) => {
+    try {
+      await downloadDocumentService(document.url, document.name);
+      return true;
+    } catch (err) {
+      console.error('Error downloading document:', err);
+      toast.error('Failed to download document');
       return false;
     }
-
-    const success = await documentsService.deleteDocument(documentId);
-    
-    if (success) {
-      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
-    }
-    
-    return success;
-  }, [isAuthenticated]);
+  };
 
   return {
     documents,
     isLoading,
+    error,
     fetchDocuments,
     uploadDocument,
-    archiveDocument,
-    deleteDocument
+    deleteDocument,
+    downloadDocument
   };
 };
