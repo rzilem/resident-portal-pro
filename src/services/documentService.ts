@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { DocumentFile } from '@/types/documents';
+import { DocumentFile, DocumentCategory } from '@/types/documents';
 import { toast } from 'sonner';
 import { validateFileSize, validateFileType } from '@/utils/supabase/storage/validators';
 import { ensureDocumentsBucketExists } from '@/utils/documents/bucketUtils';
@@ -14,6 +13,37 @@ interface UploadDocumentParams {
   tags?: string[];
   isPublic?: boolean;
 }
+
+/**
+ * Fetch available document categories from the system
+ * @returns Promise resolving to an array of category IDs
+ */
+export const getDocumentCategories = async (): Promise<string[]> => {
+  try {
+    // First try to get categories from database
+    const { data, error } = await supabase
+      .from('document_categories')
+      .select('id, name')
+      .order('name');
+    
+    if (error) {
+      console.error('Error fetching document categories:', error);
+      // Fall back to default categories
+      return ['financial', 'legal', 'meeting', 'maintenance', 'reports', 'general'];
+    }
+    
+    if (data && data.length > 0) {
+      return data.map(category => category.id);
+    }
+    
+    // If no categories in database, return defaults
+    return ['financial', 'legal', 'meeting', 'maintenance', 'reports', 'general'];
+  } catch (error) {
+    console.error('Error in getDocumentCategories:', error);
+    // Fall back to default categories
+    return ['financial', 'legal', 'meeting', 'maintenance', 'reports', 'general'];
+  }
+};
 
 export const getDocuments = async (
   associationId: string,
