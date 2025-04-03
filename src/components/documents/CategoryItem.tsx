@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Pencil, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DocumentCategory } from '@/types/documents';
-import { getFolderIconColor } from './utils/categoryUtils.tsx';
+import { getFolderIconColorByAccessLevel } from '@/components/documents/utils/categoryUtils';
 
 interface CategoryItemProps {
   category: DocumentCategory;
@@ -46,7 +47,7 @@ const CategoryItem = ({
       onClick={handleSelect}
     >
       <div className="flex items-center gap-2 truncate">
-        {getFolderIconColor(category.accessLevel || 'all')}
+        {getFolderIconColorByAccessLevel(category.accessLevel || 'all')}
         <span className="truncate">{category.name}</span>
       </div>
       

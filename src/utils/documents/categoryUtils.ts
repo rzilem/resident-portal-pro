@@ -127,9 +127,14 @@ export const renderAccessLevelBadge = (accessLevel?: DocumentAccessLevel) => {
       break;
   }
   
-  return (
-    <Badge variant={variant} className={className}>
-      {label}
-    </Badge>
-  );
+  // The JSX is being returned as a function result, not directly rendered
+  // in a .ts file. We need to create and return the element programmatically
+  return {
+    type: Badge,
+    props: {
+      variant: variant,
+      className: className,
+      children: label
+    }
+  };
 };

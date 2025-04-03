@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { File } from 'lucide-react';
 import { DocumentCategory, DocumentAccessLevel } from '@/types/documents';
-import { renderAccessLevelBadge } from '../../../documents/utils/categoryUtils.tsx';
+import { renderAccessLevelBadge } from '@/components/documents/utils/categoryUtils';
 
 interface SecurityLevelTableProps {
   categories: DocumentCategory[];
