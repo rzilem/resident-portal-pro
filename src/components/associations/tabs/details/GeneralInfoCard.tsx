@@ -109,19 +109,7 @@ const GeneralInfoCard: React.FC<GeneralInfoCardProps> = ({ association }) => {
         <div>
           <h3 className="font-medium mb-2">Association Description</h3>
           <p className="text-muted-foreground">
-            {association.type === 'hoa' ? (
-              `${association.name} is a Homeowners Association founded in ${association.foundedDate ? new Date(association.foundedDate).getFullYear() : 'N/A'} 
-              and consists of ${association.units || 0} units. The association is located in ${address.city || 'N/A'}, 
-              ${address.state || 'N/A'} and is currently ${association.status === 'active' ? 'active' : 'inactive'}.`
-            ) : association.type === 'condo' ? (
-              `${association.name} is a Condominium Association founded in ${association.foundedDate ? new Date(association.foundedDate).getFullYear() : 'N/A'} 
-              and consists of ${association.units || 0} units. The association is located in ${address.city || 'N/A'}, 
-              ${address.state || 'N/A'} and is currently ${association.status === 'active' ? 'active' : 'inactive'}.`
-            ) : (
-              `${association.name} is a ${association.type || 'Unknown'} Association founded in ${association.foundedDate ? new Date(association.foundedDate).getFullYear() : 'N/A'} 
-              and consists of ${association.units || 0} units. The association is located in ${address.city || 'N/A'}, 
-              ${address.state || 'N/A'} and is currently ${association.status === 'active' ? 'active' : 'inactive'}.`
-            )}
+            {association?.description || 'No description available for this association.'}
           </p>
         </div>
       </CardContent>

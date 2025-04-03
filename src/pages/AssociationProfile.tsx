@@ -32,7 +32,10 @@ const AssociationProfile = () => {
     console.log('Association ID from URL:', id);
     
     const loadAssociation = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
       
       try {
         // Try to find in the cache first

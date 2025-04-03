@@ -27,7 +27,31 @@ export const adaptAssociationToFullType = (association: any): TypeAssociation =>
       foundedDate: new Date().toISOString(),
       units: 0,
       status: 'active',
-      settings: {}
+      settings: {
+        fiscalYearStart: '01-01',
+        feesFrequency: 'monthly',
+        documents: {
+          storageLimit: 1000,
+          allowedTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png']
+        },
+        board: {
+          termLength: 24,
+          maximumMembers: 7
+        },
+        communications: {
+          emailEnabled: true,
+          smsEnabled: true,
+          announcementsEnabled: true
+        },
+        modules: {
+          maintenance: true,
+          violations: true,
+          voting: true,
+          accounting: true,
+          documents: true,
+          calendar: true
+        }
+      }
     };
   }
   
@@ -58,7 +82,31 @@ export const adaptAssociationToFullType = (association: any): TypeAssociation =>
     status: association.status || 'active',
     
     // Map any settings or ensure they exist
-    settings: association.settings || {}
+    settings: association.settings || {
+      fiscalYearStart: '01-01',
+      feesFrequency: 'monthly',
+      documents: {
+        storageLimit: 1000,
+        allowedTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png']
+      },
+      board: {
+        termLength: 24,
+        maximumMembers: 7
+      },
+      communications: {
+        emailEnabled: true,
+        smsEnabled: true,
+        announcementsEnabled: true
+      },
+      modules: {
+        maintenance: true,
+        violations: true,
+        voting: true,
+        accounting: true,
+        documents: true,
+        calendar: true
+      }
+    }
   };
   
   return fullAssociation;
@@ -98,7 +146,7 @@ export const adaptFullTypeToAssociation = (association: TypeAssociation): HookAs
 export const adaptPartialFullTypeToAssociation = (
   updates: Partial<TypeAssociation>
 ): Partial<HookAssociation> => {
-  const result: Partial<HookAssociation> = { ...updates };
+  const result: Partial<HookAssociation> = { ...updates } as any;
   
   // Handle address conversion
   if (updates.address) {
@@ -108,11 +156,11 @@ export const adaptPartialFullTypeToAssociation = (
     result.zip = updates.address.zipCode;
     
     // Remove the original address object
-    delete result.address;
+    delete (result as any).address;
   }
   
   // Remove other complex properties
-  delete result.contactInfo;
+  delete (result as any).contactInfo;
   
   return result;
 };
