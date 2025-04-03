@@ -115,6 +115,11 @@ export interface DocumentTemplate {
   updatedAt?: string;
   tags?: string[];
   isPublic?: boolean;
+  // Add missing properties to fix TypeScript errors
+  lastUsed?: string;
+  lastModified?: string;
+  usageCount?: number;
+  version?: number | string;
 }
 
 export interface DocumentUploadOptions {
@@ -122,4 +127,6 @@ export interface DocumentUploadOptions {
   category?: string;
   tags?: string[];
   isPublic?: boolean;
+  is_public?: boolean; // For backward compatibility
+  useDemo?: boolean; // Add this to support the useDemo parameter in UploadDataTab.tsx
 }

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Settings, FileText, Mail, Bell, Calendar, DollarSign, Building, ClipboardList, Users, Shield, Home, FileCheck, BanknoteIcon, Folder, BookOpen, Activity, MapPin, Tag, FileBarChart, BookmarkIcon, Briefcase, HelpCircle, PanelLeft, Database, LayoutDashboard, UserCheck, Cog, CheckSquare, Layout, Image, FileBox, ClipboardCheck, FileSpreadsheet, MessageSquare, Landmark, Layers, FileOutput, Import, Pencil, CreditCard } from "lucide-react";
 import { toast } from "sonner";
@@ -8,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import AssociationList from './associations/AssociationList';
 import AssociationDialog from './associations/AssociationDialog';
 import SettingTabs from './associations/SettingTabs';
-import { Association, SettingSection, AssociationMenuCategory } from './associations/types';
+import { SettingSection, AssociationMenuCategory } from './associations/types';
 import { useAssociations } from '@/hooks/use-associations';
+import { Association as TypeAssociation } from '@/types/association';
+import { Association as HookAssociation } from '@/hooks/use-associations';
+import { adaptFullTypeToAssociation, adaptAssociationsToFullType } from '@/utils/type-adapters';
 
 // Define setting sections and menu categories
 const settingSections: SettingSection[] = [
@@ -77,7 +81,7 @@ const AssociationSettings = () => {
 
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [associationToEdit, setAssociationToEdit] = useState<Association | null>(null);
+  const [associationToEdit, setAssociationToEdit] = useState<HookAssociation | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState('basic');
 
   useEffect(() => {
@@ -88,7 +92,7 @@ const AssociationSettings = () => {
     setShowNewDialog(true);
   };
 
-  const handleOpenEditDialog = (association: Association) => {
+  const handleOpenEditDialog = (association: HookAssociation) => {
     setAssociationToEdit(association);
     setShowEditDialog(true);
   };
@@ -103,14 +107,26 @@ const AssociationSettings = () => {
   };
 
   const handleSaveNew = async (data: Partial<TypeAssociation>) => {
-    const adaptedData = adaptFullTypeToAssociation(data as TypeAssociation);
-    return await addAssociation(adaptedData as Omit<HookAssociation, 'id'>);
+    try {
+      const adaptedData = adaptFullTypeToAssociation(data as TypeAssociation);
+      return await addAssociation(adaptedData as Omit<HookAssociation, 'id'>);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('Error adding association:', msg);
+      throw error;
+    }
   };
 
   const handleSaveEdit = async (data: Partial<TypeAssociation>) => {
     if (associationToEdit) {
-      const adaptedData = adaptFullTypeToAssociation({...associationToEdit, ...data} as TypeAssociation);
-      return await updateAssociation(associationToEdit.id, adaptedData);
+      try {
+        const adaptedData = adaptFullTypeToAssociation({...data} as TypeAssociation);
+        return await updateAssociation(associationToEdit.id, adaptedData);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error('Error updating association:', msg);
+        throw error;
+      }
     }
     throw new Error('No association to edit');
   };
@@ -135,7 +151,7 @@ const AssociationSettings = () => {
     return (
       <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-md">
         <h3 className="font-bold">Error</h3>
-        <p>{error.message || 'Failed to load associations'}</p>
+        <p>{error}</p>
         <button 
           onClick={() => fetchAssociations()} 
           className="mt-2 px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200"
@@ -160,21 +176,43 @@ const AssociationSettings = () => {
 
       <AssociationList 
         associations={adaptAssociationsToFullType(associations)}
-        activeAssociation={activeAssociation}
-        selectAssociation={selectAssociation}
+        activeAssociation={adaptAssociationToFullType(activeAssociation)}
+        selectAssociation={(assoc: TypeAssociation) => {
+          const hookAssoc = associations.find(a => a.id === assoc.id);
+          if (hookAssoc) {
+            selectAssociation(hookAssoc);
+          }
+        }}
         openNewAssociationDialog={handleOpenNewDialog}
-        openEditDialog={handleOpenEditDialog}
+        openEditDialog={(assoc: TypeAssociation) => {
+          const hookAssoc = associations.find(a => a.id === assoc.id);
+          if (hookAssoc) {
+            handleOpenEditDialog(hookAssoc);
+          }
+        }}
         toggleStatus={toggleStatus}
-        removeAssociation={removeAssociation}
+        removeAssociation={async (id: string) => {
+          await removeAssociation(id);
+          return true; // Return boolean instead of association list
+        }}
         makeDefaultAssociation={makeDefaultAssociation}
       />
 
       {activeAssociation && (
         <SettingTabs 
-          activeAssociation={activeAssociation}
+          activeAssociation={adaptAssociationToFullType(activeAssociation)}
           handleSettingChange={handleSettingChange}
-          getSetting={(key, defaultValue) => activeAssociation.settings?.[key] ?? defaultValue}
-          updateAssociation={updateAssociation}
+          getSetting={(key, defaultValue) => {
+            // Safe access to settings
+            if (activeAssociation && activeAssociation.settings) {
+              return activeAssociation.settings[key] ?? defaultValue;
+            }
+            return defaultValue;
+          }}
+          updateAssociation={async (id: string, updates: Partial<TypeAssociation>) => {
+            const adaptedUpdates = adaptFullTypeToAssociation(updates as TypeAssociation);
+            return await updateAssociation(id, adaptedUpdates);
+          }}
         />
       )}
 
@@ -190,7 +228,7 @@ const AssociationSettings = () => {
           isOpen={showEditDialog}
           onClose={handleCloseEditDialog}
           onSave={handleSaveEdit}
-          association={associationToEdit}
+          association={adaptAssociationToFullType(associationToEdit)}
           title={`Edit ${associationToEdit.name}`}
         />
       )}
@@ -199,7 +237,3 @@ const AssociationSettings = () => {
 };
 
 export default AssociationSettings;
-
-import { Association as HookAssociation } from '@/hooks/use-associations';
-import { Association as TypeAssociation } from '@/types/association';
-import { adaptFullTypeToAssociation, adaptAssociationsToFullType } from '@/utils/type-adapters';

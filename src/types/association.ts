@@ -173,4 +173,12 @@ export interface AssociationSettings {
   
   // Add isDefault property
   isDefault?: boolean;
+  
+  // Add missing property to fix TypeScript errors
+  invoiceTableColumns?: string[];
+  databaseHomeownerColumns?: string[];
+  customColors?: Record<string, string>;
+  themePreset?: 'light' | 'dark' | 'system';
+  customBackground?: string;
+  preferences?: Record<string, any>;
 }
