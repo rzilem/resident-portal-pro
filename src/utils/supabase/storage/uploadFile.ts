@@ -34,7 +34,7 @@ export const uploadFile = async (
     // Create a unique filename that includes the original extension
     const fileExt = file.name.split('.').pop();
     const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 8);
+    const randomString = Math.random().toString(36).substring(2, 15);
     const fileName = `${timestamp}-${randomString}-${file.name.split('.')[0]}.${fileExt}`;
     const filePath = path ? `${path}/${fileName}` : fileName;
     
@@ -102,7 +102,7 @@ export const uploadFile = async (
     
     infoLog('File uploaded successfully to path:', data.path);
     
-    // Get public URL
+    // Get public URL with a cache busting parameter
     const { data: publicUrlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(data.path);
@@ -113,9 +113,13 @@ export const uploadFile = async (
       return null;
     }
     
-    infoLog('Generated public URL:', publicUrlData.publicUrl);
+    // Add a version parameter to prevent caching issues
+    const publicUrl = publicUrlData.publicUrl;
+    // We don't add the timestamp here as we'll add it when displaying the image
     
-    return publicUrlData.publicUrl;
+    infoLog('Generated public URL:', publicUrl);
+    
+    return publicUrl;
   } catch (error) {
     errorLog(`Exception in uploadFile to ${bucket}:`, error);
     toast.error('An unexpected error occurred while uploading the file');

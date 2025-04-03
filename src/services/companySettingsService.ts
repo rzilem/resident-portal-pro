@@ -46,7 +46,16 @@ export const companySettingsService = {
       infoLog('Logo uploaded successfully, URL:', logoUrl);
       
       // Update the user's preferences with the logo URL
-      await this.updateCompanySetting(user.id, 'logoUrl', logoUrl);
+      const success = await this.updateCompanySetting(user.id, 'logoUrl', logoUrl);
+      
+      if (!success) {
+        errorLog('Failed to update user preferences with logo URL');
+        toast.error('Logo uploaded but failed to save to your profile');
+        return null;
+      }
+      
+      // Force a refresh of the company settings in local storage to ensure immediate availability
+      localStorage.setItem('company_settings_timestamp', Date.now().toString());
       
       return logoUrl;
     } catch (error) {
@@ -63,6 +72,21 @@ export const companySettingsService = {
     try {
       infoLog('Getting company settings for user:', userId);
       
+      // Check if we have a recently cached version (less than 1 minute old)
+      const cachedTimestamp = localStorage.getItem('company_settings_timestamp');
+      const cachedSettings = localStorage.getItem('company_settings_' + userId);
+      const now = Date.now();
+      
+      if (cachedTimestamp && cachedSettings) {
+        const timestamp = parseInt(cachedTimestamp);
+        // If cache is less than 1 minute old, use it
+        if (now - timestamp < 60000) {
+          const settings = JSON.parse(cachedSettings);
+          infoLog('Using cached company settings:', settings);
+          return settings;
+        }
+      }
+      
       const { data, error } = await supabase
         .from('user_preferences')
         .select('preference_data')
@@ -77,10 +101,16 @@ export const companySettingsService = {
       // Default settings if nothing is found
       if (!data || !data.preference_data) {
         infoLog('No preference data found, returning defaults');
-        return { 
+        const defaultSettings = { 
           logoUrl: null,
           companyName: 'ResidentPro'
         };
+        
+        // Cache the default settings
+        localStorage.setItem('company_settings_' + userId, JSON.stringify(defaultSettings));
+        localStorage.setItem('company_settings_timestamp', now.toString());
+        
+        return defaultSettings;
       }
       
       // Ensure we explicitly return logoUrl even if it's null
@@ -90,10 +120,24 @@ export const companySettingsService = {
         ...data.preference_data
       };
       
+      // Cache the settings for quick retrieval
+      localStorage.setItem('company_settings_' + userId, JSON.stringify(settings));
+      localStorage.setItem('company_settings_timestamp', now.toString());
+      
       infoLog('Retrieved company settings:', settings);
       return settings;
     } catch (error) {
       errorLog('Error getting company settings:', error);
+      // Try to return cached settings if available
+      const cachedSettings = localStorage.getItem('company_settings_' + userId);
+      if (cachedSettings) {
+        try {
+          return JSON.parse(cachedSettings);
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+      
       return {
         logoUrl: null,
         companyName: 'ResidentPro'
@@ -136,6 +180,19 @@ export const companySettingsService = {
           errorLog('Error updating user preferences:', error);
           throw error;
         }
+        
+        // Update the cache immediately
+        try {
+          const cachedSettings = localStorage.getItem('company_settings_' + userId);
+          if (cachedSettings) {
+            const settings = JSON.parse(cachedSettings);
+            settings[key] = value;
+            localStorage.setItem('company_settings_' + userId, JSON.stringify(settings));
+            localStorage.setItem('company_settings_timestamp', Date.now().toString());
+          }
+        } catch (e) {
+          // Ignore errors updating cache
+        }
       } else {
         infoLog(`Creating new preference for ${key}:`, value);
         
@@ -149,6 +206,14 @@ export const companySettingsService = {
         if (error) {
           errorLog('Error creating user preferences:', error);
           throw error;
+        }
+        
+        // Set initial cache
+        try {
+          localStorage.setItem('company_settings_' + userId, JSON.stringify({ [key]: value }));
+          localStorage.setItem('company_settings_timestamp', Date.now().toString());
+        } catch (e) {
+          // Ignore errors updating cache
         }
       }
       

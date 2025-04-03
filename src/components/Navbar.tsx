@@ -24,8 +24,9 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
-  const { settings, isLoading } = useCompanySettings();
+  const { settings, isLoading, refreshSettings } = useCompanySettings();
   const [imgError, setImgError] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,12 +40,22 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
-  // Reset image error state if logo URL changes
+  // Update local logo state when settings change
   useEffect(() => {
-    setImgError(false);
+    if (settings.logoUrl) {
+      setLogoUrl(settings.logoUrl);
+      setImgError(false);
+    } else {
+      setLogoUrl(null);
+    }
   }, [settings.logoUrl]);
+  
+  // Try to refresh settings when component mounts
+  useEffect(() => {
+    refreshSettings();
+  }, [refreshSettings]);
 
-  infoLog('Navbar rendering with logo URL:', settings.logoUrl);
+  infoLog('Navbar rendering with logo URL:', logoUrl);
 
   return (
     <nav
@@ -60,14 +71,16 @@ const Navbar = () => {
           to="/"
           className="flex items-center"
         >
-          {settings.logoUrl && !imgError ? (
+          {logoUrl && !imgError ? (
             <img 
-              src={settings.logoUrl + `?t=${Date.now()}`} // Add cache busting
+              src={`${logoUrl}?t=${Date.now()}`} // Add cache busting
               alt={settings.companyName || "Company Logo"} 
               className="h-10 max-w-[180px] object-contain" 
               onError={(e) => {
-                errorLog('Logo failed to load in Navbar:', settings.logoUrl);
+                errorLog('Logo failed to load in Navbar:', logoUrl);
                 setImgError(true);
+                // Try refreshing settings once on error
+                refreshSettings();
                 e.currentTarget.src = ""; // Clear the src to prevent fallback loop
                 e.currentTarget.style.display = "none"; // Hide the image
               }}

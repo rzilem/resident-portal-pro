@@ -5,27 +5,40 @@ import { useCompanySettings } from '@/hooks/use-company-settings';
 import { infoLog, errorLog } from '@/utils/debug';
 
 const LoginHeader = () => {
-  const { settings, isLoading } = useCompanySettings();
+  const { settings, isLoading, refreshSettings } = useCompanySettings();
   const [imgError, setImgError] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   
-  // Reset image error state if logo URL changes
+  // Update local logo state when settings change
   useEffect(() => {
-    setImgError(false);
+    if (settings.logoUrl) {
+      setLogoUrl(settings.logoUrl);
+      setImgError(false);
+    } else {
+      setLogoUrl(null);
+    }
   }, [settings.logoUrl]);
   
-  infoLog('LoginHeader rendering with logo URL:', settings.logoUrl);
+  // Try to refresh settings when component mounts
+  useEffect(() => {
+    refreshSettings();
+  }, [refreshSettings]);
+  
+  infoLog('LoginHeader rendering with logo URL:', logoUrl);
   
   return (
     <div className="mb-6 text-center">
       <Link to="/" className="inline-block">
-        {settings.logoUrl && !imgError ? (
+        {logoUrl && !imgError ? (
           <img 
-            src={settings.logoUrl + `?t=${Date.now()}`} // Add cache busting
+            src={`${logoUrl}?t=${Date.now()}`} // Add cache busting
             alt={settings.companyName || "Company Logo"} 
             className="h-10 mx-auto max-w-[180px] object-contain" 
             onError={(e) => {
-              errorLog('Logo failed to load in LoginHeader:', settings.logoUrl);
+              errorLog('Logo failed to load in LoginHeader:', logoUrl);
               setImgError(true);
+              // Try refreshing settings once on error
+              refreshSettings();
               e.currentTarget.src = ""; // Clear the src
               e.currentTarget.style.display = "none"; // Hide the image
             }}
