@@ -1,4 +1,3 @@
-
 import { Association as HookAssociation } from '@/hooks/use-associations';
 import { Association as TypeAssociation } from '@/types/association';
 
@@ -6,26 +5,38 @@ import { Association as TypeAssociation } from '@/types/association';
  * Converts a simple Association from hooks/use-associations to the full Association type
  * used in the application
  */
-export const adaptAssociationToFullType = (association: HookAssociation): TypeAssociation => {
-  return {
+export const adaptAssociationToFullType = (association: any): TypeAssociation => {
+  // Create a base association object
+  const fullAssociation: TypeAssociation = {
     id: association.id,
     name: association.name,
+    
+    // Ensure address is properly structured
     address: {
-      street: association.address || '',
+      street: association.address || association.street || '',
       city: association.city || '',
       state: association.state || '',
-      zipCode: association.zip || '',
-      country: 'USA',
+      zipCode: association.zip || association.zipCode || '',
+      country: association.country || 'USA'
     },
+    
+    // Ensure contactInfo is properly initialized
     contactInfo: {
-      email: '',
-      phone: '',
+      email: association.contact_email || association.contactInfo?.email || '',
+      phone: association.contact_phone || association.contactInfo?.phone || '',
+      website: association.contact_website || association.contactInfo?.website || ''
     },
-    type: (association.type as 'hoa' | 'condo' | 'coop' | 'other') || 'hoa',
-    foundedDate: association.created_at || new Date().toISOString(),
+    
+    type: association.type || 'hoa',
+    foundedDate: association.founded_date || association.foundedDate || new Date().toISOString(),
     units: association.units || 0,
-    status: (association.status as 'active' | 'inactive') || 'active',
+    status: association.status || 'active',
+    
+    // Map any settings or ensure they exist
+    settings: association.settings || {}
   };
+  
+  return fullAssociation;
 };
 
 /**

@@ -40,7 +40,18 @@ const AssociationProfile = () => {
         if (cachedAssociation) {
           console.log('Found association in cache:', cachedAssociation);
           // Convert the hook Association to the full type Association
-          setAssociation(adaptAssociationToFullType(cachedAssociation));
+          const fullAssociation = adaptAssociationToFullType(cachedAssociation);
+          
+          // Ensure contactInfo and address exist to prevent "Cannot read properties of undefined" errors
+          if (!fullAssociation.contactInfo) {
+            fullAssociation.contactInfo = { email: '', phone: '', website: '' };
+          }
+          
+          if (!fullAssociation.address) {
+            fullAssociation.address = { street: '', city: '', state: '', zipCode: '', country: '' };
+          }
+          
+          setAssociation(fullAssociation);
           setLoading(false);
           return;
         }
@@ -58,7 +69,18 @@ const AssociationProfile = () => {
         if (fetchedAssociation) {
           console.log('Fetched association directly:', fetchedAssociation);
           // Convert the fetched Association to the full type Association
-          setAssociation(adaptAssociationToFullType(fetchedAssociation));
+          const fullAssociation = adaptAssociationToFullType(fetchedAssociation);
+          
+          // Ensure contactInfo and address exist to prevent "Cannot read properties of undefined" errors
+          if (!fullAssociation.contactInfo) {
+            fullAssociation.contactInfo = { email: '', phone: '', website: '' };
+          }
+          
+          if (!fullAssociation.address) {
+            fullAssociation.address = { street: '', city: '', state: '', zipCode: '', country: '' };
+          }
+          
+          setAssociation(fullAssociation);
         } else {
           console.log('Association not found, even after direct fetch.');
           toast.error('Association not found');
@@ -105,10 +127,12 @@ const AssociationProfile = () => {
     );
   }
 
-  const properties = association ? getPropertiesFromAssociations([association]) : [];
-  
-  const fullAddress = `${association.address.street}, ${association.address.city}, ${association.address.state} ${association.address.zipCode}, ${association.address.country}`;
+  // Ensure address exists for fullAddress
+  const address = association.address || { street: '', city: '', state: '', zipCode: '', country: '' };
+  const fullAddress = `${address.street}, ${address.city}, ${address.state} ${address.zipCode}, ${address.country}`;
 
+  const properties = getPropertiesFromAssociations([association]);
+  
   // Standard user ID and access level for calendar - same as in Calendar.tsx
   const userId = 'current-user';
   const userAccessLevel = 'admin' as const;
