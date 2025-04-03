@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, FolderIcon, FileTextIcon, UploadIcon, FilterIcon } from "lucide-react";
-import { useDocumentList } from '@/hooks/use-document-list';
+import { useDocuments } from '@/hooks/use-documents';
 import DocumentUploader from './DocumentUploader';
 import DocumentList from './DocumentList';
 import DocumentCategorySelector from './DocumentCategorySelector';
@@ -20,28 +20,27 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [showUploader, setShowUploader] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   const { 
     documents, 
-    loading, 
+    isLoading, 
     error, 
     searchQuery, 
     setSearchQuery, 
-    refreshDocuments,
-    deleteDocument 
-  } = useDocumentList({
-    associationId,
-    category: selectedCategory === 'all' ? undefined : selectedCategory
-  });
+    selectedCategory,
+    setCategory,
+    fetchDocuments,
+    deleteDocument,
+    downloadDocument
+  } = useDocuments(associationId);
 
   const handleUploadComplete = () => {
     setShowUploader(false);
-    refreshDocuments();
+    fetchDocuments();
   };
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
+    setCategory(category);
   };
 
   const documentCount = documents.length;
@@ -78,7 +77,9 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
           <CardContent>
             <DocumentUploader 
               associationId={associationId}
+              initialCategory={selectedCategory}
               onUploadComplete={handleUploadComplete}
+              onCancel={() => setShowUploader(false)}
             />
           </CardContent>
         </Card>
@@ -100,7 +101,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
             </div>
             
             <DocumentCategorySelector 
-              selectedCategory={selectedCategory}
+              selectedCategory={selectedCategory || 'all'}
               onChange={handleCategoryChange}
             />
           </div>
@@ -119,10 +120,11 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
             <TabsContent value="all" className="m-0">
               <DocumentList 
                 documents={documents}
-                loading={loading}
+                loading={isLoading}
                 error={error}
                 onDeleteDocument={deleteDocument}
-                onRefresh={refreshDocuments}
+                onDownloadDocument={downloadDocument}
+                onRefresh={fetchDocuments}
               />
             </TabsContent>
             
@@ -131,20 +133,22 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
                 documents={documents.slice().sort((a, b) => 
                   new Date(b.uploadedDate).getTime() - new Date(a.uploadedDate).getTime()
                 ).slice(0, 10)}
-                loading={loading}
+                loading={isLoading}
                 error={error}
                 onDeleteDocument={deleteDocument}
-                onRefresh={refreshDocuments}
+                onDownloadDocument={downloadDocument}
+                onRefresh={fetchDocuments}
               />
             </TabsContent>
             
             <TabsContent value="shared" className="m-0">
               <DocumentList 
                 documents={documents.filter(doc => doc.isPublic)}
-                loading={loading}
+                loading={isLoading}
                 error={error}
                 onDeleteDocument={deleteDocument}
-                onRefresh={refreshDocuments}
+                onDownloadDocument={downloadDocument}
+                onRefresh={fetchDocuments}
               />
             </TabsContent>
           </Tabs>

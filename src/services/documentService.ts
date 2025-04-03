@@ -1,242 +1,285 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { DocumentFile } from '@/types/documents';
 import { toast } from 'sonner';
+import { DocumentFile } from '@/types/documents';
+import { ensureDocumentsBucketExists } from '@/utils/documents';
 import { v4 as uuidv4 } from 'uuid';
 
-// Upload document interface
-interface UploadDocumentParams {
+// Get documents from Supabase database and storage
+export const getDocuments = async (
+  associationId?: string,
+  category?: string
+): Promise<DocumentFile[]> => {
+  try {
+    console.log('Fetching documents for association:', associationId || 'global');
+    
+    let query = supabase
+      .from('documents')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (associationId) {
+      query = query.eq('association_id', associationId);
+    }
+    
+    if (category && category !== 'all') {
+      query = query.eq('category', category);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching documents:', error);
+      throw new Error('Failed to fetch documents');
+    }
+    
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    const documents: DocumentFile[] = data.map(doc => ({
+      id: doc.id,
+      name: doc.name,
+      url: doc.url,
+      fileType: doc.file_type,
+      fileSize: doc.file_size,
+      description: doc.description || '',
+      category: doc.category || 'general',
+      tags: doc.tags || [],
+      uploadedDate: doc.created_at,
+      lastModified: doc.updated_at,
+      uploadedBy: doc.uploaded_by,
+      version: doc.version || 1,
+      isPublic: doc.is_public || false
+    }));
+    
+    console.log(`Retrieved ${documents.length} documents`);
+    return documents;
+  } catch (error) {
+    console.error('Exception fetching documents:', error);
+    throw new Error('Error retrieving documents');
+  }
+};
+
+// Upload document to Supabase storage and database
+export const uploadDocument = async (options: {
   file: File;
-  associationId: string;
+  associationId?: string;
   description?: string;
   category?: string;
   tags?: string[];
-}
-
-// Function to upload a document to Supabase storage and record metadata
-export const uploadDocument = async ({
-  file,
-  associationId,
-  description = '',
-  category = 'general',
-  tags = [],
-}: UploadDocumentParams): Promise<DocumentFile> => {
-  // Generate a unique file path
-  const timestamp = Date.now();
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${timestamp}-${file.name.split('.')[0]}.${fileExt}`;
-  const filePath = `associations/${associationId}/${category}/${fileName}`;
-  
-  // Upload file to storage
-  const { data: fileData, error: uploadError } = await supabase.storage
-    .from('documents')
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false
-    });
-  
-  if (uploadError) {
-    console.error('Error uploading file:', uploadError);
-    throw new Error(`Upload failed: ${uploadError.message}`);
-  }
-  
-  // Get public URL for the file
-  const { data: urlData } = await supabase.storage
-    .from('documents')
-    .getPublicUrl(filePath);
-  
-  const publicUrl = urlData?.publicUrl || '';
-  
-  // Save document metadata to database
-  const { data: documentData, error: dbError } = await supabase
-    .from('documents')
-    .insert({
-      id: uuidv4(),
-      name: file.name,
-      description: description,
-      file_size: file.size,
-      file_type: file.type,
-      url: publicUrl,
-      category: category,
-      tags: tags,
-      uploaded_by: (await supabase.auth.getUser()).data.user?.id,
-      association_id: associationId,
-      is_public: false,
-      is_archived: false,
-      version: 1
-    })
-    .select()
-    .single();
-  
-  if (dbError) {
-    console.error('Error saving document metadata:', dbError);
-    
-    // If metadata save fails, try to delete the uploaded file
-    await supabase.storage
-      .from('documents')
-      .remove([filePath]);
-    
-    throw new Error(`Document uploaded but metadata couldn't be saved: ${dbError.message}`);
-  }
-  
-  // Convert to DocumentFile format
-  return {
-    id: documentData.id,
-    name: documentData.name,
-    description: documentData.description || '',
-    fileSize: documentData.file_size,
-    fileType: documentData.file_type,
-    url: documentData.url,
-    category: documentData.category,
-    tags: documentData.tags || [],
-    uploadedBy: documentData.uploaded_by,
-    uploadedDate: documentData.uploaded_date,
-    lastModified: documentData.last_modified,
-    version: documentData.version,
-    isPublic: documentData.is_public,
-    isArchived: documentData.is_archived,
-    properties: [],
-    associations: [associationId],
-    metadata: {}
-  };
-};
-
-// Function to get documents for an association
-export const getDocuments = async (
-  associationId: string,
-  category?: string
-): Promise<DocumentFile[]> => {
-  let query = supabase
-    .from('documents')
-    .select('*')
-    .eq('association_id', associationId)
-    .eq('is_archived', false);
-  
-  if (category && category !== 'all') {
-    query = query.eq('category', category);
-  }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error fetching documents:', error);
-    throw error;
-  }
-  
-  // Convert to DocumentFile format
-  return data.map(doc => ({
-    id: doc.id,
-    name: doc.name,
-    description: doc.description || '',
-    fileSize: doc.file_size,
-    fileType: doc.file_type,
-    url: doc.url,
-    category: doc.category,
-    tags: doc.tags || [],
-    uploadedBy: doc.uploaded_by || '',
-    uploadedDate: doc.uploaded_date,
-    lastModified: doc.last_modified,
-    version: doc.version || 1,
-    isPublic: doc.is_public || false,
-    isArchived: doc.is_archived || false,
-    associations: [associationId],
-    properties: [],
-    metadata: {}
-  }));
-};
-
-// Function to delete a document
-export const deleteDocument = async (documentId: string): Promise<boolean> => {
-  // Get document to find file path
-  const { data: doc, error: getError } = await supabase
-    .from('documents')
-    .select('url, association_id, category')
-    .eq('id', documentId)
-    .single();
-  
-  if (getError) {
-    console.error('Error getting document for deletion:', getError);
-    throw getError;
-  }
-  
-  // Extract association and path from URL
-  const urlParts = doc.url.split('/');
-  const fileName = urlParts[urlParts.length - 1];
-  const filePath = `associations/${doc.association_id}/${doc.category}/${fileName}`;
-  
-  // Delete file from storage
-  const { error: storageError } = await supabase.storage
-    .from('documents')
-    .remove([filePath]);
-  
-  if (storageError) {
-    console.error('Error deleting file from storage:', storageError);
-    // Continue to mark document as archived even if file deletion fails
-  }
-  
-  // Delete document record (or mark as archived)
-  const { error: dbError } = await supabase
-    .from('documents')
-    .update({ is_archived: true })
-    .eq('id', documentId);
-  
-  if (dbError) {
-    console.error('Error archiving document:', dbError);
-    throw dbError;
-  }
-  
-  return true;
-};
-
-// Function to download a document
-export const downloadDocument = async (url: string, fileName: string): Promise<void> => {
-  try {
-    // Create a temporary anchor element
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    a.style.display = 'none';
-    
-    // Add to body, click, and remove
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  } catch (error) {
-    console.error('Error downloading document:', error);
-    toast.error('Failed to download document');
-    throw error;
-  }
-};
-
-// Function to get document categories
-export const getDocumentCategories = async (): Promise<string[]> => {
-  // Default categories if we can't fetch from DB
-  const defaultCategories = [
-    'general',
-    'financial',
-    'legal',
-    'meeting-minutes',
-    'newsletters',
-    'maintenance',
-    'rules',
-    'violations',
-    'architectural'
-  ];
+}): Promise<DocumentFile | null> => {
+  const { file, associationId = '00000000-0000-0000-0000-000000000000', description, category, tags } = options;
   
   try {
-    const { data, error } = await supabase
-      .from('document_categories')
-      .select('name')
-      .order('sort_order', { ascending: true });
+    console.log('Starting document upload');
     
-    if (error || !data.length) {
-      console.error('Error fetching document categories:', error);
-      return defaultCategories;
+    // Ensure bucket exists
+    const bucketExists = await ensureDocumentsBucketExists();
+    if (!bucketExists) {
+      console.error('Document bucket does not exist and could not be created');
+      toast.error('Document storage is not available');
+      return null;
     }
     
-    return data.map(category => category.name);
+    // Get current user
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error('No authenticated user found');
+      toast.error('You must be logged in to upload documents');
+      return null;
+    }
+    
+    // Generate a unique file path
+    const uniqueId = uuidv4();
+    const fileExtension = file.name.split('.').pop() || '';
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9-_.]/g, '_');
+    const fileName = `${uniqueId}-${sanitizedFileName}`;
+    const filePath = `associations/${associationId}/${category || 'general'}/${fileName}`;
+    
+    console.log('Uploading file to path:', filePath);
+    
+    // Upload file to storage
+    const { data: fileData, error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+    
+    if (uploadError) {
+      console.error('Error uploading document:', uploadError);
+      toast.error('Failed to upload document');
+      return null;
+    }
+    
+    console.log('File uploaded successfully:', fileData?.path);
+    
+    // Get public URL for the file
+    const { data: publicUrlData } = await supabase.storage
+      .from('documents')
+      .getPublicUrl(fileData.path);
+    
+    const fileUrl = publicUrlData?.publicUrl;
+    console.log('Generated public URL:', fileUrl);
+    
+    if (!fileUrl) {
+      console.error('Failed to generate public URL for document');
+      toast.error('Failed to generate document URL');
+      return null;
+    }
+    
+    // Store document metadata in database
+    const { data: docData, error: dbError } = await supabase
+      .from('documents')
+      .insert({
+        name: file.name,
+        file_path: fileData.path,
+        url: fileUrl,
+        file_type: file.type,
+        file_size: file.size,
+        description: description || '',
+        category: category || 'general',
+        tags: tags || [],
+        uploaded_by: userId,
+        association_id: associationId,
+        version: 1,
+        is_public: false
+      })
+      .select()
+      .single();
+    
+    if (dbError) {
+      console.error('Error saving document metadata:', dbError);
+      
+      // If database insert fails, try to clean up the uploaded file
+      await supabase.storage
+        .from('documents')
+        .remove([fileData.path]);
+      
+      toast.error('Failed to save document metadata');
+      return null;
+    }
+    
+    console.log('Document metadata saved successfully:', docData);
+    
+    // Return the newly created document
+    const newDoc: DocumentFile = {
+      id: docData.id,
+      name: docData.name,
+      url: docData.url,
+      fileType: docData.file_type,
+      fileSize: docData.file_size,
+      description: docData.description || '',
+      category: docData.category || 'general',
+      tags: docData.tags || [],
+      uploadedDate: docData.created_at,
+      lastModified: docData.updated_at,
+      uploadedBy: docData.uploaded_by,
+      version: docData.version || 1,
+      isPublic: docData.is_public || false
+    };
+    
+    return newDoc;
   } catch (error) {
-    console.error('Exception fetching document categories:', error);
-    return defaultCategories;
+    console.error('Exception uploading document:', error);
+    toast.error('Failed to upload document');
+    return null;
+  }
+};
+
+// Delete document from Supabase storage and database
+export const deleteDocument = async (documentId: string): Promise<boolean> => {
+  try {
+    console.log('Deleting document with ID:', documentId);
+    
+    // Get the document's file path
+    const { data: docData, error: fetchError } = await supabase
+      .from('documents')
+      .select('file_path')
+      .eq('id', documentId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Error retrieving document details:', fetchError);
+      toast.error('Failed to retrieve document details');
+      return false;
+    }
+    
+    // Delete from storage if file path exists
+    if (docData.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .remove([docData.file_path]);
+      
+      if (storageError) {
+        console.error('Error deleting document from storage:', storageError);
+        // Continue anyway to remove database entry
+      }
+    }
+    
+    // Delete from database
+    const { error: dbError } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', documentId);
+    
+    if (dbError) {
+      console.error('Error deleting document from database:', dbError);
+      toast.error('Failed to delete document metadata');
+      return false;
+    }
+    
+    console.log('Document deleted successfully');
+    toast.success('Document deleted successfully');
+    return true;
+  } catch (error) {
+    console.error('Exception deleting document:', error);
+    toast.error('Failed to delete document');
+    return false;
+  }
+};
+
+// Download document
+export const downloadDocument = async (url: string | null, fileName: string): Promise<boolean> => {
+  try {
+    if (!url) {
+      toast.error('Document URL is not available');
+      return false;
+    }
+    
+    // Create a blob from the file URL
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Failed to fetch document:', response.statusText);
+      toast.error('Failed to download document');
+      return false;
+    }
+    
+    const blob = await response.blob();
+    
+    // Create temporary URL and link
+    const tempUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = tempUrl;
+    link.download = fileName;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    window.URL.revokeObjectURL(tempUrl);
+    document.body.removeChild(link);
+    
+    toast.success('Document downloaded successfully');
+    return true;
+  } catch (error) {
+    console.error('Exception downloading document:', error);
+    toast.error('Failed to download document');
+    return false;
   }
 };

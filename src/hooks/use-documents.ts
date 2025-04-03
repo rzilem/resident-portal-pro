@@ -8,14 +8,19 @@ import {
   deleteDocument as deleteDocumentService,
   downloadDocument as downloadDocumentService
 } from '@/services/documentService';
+import { filterDocumentsBySearch, filterDocumentsByCategory } from '@/utils/documents';
 
-export const useDocuments = (associationId?: string, category?: string) => {
+export const useDocuments = (associationId?: string, initialCategory?: string) => {
+  const [allDocuments, setAllDocuments] = useState<DocumentFile[]>([]);
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
 
   const fetchDocuments = useCallback(async () => {
     if (!associationId) {
+      setAllDocuments([]);
       setDocuments([]);
       setIsLoading(false);
       return;
@@ -25,8 +30,15 @@ export const useDocuments = (associationId?: string, category?: string) => {
     setError(null);
     
     try {
-      const docs = await getDocuments(associationId, category);
-      setDocuments(docs);
+      const docs = await getDocuments(associationId, selectedCategory);
+      setAllDocuments(docs);
+      
+      // Apply any existing search filter
+      if (searchQuery) {
+        setDocuments(filterDocumentsBySearch(docs, searchQuery));
+      } else {
+        setDocuments(docs);
+      }
     } catch (err) {
       console.error('Error fetching documents:', err);
       setError('Failed to load documents');
@@ -34,11 +46,21 @@ export const useDocuments = (associationId?: string, category?: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, [associationId, category]);
+  }, [associationId, selectedCategory, searchQuery]);
 
+  // Fetch documents on mount and when dependencies change
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);
+
+  // Handle search and category filter changes
+  useEffect(() => {
+    if (searchQuery) {
+      setDocuments(filterDocumentsBySearch(allDocuments, searchQuery));
+    } else {
+      setDocuments(allDocuments);
+    }
+  }, [searchQuery, allDocuments]);
 
   const uploadDocument = async (
     file: File,
@@ -54,16 +76,31 @@ export const useDocuments = (associationId?: string, category?: string) => {
     }
 
     try {
+      setError(null);
+      
       const uploadedDoc = await uploadDocumentService({
         file,
         associationId,
         description: metadata.description,
-        category: metadata.category || category,
+        category: metadata.category || selectedCategory || 'general',
         tags: metadata.tags
       });
       
-      // Add to local state
-      setDocuments(prevDocs => [uploadedDoc, ...prevDocs]);
+      if (uploadedDoc) {
+        // Add to local state if it matches current filters
+        if (!selectedCategory || selectedCategory === 'all' || uploadedDoc.category === selectedCategory) {
+          setAllDocuments(prevDocs => [uploadedDoc, ...prevDocs]);
+          
+          // Apply search filter to updated documents
+          if (searchQuery) {
+            setDocuments(filterDocumentsBySearch([uploadedDoc, ...allDocuments], searchQuery));
+          } else {
+            setDocuments(prevDocs => [uploadedDoc, ...prevDocs]);
+          }
+        }
+        
+        toast.success(`${file.name} uploaded successfully`);
+      }
       
       return uploadedDoc;
     } catch (err) {
@@ -75,13 +112,24 @@ export const useDocuments = (associationId?: string, category?: string) => {
 
   const deleteDocument = async (documentId: string) => {
     try {
-      await deleteDocumentService(documentId);
+      const success = await deleteDocumentService(documentId);
       
-      // Remove from local state
-      setDocuments(prevDocs => prevDocs.filter(doc => doc.id !== documentId));
+      if (success) {
+        // Remove from local state
+        const updatedDocs = allDocuments.filter(doc => doc.id !== documentId);
+        setAllDocuments(updatedDocs);
+        
+        // Apply search filter to updated documents
+        if (searchQuery) {
+          setDocuments(filterDocumentsBySearch(updatedDocs, searchQuery));
+        } else {
+          setDocuments(updatedDocs);
+        }
+        
+        toast.success('Document deleted successfully');
+      }
       
-      toast.success('Document deleted successfully');
-      return true;
+      return success;
     } catch (err) {
       console.error('Error deleting document:', err);
       toast.error('Failed to delete document');
@@ -99,11 +147,19 @@ export const useDocuments = (associationId?: string, category?: string) => {
       return false;
     }
   };
+  
+  const setCategory = (category?: string) => {
+    setSelectedCategory(category);
+  };
 
   return {
     documents,
     isLoading,
     error,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setCategory,
     fetchDocuments,
     uploadDocument,
     deleteDocument,
