@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -49,7 +48,7 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ title, children }
 
 const iconSize = 18;
 
-const NavigationMenu = () => {
+export function NavigationMenu() {
   const { pathname } = useLocation();
   const { hasPermission } = useAuthRole();
 
@@ -310,7 +309,7 @@ const NavigationMenu = () => {
           <li>
             <Link to="/system/processes" className={linkClass(pathname === '/system/processes')}>
               <Clock size={iconSize} />
-              <span className="ml-3">Process Scheduler</span>
+              <span className="ml-3">Workflow Schedule</span>
             </Link>
           </li>
           <li>
@@ -329,6 +328,6 @@ const NavigationMenu = () => {
       )}
     </ul>
   );
-};
+}
 
 export default NavigationMenu;

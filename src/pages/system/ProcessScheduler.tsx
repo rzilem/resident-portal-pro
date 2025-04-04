@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ const ProcessScheduler: React.FC = () => {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Process Scheduler</h1>
+          <h1 className="text-3xl font-semibold">Workflow Schedule</h1>
           <p className="text-muted-foreground">
             Schedule and manage recurring system processes
           </p>

@@ -1,4 +1,3 @@
-
 import { Cog, Building, Shield, Puzzle, Sliders, Upload, Mail, Clock } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -37,7 +36,7 @@ export const getSystemSection = (currentPath: string): NavItem => ({
       active: currentPath === "/system-uploads"
     },
     {
-      label: "Process Scheduler",
+      label: "Workflow Schedule",
       icon: Clock,
       href: "/system/processes",
       active: currentPath === "/system/processes"
