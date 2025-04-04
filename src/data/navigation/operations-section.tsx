@@ -6,7 +6,8 @@ import {
   ClipboardCheck, 
   Home, 
   Building,
-  Mail
+  Mail,
+  BarChart2
 } from "lucide-react";
 import { NavItem } from "./types";
 
@@ -18,9 +19,16 @@ export const getOperationsSection = (currentPath: string): NavItem => {
             currentPath === "/workflows" || 
             currentPath === "/print-queue" ||
             currentPath.startsWith("/vendors") ||
-            currentPath === "/letter-templates",
+            currentPath === "/letter-templates" ||
+            currentPath === "/operations/dashboard",
     href: "/calendar", // Default href for the section
     items: [
+      {
+        label: "Dashboard",
+        icon: BarChart2,
+        href: "/operations/dashboard",
+        active: currentPath === "/operations/dashboard",
+      },
       {
         label: "Calendar",
         icon: Calendar,

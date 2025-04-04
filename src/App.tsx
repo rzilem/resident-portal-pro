@@ -22,6 +22,7 @@ import AssociationDocuments from '@/pages/documents/AssociationDocuments';
 import AssociationProfile from '@/pages/AssociationProfile';
 import Calendar from '@/pages/Calendar';
 import LetterTemplates from '@/pages/letter-templates/LetterTemplates';
+import OperationsDashboard from '@/pages/operations/Dashboard';
 
 // Lead Management Pages
 import LeadsManagement from '@/pages/leads/LeadsManagement';
@@ -136,6 +137,9 @@ const App = () => {
           <Route path="/print-queue" element={<PrintQueue />} />
           
           <Route path="/letter-templates" element={<LetterTemplates />} />
+          
+          {/* Operations Routes */}
+          <Route path="/operations/dashboard" element={<OperationsDashboard />} />
           
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/vendors/:id" element={<VendorProfile />} />
