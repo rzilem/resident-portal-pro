@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client'; // Updated import path
 import { toast } from 'sonner';
 
 export interface VendorDocument {
@@ -30,10 +30,10 @@ export const uploadVendorDocument = async (
     // 1. Upload file to Supabase storage
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `${vendorId}/${fileName}`;
+    const filePath = `vendors/${vendorId}/${fileName}`; // Changed path structure
     
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('vendor_documents')
+      .from('documents') // Use documents bucket instead of vendor_documents
       .upload(filePath, file);
     
     if (uploadError) {
@@ -42,7 +42,7 @@ export const uploadVendorDocument = async (
     
     // 2. Get the public URL
     const { data: urlData } = supabase.storage
-      .from('vendor_documents')
+      .from('documents') // Use documents bucket instead of vendor_documents
       .getPublicUrl(filePath);
     
     // 3. Save document metadata to database
@@ -65,7 +65,7 @@ export const uploadVendorDocument = async (
     if (metadataError) {
       // Try to delete the uploaded file if metadata save fails
       await supabase.storage
-        .from('vendor_documents')
+        .from('documents') // Use documents bucket instead of vendor_documents
         .remove([filePath]);
         
       throw metadataError;
@@ -100,7 +100,7 @@ export const getVendorDocuments = async (vendorId: string): Promise<VendorDocume
     // Generate URLs for documents
     const docsWithUrls = await Promise.all(data.map(async (doc) => {
       const { data: urlData } = supabase.storage
-        .from('vendor_documents')
+        .from('documents') // Use documents bucket instead of vendor_documents
         .getPublicUrl(doc.file_path);
       
       return {
@@ -124,7 +124,7 @@ export const deleteVendorDocument = async (document: VendorDocument): Promise<bo
   try {
     // 1. Delete file from storage
     const { error: storageError } = await supabase.storage
-      .from('vendor_documents')
+      .from('documents') // Use documents bucket instead of vendor_documents
       .remove([document.file_path]);
     
     if (storageError) {

@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client"; // Updated import path
 import { Vendor } from '@/types/vendor';
 
 interface InsuranceDocumentUploaderProps {
@@ -65,13 +65,13 @@ const InsuranceDocumentUploader: React.FC<InsuranceDocumentUploaderProps> = ({
     setIsUploading(true);
     
     try {
-      // 1. Upload file to Supabase storage
+      // 1. Upload file to Supabase storage using the documents bucket
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `${vendor.id}/${fileName}`;
+      const filePath = `vendors/${vendor.id}/${fileName}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('vendor_documents')
+        .from('documents')
         .upload(filePath, file);
       
       if (uploadError) {
@@ -80,7 +80,7 @@ const InsuranceDocumentUploader: React.FC<InsuranceDocumentUploaderProps> = ({
       
       // 2. Get the public URL
       const { data: urlData } = supabase.storage
-        .from('vendor_documents')
+        .from('documents')
         .getPublicUrl(filePath);
       
       // 3. Save document metadata to database

@@ -5,7 +5,7 @@ import { Vendor } from '@/types/vendor';
 import { format } from 'date-fns';
 import { Shield, Calendar, DollarSign, FileText, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client'; // Updated import path
 import { toast } from 'sonner';
 import PolicyInfoCard from './insurance/PolicyInfoCard';
 import CoverageDetailsCard from './insurance/CoverageDetailsCard';
@@ -49,7 +49,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
       // Generate URLs for documents
       const docsWithUrls = await Promise.all(data.map(async (doc) => {
         const { data: urlData } = supabase.storage
-          .from('vendor_documents')
+          .from('documents') // Changed from 'vendor_documents' to 'documents'
           .getPublicUrl(doc.file_path);
         
         return {
