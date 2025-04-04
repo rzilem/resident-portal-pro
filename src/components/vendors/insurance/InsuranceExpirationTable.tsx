@@ -15,8 +15,9 @@ interface InsuranceExpirationTableProps {
 
 type InsuranceStatus = 'expired' | 'expiring-soon' | 'expiring-later' | 'valid';
 
-interface VendorWithInsuranceStatus extends Vendor {
-  status: InsuranceStatus;
+interface VendorWithInsuranceStatus extends Omit<Vendor, 'status'> {
+  status: Vendor['status']; // Keep original status
+  insuranceStatus: InsuranceStatus; // Add new property for insurance status
   daysToExpiration?: number;
 }
 
@@ -30,31 +31,31 @@ const InsuranceExpirationTable: React.FC<InsuranceExpirationTableProps> = ({ ven
       .filter(vendor => vendor.insurance && vendor.insurance.expirationDate)
       .map(vendor => {
         const expirationDate = new Date(vendor.insurance!.expirationDate!);
-        let status: InsuranceStatus;
+        let insuranceStatus: InsuranceStatus;
         
         if (isBefore(expirationDate, today)) {
-          status = 'expired';
+          insuranceStatus = 'expired';
         } else if (isBefore(expirationDate, thirtyDaysFromNow)) {
-          status = 'expiring-soon';
+          insuranceStatus = 'expiring-soon';
         } else if (isBefore(expirationDate, ninetyDaysFromNow)) {
-          status = 'expiring-later';
+          insuranceStatus = 'expiring-later';
         } else {
-          status = 'valid';
+          insuranceStatus = 'valid';
         }
         
         const daysToExpiration = differenceInDays(expirationDate, today);
         
         return {
           ...vendor,
-          status,
+          insuranceStatus,
           daysToExpiration: daysToExpiration >= 0 ? daysToExpiration : undefined
         };
       })
       .sort((a, b) => {
         // Sort by status priority (expired first, then by days to expiration)
         const statusPriority = { 'expired': 0, 'expiring-soon': 1, 'expiring-later': 2, 'valid': 3 };
-        if (statusPriority[a.status] !== statusPriority[b.status]) {
-          return statusPriority[a.status] - statusPriority[b.status];
+        if (statusPriority[a.insuranceStatus] !== statusPriority[b.insuranceStatus]) {
+          return statusPriority[a.insuranceStatus] - statusPriority[b.insuranceStatus];
         }
         
         // Within the same status, sort by days to expiration (ascending)
@@ -104,7 +105,7 @@ const InsuranceExpirationTable: React.FC<InsuranceExpirationTableProps> = ({ ven
               vendorsWithStatus.map((vendor) => (
                 <TableRow key={vendor.id}>
                   <TableCell className="font-medium">{vendor.name}</TableCell>
-                  <TableCell>{getStatusBadge(vendor.status)}</TableCell>
+                  <TableCell>{getStatusBadge(vendor.insuranceStatus)}</TableCell>
                   <TableCell>
                     {vendor.insurance?.expirationDate && (
                       <>
