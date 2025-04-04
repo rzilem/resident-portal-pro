@@ -50,11 +50,11 @@ const Navbar = () => {
           className="flex items-center text-2xl font-bold text-gradient"
         >
           <img 
-            src="/lovable-uploads/2adf9261-4bca-441e-8c61-dbfdeb68cbb6.png" 
-            alt="ResidentPro Logo" 
+            src="/lovable-uploads/6088e842-7579-4b26-8d7d-2ccc84fdb285.png" 
+            alt="PS Management Logo" 
             className="h-10 mr-3"
           />
-          Community Intelligence
+          PS Management
         </Link>
 
         {/* Desktop Menu */}

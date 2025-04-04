@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -71,7 +71,7 @@ export function Sidebar({
                   </TooltipProvider>
                 </> : <>
                   <div className="text-lg font-semibold tracking-tight">
-                    {settings.companyName || "HOA Management"}
+                    PS Management
                   </div>
                   <TooltipProvider>
                     <Tooltip>
@@ -108,3 +108,5 @@ export function Sidebar({
       </div>
     </SidebarProvider>;
 }
+
+export default Sidebar;
