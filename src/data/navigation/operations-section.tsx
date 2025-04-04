@@ -2,7 +2,6 @@
 import { 
   Calendar, 
   FileText, 
-  MessageSquare, 
   Printer, 
   ClipboardCheck, 
   Home, 
@@ -16,7 +15,6 @@ export const getOperationsSection = (currentPath: string): NavItem => {
     label: "Operations",
     icon: Home,
     active: currentPath === "/calendar" || 
-            currentPath.startsWith("/communications") || 
             currentPath === "/workflows" || 
             currentPath === "/print-queue" ||
             currentPath.startsWith("/vendors") ||
@@ -28,12 +26,6 @@ export const getOperationsSection = (currentPath: string): NavItem => {
         icon: Calendar,
         href: "/calendar",
         active: currentPath === "/calendar",
-      },
-      {
-        label: "Communications",
-        icon: MessageSquare,
-        href: "/communications/messaging",
-        active: currentPath.startsWith("/communications"),
       },
       {
         label: "Vendors",
