@@ -2,8 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/hooks/use-settings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  TooltipProvider, 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { List, BarChart2 } from 'lucide-react';
 import VendorStats from '@/components/vendors/VendorStats';
 import VendorList from '@/components/vendors/VendorList';
+import VendorMetricsDashboard from '@/components/vendors/metrics/VendorMetricsDashboard';
 import { VendorColumn } from '@/components/vendors/VendorColumnsSelector';
 import mockVendors from '@/data/vendorProfiles';
 
@@ -28,6 +37,7 @@ const Vendors = () => {
   const [columns, setColumns] = useState<VendorColumn[]>(
     preferences?.vendorTableColumns || getDefaultColumns()
   );
+  const [activeTab, setActiveTab] = useState<'list' | 'metrics'>('list');
   
   useEffect(() => {
     if (preferences?.vendorTableColumns) {
@@ -51,13 +61,55 @@ const Vendors = () => {
           <p className="text-muted-foreground">Manage your vendor relationships and services</p>
         </section>
         
-        <VendorStats vendors={vendors} />
-        
-        <VendorList 
-          vendors={vendors}
-          columns={columns}
-          onColumnsChange={handleColumnsChange}
-        />
+        <Tabs 
+          value={activeTab} 
+          onValueChange={(value) => setActiveTab(value as 'list' | 'metrics')}
+          className="space-y-4"
+        >
+          <TabsList>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger value="list" className="flex items-center gap-1.5">
+                    <List className="h-4 w-4" />
+                    <span>Vendor List</span>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View and manage vendor list</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger value="metrics" className="flex items-center gap-1.5">
+                    <BarChart2 className="h-4 w-4" />
+                    <span>Metrics & Analytics</span>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View vendor performance metrics and insurance tracking</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </TabsList>
+          
+          <TabsContent value="list" className="space-y-6 mt-6">
+            <VendorStats vendors={vendors} />
+            
+            <VendorList 
+              vendors={vendors}
+              columns={columns}
+              onColumnsChange={handleColumnsChange}
+            />
+          </TabsContent>
+          
+          <TabsContent value="metrics" className="mt-6">
+            <VendorMetricsDashboard vendors={vendors} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
