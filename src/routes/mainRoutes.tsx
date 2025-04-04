@@ -17,6 +17,18 @@ import AssociationProfile from '../pages/AssociationProfile';
 import LeadsManagement from '../pages/leads/LeadsManagement';
 import UserProfile from '../pages/profile/UserProfile';
 
+// Landing page routes
+import Features from '../pages/Features';
+import Pricing from '../pages/Pricing';
+import About from '../pages/About';
+import Contact from '../pages/Contact';
+import Testimonials from '../pages/Testimonials';
+import Careers from '../pages/Careers';
+import Blog from '../pages/Blog';
+import Privacy from '../pages/Privacy';
+import Terms from '../pages/Terms';
+import Cookies from '../pages/Cookies';
+
 export const mainRoutes = [
   {
     path: '/',
@@ -167,4 +179,45 @@ export const mainRoutes = [
       </ProtectedRoute>
     ),
   },
+  // Public landing page routes
+  {
+    path: '/features',
+    element: <Features />,
+  },
+  {
+    path: '/pricing',
+    element: <Pricing />,
+  },
+  {
+    path: '/about',
+    element: <About />,
+  },
+  {
+    path: '/contact',
+    element: <Contact />,
+  },
+  {
+    path: '/testimonials',
+    element: <Testimonials />,
+  },
+  {
+    path: '/careers',
+    element: <Careers />,
+  },
+  {
+    path: '/blog',
+    element: <Blog />,
+  },
+  {
+    path: '/privacy',
+    element: <Privacy />,
+  },
+  {
+    path: '/terms',
+    element: <Terms />,
+  },
+  {
+    path: '/cookies',
+    element: <Cookies />,
+  }
 ];

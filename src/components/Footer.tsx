@@ -10,15 +10,15 @@ interface FooterLinkProps {
 }
 
 const FooterLink = ({ href, children, className }: FooterLinkProps) => (
-  <a
-    href={href}
+  <Link
+    to={href}
     className={cn(
       "text-muted-foreground hover:text-foreground transition-colors duration-200",
       className
     )}
   >
     {children}
-  </a>
+  </Link>
 );
 
 const Footer = () => {
@@ -40,18 +40,18 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold mb-3">Product</h3>
             <ul className="space-y-2">
-              <li><FooterLink href="/#features">Features</FooterLink></li>
-              <li><FooterLink href="/#pricing">Pricing</FooterLink></li>
+              <li><FooterLink href="/features">Features</FooterLink></li>
+              <li><FooterLink href="/pricing">Pricing</FooterLink></li>
               <li><FooterLink href="/dashboard">Dashboard</FooterLink></li>
-              <li><FooterLink href="/#testimonials">Testimonials</FooterLink></li>
+              <li><FooterLink href="/testimonials">Testimonials</FooterLink></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold mb-3">Company</h3>
             <ul className="space-y-2">
-              <li><FooterLink href="/#about">About Us</FooterLink></li>
-              <li><FooterLink href="/#contact">Contact</FooterLink></li>
+              <li><FooterLink href="/about">About Us</FooterLink></li>
+              <li><FooterLink href="/contact">Contact</FooterLink></li>
               <li><FooterLink href="/careers">Careers</FooterLink></li>
               <li><FooterLink href="/blog">Blog</FooterLink></li>
             </ul>

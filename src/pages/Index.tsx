@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import AnimatedImage from '@/components/AnimatedImage';
 import TextReveal from '@/components/TextReveal';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   // Smooth scroll functionality for anchor links
@@ -94,7 +95,9 @@ const Index = () => {
                   className="opacity-0 animate-fade-in"
                   style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}
                 >
-                  <Button size="lg">Learn More</Button>
+                  <Button size="lg" asChild>
+                    <Link to="/features">Learn More</Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -117,7 +120,9 @@ const Index = () => {
               className="opacity-0 animate-fade-in"
               style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
             >
-              <Button size="lg" className="mt-4">Get Started Today</Button>
+              <Button size="lg" className="mt-4" asChild>
+                <Link to="/login">Get Started Today</Link>
+              </Button>
             </div>
           </div>
         </section>

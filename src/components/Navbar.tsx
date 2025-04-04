@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Features', href: '/#features' },
-  { label: 'Pricing', href: '/#pricing' },
-  { label: 'About', href: '/#about' },
-  { label: 'Contact', href: '/#contact' },
+  { label: 'Features', href: '/features' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 const Navbar = () => {
@@ -60,13 +61,13 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-8">
           <div className="flex gap-6">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href={item.href}
+                to={item.href}
                 className="text-foreground/80 hover:text-foreground transition-colors duration-200 link-underline"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -104,14 +105,14 @@ const Navbar = () => {
         <div className="container mx-auto pt-4 pb-8 flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href={item.href}
+                to={item.href}
                 className="text-foreground/80 hover:text-foreground transition-colors duration-200 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
 
