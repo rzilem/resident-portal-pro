@@ -39,17 +39,8 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
     try {
       setIsLoading(true);
       
-      // Call the onSendMessage function passed from parent
-      if (onSendMessage) {
-        onSendMessage({
-          subject,
-          content: previewContent || content,
-          recipients: selectedRecipients
-        });
-      }
-      
-      // Use the communication service to send the message
-      await communicationService.sendMessage({
+      // Prepare the message data
+      const messageData = {
         subject,
         content: previewContent || content,
         messageType,
@@ -60,7 +51,25 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         },
         status: 'sent',
         scheduledFor: null
-      });
+      };
+      
+      console.log('Sending message:', messageData);
+      
+      // Call the communicationService to send the message
+      const result = await communicationService.sendMessage(messageData);
+      
+      if (!result) {
+        throw new Error('Failed to send message');
+      }
+      
+      // Call the onSendMessage function passed from parent
+      if (onSendMessage) {
+        onSendMessage({
+          subject,
+          content: previewContent || content,
+          recipients: selectedRecipients
+        });
+      }
       
       toast.success('Message sent successfully!');
     } catch (error) {
@@ -86,8 +95,8 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
     try {
       setIsLoading(true);
       
-      // Use the communication service to schedule the message
-      await communicationService.sendMessage({
+      // Prepare the message data for scheduling
+      const messageData = {
         subject,
         content: previewContent || content,
         messageType,
@@ -98,7 +107,16 @@ const ComposerActions: React.FC<ComposerActionsProps> = ({ onSendMessage }) => {
         },
         status: 'scheduled',
         scheduledFor: scheduledDate
-      });
+      };
+      
+      console.log('Scheduling message for:', scheduledDate, messageData);
+      
+      // Use the communication service to schedule the message
+      const result = await communicationService.scheduleMessage(messageData);
+      
+      if (!result) {
+        throw new Error('Failed to schedule message');
+      }
       
       setIsScheduleDialogOpen(false);
       toast.success('Message scheduled successfully!');

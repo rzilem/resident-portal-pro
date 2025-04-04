@@ -198,35 +198,62 @@ export const deleteMessageTemplate = async (id: string): Promise<boolean> => {
 // Function to send a message
 export const sendMessage = async (message: CompositionMessage): Promise<boolean> => {
   try {
-    // For now, just log the message and return success
     console.log('Sending message:', message);
     
-    // Here you would typically call an API endpoint or Supabase function to send the email
+    // Call the Supabase Edge Function to send the communication
+    const { data, error } = await supabase.functions.invoke('send-communication', {
+      body: {
+        subject: message.subject,
+        content: message.content,
+        messageType: message.messageType,
+        format: message.format,
+        recipients: message.recipients,
+        status: 'sent',
+        scheduledFor: null
+      }
+    });
     
-    toast.success('Message sent successfully');
+    if (error) throw error;
+    
+    console.log('Message sent successfully:', data);
     return true;
   } catch (error) {
     console.error('Error sending message:', error);
-    toast.error('Failed to send message');
-    return false;
+    throw error;
   }
 };
 
 // Function to schedule a message for later sending
 export const scheduleMessage = async (message: CompositionMessage): Promise<boolean> => {
   try {
-    // For now, just log the scheduled message and return success
+    if (!message.scheduledFor) {
+      throw new Error('Scheduled date is required');
+    }
+    
     console.log('Scheduling message for:', message.scheduledFor);
-    console.log('Message:', message);
     
-    // Here you would typically save the scheduled message to the database
+    // Call the Supabase Edge Function to schedule the communication
+    const { data, error } = await supabase.functions.invoke('send-communication', {
+      body: {
+        subject: message.subject,
+        content: message.content,
+        messageType: message.messageType,
+        format: message.format,
+        recipients: message.recipients,
+        status: 'scheduled',
+        scheduledFor: message.scheduledFor instanceof Date 
+          ? message.scheduledFor.toISOString() 
+          : message.scheduledFor
+      }
+    });
     
-    toast.success('Message scheduled successfully');
+    if (error) throw error;
+    
+    console.log('Message scheduled successfully:', data);
     return true;
   } catch (error) {
     console.error('Error scheduling message:', error);
-    toast.error('Failed to schedule message');
-    return false;
+    throw error;
   }
 };
 

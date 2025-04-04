@@ -1,4 +1,35 @@
 
 project_id = "eqbbnewrorxilukaocjx"
-[functions.delete_lead]
+
+[api]
+enabled = true
+port = 54321
+swagger = true
+
+[api.cors]
+enabled = true
+headers = ["authorization", "content-type", "x-client-info"]
+allowed_origins = ["http://localhost:5173", "http://localhost", "http://localhost:3000"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 15
+max_client_conn = 100
+
+[storage]
+enabled = true
+buckets_warm_up = false
+
+[functions]
+enabled = true
+port = 55321
+
+[functions.send-communication]
 verify_jwt = true

@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { MessageTemplate } from './types';
+import { toast } from 'sonner';
+import { communicationService } from '@/services/communicationService';
 
 // Sample templates - now exported as INITIAL_TEMPLATES
 export const INITIAL_TEMPLATES: MessageTemplate[] = [
@@ -70,40 +72,67 @@ const useCommunityMessaging = () => {
   ];
 
   const handleSendMessage = async () => {
-    console.log('Sending message:', {
-      subject,
-      content,
-      recipients: selectedRecipients.length ? selectedRecipients : `All ${selectedRecipientType}`,
-      format: selectedFormat,
-      type: selectedMessageType
-    });
-    
-    // Reset form after sending
-    setTimeout(() => {
-      setSubject('');
-      setContent('');
-      setSelectedRecipients([]);
-    }, 1000);
+    try {
+      const result = await communicationService.sendMessage({
+        subject,
+        content,
+        messageType: selectedMessageType,
+        format: selectedFormat,
+        recipients: {
+          type: selectedRecipientType,
+          items: selectedRecipients.length ? selectedRecipients : [selectedRecipientType]
+        },
+        status: 'sent',
+        scheduledFor: null
+      });
+      
+      if (result) {
+        toast.success('Message sent successfully!');
+        
+        // Reset form after sending
+        setSubject('');
+        setContent('');
+        setSelectedRecipients([]);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+    }
   };
 
   const handleScheduleMessage = async () => {
-    if (!scheduledDate) return;
+    if (!scheduledDate) {
+      toast.error('Please select a date to schedule the message');
+      return;
+    }
     
-    console.log('Scheduling message for:', scheduledDate, {
-      subject,
-      content,
-      recipients: selectedRecipients.length ? selectedRecipients : `All ${selectedRecipientType}`,
-      format: selectedFormat,
-      type: selectedMessageType
-    });
-    
-    // Reset form after scheduling
-    setTimeout(() => {
-      setSubject('');
-      setContent('');
-      setSelectedRecipients([]);
-      setScheduledDate(null);
-    }, 1000);
+    try {
+      const result = await communicationService.scheduleMessage({
+        subject,
+        content,
+        messageType: selectedMessageType,
+        format: selectedFormat,
+        recipients: {
+          type: selectedRecipientType,
+          items: selectedRecipients.length ? selectedRecipients : [selectedRecipientType]
+        },
+        status: 'scheduled',
+        scheduledFor: scheduledDate
+      });
+      
+      if (result) {
+        toast.success('Message scheduled successfully!');
+        
+        // Reset form after scheduling
+        setSubject('');
+        setContent('');
+        setSelectedRecipients([]);
+        setScheduledDate(null);
+      }
+    } catch (error) {
+      console.error('Error scheduling message:', error);
+      toast.error('Failed to schedule message. Please try again.');
+    }
   };
 
   return {
