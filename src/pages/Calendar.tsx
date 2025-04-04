@@ -8,6 +8,13 @@ import { Plus, Settings } from 'lucide-react';
 import CalendarEventDialog from '@/components/calendar/CalendarEventDialog';
 import { useAssociations } from '@/hooks/use-associations';
 import { useAuthRole } from '@/hooks/use-auth-role';
+import { TooltipButton } from '@/components/ui/tooltip-button';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 const Calendar = () => {
   const [searchParams] = useSearchParams();
@@ -47,22 +54,48 @@ const Calendar = () => {
         <h1 className="text-3xl font-bold">Calendar Management</h1>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate('/settings')}>
+          <TooltipButton
+            variant="outline"
+            onClick={() => navigate('/settings')}
+            tooltipText="Configure calendar settings"
+          >
             <Settings className="h-4 w-4 mr-2" />
             Calendar Settings
-          </Button>
+          </TooltipButton>
           
-          <Button onClick={() => setShowCreateEvent(true)}>
+          <TooltipButton
+            onClick={() => setShowCreateEvent(true)}
+            tooltipText="Create a new calendar event"
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Event
-          </Button>
+          </TooltipButton>
         </div>
       </div>
       
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid grid-cols-2 w-[400px] mb-6">
-          <TabsTrigger value="association">Association Calendar</TabsTrigger>
-          <TabsTrigger value="global">Global Calendar</TabsTrigger>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="association">Association Calendar</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="z-50">
+                <p>View events specific to this association</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="global">Global Calendar</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="z-50">
+                <p>View events across all associations</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </TabsList>
         
         <TabsContent value="association" className="min-h-[500px]">

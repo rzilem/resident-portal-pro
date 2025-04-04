@@ -9,6 +9,7 @@ import { Zap, FileText, GitBranch, CheckSquare, Plus } from 'lucide-react';
 import { v4 as uuid } from 'uuid';
 import { TriggerStep, ActionStep, ConditionStep, ApprovalStep } from './builder/types';
 import ApprovalQueue from './ApprovalQueue';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const WorkflowBuilder = () => {
   const [searchParams] = useSearchParams();
@@ -87,22 +88,42 @@ const WorkflowBuilder = () => {
             <TabsContent value="default">
               <div className="space-y-6">
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => addStep('trigger')}>
+                  <TooltipButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addStep('trigger')}
+                    tooltipText="Add a workflow trigger"
+                  >
                     <Zap className="h-4 w-4 mr-2" />
                     Add Trigger
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addStep('action')}>
+                  </TooltipButton>
+                  <TooltipButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addStep('action')}
+                    tooltipText="Add an action step"
+                  >
                     <FileText className="h-4 w-4 mr-2" />
                     Add Action
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addStep('condition')}>
+                  </TooltipButton>
+                  <TooltipButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addStep('condition')}
+                    tooltipText="Add a condition (if/else)"
+                  >
                     <GitBranch className="h-4 w-4 mr-2" />
                     Add Condition
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addStep('approval')}>
+                  </TooltipButton>
+                  <TooltipButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addStep('approval')}
+                    tooltipText="Add an approval step"
+                  >
                     <CheckSquare className="h-4 w-4 mr-2" />
                     Add Approval Step
-                  </Button>
+                  </TooltipButton>
                 </div>
                 
                 {steps.length === 0 ? (

@@ -6,6 +6,12 @@ import WorkflowBuilder from '@/components/workflows/WorkflowBuilder';
 import ActiveWorkflows from '@/components/workflows/ActiveWorkflows';
 import CustomWorkflows from '@/components/workflows/CustomWorkflows';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 const Workflows = () => {
   const [searchParams] = useSearchParams();
@@ -50,10 +56,49 @@ const Workflows = () => {
       
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="active">Active Workflows</TabsTrigger>
-          <TabsTrigger value="custom">Custom Workflows</TabsTrigger>
-          <TabsTrigger value="builder">Workflow Builder</TabsTrigger>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="z-50">
+                <p>Browse workflow templates</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="active">Active Workflows</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="z-50">
+                <p>View currently active workflows</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="custom">Custom Workflows</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="z-50">
+                <p>Browse your custom workflows</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="builder">Workflow Builder</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="z-50">
+                <p>Create or edit workflows</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </TabsList>
         
         <TabsContent value="templates">

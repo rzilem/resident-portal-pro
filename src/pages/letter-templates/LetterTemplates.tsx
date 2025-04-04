@@ -11,6 +11,7 @@ import { useLetterTemplates } from '@/hooks/use-letter-templates';
 import { useAuth } from '@/hooks/use-auth';
 import { LetterTemplate } from '@/types/letter-templates';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const LetterTemplates = () => {
   const [activeTab, setActiveTab] = useState('all');

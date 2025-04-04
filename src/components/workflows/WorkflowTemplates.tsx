@@ -9,6 +9,7 @@ import { useWorkflows } from '@/hooks/use-workflows';
 import { getTemplateIcon } from '@/data/workflowTemplates';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { TooltipButton } from '@/components/ui/tooltip-button';
 
 const WorkflowTemplates = () => {
   const { templates, createFromTemplate, isLoading } = useWorkflows();
@@ -41,7 +42,12 @@ const WorkflowTemplates = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Predefined Workflow Templates</h2>
-        <Button variant="outline">Create Custom Template</Button>
+        <TooltipButton 
+          variant="outline" 
+          tooltipText="Create a new custom template"
+        >
+          Create Custom Template
+        </TooltipButton>
       </div>
       
       <ScrollArea className="h-[600px]">
@@ -69,9 +75,13 @@ const WorkflowTemplates = () => {
                 )}
               </CardContent>
               <CardFooter>
-                <Button className="w-full" onClick={() => handleUseTemplate(template.id)}>
+                <TooltipButton 
+                  className="w-full" 
+                  onClick={() => handleUseTemplate(template.id)}
+                  tooltipText={`Use the ${template.title} template`}
+                >
                   Use Template <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                </TooltipButton>
               </CardFooter>
             </Card>
           ))}
