@@ -47,8 +47,13 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         <Link
           to="/"
-          className="text-2xl font-bold text-gradient"
+          className="flex items-center text-2xl font-bold text-gradient"
         >
+          <img 
+            src="/lovable-uploads/2adf9261-4bca-441e-8c61-dbfdeb68cbb6.png" 
+            alt="ResidentPro Logo" 
+            className="h-10 mr-3"
+          />
           Community Intelligence
         </Link>
 
