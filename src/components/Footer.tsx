@@ -30,7 +30,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1 lg:col-span-2">
             <Link to="/" className="text-2xl font-bold text-gradient mb-4 inline-block">
-              ResidentPro
+              PS Management
             </Link>
             <p className="text-muted-foreground max-w-xs mt-3">
               The next-generation HOA and Condo management platform that simplifies community living.
@@ -69,7 +69,7 @@ const Footer = () => {
         
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">
-            &copy; {currentYear} ResidentPro. All rights reserved.
+            &copy; {currentYear} PS Management. All rights reserved.
           </p>
           
           <div className="flex items-center gap-6">

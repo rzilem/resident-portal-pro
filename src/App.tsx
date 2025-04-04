@@ -62,6 +62,18 @@ import BidRequestDetail from '@/pages/resale/BidRequestDetail';
 import Vendors from '@/pages/vendors/Vendors';
 import VendorProfile from '@/pages/vendors/VendorProfile';
 
+// Landing page routes
+import Features from '@/pages/Features';
+import Pricing from '@/pages/Pricing';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
+import Testimonials from '@/pages/Testimonials';
+import Careers from '@/pages/Careers';
+import Blog from '@/pages/Blog';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
+import Cookies from '@/pages/Cookies';
+
 import { accountingRoutes } from './routes/accountingRoutes';
 import { communicationRoutes } from './routes/communicationRoutes';
 import { reportsRoutes } from './routes/reportsRoutes';
@@ -97,6 +109,18 @@ const App = () => {
     return (
       <Routes>
         <Route path="/" element={<Index />} />
+        
+        {/* Public landing page routes */}
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/testimonials" element={<Testimonials />} />
+        <Route path="/careers" element={<Careers />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/cookies" element={<Cookies />} />
         
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<LogoutRedirect />} />
