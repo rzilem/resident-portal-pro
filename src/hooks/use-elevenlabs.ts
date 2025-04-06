@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
 import { testElevenLabsAPI } from '@/utils/elevenlabs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ElevenLabsSettings {
   apiKey: string;
@@ -21,6 +22,15 @@ export function useElevenLabs() {
     fetchIntegrations
   } = useIntegrations();
 
+  // Force refresh integrations on mount to ensure we have the latest data
+  useEffect(() => {
+    const loadIntegrations = async () => {
+      await fetchIntegrations();
+    };
+    
+    loadIntegrations();
+  }, [fetchIntegrations]);
+
   // Log additional details when integration changes
   useEffect(() => {
     const elevenlabsIntegration = getIntegration('ElevenLabs');
@@ -36,6 +46,21 @@ export function useElevenLabs() {
   // Check if ElevenLabs is connected
   const isElevenLabsConnected = isConnected('ElevenLabs');
 
+  // Add a dedicated method to fetch the latest settings
+  const fetchSettings = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log('Fetching latest ElevenLabs settings...');
+      await fetchIntegrations();
+      return true;
+    } catch (error) {
+      console.error('Error fetching ElevenLabs settings:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchIntegrations]);
+
   // Improved saveElevenLabsSettings to ensure settings are properly saved
   const saveElevenLabsSettings = useCallback(async (settings: ElevenLabsSettings) => {
     setIsLoading(true);
@@ -45,6 +70,13 @@ export function useElevenLabs() {
         defaultVoiceId: settings.defaultVoiceId,
         defaultModel: settings.defaultModel
       });
+      
+      // Check if the user is authenticated with Supabase
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        toast.error('You must be logged in to save API settings');
+        return false;
+      }
       
       // Log connection status before attempting to save
       console.log('Current ElevenLabs Connection Status:', isElevenLabsConnected);
@@ -106,6 +138,7 @@ export function useElevenLabs() {
     saveElevenLabsSettings,
     testElevenLabsAPI: testElevenLabsAPICall,
     isLoading,
-    isAuthenticated
+    isAuthenticated,
+    fetchSettings
   };
 }

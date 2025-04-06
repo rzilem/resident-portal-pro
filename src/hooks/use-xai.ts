@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
 import { testXAIAPI, generateWithXAI } from '@/utils/xai';
+import { supabase } from '@/integrations/supabase/client';
 
 interface XAISettings {
   apiKey: string;
@@ -23,7 +24,11 @@ export function useXAI() {
 
   // Force refresh integrations on mount to ensure we have the latest data
   useEffect(() => {
-    fetchIntegrations();
+    const loadIntegrations = async () => {
+      await fetchIntegrations();
+    };
+    
+    loadIntegrations();
   }, [fetchIntegrations]);
 
   // Log additional details when integration changes
@@ -65,6 +70,13 @@ export function useXAI() {
         defaultModel: settings.defaultModel,
         organization: settings.organization
       });
+      
+      // Check if the user is authenticated with Supabase
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        toast.error('You must be logged in to save API settings');
+        return false;
+      }
       
       // Log connection status before attempting to save
       console.log('Current X.AI Connection Status:', isXAIConnected);

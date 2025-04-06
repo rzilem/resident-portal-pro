@@ -821,6 +821,39 @@ export type Database = {
         }
         Relationships: []
       }
+      file_operation_logs: {
+        Row: {
+          created_at: string | null
+          file_count: number | null
+          file_name: string | null
+          file_size: number | null
+          file_types: string[] | null
+          id: string
+          metadata: Json | null
+          operation_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_count?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_types?: string[] | null
+          id?: string
+          metadata?: Json | null
+          operation_type: string
+        }
+        Update: {
+          created_at?: string | null
+          file_count?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_types?: string[] | null
+          id?: string
+          metadata?: Json | null
+          operation_type?: string
+        }
+        Relationships: []
+      }
       gl_accounts: {
         Row: {
           association_id: string | null

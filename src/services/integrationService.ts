@@ -24,21 +24,6 @@ const persistToLocalStorage = () => {
   }
 };
 
-// Load initial cache from localStorage
-try {
-  const saved = localStorage.getItem('integrationSettings');
-  if (saved) {
-    integrationsCache = JSON.parse(saved);
-    console.log('Loaded integration settings from localStorage:', integrationsCache);
-  } else {
-    console.log('No integration settings found in localStorage');
-    integrationsCache = {};
-  }
-} catch (e) {
-  console.error('Error loading integration settings from localStorage:', e);
-  integrationsCache = {};
-}
-
 // Integration schema registry - defines what fields each integration requires
 const integrationSchemas: Record<string, { fields: string[] }> = {
   Stripe: { fields: ['apiKey', 'webhookSecret', 'publishableKey'] },
@@ -55,26 +40,31 @@ export const integrationService = {
    * Get all integrations for a user/association
    */
   getIntegrations: async (entityId: string): Promise<Record<string, IntegrationSettings>> => {
-    // First check cache
-    if (integrationsCache[entityId]) {
-      console.log(`Using cached integrations for ${entityId}:`, Object.keys(integrationsCache[entityId]));
-      return integrationsCache[entityId];
-    }
-
     try {
+      console.log(`Fetching integrations for ${entityId}...`);
+      
       // Try to fetch from Supabase if authenticated
       const { data: session } = await supabase.auth.getSession();
       
       if (session?.session?.user) {
+        const userId = session.session.user.id;
+        console.log(`Authenticated as user ${userId}`);
+        
         const { data: integrations, error } = await supabase
           .from('user_integrations')
           .select('*')
-          .eq('user_id', session.session.user.id);
+          .eq('user_id', userId);
           
         if (error) {
           console.error('Error fetching integrations from Supabase:', error);
           // Fall back to localStorage
-          return integrationsCache[entityId] || {};
+          const savedSettings = localStorage.getItem('integrationSettings');
+          if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            integrationsCache = parsedSettings;
+            return parsedSettings[entityId] || {};
+          }
+          return {};
         }
         
         if (integrations && integrations.length > 0) {
@@ -90,17 +80,34 @@ export const integrationService = {
           
           // Update our cache
           integrationsCache[entityId] = formattedIntegrations;
-          console.log(`Loaded integrations from Supabase for ${entityId}:`, Object.keys(formattedIntegrations));
+          console.log(`Loaded ${integrations.length} integrations from Supabase for ${entityId}:`, Object.keys(formattedIntegrations));
           
           // Also update localStorage as backup
           persistToLocalStorage();
           
           return formattedIntegrations;
+        } else {
+          console.log(`No integrations found in Supabase for user ${userId}`);
+          // Check localStorage as fallback
+          const savedSettings = localStorage.getItem('integrationSettings');
+          if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            integrationsCache = parsedSettings;
+            return parsedSettings[entityId] || {};
+          }
+          return {};
         }
+      } else {
+        console.log('User is not authenticated, using localStorage');
+        // If not authenticated, use localStorage
+        const savedSettings = localStorage.getItem('integrationSettings');
+        if (savedSettings) {
+          const parsedSettings = JSON.parse(savedSettings);
+          integrationsCache = parsedSettings;
+          return parsedSettings[entityId] || {};
+        }
+        return {};
       }
-      
-      // If no data in Supabase or not authenticated, use localStorage
-      return integrationsCache[entityId] || {};
     } catch (error) {
       console.error('Error in getIntegrations:', error);
       return integrationsCache[entityId] || {};
@@ -139,7 +146,7 @@ export const integrationService = {
       lastSync: new Date().toISOString()
     };
     
-    // Log the settings being saved
+    // Log the settings being saved (without showing full API keys)
     console.log(`Connecting ${integrationId} with settings:`, {
       ...updatedSettings,
       apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
@@ -152,7 +159,9 @@ export const integrationService = {
       const { data: session } = await supabase.auth.getSession();
       
       if (session?.session?.user) {
-        const { error } = await supabase
+        console.log(`Saving integration ${integrationId} to Supabase for user ${session.session.user.id}`);
+        
+        const { data, error } = await supabase
           .from('user_integrations')
           .upsert({
             user_id: session.session.user.id,
@@ -166,8 +175,10 @@ export const integrationService = {
         if (error) {
           console.error('Error saving integration to Supabase:', error);
         } else {
-          console.log(`Integration ${integrationId} saved to Supabase successfully`);
+          console.log(`Integration ${integrationId} saved to Supabase successfully`, data);
         }
+      } else {
+        console.log('User not authenticated, saving to localStorage only');
       }
     } catch (error) {
       console.error('Error connecting integration:', error);
@@ -175,11 +186,6 @@ export const integrationService = {
     
     // Always persist to localStorage as fallback
     persistToLocalStorage();
-    
-    console.log(`Connected integration ${integrationId} for ${entityId}`, {
-      ...updatedSettings,
-      apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
-    });
     
     return updatedSettings;
   },
@@ -199,6 +205,8 @@ export const integrationService = {
       const { data: session } = await supabase.auth.getSession();
       
       if (session?.session?.user) {
+        console.log(`Disconnecting integration ${integrationId} in Supabase for user ${session.session.user.id}`);
+        
         const { error } = await supabase
           .from('user_integrations')
           .update({ enabled: false })
@@ -207,7 +215,11 @@ export const integrationService = {
           
         if (error) {
           console.error('Error updating integration in Supabase:', error);
+        } else {
+          console.log(`Integration ${integrationId} disabled in Supabase successfully`);
         }
+      } else {
+        console.log('User not authenticated, updating localStorage only');
       }
     } catch (error) {
       console.error('Error disconnecting integration:', error);
@@ -215,8 +227,6 @@ export const integrationService = {
     
     // Persist to localStorage as fallback
     persistToLocalStorage();
-    
-    console.log(`Disconnected integration ${integrationId} for ${entityId}`);
     
     return true;
   },
@@ -244,7 +254,7 @@ export const integrationService = {
       ...updates
     };
     
-    // Log the settings being updated
+    // Log the settings being updated (without showing full API keys)
     console.log(`Updating ${integrationId} settings:`, {
       ...updatedSettings,
       apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
@@ -257,7 +267,9 @@ export const integrationService = {
       const { data: session } = await supabase.auth.getSession();
       
       if (session?.session?.user) {
-        const { error } = await supabase
+        console.log(`Updating integration ${integrationId} in Supabase for user ${session.session.user.id}`);
+        
+        const { data, error } = await supabase
           .from('user_integrations')
           .upsert({
             user_id: session.session.user.id,
@@ -271,7 +283,7 @@ export const integrationService = {
         if (error) {
           console.error('Error updating integration in Supabase:', error);
         } else {
-          console.log(`Integration ${integrationId} updated in Supabase successfully`);
+          console.log(`Integration ${integrationId} updated in Supabase successfully`, data);
         }
       } else {
         console.log('Not authenticated, saving to localStorage only');
@@ -282,12 +294,6 @@ export const integrationService = {
     
     // Persist to localStorage as fallback
     persistToLocalStorage();
-    
-    console.log(`Updated settings for ${integrationId}`, {
-      entityId,
-      updatedFields: Object.keys(updates),
-      enabled: updatedSettings.enabled
-    });
     
     return updatedSettings;
   },

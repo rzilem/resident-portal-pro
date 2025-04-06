@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { integrationService } from '@/services/integrationService';
+import { supabase } from '@/integrations/supabase/client';
 
 // Types for integration data
 interface Integration {
@@ -19,23 +20,40 @@ interface Integration {
 export function useIntegrations() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load integrations on initialization
+  // Check authentication status on mount
   useEffect(() => {
-    if (!isInitialized) {
-      fetchIntegrations();
-    }
+    const checkAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setIsAuthenticated(!!data.session);
+        console.log("Auth status:", !!data.session ? "Authenticated" : "Not authenticated");
+      } catch (error) {
+        console.error("Error checking auth:", error);
+        setIsAuthenticated(false);
+      }
+      
+      if (!isInitialized) {
+        fetchIntegrations();
+      }
+    };
+    
+    checkAuth();
   }, [isInitialized]);
 
   const fetchIntegrations = useCallback(async () => {
     console.log('Fetching integrations...');
     setIsLoading(true);
     try {
+      // First check authentication again
+      const { data: sessionData } = await supabase.auth.getSession();
+      setIsAuthenticated(!!sessionData.session);
+      
       // Use entity ID 'current-user' as a placeholder - in a real implementation, 
       // this would be the user ID from authentication
-      const entityId = 'current-user';
+      const entityId = sessionData.session?.user?.id || 'current-user';
       const fetchedIntegrations = await integrationService.getIntegrations(entityId);
       
       // Convert to our interface format
@@ -74,10 +92,17 @@ export function useIntegrations() {
   const connectIntegration = useCallback(async (id: string, settings: any) => {
     setIsLoading(true);
     try {
+      // Check authentication status first
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error('You must be logged in to connect integrations');
+        return false;
+      }
+      
       console.log(`Connecting integration ${id}...`, settings);
       
-      // Use entity ID 'current-user' as a placeholder
-      const entityId = 'current-user';
+      // Use the actual user ID if authenticated
+      const entityId = sessionData.session.user.id;
       await integrationService.connectIntegration(entityId, id, settings);
       
       setIntegrations(prev => 
@@ -110,10 +135,16 @@ export function useIntegrations() {
   const disconnectIntegration = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
+      // Check authentication status first
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error('You must be logged in to disconnect integrations');
+        return false;
+      }
+      
       console.log(`Disconnecting integration ${id}...`);
       
-      // Use entity ID 'current-user' as a placeholder
-      const entityId = 'current-user';
+      const entityId = sessionData.session.user.id;
       await integrationService.disconnectIntegration(entityId, id);
       
       setIntegrations(prev => 
@@ -138,10 +169,19 @@ export function useIntegrations() {
   const updateIntegrationSettings = useCallback(async (id: string, settings: any) => {
     setIsLoading(true);
     try {
-      console.log(`Updating integration ${id} settings...`, settings);
+      // Check authentication status first
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error('You must be logged in to update integration settings');
+        return false;
+      }
       
-      // Use entity ID 'current-user' as a placeholder
-      const entityId = 'current-user';
+      console.log(`Updating integration ${id} settings...`, {
+        ...settings,
+        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none'
+      });
+      
+      const entityId = sessionData.session.user.id;
       await integrationService.updateIntegrationSettings(entityId, id, settings);
       
       setIntegrations(prev => {
@@ -195,10 +235,18 @@ export function useIntegrations() {
   }, []);
 
   // Verify authentication status
-  const checkAuthentication = useCallback(async () => {
-    // In a real app, this would check if the user is authenticated
-    return isAuthenticated;
-  }, [isAuthenticated]);
+  const checkAuthentication = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const isAuth = !!data.session;
+      setIsAuthenticated(isAuth);
+      return isAuth;
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      setIsAuthenticated(false);
+      return false;
+    }
+  }, []);
 
   return {
     integrations,
