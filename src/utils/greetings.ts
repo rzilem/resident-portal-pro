@@ -29,7 +29,10 @@ export const speakGreeting = async (
   options?: { 
     greetingType?: 'default' | 'custom' | 'preset',
     customGreeting?: string,
-    presetGreetingId?: string
+    presetGreetingId?: string,
+    apiKey?: string,
+    voiceId?: string,
+    model?: string
   }
 ): Promise<void> => {
   if (!name) return;
@@ -68,8 +71,9 @@ export const speakGreeting = async (
   try {
     // Try to use ElevenLabs first (with explicit error handling)
     await speakWithElevenLabs(message, {
-      voice: VOICE_OPTIONS.SARAH, // Choose the voice that sounds best
-      model: 'eleven_turbo_v2',   // Faster model with good quality
+      voice: options?.voiceId || VOICE_OPTIONS.SARAH, 
+      model: options?.model || 'eleven_turbo_v2',
+      apiKey: options?.apiKey
     });
     console.log('Successfully used ElevenLabs for greeting');
   } catch (error) {

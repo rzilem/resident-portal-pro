@@ -13,7 +13,7 @@ let hasGreetedGlobally = false;
 export const useVoiceGreeting = () => {
   const { user } = useAuth();
   const { preferences, updatePreference } = useSettings();
-  const { isElevenLabsConnected } = useElevenLabs();
+  const { isElevenLabsConnected, settings: elevenLabsSettings } = useElevenLabs();
   const [hasGreeted, setHasGreeted] = useState(false);
   const [isGreeting, setIsGreeting] = useState(false);
   
@@ -41,6 +41,7 @@ export const useVoiceGreeting = () => {
         try {
           console.log('Speaking greeting to:', name);
           console.log('ElevenLabs connected:', isElevenLabsConnected);
+          console.log('ElevenLabs settings:', elevenLabsSettings);
           console.log('Greeting preferences:', {
             greetingType: preferences.voiceGreetingType || 'default',
             customGreeting: preferences.customGreeting,
@@ -51,7 +52,10 @@ export const useVoiceGreeting = () => {
           const greetingOptions = {
             greetingType: preferences.voiceGreetingType || 'default',
             customGreeting: preferences.customGreeting,
-            presetGreetingId: preferences.selectedPresetGreeting
+            presetGreetingId: preferences.selectedPresetGreeting,
+            apiKey: isElevenLabsConnected ? elevenLabsSettings.apiKey : undefined,
+            voiceId: elevenLabsSettings.defaultVoiceId,
+            model: elevenLabsSettings.defaultModel
           };
           
           await speakGreeting(name, greetingOptions);
@@ -70,7 +74,7 @@ export const useVoiceGreeting = () => {
         }
       }, 1000);
     }
-  }, [user, hasGreeted, isGreeting, preferences, isElevenLabsConnected, updatePreference]);
+  }, [user, hasGreeted, isGreeting, preferences, isElevenLabsConnected, elevenLabsSettings, updatePreference]);
   
   // Add a function to reset greeting (for testing purposes)
   const resetGreeting = async () => {

@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Volume2, Play, Square, Loader2 } from 'lucide-react';
@@ -13,11 +12,29 @@ import { useIntegrations } from '@/hooks/use-integrations';
 const ElevenLabsTest = () => {
   const [text, setText] = useState("Welcome to ResidentPro. I'm your virtual assistant, how can I help you today?");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const { isElevenLabsConnected, settings } = useElevenLabs();
+  const { 
+    isElevenLabsConnected, 
+    settings, 
+    generateAudio, 
+    audioBlob, 
+    isLoading 
+  } = useElevenLabs();
   const { getIntegration } = useIntegrations();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  // Update audio URL when blob changes
+  useEffect(() => {
+    if (audioBlob) {
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+      
+      // Clean up previous URL to avoid memory leaks
+      return () => {
+        if (url) URL.revokeObjectURL(url);
+      };
+    }
+  }, [audioBlob]);
 
   const handleGenerateSpeech = async () => {
     if (!isElevenLabsConnected) {
@@ -30,36 +47,14 @@ const ElevenLabsTest = () => {
       return;
     }
 
-    setIsGenerating(true);
-    
     try {
-      // In a real implementation, this would call the actual ElevenLabs API
-      // For now, we'll simulate it with a timeout and a mock response
-      
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Create a mock audio URL - in a real app you'd get this from the API
-      const mockResponse = new Blob(
-        [new Uint8Array([1, 2, 3, 4])], 
-        { type: 'audio/mpeg' }
-      );
-      const url = URL.createObjectURL(mockResponse);
-      
-      setAudioUrl(url);
+      await generateAudio(text);
       toast.success("Speech generated successfully");
       
-      // In a real app, you might want to automatically play the audio
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
+      // Audio URL will be updated via the useEffect
     } catch (error) {
       console.error("Error generating speech:", error);
       toast.error("Failed to generate speech");
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -114,9 +109,9 @@ const ElevenLabsTest = () => {
               
               <Button 
                 onClick={handleGenerateSpeech} 
-                disabled={isGenerating || !text.trim()}
+                disabled={isLoading || !text.trim()}
               >
-                {isGenerating ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generating
@@ -141,7 +136,15 @@ const ElevenLabsTest = () => {
                     {isPlaying ? "Playing audio..." : "Audio ready to play"}
                   </p>
                 </div>
-                <audio ref={audioRef} onEnded={() => setIsPlaying(false)} className="hidden" />
+                <audio 
+                  ref={audioRef} 
+                  src={audioUrl}
+                  onEnded={() => setIsPlaying(false)} 
+                  onError={(e) => {
+                    console.error("Audio error:", e);
+                    toast.error("Error playing audio");
+                  }}
+                />
               </div>
             )}
           </>

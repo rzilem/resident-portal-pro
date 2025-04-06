@@ -19,14 +19,18 @@ export async function speakWithElevenLabs(
   options: {
     voice?: string;
     model?: string;
+    apiKey?: string;
   } = {}
 ): Promise<void> {
   try {
-    console.log('Speaking with ElevenLabs:', { text, options });
+    console.log('Speaking with ElevenLabs:', { 
+      text, 
+      voice: options.voice || VOICE_OPTIONS.SARAH,
+      model: options.model || 'eleven_multilingual_v2' 
+    });
     
-    // Get API key from localStorage or another source
-    // In a real implementation, you would get this from a secure source
-    const apiKey = localStorage.getItem('elevenLabsApiKey') || '';
+    // Get API key from options or localStorage as fallback
+    const apiKey = options.apiKey || localStorage.getItem('elevenLabsApiKey') || '';
     
     if (!apiKey) {
       console.error('ElevenLabs API key not found');
@@ -73,34 +77,22 @@ export async function testElevenLabsAPI(apiKey: string): Promise<boolean> {
   console.log('Testing ElevenLabs API connection...');
   
   try {
-    // In a real implementation, we would make an actual API call
-    // This is a simplified version that just checks if the API key is provided
-    // and simulates the API response
+    // Make an actual API call to ElevenLabs to test the connection
+    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+      method: 'GET',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    // Example of a real API call to ElevenLabs (commented out)
-    // const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-    //   method: 'GET',
-    //   headers: {
-    //     'xi-api-key': apiKey,
-    //     'Content-Type': 'application/json'
-    //   }
-    // });
+    if (!response.ok) {
+      console.error(`API request failed with status ${response.status}`);
+      return false;
+    }
     
-    // if (!response.ok) {
-    //   throw new Error(`API request failed with status ${response.status}`);
-    // }
-    
-    // const data = await response.json();
-    // return data && Array.isArray(data.voices);
-    
-    // For now, we'll simulate a successful API call after a short delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Simulate 80% success rate for demonstration
-    const isSuccessful = Math.random() < 0.8;
-    console.log(`ElevenLabs API test ${isSuccessful ? 'successful' : 'failed'}`);
-    
-    return isSuccessful;
+    const data = await response.json();
+    return data && Array.isArray(data.voices);
   } catch (error) {
     console.error('Error testing ElevenLabs API:', error);
     return false;
@@ -127,39 +119,33 @@ export async function generateSpeech(
   const voiceId = options.voiceId || VOICE_OPTIONS.SARAH;
   const model = options.model || 'eleven_multilingual_v2';
   
+  console.log(`Generating speech with ElevenLabs API using voice: ${voiceId}, model: ${model}`);
+  
   try {
-    // In a real implementation, we would make an actual API call to the ElevenLabs API
-    // This is a simplified version that just simulates the API response
+    // Make the actual API call to ElevenLabs
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text,
+        model_id: model,
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.5
+        }
+      })
+    });
     
-    // Example of a real API call (commented out)
-    // const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'xi-api-key': apiKey,
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     text,
-    //     model_id: model,
-    //     voice_settings: {
-    //       stability: 0.5,
-    //       similarity_boost: 0.5
-    //     }
-    //   })
-    // });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`ElevenLabs API request failed with status ${response.status}:`, errorText);
+      throw new Error(`API request failed with status ${response.status}`);
+    }
     
-    // if (!response.ok) {
-    //   throw new Error(`API request failed with status ${response.status}`);
-    // }
-    
-    // return await response.blob();
-    
-    // For demonstration, we'll simulate a response after a delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Create a mock audio blob
-    const mockAudio = new Blob([new Uint8Array([1, 2, 3, 4])], { type: 'audio/mpeg' });
-    return mockAudio;
+    return await response.blob();
   } catch (error) {
     console.error('Error generating speech:', error);
     return null;

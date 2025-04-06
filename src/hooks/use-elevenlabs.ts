@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
-import { testElevenLabsAPI } from '@/utils/elevenlabs';
+import { testElevenLabsAPI, generateSpeech } from '@/utils/elevenlabs';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ElevenLabsSettings {
@@ -13,6 +13,7 @@ interface ElevenLabsSettings {
 
 export function useElevenLabs() {
   const [isLoading, setIsLoading] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const { 
     updateIntegrationSettings, 
     getIntegration, 
@@ -60,6 +61,41 @@ export function useElevenLabs() {
       setIsLoading(false);
     }
   }, [fetchIntegrations]);
+
+  // Generate speech with ElevenLabs API
+  const generateAudio = useCallback(async (text: string, options?: { voiceId?: string, model?: string }) => {
+    setIsLoading(true);
+    try {
+      if (!isElevenLabsConnected || !elevenlabsIntegration?.apiKey) {
+        toast.error('ElevenLabs integration is not properly configured');
+        return null;
+      }
+
+      console.log('Generating speech with ElevenLabs:', {
+        text,
+        voiceId: options?.voiceId || elevenlabsIntegration?.defaultVoiceId,
+        model: options?.model || elevenlabsIntegration?.defaultModel
+      });
+      
+      const blob = await generateSpeech(
+        text, 
+        elevenlabsIntegration.apiKey, 
+        {
+          voiceId: options?.voiceId || elevenlabsIntegration?.defaultVoiceId,
+          model: options?.model || elevenlabsIntegration?.defaultModel
+        }
+      );
+      
+      setAudioBlob(blob);
+      return blob;
+    } catch (error) {
+      console.error('Error generating speech with ElevenLabs:', error);
+      toast.error('Failed to generate speech with ElevenLabs');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isElevenLabsConnected, elevenlabsIntegration]);
 
   // Improved saveElevenLabsSettings to ensure settings are properly saved
   const saveElevenLabsSettings = useCallback(async (settings: ElevenLabsSettings) => {
@@ -137,6 +173,8 @@ export function useElevenLabs() {
     },
     saveElevenLabsSettings,
     testElevenLabsAPI: testElevenLabsAPICall,
+    generateAudio,
+    audioBlob,
     isLoading,
     isAuthenticated,
     fetchSettings
