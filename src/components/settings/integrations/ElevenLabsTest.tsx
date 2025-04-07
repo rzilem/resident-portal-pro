@@ -22,27 +22,44 @@ const ElevenLabsTest = () => {
     isLoading,
     fetchSettings
   } = useElevenLabs();
-  const { getIntegration, isAuthenticated } = useIntegrations();
+  const { getIntegration, isAuthenticated, checkAuthentication } = useIntegrations();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [authStatus, setAuthStatus] = useState<string>("Checking...");
+  const [apiKeyStatus, setApiKeyStatus] = useState<string>("Checking...");
 
   // Ensure we have the latest settings when the component mounts
   useEffect(() => {
     const checkAuthAndFetchSettings = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
+        setAuthStatus("Checking authentication...");
+        const isAuth = await checkAuthentication();
+        setAuthStatus(isAuth ? "Authenticated" : "Not authenticated");
+        
+        if (isAuth) {
           console.log("User is authenticated, fetching latest settings");
           await fetchSettings();
+          
+          const integration = getIntegration('ElevenLabs');
+          if (integration?.apiKey) {
+            setApiKeyStatus("API key found");
+            console.log("ElevenLabs API key found:", `${integration.apiKey.substring(0, 5)}...`);
+          } else {
+            setApiKeyStatus("No API key found");
+            console.log("ElevenLabs API key not found");
+          }
         } else {
+          setApiKeyStatus("Authentication required");
           console.log("User is not authenticated, using cached settings");
         }
       } catch (error) {
         console.error("Error checking auth or fetching settings:", error);
+        setAuthStatus("Error checking auth");
+        setApiKeyStatus("Error checking API key");
       }
     };
     
     checkAuthAndFetchSettings();
-  }, [fetchSettings]);
+  }, [fetchSettings, checkAuthentication, getIntegration]);
 
   // Update audio URL when blob changes
   useEffect(() => {
@@ -132,18 +149,21 @@ const ElevenLabsTest = () => {
         {!isAuthenticated && (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
             <p>You must be logged in to use the ElevenLabs integration.</p>
+            <p className="mt-1 text-xs">Current auth status: {authStatus}</p>
           </div>
         )}
         
         {isAuthenticated && !isElevenLabsConnected && (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
             <p>ElevenLabs integration is not connected. Please configure it in the Integrations tab.</p>
+            <p className="mt-1 text-xs">API key status: {apiKeyStatus}</p>
           </div>
         )}
         
         {isAuthenticated && isElevenLabsConnected && !settings.apiKey && (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
             <p>ElevenLabs API key is not set. Please configure it in the Integrations tab.</p>
+            <p className="mt-1 text-xs">API key status: {apiKeyStatus}</p>
           </div>
         )}
         
@@ -165,6 +185,8 @@ const ElevenLabsTest = () => {
                 <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || settings.defaultVoiceId || 'Default'}</p>
                 <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || settings.defaultModel || 'eleven_multilingual_v2'}</p>
                 <p className="text-sm text-muted-foreground">Status: {getConnectionStatus()}</p>
+                <p className="text-sm text-muted-foreground">Auth: {authStatus}</p>
+                <p className="text-sm text-muted-foreground">API key: {settings.apiKey ? "Present" : "Missing"}</p>
               </div>
               
               <Button 

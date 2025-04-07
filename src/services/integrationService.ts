@@ -1,4 +1,6 @@
 
+// Add missing import for toast at the top
+import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { UserIntegration } from "@/types/supabase";
 
@@ -162,6 +164,7 @@ export const integrationService = {
       if (session?.session?.user) {
         console.log(`Saving integration ${integrationId} to Supabase for user ${session.session.user.id}`);
         
+        // IMPORTANT: This is where we interact with Supabase
         const { data, error } = await supabase
           .from('user_integrations')
           .upsert({
@@ -175,14 +178,18 @@ export const integrationService = {
           
         if (error) {
           console.error('Error saving integration to Supabase:', error);
+          toast.error(`Failed to save ${integrationId} settings: ${error.message}`);
         } else {
           console.log(`Integration ${integrationId} saved to Supabase successfully`, data);
+          toast.success(`${integrationId} settings saved successfully`);
         }
       } else {
         console.log('User not authenticated, saving to localStorage only');
+        toast.warning('Settings saved locally only. Login to save settings to your account.');
       }
     } catch (error) {
       console.error('Error connecting integration:', error);
+      toast.error(`Error saving ${integrationId} settings`);
     }
     
     // Always persist to localStorage as fallback
@@ -283,14 +290,18 @@ export const integrationService = {
           
         if (error) {
           console.error('Error updating integration in Supabase:', error);
+          toast.error(`Failed to update ${integrationId} settings: ${error.message}`);
         } else {
           console.log(`Integration ${integrationId} updated in Supabase successfully`, data);
+          toast.success(`${integrationId} settings updated successfully`);
         }
       } else {
         console.log('Not authenticated, saving to localStorage only');
+        toast.warning('Settings saved locally only. Login to save settings to your account.');
       }
     } catch (error) {
       console.error('Error updating integration settings:', error);
+      toast.error(`Error updating ${integrationId} settings`);
     }
     
     // Persist to localStorage as fallback

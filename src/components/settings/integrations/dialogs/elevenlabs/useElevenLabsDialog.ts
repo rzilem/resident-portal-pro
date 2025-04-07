@@ -21,6 +21,12 @@ export function useElevenLabsDialog(open: boolean, onOpenChange: (open: boolean)
   // Reset form fields when dialog opens with the current settings
   useEffect(() => {
     if (open) {
+      console.log('Dialog opened, resetting fields with current settings:', {
+        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none',
+        defaultVoiceId: settings.defaultVoiceId,
+        defaultModel: settings.defaultModel
+      });
+      
       setApiKey(settings.apiKey || '');
       setDefaultVoiceId(settings.defaultVoiceId || '');
       setDefaultModel(settings.defaultModel || '');
@@ -38,6 +44,7 @@ export function useElevenLabsDialog(open: boolean, onOpenChange: (open: boolean)
       }
       
       console.log("Saving ElevenLabs settings with apiKey:", apiKey ? `${apiKey.substring(0, 5)}...` : 'none');
+      console.log("User is authenticated:", !!sessionData?.session);
       
       const success = await saveElevenLabsSettings({
         apiKey,

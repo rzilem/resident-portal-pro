@@ -20,26 +20,30 @@ export function useElevenLabs() {
     isConnected,
     connectIntegration,
     isAuthenticated,
-    fetchIntegrations
+    fetchIntegrations,
+    checkAuthentication
   } = useIntegrations();
 
   // Force refresh integrations on mount to ensure we have the latest data
   useEffect(() => {
     const loadIntegrations = async () => {
+      await checkAuthentication();
       await fetchIntegrations();
     };
     
     loadIntegrations();
-  }, [fetchIntegrations]);
+  }, [fetchIntegrations, checkAuthentication]);
 
   // Log additional details when integration changes
   useEffect(() => {
     const elevenlabsIntegration = getIntegration('ElevenLabs');
     console.log('ElevenLabs Integration Details:', {
       integration: elevenlabsIntegration,
-      isConnected: isConnected('ElevenLabs')
+      isConnected: isConnected('ElevenLabs'),
+      apiKey: elevenlabsIntegration?.apiKey ? `${elevenlabsIntegration.apiKey.substring(0, 5)}...` : 'none',
+      isAuthenticated
     });
-  }, [getIntegration, isConnected]);
+  }, [getIntegration, isConnected, isAuthenticated]);
 
   // Get the current ElevenLabs integration configuration
   const elevenlabsIntegration = getIntegration('ElevenLabs');
@@ -52,6 +56,7 @@ export function useElevenLabs() {
     setIsLoading(true);
     try {
       console.log('Fetching latest ElevenLabs settings...');
+      await checkAuthentication();
       await fetchIntegrations();
       return true;
     } catch (error) {
@@ -60,7 +65,7 @@ export function useElevenLabs() {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchIntegrations]);
+  }, [fetchIntegrations, checkAuthentication]);
 
   // Generate speech with ElevenLabs API
   const generateAudio = useCallback(async (text: string, options?: { voiceId?: string, model?: string }) => {
@@ -117,24 +122,33 @@ export function useElevenLabs() {
       // Log connection status before attempting to save
       console.log('Current ElevenLabs Connection Status:', isElevenLabsConnected);
       
+      let result;
+      
       // First connect the integration if not already connected
       if (!isElevenLabsConnected) {
         console.log('Connecting ElevenLabs integration...');
-        await connectIntegration('ElevenLabs', {
+        result = await connectIntegration('ElevenLabs', {
           ...settings,
           enabled: true
         });
+        
+        if (!result) {
+          console.error('Failed to connect ElevenLabs integration');
+          return false;
+        }
       } else {
         // If already connected, update the settings directly
         console.log('Updating existing ElevenLabs settings...');
+        result = await updateIntegrationSettings('ElevenLabs', {
+          ...settings,
+          enabled: true
+        });
+        
+        if (!result) {
+          console.error('Failed to update ElevenLabs settings');
+          return false;
+        }
       }
-      
-      // Then update the settings
-      console.log('Updating ElevenLabs settings with API key:', settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none');
-      const result = await updateIntegrationSettings('ElevenLabs', {
-        ...settings,
-        enabled: true
-      });
       
       // Force refresh integrations to ensure we have the latest data
       await fetchIntegrations();
