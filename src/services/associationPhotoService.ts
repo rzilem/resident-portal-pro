@@ -1,7 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { uploadFile } from '@/utils/supabase/storage/uploadFile';
+import { uploadFile, deleteFile } from '@/utils/storage/fileUploader';
+import { StorageBucket } from '@/utils/storage/bucketManager';
 
 export interface AssociationPhoto {
   id: string;
@@ -34,34 +34,30 @@ export const uploadAssociationPhoto = async (
   try {
     console.log(`Starting upload for association: ${associationId}, file: ${file.name}`);
     
-    // First upload the file to storage
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-    const filePath = `${associationId}/${fileName}`;
+    // Use our new uploadFile utility
+    const result = await uploadFile(file, StorageBucket.ASSOCIATION_PHOTOS, {
+      path: associationId,
+      maxSizeMB: 10,
+      allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+      metadata: {
+        association_id: associationId,
+        description: description || ''
+      }
+    });
     
-    console.log(`Using storage path: ${filePath}`);
-    
-    const fileUrl = await uploadFile(
-      file, 
-      'association_photos',
-      filePath
-    );
-    
-    if (!fileUrl) {
-      console.error('Upload failed: No URL returned from uploadFile');
-      throw new Error('Failed to upload file');
+    if (!result.success) {
+      throw new Error(result.error || 'Upload failed');
     }
     
-    console.log(`File uploaded successfully. URL: ${fileUrl}`);
-    
-    // Then store the reference in the database
+    // Store the reference in the database
     const { data: photo, error } = await supabase
       .from('association_photos')
       .insert({
         association_id: associationId,
-        url: fileUrl,
-        file_name: fileName,
-        file_size: file.size,
-        file_type: file.type,
+        url: result.url,
+        file_name: result.name,
+        file_size: result.size,
+        file_type: result.type,
         description: description || null,
         content_type: 'image'
       })
@@ -188,14 +184,8 @@ export const deleteAssociationPhoto = async (photoId: string): Promise<boolean> 
       // Extract path from URL
       const pathMatch = photo.url.match(/association_photos\/(.+)$/);
       if (pathMatch && pathMatch[1]) {
-        // Delete from storage
-        const { error: storageError } = await supabase.storage
-          .from('association_photos')
-          .remove([pathMatch[1]]);
-        
-        if (storageError) {
-          console.warn('Failed to delete file from storage:', storageError);
-        }
+        // Use our new deleteFile utility
+        await deleteFile(pathMatch[1], StorageBucket.ASSOCIATION_PHOTOS);
       }
     }
     
