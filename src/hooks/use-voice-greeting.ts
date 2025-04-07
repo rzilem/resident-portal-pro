@@ -77,10 +77,11 @@ export const useVoiceGreeting = () => {
   }, [user, hasGreeted, isGreeting, preferences, isElevenLabsConnected, elevenLabsSettings, updatePreference]);
   
   // Add a function to reset greeting (for testing purposes)
-  const resetGreeting = async () => {
+  const resetGreeting = () => {
     hasGreetedGlobally = false;
     setHasGreeted(false);
-    await updatePreference('lastGreetingTime', null);
+    updatePreference('lastGreetingTime', null);
+    toast.success('Voice greeting reset. Navigate to dashboard to hear it');
   };
   
   // Add a function to update greeting preferences
@@ -106,6 +107,12 @@ export const useVoiceGreeting = () => {
     hasGreeted, 
     isGreeting, 
     resetGreeting,
-    updateGreetingPreferences
+    updateGreetingPreferences,
+    greetingPreferences: {
+      enabled: preferences.voiceGreetingEnabled !== false,
+      type: preferences.voiceGreetingType || 'default',
+      customGreeting: preferences.customGreeting || '',
+      selectedPresetGreeting: preferences.selectedPresetGreeting || ''
+    }
   };
 };

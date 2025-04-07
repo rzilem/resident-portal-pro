@@ -12,22 +12,22 @@ export const PRESET_GREETINGS = [
   {
     id: 'casual',
     title: 'Casual',
-    text: 'Hey there! Great to see you again. Your dashboard is all set.',
+    text: 'Hey there {name}! Great to see you again. Your dashboard is all set.',
   },
   {
     id: 'professional',
     title: 'Professional',
-    text: 'Welcome to your community management dashboard. Today\'s updates are ready for your review.',
+    text: 'Welcome to your community management dashboard, {name}. Today\'s updates are ready for your review.',
   },
   {
     id: 'friendly',
     title: 'Friendly',
-    text: 'Hello! Hope you\'re having a great day. Your community dashboard is ready.',
+    text: 'Hello {name}! Hope you\'re having a great day. Your community dashboard is ready.',
   },
   {
     id: 'minimal',
     title: 'Minimal',
-    text: 'Dashboard ready.',
+    text: 'Dashboard ready, {name}.',
   },
 ];
 

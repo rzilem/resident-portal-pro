@@ -35,10 +35,12 @@ const DisplaySettings = () => {
   
   const handleToggleVoiceGreeting = (checked: boolean) => {
     updatePreference('voiceGreetingEnabled', checked);
+    toast.success(`Voice greeting ${checked ? 'enabled' : 'disabled'}`);
   };
   
   const handleChangeGreetingType = (type: string) => {
     updatePreference('voiceGreetingType', type);
+    toast.success(`Greeting type changed to ${type}`);
   };
   
   const handleChangeCustomGreeting = (greeting: string) => {
@@ -47,11 +49,11 @@ const DisplaySettings = () => {
   
   const handleSelectPresetGreeting = (presetId: string) => {
     updatePreference('selectedPresetGreeting', presetId);
+    toast.success('Preset greeting selected');
   };
 
   const handleTestGreeting = () => {
     resetGreeting();
-    toast.success('Greeting reset! Navigate to dashboard to hear it');
   };
 
   if (isLoading) {

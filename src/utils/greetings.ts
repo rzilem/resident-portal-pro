@@ -44,13 +44,13 @@ export const speakGreeting = async (
   // Determine which type of greeting to use
   if (options?.greetingType === 'custom' && options.customGreeting) {
     // Use custom greeting with name substitution
-    message = options.customGreeting.replace('{name}', name);
+    message = options.customGreeting.replace(/{name}/g, name);
     console.log('Using custom greeting:', message);
   } else if (options?.greetingType === 'preset' && options.presetGreetingId) {
     // Use preset greeting
     const presetText = getPresetGreetingById(options.presetGreetingId);
     if (presetText) {
-      message = presetText.replace('{name}', name);
+      message = presetText.replace(/{name}/g, name);
       console.log('Using preset greeting:', message);
     } else {
       // Fallback to default if preset not found
