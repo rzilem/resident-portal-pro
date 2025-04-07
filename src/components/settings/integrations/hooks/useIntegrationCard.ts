@@ -133,9 +133,9 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     }
     
     try {
-      // Fix: Remove the incorrect arguments and use the proper parameters 
-      // according to the testWebhook function signature
-      await testWebhook();
+      // Fix: Add the missing arguments to match the testWebhook function signature
+      const testPayload = { event: 'test', timestamp: new Date().toISOString() };
+      await testWebhook(webhookUrl, testPayload);
     } catch (error) {
       console.error('Error testing webhook:', error);
     }
@@ -145,9 +145,15 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     if (!selectedIntegration) return false;
     
     try {
-      // Fix: Remove the incorrect arguments and use the proper parameters
-      // according to the testWebhook function signature
-      const result = await testWebhook();
+      // Fix: Add the missing arguments to match the testWebhook function signature
+      const testUrl = values.webhookUrl || webhookUrl;
+      const testPayload = { 
+        integration: selectedIntegration, 
+        test: true, 
+        timestamp: new Date().toISOString() 
+      };
+      
+      const result = await testWebhook(testUrl, testPayload);
       return result;
     } catch (error) {
       console.error('Error testing connection:', error);

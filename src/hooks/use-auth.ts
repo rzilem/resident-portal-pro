@@ -91,11 +91,33 @@ export const useAuth = () => {
     }
   }, []);
 
+  // Add the checkAuthentication function
+  const checkAuthentication = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error checking authentication:', error);
+        setIsAuthenticated(false);
+        return false;
+      }
+      
+      const isAuth = !!data.session?.user;
+      setIsAuthenticated(isAuth);
+      return isAuth;
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      setIsAuthenticated(false);
+      return false;
+    }
+  }, []);
+
   return {
     user,
     isLoading,
     isAuthenticated,
     signIn,
-    signOut
+    signOut,
+    checkAuthentication // Export the new function
   };
 };
