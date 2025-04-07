@@ -8,6 +8,7 @@ import { Volume2, Play, Square, Loader2 } from 'lucide-react';
 import { useElevenLabs } from '@/hooks/use-elevenlabs';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/use-integrations';
+import { supabase } from '@/lib/supabase';
 
 const ElevenLabsTest = () => {
   const [text, setText] = useState("Welcome to ResidentPro. I'm your virtual assistant, how can I help you today?");
@@ -21,12 +22,26 @@ const ElevenLabsTest = () => {
     isLoading,
     fetchSettings
   } = useElevenLabs();
-  const { getIntegration } = useIntegrations();
+  const { getIntegration, isAuthenticated } = useIntegrations();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   // Ensure we have the latest settings when the component mounts
   useEffect(() => {
-    fetchSettings();
+    const checkAuthAndFetchSettings = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          console.log("User is authenticated, fetching latest settings");
+          await fetchSettings();
+        } else {
+          console.log("User is not authenticated, using cached settings");
+        }
+      } catch (error) {
+        console.error("Error checking auth or fetching settings:", error);
+      }
+    };
+    
+    checkAuthAndFetchSettings();
   }, [fetchSettings]);
 
   // Update audio URL when blob changes
@@ -43,8 +58,18 @@ const ElevenLabsTest = () => {
   }, [audioBlob]);
 
   const handleGenerateSpeech = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to use ElevenLabs integration");
+      return;
+    }
+    
     if (!isElevenLabsConnected) {
       toast.error("Please connect ElevenLabs integration first");
+      return;
+    }
+
+    if (!settings.apiKey) {
+      toast.error("ElevenLabs API key not found. Please configure in the Integrations tab");
       return;
     }
 
@@ -56,8 +81,6 @@ const ElevenLabsTest = () => {
     try {
       await generateAudio(text);
       toast.success("Speech generated successfully");
-      
-      // Audio URL will be updated via the useEffect
     } catch (error) {
       console.error("Error generating speech:", error);
       toast.error("Failed to generate speech");
@@ -77,6 +100,22 @@ const ElevenLabsTest = () => {
   };
 
   const integrationDetails = getIntegration('ElevenLabs');
+  
+  const getConnectionStatus = () => {
+    if (!isAuthenticated) {
+      return "Not logged in";
+    }
+    
+    if (!isElevenLabsConnected) {
+      return "Not connected";
+    }
+    
+    if (!settings.apiKey) {
+      return "API key missing";
+    }
+    
+    return "Connected";
+  };
 
   return (
     <Card>
@@ -90,11 +129,25 @@ const ElevenLabsTest = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isElevenLabsConnected ? (
+        {!isAuthenticated && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
+            <p>You must be logged in to use the ElevenLabs integration.</p>
+          </div>
+        )}
+        
+        {isAuthenticated && !isElevenLabsConnected && (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
             <p>ElevenLabs integration is not connected. Please configure it in the Integrations tab.</p>
           </div>
-        ) : (
+        )}
+        
+        {isAuthenticated && isElevenLabsConnected && !settings.apiKey && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
+            <p>ElevenLabs API key is not set. Please configure it in the Integrations tab.</p>
+          </div>
+        )}
+        
+        {(isAuthenticated && isElevenLabsConnected && settings.apiKey) && (
           <>
             <div className="space-y-2">
               <Label htmlFor="voice-text">Enter text to convert to speech</Label>
@@ -111,11 +164,12 @@ const ElevenLabsTest = () => {
               <div>
                 <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || settings.defaultVoiceId || 'Default'}</p>
                 <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || settings.defaultModel || 'eleven_multilingual_v2'}</p>
+                <p className="text-sm text-muted-foreground">Status: {getConnectionStatus()}</p>
               </div>
               
               <Button 
                 onClick={handleGenerateSpeech} 
-                disabled={isLoading || !text.trim()}
+                disabled={isLoading || !text.trim() || !settings.apiKey}
               >
                 {isLoading ? (
                   <>

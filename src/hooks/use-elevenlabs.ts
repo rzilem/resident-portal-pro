@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
 import { testElevenLabsAPI, generateSpeech } from '@/utils/elevenlabs';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 interface ElevenLabsSettings {
   apiKey: string;
@@ -124,10 +124,13 @@ export function useElevenLabs() {
           ...settings,
           enabled: true
         });
+      } else {
+        // If already connected, update the settings directly
+        console.log('Updating existing ElevenLabs settings...');
       }
       
       // Then update the settings
-      console.log('Updating ElevenLabs settings...');
+      console.log('Updating ElevenLabs settings with API key:', settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none');
       const result = await updateIntegrationSettings('ElevenLabs', {
         ...settings,
         enabled: true

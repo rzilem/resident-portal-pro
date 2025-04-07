@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { integrationService } from '@/services/integrationService';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 // Types for integration data
 interface Integration {
@@ -99,27 +99,28 @@ export function useIntegrations() {
         return false;
       }
       
-      console.log(`Connecting integration ${id}...`, settings);
+      console.log(`Connecting integration ${id}...`, {
+        ...settings,
+        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'none'
+      });
       
       // Use the actual user ID if authenticated
       const entityId = sessionData.session.user.id;
       await integrationService.connectIntegration(entityId, id, settings);
       
-      setIntegrations(prev => 
-        prev.map(item => 
-          item.id === id 
-            ? { ...item, ...settings, enabled: true }
-            : item
-        )
-      );
-      
-      // If the integration doesn't exist yet, add it
-      if (!getIntegration(id)) {
-        setIntegrations(prev => [
-          ...prev, 
-          { id, name: id, ...settings, enabled: true }
-        ]);
-      }
+      setIntegrations(prev => {
+        const existing = prev.find(item => item.id === id);
+        
+        if (existing) {
+          // Update existing integration
+          return prev.map(item => 
+            item.id === id ? { ...item, ...settings, enabled: true } : item
+          );
+        } else {
+          // Add new integration if it doesn't exist
+          return [...prev, { id, name: id, ...settings, enabled: true }];
+        }
+      });
       
       console.log(`Integration ${id} connected successfully`);
       return true;
@@ -130,7 +131,7 @@ export function useIntegrations() {
     } finally {
       setIsLoading(false);
     }
-  }, [getIntegration]);
+  }, []);
 
   const disconnectIntegration = useCallback(async (id: string) => {
     setIsLoading(true);
