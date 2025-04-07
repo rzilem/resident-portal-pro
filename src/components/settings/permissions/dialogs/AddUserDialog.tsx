@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, UserRole } from '@/types/user';
+import { User, UserRole, SecurityLevel } from '@/types/user';
 import { userService } from '@/services/userService';
 
 interface AddUserDialogProps {
@@ -19,8 +19,8 @@ const AddUserDialog = ({ open, onOpenChange, onUserAdded }: AddUserDialogProps) 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'staff',
-    securityLevel: 'basic'
+    role: 'staff' as UserRole,
+    securityLevel: 'basic' as SecurityLevel
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -39,14 +39,14 @@ const AddUserDialog = ({ open, onOpenChange, onUserAdded }: AddUserDialogProps) 
   const handleRoleChange = (value: string) => {
     setFormData({
       ...formData,
-      role: value
+      role: value as UserRole
     });
   };
 
   const handleSecurityLevelChange = (value: string) => {
     setFormData({
       ...formData,
-      securityLevel: value
+      securityLevel: value as SecurityLevel
     });
   };
 
@@ -79,8 +79,8 @@ const AddUserDialog = ({ open, onOpenChange, onUserAdded }: AddUserDialogProps) 
       setFormData({
         name: '',
         email: '',
-        role: 'staff',
-        securityLevel: 'basic'
+        role: 'staff' as UserRole,
+        securityLevel: 'basic' as SecurityLevel
       });
     } catch (error) {
       console.error('Error adding user:', error);

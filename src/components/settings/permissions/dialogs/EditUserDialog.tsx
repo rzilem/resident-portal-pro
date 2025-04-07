@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, UserRole } from '@/types/user';
+import { User, UserRole, SecurityLevel } from '@/types/user';
 import { userService } from '@/services/userService';
 
 interface EditUserDialogProps {
@@ -50,7 +50,7 @@ const EditUserDialog = ({ user, open, onOpenChange, onUserUpdated }: EditUserDia
   const handleSecurityLevelChange = (value: string) => {
     setFormData({
       ...formData,
-      securityLevel: value
+      securityLevel: value as SecurityLevel // Cast the string to SecurityLevel
     });
   };
 
@@ -190,3 +190,4 @@ const EditUserDialog = ({ user, open, onOpenChange, onUserUpdated }: EditUserDia
 };
 
 export default EditUserDialog;
+
