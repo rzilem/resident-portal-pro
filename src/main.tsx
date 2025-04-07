@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './globals.css';  // Correct relative import
+import './globals.css';
 import { initializeStorage } from './utils/storageInitializer';
 
 // Initialize storage on app startup
