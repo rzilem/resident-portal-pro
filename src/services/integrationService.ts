@@ -1,5 +1,3 @@
-
-// Add missing import for toast at the top
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { UserIntegration } from "@/types/supabase";
@@ -128,74 +126,66 @@ export const integrationService = {
   },
 
   /**
-   * Connect an integration
+   * Connect an integration with improved error handling and logging
    */
   connectIntegration: async (
     entityId: string, 
     integrationId: string, 
     settings: IntegrationSettings
   ): Promise<IntegrationSettings> => {
-    if (!integrationsCache[entityId]) {
-      integrationsCache[entityId] = {};
-    }
-    
-    // Create or update the integration settings
-    const existingSettings = integrationsCache[entityId][integrationId] || { enabled: false };
-    
-    const updatedSettings = {
-      ...existingSettings,
-      ...settings,
-      enabled: true,
-      lastSync: new Date().toISOString()
-    };
-    
-    // Log the settings being saved (without showing full API keys)
-    console.log(`Connecting ${integrationId} with settings:`, {
-      ...updatedSettings,
-      apiKey: updatedSettings.apiKey ? `${updatedSettings.apiKey.substring(0, 5)}...` : 'none'
-    });
-    
-    integrationsCache[entityId][integrationId] = updatedSettings;
-    
     try {
-      // Store in Supabase if authenticated
+      // First, check authentication
       const { data: session } = await supabase.auth.getSession();
       
-      if (session?.session?.user) {
-        console.log(`Saving integration ${integrationId} to Supabase for user ${session.session.user.id}`);
-        
-        // IMPORTANT: This is where we interact with Supabase
-        const { data, error } = await supabase
-          .from('user_integrations')
-          .upsert({
-            user_id: session.session.user.id,
-            integration_name: integrationId,
-            settings: updatedSettings,
-            enabled: true
-          }, {
-            onConflict: 'user_id,integration_name'
-          });
-          
-        if (error) {
-          console.error('Error saving integration to Supabase:', error);
-          toast.error(`Failed to save ${integrationId} settings: ${error.message}`);
-        } else {
-          console.log(`Integration ${integrationId} saved to Supabase successfully`, data);
-          toast.success(`${integrationId} settings saved successfully`);
-        }
-      } else {
-        console.log('User not authenticated, saving to localStorage only');
-        toast.warning('Settings saved locally only. Login to save settings to your account.');
+      if (!session?.session?.user) {
+        console.error('No authenticated user');
+        toast.error('You must be logged in to save integration settings');
+        return settings;
       }
+
+      const userId = session.session.user.id;
+      
+      // Log detailed information about the settings being saved
+      console.log(`Connecting integration ${integrationId} for user ${userId}:`, {
+        ...settings,
+        apiKey: settings.apiKey ? `${settings.apiKey.substring(0, 5)}...` : 'No API Key'
+      });
+
+      // Upsert the integration settings
+      const { data, error } = await supabase
+        .from('user_integrations')
+        .upsert({
+          user_id: userId,
+          integration_name: integrationId,
+          settings: {
+            ...settings,
+            lastUpdated: new Date().toISOString()
+          },
+          enabled: true
+        }, {
+          onConflict: 'user_id,integration_name'
+        })
+        .select();
+
+      if (error) {
+        console.error('Failed to save integration:', error);
+        toast.error(`Failed to save ${integrationId} settings`);
+        return settings;
+      }
+
+      console.log(`Integration ${integrationId} saved successfully`);
+      toast.success(`${integrationId} settings saved`);
+      
+      return {
+        ...settings,
+        lastUpdated: new Date().toISOString()
+      };
+
     } catch (error) {
-      console.error('Error connecting integration:', error);
-      toast.error(`Error saving ${integrationId} settings`);
+      console.error('Unexpected error saving integration:', error);
+      toast.error('Failed to save integration settings');
+      return settings;
     }
-    
-    // Always persist to localStorage as fallback
-    persistToLocalStorage();
-    
-    return updatedSettings;
   },
 
   /**

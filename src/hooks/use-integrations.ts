@@ -68,19 +68,21 @@ export function useIntegrations() {
     console.log('Fetching integrations...');
     setIsLoading(true);
     try {
-      // First check authentication again
       const { data: sessionData } = await supabase.auth.getSession();
       const authStatus = !!sessionData.session;
       setIsAuthenticated(authStatus);
-      console.log('Auth check in fetchIntegrations:', authStatus ? 'Authenticated' : 'Not authenticated');
       
-      // Use entity ID 'current-user' as a placeholder - in a real implementation, 
-      // this would be the user ID from authentication
+      if (!authStatus) {
+        console.log('Not authenticated, cannot fetch integrations');
+        return false;
+      }
+
       const entityId = sessionData.session?.user?.id || 'current-user';
       const fetchedIntegrations = await integrationService.getIntegrations(entityId);
       
-      // Convert to our interface format
-      const formattedIntegrations: Integration[] = Object.entries(fetchedIntegrations).map(
+      console.log('Loaded integrations:', Object.keys(fetchedIntegrations));
+      
+      const formattedIntegrations = Object.entries(fetchedIntegrations).map(
         ([id, settings]) => ({
           id,
           name: id,
@@ -88,7 +90,6 @@ export function useIntegrations() {
         })
       );
       
-      console.log('Loaded integrations:', formattedIntegrations);
       setIntegrations(formattedIntegrations);
       setIsInitialized(true);
       return true;
