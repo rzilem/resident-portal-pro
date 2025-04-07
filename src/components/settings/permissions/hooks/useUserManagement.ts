@@ -20,7 +20,7 @@ export const useUserManagement = () => {
   const loadUsers = async () => {
     try {
       setIsLoading(true);
-      console.log("Fetching users...");
+      console.log("Fetching users from Supabase...");
       const fetchedUsers = await userService.getUsers();
       console.log("Fetched users:", fetchedUsers);
       

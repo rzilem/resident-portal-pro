@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -6,14 +7,25 @@ import DocumentAccess from './permissions/DocumentAccess';
 import DocumentSecuritySettings from './permissions/DocumentSecuritySettings';
 import { userService } from '@/services/userService';
 import { User } from '@/types/user';
+import { useAuth } from '@/hooks/use-auth';
 
 const PermissionSettings = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { checkAuthentication } = useAuth();
   
   useEffect(() => {
     const loadUsers = async () => {
       try {
+        // Ensure the user is authenticated before fetching users
+        const isAuthenticated = await checkAuthentication();
+        
+        if (!isAuthenticated) {
+          toast.error("Authentication required to load users");
+          setIsLoading(false);
+          return;
+        }
+        
         const fetchedUsers = await userService.getUsers();
         
         // Deduplicate users by email (keep most recent)
@@ -39,7 +51,7 @@ const PermissionSettings = () => {
     };
     
     loadUsers();
-  }, []);
+  }, [checkAuthentication]);
 
   if (isLoading) {
     return (
