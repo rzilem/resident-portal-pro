@@ -133,10 +133,9 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     }
     
     try {
-      await testWebhook(webhookUrl, {
-        service: selectedIntegration,
-        action: 'test'
-      });
+      // Fix: Remove the incorrect arguments and use the proper parameters 
+      // according to the testWebhook function signature
+      await testWebhook();
     } catch (error) {
       console.error('Error testing webhook:', error);
     }
@@ -146,11 +145,9 @@ export function useIntegrationCard({ title, integrations }: IntegrationCardHookP
     if (!selectedIntegration) return false;
     
     try {
-      // This is a simplified test; in a real app, you'd test with the actual service
-      const result = await testWebhook(values.apiUrl || 'https://example.com', {
-        service: selectedIntegration,
-        credentials: 'test'
-      });
+      // Fix: Remove the incorrect arguments and use the proper parameters
+      // according to the testWebhook function signature
+      const result = await testWebhook();
       return result;
     } catch (error) {
       console.error('Error testing connection:', error);
