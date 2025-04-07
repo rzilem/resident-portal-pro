@@ -24,7 +24,8 @@ export function adaptSupabaseUser(supabaseUser: SupabaseUser | null): User | nul
     firstName: firstName,
     lastName: lastName,
     role: supabaseUser.user_metadata?.role || 'resident',
-    status: supabaseUser.banned ? 'inactive' : 'active',
+    // Fix: Using is_banned from user metadata instead of 'banned' property
+    status: supabaseUser.user_metadata?.is_banned ? 'inactive' : 'active',
     securityLevel: 'basic',
     createdAt: supabaseUser.created_at,
     updatedAt: supabaseUser.updated_at

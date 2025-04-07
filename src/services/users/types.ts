@@ -38,3 +38,27 @@ export function profileToUser(profile: any): User {
     updatedAt: profile.updated_at
   };
 }
+
+// Cache management functions for users
+export function addUserToCache(user: User): void {
+  const existingUserIndex = users.findIndex(u => u.id === user.id);
+  if (existingUserIndex !== -1) {
+    users[existingUserIndex] = user;
+  } else {
+    users.push(user);
+  }
+}
+
+export function updateUserInCache(id: string, updates: Partial<User>): void {
+  const userIndex = users.findIndex(user => user.id === id);
+  if (userIndex !== -1) {
+    users[userIndex] = { ...users[userIndex], ...updates };
+  }
+}
+
+export function removeUserFromCache(id: string): void {
+  const userIndex = users.findIndex(user => user.id === id);
+  if (userIndex !== -1) {
+    users.splice(userIndex, 1);
+  }
+}
