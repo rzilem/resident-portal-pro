@@ -1,9 +1,9 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useIntegrations } from './use-integrations';
 import { testElevenLabsAPI, generateSpeech } from '@/utils/elevenlabs';
 import { supabase } from '@/lib/supabase';
+import { API_KEYS } from '@/config/api-keys';
 
 interface ElevenLabsSettings {
   apiKey: string;
@@ -24,7 +24,6 @@ export function useElevenLabs() {
     checkAuthentication
   } = useIntegrations();
 
-  // Force refresh integrations on mount to ensure we have the latest data
   useEffect(() => {
     const loadIntegrations = async () => {
       await checkAuthentication();
@@ -34,7 +33,6 @@ export function useElevenLabs() {
     loadIntegrations();
   }, [fetchIntegrations, checkAuthentication]);
 
-  // Log additional details when integration changes
   useEffect(() => {
     const elevenlabsIntegration = getIntegration('ElevenLabs');
     console.log('ElevenLabs Integration Details:', {
@@ -45,13 +43,10 @@ export function useElevenLabs() {
     });
   }, [getIntegration, isConnected, isAuthenticated]);
 
-  // Get the current ElevenLabs integration configuration
   const elevenlabsIntegration = getIntegration('ElevenLabs');
   
-  // Check if ElevenLabs is connected
-  const isElevenLabsConnected = isConnected('ElevenLabs');
+  const isElevenLabsConnected = isConnected('ElevenLabs') || !!API_KEYS.ELEVEN_LABS;
 
-  // Add a dedicated method to fetch the latest settings
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -67,11 +62,12 @@ export function useElevenLabs() {
     }
   }, [fetchIntegrations, checkAuthentication]);
 
-  // Generate speech with ElevenLabs API
   const generateAudio = useCallback(async (text: string, options?: { voiceId?: string, model?: string }) => {
     setIsLoading(true);
     try {
-      if (!isElevenLabsConnected || !elevenlabsIntegration?.apiKey) {
+      const apiKey = elevenlabsIntegration?.apiKey || API_KEYS.ELEVEN_LABS;
+      
+      if (!apiKey) {
         toast.error('ElevenLabs integration is not properly configured');
         return null;
       }
@@ -79,12 +75,13 @@ export function useElevenLabs() {
       console.log('Generating speech with ElevenLabs:', {
         text,
         voiceId: options?.voiceId || elevenlabsIntegration?.defaultVoiceId,
-        model: options?.model || elevenlabsIntegration?.defaultModel
+        model: options?.model || elevenlabsIntegration?.defaultModel,
+        usingHardcodedKey: !elevenlabsIntegration?.apiKey
       });
       
       const blob = await generateSpeech(
         text, 
-        elevenlabsIntegration.apiKey, 
+        apiKey, 
         {
           voiceId: options?.voiceId || elevenlabsIntegration?.defaultVoiceId,
           model: options?.model || elevenlabsIntegration?.defaultModel
@@ -100,9 +97,8 @@ export function useElevenLabs() {
     } finally {
       setIsLoading(false);
     }
-  }, [isElevenLabsConnected, elevenlabsIntegration]);
+  }, [elevenlabsIntegration]);
 
-  // Improved saveElevenLabsSettings to ensure settings are properly saved
   const saveElevenLabsSettings = useCallback(async (settings: ElevenLabsSettings) => {
     setIsLoading(true);
     try {
@@ -112,19 +108,16 @@ export function useElevenLabs() {
         defaultModel: settings.defaultModel
       });
       
-      // Check if the user is authenticated with Supabase
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
         toast.error('You must be logged in to save API settings');
         return false;
       }
       
-      // Log connection status before attempting to save
       console.log('Current ElevenLabs Connection Status:', isElevenLabsConnected);
       
       let result;
       
-      // First connect the integration if not already connected
       if (!isElevenLabsConnected) {
         console.log('Connecting ElevenLabs integration...');
         result = await connectIntegration('ElevenLabs', {
@@ -137,7 +130,6 @@ export function useElevenLabs() {
           return false;
         }
       } else {
-        // If already connected, update the settings directly
         console.log('Updating existing ElevenLabs settings...');
         result = await updateIntegrationSettings('ElevenLabs', {
           ...settings,
@@ -150,7 +142,6 @@ export function useElevenLabs() {
         }
       }
       
-      // Force refresh integrations to ensure we have the latest data
       await fetchIntegrations();
       
       console.log('ElevenLabs settings saved successfully:', result);
@@ -163,7 +154,6 @@ export function useElevenLabs() {
     }
   }, [updateIntegrationSettings, connectIntegration, isElevenLabsConnected, fetchIntegrations]);
 
-  // Use the real API test function
   const testElevenLabsAPICall = useCallback(async (apiKey: string = elevenlabsIntegration?.apiKey) => {
     setIsLoading(true);
     try {
@@ -182,9 +172,9 @@ export function useElevenLabs() {
   }, [elevenlabsIntegration?.apiKey]);
 
   return {
-    isElevenLabsConnected,
+    isElevenLabsConnected: isElevenLabsConnected || !!API_KEYS.ELEVEN_LABS,
     settings: {
-      apiKey: elevenlabsIntegration?.apiKey || '',
+      apiKey: elevenlabsIntegration?.apiKey || API_KEYS.ELEVEN_LABS || '',
       defaultVoiceId: elevenlabsIntegration?.defaultVoiceId || 'EXAVITQu4vr4xnSDxMaL', // Default Sarah voice
       defaultModel: elevenlabsIntegration?.defaultModel || 'eleven_multilingual_v2'
     },

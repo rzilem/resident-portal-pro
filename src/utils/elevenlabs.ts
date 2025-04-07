@@ -1,5 +1,6 @@
 
 // ElevenLabs API utility functions
+import { API_KEYS } from '../config/api-keys';
 
 export const VOICE_OPTIONS = {
   ARIA: '9BWtsMINqrJLrRacOk9x',   // Aria - Female, Professional
@@ -29,8 +30,8 @@ export async function speakWithElevenLabs(
       model: options.model || 'eleven_multilingual_v2' 
     });
     
-    // Get API key from options or localStorage as fallback
-    const apiKey = options.apiKey || localStorage.getItem('elevenLabsApiKey') || '';
+    // Get API key from options, or use the hardcoded one from our config
+    const apiKey = options.apiKey || API_KEYS.ELEVEN_LABS || localStorage.getItem('elevenLabsApiKey') || '';
     
     if (!apiKey) {
       console.error('ElevenLabs API key not found');
@@ -71,7 +72,7 @@ export async function speakWithElevenLabs(
  * @param apiKey ElevenLabs API key
  * @returns Promise<boolean> indicating if test was successful
  */
-export async function testElevenLabsAPI(apiKey: string): Promise<boolean> {
+export async function testElevenLabsAPI(apiKey: string = API_KEYS.ELEVEN_LABS): Promise<boolean> {
   if (!apiKey) return false;
   
   console.log('Testing ElevenLabs API connection...');

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { useElevenLabs } from '@/hooks/use-elevenlabs';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/use-integrations';
 import { supabase } from '@/lib/supabase';
+import { API_KEYS } from '@/config/api-keys';
 
 const ElevenLabsTest = () => {
   const [text, setText] = useState("Welcome to ResidentPro. I'm your virtual assistant, how can I help you today?");
@@ -27,7 +27,6 @@ const ElevenLabsTest = () => {
   const [authStatus, setAuthStatus] = useState<string>("Checking...");
   const [apiKeyStatus, setApiKeyStatus] = useState<string>("Checking...");
 
-  // Ensure we have the latest settings when the component mounts
   useEffect(() => {
     const checkAuthAndFetchSettings = async () => {
       try {
@@ -61,13 +60,11 @@ const ElevenLabsTest = () => {
     checkAuthAndFetchSettings();
   }, [fetchSettings, checkAuthentication, getIntegration]);
 
-  // Update audio URL when blob changes
   useEffect(() => {
     if (audioBlob) {
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
       
-      // Clean up previous URL to avoid memory leaks
       return () => {
         if (url) URL.revokeObjectURL(url);
       };
@@ -119,15 +116,15 @@ const ElevenLabsTest = () => {
   const integrationDetails = getIntegration('ElevenLabs');
   
   const getConnectionStatus = () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !API_KEYS.ELEVEN_LABS) {
       return "Not logged in";
     }
     
-    if (!isElevenLabsConnected) {
+    if (!isElevenLabsConnected && !API_KEYS.ELEVEN_LABS) {
       return "Not connected";
     }
     
-    if (!settings.apiKey) {
+    if (!settings.apiKey && !API_KEYS.ELEVEN_LABS) {
       return "API key missing";
     }
     
@@ -146,90 +143,85 @@ const ElevenLabsTest = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isAuthenticated && (
+        {!isAuthenticated && !API_KEYS.ELEVEN_LABS && (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
             <p>You must be logged in to use the ElevenLabs integration.</p>
             <p className="mt-1 text-xs">Current auth status: {authStatus}</p>
           </div>
         )}
         
-        {isAuthenticated && !isElevenLabsConnected && (
+        {isAuthenticated && !isElevenLabsConnected && !API_KEYS.ELEVEN_LABS && (
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
             <p>ElevenLabs integration is not connected. Please configure it in the Integrations tab.</p>
             <p className="mt-1 text-xs">API key status: {apiKeyStatus}</p>
           </div>
         )}
         
-        {isAuthenticated && isElevenLabsConnected && !settings.apiKey && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-            <p>ElevenLabs API key is not set. Please configure it in the Integrations tab.</p>
-            <p className="mt-1 text-xs">API key status: {apiKeyStatus}</p>
+        {API_KEYS.ELEVEN_LABS && (
+          <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400">
+            <p>ElevenLabs API key is hardcoded and ready to use.</p>
           </div>
         )}
         
-        {(isAuthenticated && isElevenLabsConnected && settings.apiKey) && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="voice-text">Enter text to convert to speech</Label>
-              <Textarea
-                id="voice-text"
-                placeholder="Type your text here..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                rows={4}
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="voice-text">Enter text to convert to speech</Label>
+          <Textarea
+            id="voice-text"
+            placeholder="Type your text here..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={4}
+          />
+        </div>
 
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || settings.defaultVoiceId || 'Default'}</p>
-                <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || settings.defaultModel || 'eleven_multilingual_v2'}</p>
-                <p className="text-sm text-muted-foreground">Status: {getConnectionStatus()}</p>
-                <p className="text-sm text-muted-foreground">Auth: {authStatus}</p>
-                <p className="text-sm text-muted-foreground">API key: {settings.apiKey ? "Present" : "Missing"}</p>
-              </div>
-              
-              <Button 
-                onClick={handleGenerateSpeech} 
-                disabled={isLoading || !text.trim() || !settings.apiKey}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating
-                  </>
-                ) : (
-                  "Generate Speech"
-                )}
-              </Button>
-            </div>
-            
-            {audioUrl && (
-              <div className="pt-4">
-                <div className="flex items-center justify-between">
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={handlePlayPause}
-                  >
-                    {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    {isPlaying ? "Playing audio..." : "Audio ready to play"}
-                  </p>
-                </div>
-                <audio 
-                  ref={audioRef} 
-                  src={audioUrl}
-                  onEnded={() => setIsPlaying(false)} 
-                  onError={(e) => {
-                    console.error("Audio error:", e);
-                    toast.error("Error playing audio");
-                  }}
-                />
-              </div>
+        <div className="flex justify-between items-center">
+          <div>
+            <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || settings.defaultVoiceId || 'Default'}</p>
+            <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || settings.defaultModel || 'eleven_multilingual_v2'}</p>
+            <p className="text-sm text-muted-foreground">Status: {getConnectionStatus()}</p>
+            <p className="text-sm text-muted-foreground">Auth: {authStatus}</p>
+            <p className="text-sm text-muted-foreground">API key: {settings.apiKey ? "Present" : "Missing"}</p>
+          </div>
+          
+          <Button 
+            onClick={handleGenerateSpeech} 
+            disabled={isLoading || !text.trim() || !settings.apiKey}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating
+              </>
+            ) : (
+              "Generate Speech"
             )}
-          </>
+          </Button>
+        </div>
+        
+        {audioUrl && (
+          <div className="pt-4">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handlePlayPause}
+              >
+                {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                {isPlaying ? "Playing audio..." : "Audio ready to play"}
+              </p>
+            </div>
+            <audio 
+              ref={audioRef} 
+              src={audioUrl}
+              onEnded={() => setIsPlaying(false)} 
+              onError={(e) => {
+                console.error("Audio error:", e);
+                toast.error("Error playing audio");
+              }}
+            />
+          </div>
         )}
       </CardContent>
     </Card>
