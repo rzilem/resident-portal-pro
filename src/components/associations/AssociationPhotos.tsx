@@ -31,7 +31,7 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
           <CardDescription>{associationName} property images</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] flex items-center justify-center">
+          <div className="h-[400px] flex items-center justify-center">
             <div className="animate-pulse h-full w-full bg-muted rounded"></div>
           </div>
         </CardContent>
@@ -51,7 +51,7 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
           <CardDescription>{associationName} property images</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] flex items-center justify-center flex-col text-center gap-2 bg-muted/30 rounded-md">
+          <div className="h-[400px] flex items-center justify-center flex-col text-center gap-2 bg-muted/30 rounded-md">
             <Image className="h-12 w-12 text-destructive opacity-70" />
             <p className="text-destructive">Error loading photos: {error}</p>
           </div>
@@ -72,7 +72,7 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
           <CardDescription>{associationName} property images</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] flex items-center justify-center flex-col text-center gap-2 bg-muted/30 rounded-md">
+          <div className="h-[400px] flex items-center justify-center flex-col text-center gap-2 bg-muted/30 rounded-md">
             <Image className="h-12 w-12 text-muted-foreground opacity-50" />
             <p className="text-muted-foreground">No photos available</p>
           </div>
@@ -102,14 +102,14 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
                   <div className="overflow-hidden rounded-md">
                     {photo.content_type === 'embed' ? (
                       <div 
-                        className="w-full h-[250px] flex items-center justify-center border rounded-md relative"
+                        className="w-full h-[400px] flex items-center justify-center border rounded-md relative"
                         dangerouslySetInnerHTML={{ __html: photo.embed_html || '' }}
                       />
                     ) : (
                       <img 
                         src={photo.url} 
                         alt={photo.description || `${associationName} property`} 
-                        className="h-[250px] w-full object-cover"
+                        className="h-[400px] w-full object-cover"
                         onError={(e) => {
                           console.error("Failed to load image:", photo.url);
                           e.currentTarget.src = "https://placehold.co/600x400?text=Image+Not+Found";
@@ -132,8 +132,8 @@ const AssociationPhotos: React.FC<AssociationPhotosProps> = ({ associationId, as
               );
             })}
           </CarouselContent>
-          <CarouselPrevious className="-left-3" />
-          <CarouselNext className="-right-3" />
+          <CarouselPrevious className="-left-4 lg:-left-6" />
+          <CarouselNext className="-right-4 lg:-right-6" />
         </Carousel>
       </CardContent>
     </Card>
