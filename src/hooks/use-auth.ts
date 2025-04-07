@@ -1,116 +1,83 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
+import { adaptSupabaseUser } from '@/utils/user-helpers';
+import { Session } from '@supabase/supabase-js';
 
-export const useAuth = () => {
+export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Initialize authentication state
   useEffect(() => {
-    // Check active session
-    const getSession = async () => {
-      setIsLoading(true);
-      
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          return;
-        }
-        
-        setUser(data.session?.user || null);
-        setIsAuthenticated(!!data.session?.user);
-      } catch (error) {
-        console.error('Unexpected error checking session:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // First set up the auth state change listener to capture future changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session ? adaptSupabaseUser(session.user) : null);
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
 
-    getSession();
+    // Then check the current session state
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setUser(data.session ? adaptSupabaseUser(data.session.user) : null);
+      setIsAuthenticated(!!data.session);
+      setIsLoading(false);
+    });
 
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-        setIsAuthenticated(!!session?.user);
-      }
-    );
-
-    // Cleanup on unmount
+    // Cleanup subscription when component unmounts
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         throw error;
       }
-
       return { success: true };
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Failed to sign in'
-      };
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error('Error signing in:', error);
+      return { success: false, error };
     }
-  }, []);
+  };
 
-  const signOut = useCallback(async () => {
-    setIsLoading(true);
+  // Sign out function
+  const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      await supabase.auth.signOut();
+      return { success: true };
+    } catch (error) {
+      console.error('Error signing out:', error);
+      return { success: false, error };
+    }
+  };
+
+  // Check if user is authenticated
+  const checkAuthentication = async (): Promise<boolean> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const isAuth = !!data.session;
       
-      if (error) {
-        throw error;
+      // Update state if needed
+      if (isAuth !== isAuthenticated) {
+        setIsAuthenticated(isAuth);
+        setUser(data.session ? adaptSupabaseUser(data.session.user) : null);
       }
       
-      return { success: true };
-    } catch (error: any) {
-      console.error('Sign out error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Failed to sign out'
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Add the checkAuthentication function
-  const checkAuthentication = useCallback(async (): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error checking authentication:', error);
-        setIsAuthenticated(false);
-        return false;
-      }
-      
-      const isAuth = !!data.session?.user;
-      setIsAuthenticated(isAuth);
       return isAuth;
     } catch (error) {
       console.error('Error checking authentication:', error);
-      setIsAuthenticated(false);
       return false;
     }
-  }, []);
+  };
 
   return {
     user,
@@ -118,6 +85,6 @@ export const useAuth = () => {
     isAuthenticated,
     signIn,
     signOut,
-    checkAuthentication // Export the new function
+    checkAuthentication,
   };
-};
+}

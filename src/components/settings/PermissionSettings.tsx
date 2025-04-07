@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,48 +7,81 @@ import DocumentSecuritySettings from './permissions/DocumentSecuritySettings';
 import { userService } from '@/services/userService';
 import { User } from '@/types/user';
 import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
 const PermissionSettings = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { checkAuthentication } = useAuth();
   
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        // Ensure the user is authenticated before fetching users
-        const isAuthenticated = await checkAuthentication();
-        
-        if (!isAuthenticated) {
-          toast.error("Authentication required to load users");
-          setIsLoading(false);
-          return;
-        }
-        
-        const fetchedUsers = await userService.getUsers();
-        
-        // Deduplicate users by email (keep most recent)
-        const emailMap = new Map<string, User>();
-        fetchedUsers.forEach(user => {
-          const email = user.email.toLowerCase();
-          const existingUser = emailMap.get(email);
-          
-          if (!existingUser || 
-              (user.createdAt && existingUser.createdAt && 
-               new Date(user.createdAt) > new Date(existingUser.createdAt))) {
-            emailMap.set(email, user);
-          }
-        });
-        
-        setUsers(Array.from(emailMap.values()));
-      } catch (error) {
-        console.error("Failed to load users:", error);
-        toast.error("Failed to load users");
-      } finally {
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Ensure the user is authenticated before fetching users
+      const isAuthenticated = await checkAuthentication();
+      
+      if (!isAuthenticated) {
+        toast.error("Authentication required to load users");
         setIsLoading(false);
+        return;
       }
-    };
-    
+      
+      console.log("Fetching users from userService...");
+      const fetchedUsers = await userService.getUsers();
+      
+      console.log("User data received:", fetchedUsers);
+      
+      if (!fetchedUsers || fetchedUsers.length === 0) {
+        toast.warning("No users found. Check Supabase connection.");
+        setUsers([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Filter out resident users - only show admin and staff type users
+      const filteredUsers = fetchedUsers.filter(user => 
+        user.role !== 'resident'
+      );
+      
+      console.log("Non-resident users:", filteredUsers);
+      
+      // Deduplicate users by email (keep most recent)
+      const emailMap = new Map<string, User>();
+      filteredUsers.forEach(user => {
+        if (!user.email) return; // Skip users without email
+        
+        const email = user.email.toLowerCase();
+        const existingUser = emailMap.get(email);
+        
+        if (!existingUser || 
+            (user.createdAt && existingUser.createdAt && 
+             new Date(user.createdAt) > new Date(existingUser.createdAt))) {
+          emailMap.set(email, user);
+        }
+      });
+      
+      const uniqueUsers = Array.from(emailMap.values());
+      console.log("Filtered unique users to display:", uniqueUsers);
+      
+      setUsers(uniqueUsers);
+    } catch (error) {
+      console.error("Failed to load users:", error);
+      toast.error("Failed to load users: " + (error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadUsers();
+    setIsRefreshing(false);
+  };
+  
+  useEffect(() => {
     loadUsers();
   }, [checkAuthentication]);
 
@@ -68,6 +100,19 @@ const PermissionSettings = () => {
 
   return (
     <div className="grid gap-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">User & Permission Settings</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh} 
+          disabled={isRefreshing}
+        >
+          <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh Users'}
+        </Button>
+      </div>
+      
       <Tabs defaultValue="users">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="users">User Management</TabsTrigger>

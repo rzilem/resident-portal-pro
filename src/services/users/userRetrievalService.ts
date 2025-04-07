@@ -1,7 +1,7 @@
 
 import { User } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
-import { users, profileToUser } from './types';
+import { users, profileToUser, addUserToCache } from './types';
 import { adaptSupabaseUser } from '@/utils/user-helpers';
 
 export const userRetrievalService = {
@@ -9,14 +9,14 @@ export const userRetrievalService = {
     try {
       console.log('Fetching all users from Supabase...');
       
-      // First get all auth users
+      // First try to get auth users with admin API
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
-        console.error('Error fetching auth users from Supabase:', authError);
+        console.error('Error fetching auth users:', authError);
         console.warn('Falling back to profiles table for user data');
         
-        // Fallback to profiles table if we can't access auth users
+        // Fallback to profiles table
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('*');
@@ -29,7 +29,11 @@ export const userRetrievalService = {
         
         if (profiles && profiles.length > 0) {
           console.log(`Retrieved ${profiles.length} profiles from Supabase`);
-          return profiles.map(profileToUser);
+          // Convert profiles to User objects and cache them
+          const mappedUsers = profiles.map(profileToUser);
+          // Add users to cache
+          mappedUsers.forEach(user => addUserToCache(user));
+          return mappedUsers;
         }
         
         return users;
@@ -51,7 +55,7 @@ export const userRetrievalService = {
           });
         }
         
-        // Create enriched user objects by combining auth users with profile data
+        // Create enriched user objects
         const enrichedUsers = authUsers.users.map(authUser => {
           const profile = profileMap.get(authUser.id);
           const baseUser = adaptSupabaseUser(authUser);
@@ -72,6 +76,9 @@ export const userRetrievalService = {
           
           return baseUser;
         });
+        
+        // Update cache with fetched users
+        enrichedUsers.forEach(user => addUserToCache(user));
         
         return enrichedUsers;
       }

@@ -24,6 +24,12 @@ export const useUserManagement = () => {
       const fetchedUsers = await userService.getUsers();
       console.log("Fetched users:", fetchedUsers);
       
+      if (!fetchedUsers || fetchedUsers.length === 0) {
+        toast.warning("No users found in the system");
+        setUsers([]);
+        return;
+      }
+      
       // Filter out resident users - only show admin and staff type users
       const filteredUsers = fetchedUsers.filter(user => 
         user.role !== 'resident'
@@ -35,8 +41,8 @@ export const useUserManagement = () => {
       const uniqueUsers = removeDuplicateUsers(filteredUsers);
       setUsers(uniqueUsers);
     } catch (error) {
-      toast.error("Failed to load users");
       console.error("Error loading users:", error);
+      toast.error("Failed to load users");
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +54,8 @@ export const useUserManagement = () => {
     
     // Keep only the most recently created user for each email
     userList.forEach(user => {
+      if (!user.email) return; // Skip users without email
+      
       const email = user.email.toLowerCase();
       const existingUser = emailMap.get(email);
       

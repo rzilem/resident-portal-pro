@@ -16,7 +16,8 @@ import {
   CheckCircle, 
   XCircle, 
   UserCog,
-  AlertCircle
+  AlertCircle,
+  Info
 } from "lucide-react";
 import { 
   DropdownMenu,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User } from '@/types/user';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UserManagementTableProps {
   users: User[];
@@ -75,8 +77,12 @@ const UserManagementTable = ({
 }: UserManagementTableProps) => {
   if (!users || users.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">No users found. Add users to get started.</p>
+      <div className="text-center py-8 border rounded-md">
+        <div className="flex flex-col items-center justify-center p-4">
+          <Info className="h-12 w-12 text-muted-foreground mb-2" />
+          <h3 className="font-medium mb-1">No users found</h3>
+          <p className="text-muted-foreground mb-4">Add users to get started or refresh to fetch from Supabase.</p>
+        </div>
       </div>
     );
   }
@@ -96,7 +102,16 @@ const UserManagementTable = ({
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.name}</TableCell>
+              <TableCell className="font-medium">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help">{user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unnamed User'}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>User ID: {user.id}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 {user.role === 'admin' ? (
