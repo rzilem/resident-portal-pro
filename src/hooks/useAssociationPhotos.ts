@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   getAssociationPhotos, 
   uploadAssociationPhoto, 
+  addAssociationEmbed,
   deleteAssociationPhoto, 
   setPrimaryPhoto,
   AssociationPhoto
@@ -29,7 +30,7 @@ export const useAssociationPhotos = (associationId: string) => {
       // Log individual photo URLs for debugging
       if (data.length > 0) {
         data.forEach(photo => {
-          console.log(`Photo ID: ${photo.id}, URL: ${photo.url}, Is primary: ${photo.is_primary}`);
+          console.log(`Photo ID: ${photo.id}, URL: ${photo.url}, Is primary: ${photo.is_primary}, Type: ${photo.content_type}`);
         });
       } else {
         console.log('No photos found for this association');
@@ -73,6 +74,37 @@ export const useAssociationPhotos = (associationId: string) => {
       console.error('Error uploading photo:', err);
       setError('Failed to upload photo');
       toast.error('Failed to upload photo');
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  }, [associationId]);
+
+  const addEmbedHtml = useCallback(async (embedHtml: string, description?: string) => {
+    if (!associationId) {
+      toast.error('No association selected');
+      return null;
+    }
+    
+    setIsUploading(true);
+    setError(null);
+    
+    try {
+      console.log(`Adding embed for association: ${associationId}`);
+      const newEmbed = await addAssociationEmbed(associationId, embedHtml, description);
+      if (newEmbed) {
+        console.log('Embed added successfully:', newEmbed);
+        setPhotos(prev => [newEmbed, ...prev]);
+        toast.success('3D view added successfully');
+        return newEmbed;
+      }
+      console.error('Adding embed returned null');
+      toast.error('Failed to add 3D view');
+      return null;
+    } catch (err) {
+      console.error('Error adding embed:', err);
+      setError('Failed to add 3D view');
+      toast.error('Failed to add 3D view');
       return null;
     } finally {
       setIsUploading(false);
@@ -139,6 +171,7 @@ export const useAssociationPhotos = (associationId: string) => {
     isUploading,
     error,
     uploadPhoto,
+    addEmbedHtml,
     deletePhoto,
     setPrimary,
     refreshPhotos: fetchPhotos

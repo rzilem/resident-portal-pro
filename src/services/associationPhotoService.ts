@@ -15,6 +15,8 @@ export interface AssociationPhoto {
   uploaded_by?: string;
   created_at: string;
   updated_at: string;
+  content_type: 'image' | 'embed';
+  embed_html?: string;
 }
 
 /**
@@ -60,7 +62,8 @@ export const uploadAssociationPhoto = async (
         file_name: fileName,
         file_size: file.size,
         file_type: file.type,
-        description: description || null
+        description: description || null,
+        content_type: 'image'
       })
       .select('*')
       .single();
@@ -76,6 +79,55 @@ export const uploadAssociationPhoto = async (
   } catch (error) {
     console.error('Error uploading association photo:', error);
     toast.error('Failed to upload photo');
+    return null;
+  }
+};
+
+/**
+ * Add an HTML embed (like a 3D rendering) to an association
+ * @param associationId Association ID
+ * @param embedHtml HTML code for the embed
+ * @param description Optional description
+ * @returns The added embed object or null if failed
+ */
+export const addAssociationEmbed = async (
+  associationId: string,
+  embedHtml: string,
+  description?: string
+): Promise<AssociationPhoto | null> => {
+  try {
+    console.log(`Adding embed for association: ${associationId}`);
+    
+    // Generate a placeholder name for the embed
+    const fileName = `embed-${Date.now()}`;
+    
+    // Insert the embed record in the database
+    const { data: embed, error } = await supabase
+      .from('association_photos')
+      .insert({
+        association_id: associationId,
+        url: '', // No URL for embeds
+        file_name: fileName,
+        file_size: embedHtml.length, // Use the length of the HTML as file size
+        file_type: 'text/html',
+        description: description || null,
+        content_type: 'embed',
+        embed_html: embedHtml
+      })
+      .select('*')
+      .single();
+    
+    if (error) {
+      console.error('Database error when saving embed:', error);
+      throw error;
+    }
+    
+    console.log('Embed saved successfully:', embed);
+    toast.success('3D view added successfully');
+    return embed;
+  } catch (error) {
+    console.error('Error adding association embed:', error);
+    toast.error('Failed to add 3D view');
     return null;
   }
 };
@@ -131,24 +183,27 @@ export const deleteAssociationPhoto = async (photoId: string): Promise<boolean> 
     
     if (deleteError) throw deleteError;
     
-    // Extract path from URL
-    const pathMatch = photo.url.match(/association_photos\/(.+)$/);
-    if (pathMatch && pathMatch[1]) {
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('association_photos')
-        .remove([pathMatch[1]]);
-      
-      if (storageError) {
-        console.warn('Failed to delete file from storage:', storageError);
+    // For image type content, also delete the file from storage
+    if (photo.content_type === 'image' && photo.url) {
+      // Extract path from URL
+      const pathMatch = photo.url.match(/association_photos\/(.+)$/);
+      if (pathMatch && pathMatch[1]) {
+        // Delete from storage
+        const { error: storageError } = await supabase.storage
+          .from('association_photos')
+          .remove([pathMatch[1]]);
+        
+        if (storageError) {
+          console.warn('Failed to delete file from storage:', storageError);
+        }
       }
     }
     
-    toast.success('Photo deleted successfully');
+    toast.success(photo.content_type === 'embed' ? '3D view deleted successfully' : 'Photo deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting association photo:', error);
-    toast.error('Failed to delete photo');
+    toast.error('Failed to delete item');
     return false;
   }
 };

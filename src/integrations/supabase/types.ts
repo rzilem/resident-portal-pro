@@ -12,8 +12,10 @@ export type Database = {
       association_photos: {
         Row: {
           association_id: string
+          content_type: string
           created_at: string | null
           description: string | null
+          embed_html: string | null
           file_name: string
           file_size: number
           file_type: string
@@ -25,8 +27,10 @@ export type Database = {
         }
         Insert: {
           association_id: string
+          content_type?: string
           created_at?: string | null
           description?: string | null
+          embed_html?: string | null
           file_name: string
           file_size: number
           file_type: string
@@ -38,8 +42,10 @@ export type Database = {
         }
         Update: {
           association_id?: string
+          content_type?: string
           created_at?: string | null
           description?: string | null
+          embed_html?: string | null
           file_name?: string
           file_size?: number
           file_type?: string
