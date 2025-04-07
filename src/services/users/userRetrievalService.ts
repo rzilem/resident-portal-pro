@@ -1,86 +1,51 @@
 
 import { User } from '@/types/user';
-import { supabase } from '@/integrations/supabase/client';
-import { users, profileToUser, addUserToCache } from './types';
-import { adaptSupabaseUser } from '@/utils/user-helpers';
+import { supabase } from '@/lib/supabase';
+import { users, profileToUser } from './types';
 
 export const userRetrievalService = {
   getUsers: async (): Promise<User[]> => {
     try {
       console.log('Fetching all users from Supabase...');
       
-      // First try to get auth users with admin API
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      // First try to get users from profiles table 
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
       
-      if (authError) {
-        console.error('Error fetching auth users:', authError);
-        console.warn('Falling back to profiles table for user data');
-        
-        // Fallback to profiles table
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*');
-        
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-          console.warn('Using local data due to Supabase errors');
-          return users; // Final fallback to local data
-        }
-        
-        if (profiles && profiles.length > 0) {
-          console.log(`Retrieved ${profiles.length} profiles from Supabase`);
-          // Convert profiles to User objects and cache them
-          const mappedUsers = profiles.map(profileToUser);
-          // Add users to cache
-          mappedUsers.forEach(user => addUserToCache(user));
-          return mappedUsers;
-        }
-        
-        return users;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        console.warn('Falling back to local data');
+        return users; // Return local data as fallback
       }
       
-      if (authUsers && authUsers.users.length > 0) {
-        console.log(`Retrieved ${authUsers.users.length} users from Supabase auth`);
-        
-        // Get profiles to enrich user data
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('*');
-        
-        // Map of profiles by user ID for fast lookup
-        const profileMap = new Map();
-        if (profiles) {
-          profiles.forEach(profile => {
-            profileMap.set(profile.id, profile);
-          });
+      if (profiles && profiles.length > 0) {
+        console.log(`Retrieved ${profiles.length} profiles from Supabase`);
+        // Convert profiles to User objects
+        const mappedUsers = profiles.map(profileToUser);
+        return mappedUsers;
+      }
+      
+      // If no profiles found, try to get auth users with getUser
+      const { data: authSession } = await supabase.auth.getSession();
+      if (authSession?.session) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Create a simple user object with available data
+          const currentUser: User = {
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            firstName: user.user_metadata?.first_name || '',
+            lastName: user.user_metadata?.last_name || '',
+            role: user.user_metadata?.role || 'admin', // Default to admin for testing
+            status: 'active',
+            securityLevel: 'full_access',
+            createdAt: user.created_at,
+            updatedAt: user.updated_at
+          };
+          return [currentUser];
         }
-        
-        // Create enriched user objects
-        const enrichedUsers = authUsers.users.map(authUser => {
-          const profile = profileMap.get(authUser.id);
-          const baseUser = adaptSupabaseUser(authUser);
-          
-          if (profile) {
-            return {
-              ...baseUser,
-              firstName: profile.first_name || baseUser.firstName,
-              lastName: profile.last_name || baseUser.lastName,
-              name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || baseUser.name,
-              role: profile.role || baseUser.role,
-              phoneNumber: profile.phone_number,
-              profileImageUrl: profile.profile_image_url,
-              createdAt: authUser.created_at,
-              updatedAt: profile.updated_at
-            };
-          }
-          
-          return baseUser;
-        });
-        
-        // Update cache with fetched users
-        enrichedUsers.forEach(user => addUserToCache(user));
-        
-        return enrichedUsers;
       }
       
       console.warn('No users found in Supabase, using local data');

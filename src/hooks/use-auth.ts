@@ -16,17 +16,28 @@ export function useAuth() {
     // First set up the auth state change listener to capture future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      setUser(session ? adaptSupabaseUser(session.user) : null);
+      const adaptedUser = session ? adaptSupabaseUser(session.user) : null;
+      setUser(adaptedUser);
       setIsAuthenticated(!!session);
       setIsLoading(false);
+      
+      // Log authentication status change for debugging
+      console.log('Auth state changed:', { event, adaptedUser });
     });
 
     // Then check the current session state
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      setUser(data.session ? adaptSupabaseUser(data.session.user) : null);
+      const adaptedUser = data.session ? adaptSupabaseUser(data.session.user) : null;
+      setUser(adaptedUser);
       setIsAuthenticated(!!data.session);
       setIsLoading(false);
+      
+      // Log the current session state for debugging
+      console.log('Current session:', { 
+        hasSession: !!data.session, 
+        adaptedUser
+      });
     });
 
     // Cleanup subscription when component unmounts
@@ -69,7 +80,8 @@ export function useAuth() {
       // Update state if needed
       if (isAuth !== isAuthenticated) {
         setIsAuthenticated(isAuth);
-        setUser(data.session ? adaptSupabaseUser(data.session.user) : null);
+        const adaptedUser = data.session ? adaptSupabaseUser(data.session.user) : null;
+        setUser(adaptedUser);
       }
       
       return isAuth;
