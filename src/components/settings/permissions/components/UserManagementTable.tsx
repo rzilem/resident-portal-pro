@@ -9,165 +9,143 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Pencil, CheckCircle, XCircle } from "lucide-react";
+import { User, UserRole } from '@/types/user';
+import { Badge } from "@/components/ui/badge";
 import { 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
-  XCircle, 
-  UserCog,
-  AlertCircle,
-  Info
-} from "lucide-react";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { User } from '@/types/user';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+  Tooltip, 
+  TooltipContent,
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { format } from 'date-fns';
 
 interface UserManagementTableProps {
   users: User[];
-  toggleUserStatus: (id: string) => void;
-  openEditDialog: (user: User) => void;
-  confirmDeleteUser: (user: User) => void;
+  onEdit: (user: User) => void;
 }
 
-const getUserStatusBadge = (status: string | undefined) => {
-  if (!status) return null;
+const UserManagementTable: React.FC<UserManagementTableProps> = ({ users, onEdit }) => {
+  // Get role display name and badge color
+  const getRoleBadgeProps = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return { label: 'Administrator', className: 'bg-red-100 text-red-800 hover:bg-red-200' };
+      case 'manager':
+        return { label: 'Manager', className: 'bg-blue-100 text-blue-800 hover:bg-blue-200' };
+      case 'staff':
+        return { label: 'Staff', className: 'bg-green-100 text-green-800 hover:bg-green-200' };
+      case 'board':
+        return { label: 'Board Member', className: 'bg-purple-100 text-purple-800 hover:bg-purple-200' };
+      case 'resident':
+        return { label: 'Resident', className: 'bg-gray-100 text-gray-800 hover:bg-gray-200' };
+      default:
+        return { label: role, className: 'bg-gray-100 text-gray-800 hover:bg-gray-200' };
+    }
+  };
   
-  switch(status.toLowerCase()) {
-    case 'active':
-      return (
-        <Badge variant="success" className="gap-1">
-          <CheckCircle className="h-3 w-3" />
-          Active
-        </Badge>
-      );
-    case 'pending':
-      return (
-        <Badge variant="warning" className="gap-1">
-          <AlertCircle className="h-3 w-3" />
-          Pending
-        </Badge>
-      );
-    case 'inactive':
-      return (
-        <Badge variant="outline" className="gap-1">
-          <XCircle className="h-3 w-3" />
-          Inactive
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="secondary">{status}</Badge>
-      );
-  }
-};
-
-const UserManagementTable = ({ 
-  users, 
-  toggleUserStatus, 
-  openEditDialog, 
-  confirmDeleteUser 
-}: UserManagementTableProps) => {
-  if (!users || users.length === 0) {
-    return (
-      <div className="text-center py-8 border rounded-md">
-        <div className="flex flex-col items-center justify-center p-4">
-          <Info className="h-12 w-12 text-muted-foreground mb-2" />
-          <h3 className="font-medium mb-1">No users found</h3>
-          <p className="text-muted-foreground mb-4">Add users to get started or refresh to fetch from Supabase.</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Get security level display name and color
+  const getSecurityLevelProps = (securityLevel: string) => {
+    switch (securityLevel) {
+      case 'full_access':
+        return { label: 'Full Access', className: 'bg-amber-100 text-amber-800 hover:bg-amber-200' };
+      case 'advanced':
+        return { label: 'Advanced', className: 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200' };
+      case 'standard':
+        return { label: 'Standard', className: 'bg-sky-100 text-sky-800 hover:bg-sky-200' };
+      case 'basic':
+        return { label: 'Basic', className: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' };
+      case 'limited':
+        return { label: 'Limited', className: 'bg-rose-100 text-rose-800 hover:bg-rose-200' };
+      case 'view_only':
+        return { label: 'View Only', className: 'bg-slate-100 text-slate-800 hover:bg-slate-200' };
+      default:
+        return { label: securityLevel, className: 'bg-gray-100 text-gray-800 hover:bg-gray-200' };
+    }
+  };
+  
+  // Format date for display
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+  
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead>Security</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Created</TableHead>
+          <TableHead className="w-[100px]">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {users.length === 0 ? (
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[80px]"></TableHead>
+            <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+              No users found
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">
-                <Tooltip>
+        ) : (
+          users.map(user => {
+            const roleBadge = getRoleBadgeProps(user.role as UserRole);
+            const securityBadge = getSecurityLevelProps(user.securityLevel || 'basic');
+            
+            return (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={roleBadge.className}>
+                    {roleBadge.label}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={securityBadge.className}>
+                    {securityBadge.label}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {user.status === 'active' ? (
+                    <div className="flex items-center">
+                      <CheckCircle className="text-green-600 h-4 w-4 mr-1" />
+                      <span>Active</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <XCircle className="text-red-600 h-4 w-4 mr-1" />
+                      <span>Inactive</span>
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>{formatDate(user.createdAt)}</TableCell>
+                <TableCell>
                   <TooltipTrigger asChild>
-                    <span className="cursor-help">{user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unnamed User'}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => onEdit(user)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>User ID: {user.id}</p>
+                    <p>Edit user</p>
                   </TooltipContent>
-                </Tooltip>
-              </TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                {user.role === 'admin' ? (
-                  <Badge variant="destructive" className="gap-1">
-                    <UserCog className="h-3 w-3" />
-                    Administrator
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="capitalize">
-                    {user.role?.replace('_', ' ')}
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell>{getUserStatusBadge(user.status)}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openEditDialog(user)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleUserStatus(user.id)}>
-                      {user.status === 'active' ? (
-                        <>
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Deactivate
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Activate
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => confirmDeleteUser(user)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                </TableCell>
+              </TableRow>
+            );
+          })
+        )}
+      </TableBody>
+    </Table>
   );
 };
 

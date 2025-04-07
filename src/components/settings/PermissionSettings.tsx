@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -9,6 +10,7 @@ import { User } from '@/types/user';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const PermissionSettings = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -124,40 +126,42 @@ const PermissionSettings = () => {
   }
 
   return (
-    <div className="grid gap-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">User & Permission Settings</h2>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh} 
-          disabled={isRefreshing}
-        >
-          <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Refreshing...' : 'Refresh Users'}
-        </Button>
+    <TooltipProvider>
+      <div className="grid gap-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">User & Permission Settings</h2>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+          >
+            <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Users'}
+          </Button>
+        </div>
+        
+        <Tabs defaultValue="users">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="document-access">Document Access</TabsTrigger>
+            <TabsTrigger value="document-security">Document Security</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="users">
+            <UserManagement users={users} setUsers={setUsers} />
+          </TabsContent>
+          
+          <TabsContent value="document-access">
+            <DocumentAccess />
+          </TabsContent>
+          
+          <TabsContent value="document-security">
+            <DocumentSecuritySettings />
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Tabs defaultValue="users">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="document-access">Document Access</TabsTrigger>
-          <TabsTrigger value="document-security">Document Security</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="users">
-          <UserManagement users={users} setUsers={setUsers} />
-        </TabsContent>
-        
-        <TabsContent value="document-access">
-          <DocumentAccess />
-        </TabsContent>
-        
-        <TabsContent value="document-security">
-          <DocumentSecuritySettings />
-        </TabsContent>
-      </Tabs>
-    </div>
+    </TooltipProvider>
   );
 };
 

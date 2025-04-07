@@ -14,6 +14,7 @@ import { TooltipButton } from '@/components/ui/tooltip-button';
 import { useSettings } from '@/hooks/use-settings';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const Settings = () => {
   const isMobile = useIsMobile();
@@ -88,80 +89,82 @@ const Settings = () => {
   };
   
   return (
-    <div className="container mx-auto py-6 space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-semibold">Settings</h1>
-        <div className="flex gap-2">
-          <TooltipButton
-            variant="outline"
-            tooltipText="Reset to defaults"
-            onClick={handleResetDefaults}
-            disabled={isSaving || isLoading}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Reset
-          </TooltipButton>
-          <TooltipButton
-            tooltipText="Save all settings"
-            onClick={handleSaveAll}
-            disabled={!hasChanges || isSaving || isLoading}
-          >
-            {isSaving ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </TooltipButton>
+    <TooltipProvider>
+      <div className="container mx-auto py-6 space-y-6 animate-fade-in">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-semibold">Settings</h1>
+          <div className="flex gap-2">
+            <TooltipButton
+              variant="outline"
+              tooltipText="Reset to defaults"
+              onClick={handleResetDefaults}
+              disabled={isSaving || isLoading}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Reset
+            </TooltipButton>
+            <TooltipButton
+              tooltipText="Save all settings"
+              onClick={handleSaveAll}
+              disabled={!hasChanges || isSaving || isLoading}
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </TooltipButton>
+          </div>
         </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-6'} mb-4`}>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="notifications">
+              {isMobile ? 'Notif.' : 'Notifications'}
+            </TabsTrigger>
+            <TabsTrigger value="display">Display</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="associations">
+              {isMobile ? 'Assoc.' : 'Associations'}
+            </TabsTrigger>
+            <TabsTrigger value="permissions">
+              {isMobile ? 'Perms.' : 'Permissions'}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile">
+            <ProfileSettings />
+          </TabsContent>
+          
+          <TabsContent value="notifications">
+            <NotificationSettings />
+          </TabsContent>
+          
+          <TabsContent value="display">
+            <DisplaySettings />
+          </TabsContent>
+          
+          <TabsContent value="security">
+            <SecuritySettings />
+          </TabsContent>
+          
+          <TabsContent value="associations">
+            <AssociationSettings />
+          </TabsContent>
+          
+          <TabsContent value="permissions">
+            <PermissionSettings />
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-3 md:grid-cols-6'} mb-4`}>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="notifications">
-            {isMobile ? 'Notif.' : 'Notifications'}
-          </TabsTrigger>
-          <TabsTrigger value="display">Display</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="associations">
-            {isMobile ? 'Assoc.' : 'Associations'}
-          </TabsTrigger>
-          <TabsTrigger value="permissions">
-            {isMobile ? 'Perms.' : 'Permissions'}
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="profile">
-          <ProfileSettings />
-        </TabsContent>
-        
-        <TabsContent value="notifications">
-          <NotificationSettings />
-        </TabsContent>
-        
-        <TabsContent value="display">
-          <DisplaySettings />
-        </TabsContent>
-        
-        <TabsContent value="security">
-          <SecuritySettings />
-        </TabsContent>
-        
-        <TabsContent value="associations">
-          <AssociationSettings />
-        </TabsContent>
-        
-        <TabsContent value="permissions">
-          <PermissionSettings />
-        </TabsContent>
-      </Tabs>
-    </div>
+    </TooltipProvider>
   );
 };
 

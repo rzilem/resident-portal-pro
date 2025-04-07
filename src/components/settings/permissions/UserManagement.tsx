@@ -1,77 +1,114 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import UserManagementHeader from './components/UserManagementHeader';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { User } from '@/types/user';
+import { Plus, RefreshCw } from 'lucide-react';
 import UserManagementTable from './components/UserManagementTable';
-import UserDialog from './UserDialog';
-import DeleteUserDialog from './components/DeleteUserDialog';
-import { useUserManagement } from './hooks/useUserManagement';
+import AddUserDialog from './dialogs/AddUserDialog';
+import EditUserDialog from './dialogs/EditUserDialog';
+import { userService } from '@/services/userService';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UserManagementProps {
   users: User[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  setUsers: (users: User[]) => void;
 }
 
-import { User } from '@/types/user';
+const UserManagement = ({ users, setUsers }: UserManagementProps) => {
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-const UserManagement = ({ users: initialUsers, setUsers: setParentUsers }: UserManagementProps) => {
-  const {
-    users,
-    setUsers,
-    dialogOpen,
-    setDialogOpen,
-    editingUser,
-    deleteDialogOpen,
-    setDeleteDialogOpen,
-    userToDelete,
-    openNewUserDialog,
-    openEditDialog,
-    toggleUserStatus,
-    confirmDeleteUser,
-    deleteUser
-  } = useUserManagement();
+  const handleAddUser = () => {
+    setIsAddUserOpen(true);
+  };
 
-  // Sync with parent state when our local state changes
-  React.useEffect(() => {
-    setParentUsers(users);
-  }, [users, setParentUsers]);
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setIsEditUserOpen(true);
+  };
 
-  // Initialize with props
-  React.useEffect(() => {
-    if (initialUsers.length > 0 && users.length === 0) {
-      setUsers(initialUsers);
+  const handleRefreshUsers = async () => {
+    setIsLoading(true);
+    try {
+      const refreshedUsers = await userService.getUsers();
+      if (refreshedUsers && refreshedUsers.length > 0) {
+        setUsers(refreshedUsers.filter(user => user.role !== 'resident'));
+      }
+    } catch (error) {
+      console.error('Failed to refresh users:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [initialUsers, users.length, setUsers]);
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <UserManagementHeader openNewUserDialog={openNewUserDialog} />
-      </CardHeader>
-      <CardContent>
-        <UserManagementTable 
-          users={users}
-          toggleUserStatus={toggleUserStatus}
-          openEditDialog={openEditDialog}
-          confirmDeleteUser={confirmDeleteUser}
-        />
-      </CardContent>
-      
-      <UserDialog 
-        open={dialogOpen} 
-        setOpen={setDialogOpen}
-        editingUser={editingUser}
-        users={users}
-        setUsers={setUsers}
-      />
+    <TooltipProvider>
+      <div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Users</CardTitle>
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefreshUsers}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Refresh user list</p>
+                </TooltipContent>
+              </Tooltip>
 
-      <DeleteUserDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        user={userToDelete}
-        onDelete={deleteUser}
-      />
-    </Card>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" onClick={handleAddUser}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add User
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a new user</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <UserManagementTable 
+              users={users} 
+              onEdit={handleEditUser} 
+            />
+          </CardContent>
+        </Card>
+
+        <AddUserDialog 
+          open={isAddUserOpen} 
+          onOpenChange={setIsAddUserOpen} 
+          onUserAdded={(user) => {
+            setUsers([...users, user]);
+          }} 
+        />
+
+        {selectedUser && (
+          <EditUserDialog 
+            user={selectedUser}
+            open={isEditUserOpen} 
+            onOpenChange={setIsEditUserOpen} 
+            onUserUpdated={(updatedUser) => {
+              setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+            }} 
+          />
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 

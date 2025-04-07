@@ -27,7 +27,7 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
 // Configure default provider with sensible defaults
-const ConfiguredTooltipProvider: React.FC<React.ComponentPropsWithoutRef<typeof TooltipProvider>> = ({
+const ConfiguredTooltipProvider: React.FC<React.PropsWithChildren<React.ComponentPropsWithoutRef<typeof TooltipProvider>>> = ({
   children,
   delayDuration = 300,
   skipDelayDuration = 300,
