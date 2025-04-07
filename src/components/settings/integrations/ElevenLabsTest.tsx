@@ -18,10 +18,16 @@ const ElevenLabsTest = () => {
     settings, 
     generateAudio, 
     audioBlob, 
-    isLoading 
+    isLoading,
+    fetchSettings
   } = useElevenLabs();
   const { getIntegration } = useIntegrations();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  // Ensure we have the latest settings when the component mounts
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   // Update audio URL when blob changes
   useEffect(() => {
@@ -103,8 +109,8 @@ const ElevenLabsTest = () => {
 
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || 'Default'}</p>
-                <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || 'eleven_multilingual_v2'}</p>
+                <p className="text-sm font-medium">Voice: {integrationDetails?.defaultVoiceId || settings.defaultVoiceId || 'Default'}</p>
+                <p className="text-sm text-muted-foreground">Model: {integrationDetails?.defaultModel || settings.defaultModel || 'eleven_multilingual_v2'}</p>
               </div>
               
               <Button 

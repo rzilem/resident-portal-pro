@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { UserIntegration } from "@/types/supabase";
 
