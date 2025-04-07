@@ -7,7 +7,7 @@ export const PRESET_GREETINGS = [
   {
     id: 'formal',
     title: 'Formal',
-    text: 'Welcome back. Your community dashboard is ready for your review.',
+    text: 'Welcome back, {name}. Your community dashboard is ready for your review.',
   },
   {
     id: 'casual',

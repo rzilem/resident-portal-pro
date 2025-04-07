@@ -45,6 +45,7 @@ const DisplaySettings = () => {
   
   const handleChangeCustomGreeting = (greeting: string) => {
     updatePreference('customGreeting', greeting);
+    toast.success('Custom greeting updated');
   };
   
   const handleSelectPresetGreeting = (presetId: string) => {
