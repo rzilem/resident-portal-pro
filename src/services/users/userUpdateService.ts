@@ -34,7 +34,7 @@ export const userUpdateService = {
       if (error) {
         console.error('Error updating user in Supabase:', error);
         // Fallback to local data
-        updateUserInCache(updatedUser.id, updatedUser);
+        updateUserInCache(updatedUser);
         const updatedUserInCache = users.find(user => user.id === updatedUser.id);
         if (!updatedUserInCache) {
           throw new Error('User not found');
@@ -47,7 +47,7 @@ export const userUpdateService = {
           ...profileToUser(data),
           ...updatedUser,
         };
-        updateUserInCache(result.id, result);
+        updateUserInCache(result);
         return result;
       }
       
@@ -55,7 +55,7 @@ export const userUpdateService = {
     } catch (error) {
       console.error('Error in updateUser:', error);
       // Fallback to local implementation
-      updateUserInCache(updatedUser.id, updatedUser);
+      updateUserInCache(updatedUser);
       const updatedUserInCache = users.find(user => user.id === updatedUser.id);
       if (!updatedUserInCache) {
         throw new Error('User not found');
