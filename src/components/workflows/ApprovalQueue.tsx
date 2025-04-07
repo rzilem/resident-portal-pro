@@ -9,7 +9,6 @@ import { ApprovalStep } from '@/types/workflow';
 import { useWorkflowExecution } from '@/hooks/use-workflow-execution';
 import { useAuth } from '@/hooks/use-auth';
 import { roleService } from '@/services/roleService';
-import { adaptSupabaseUser } from '@/utils/user-helpers';
 
 // Define the missing interface
 interface ApprovalQueueProps {
@@ -39,8 +38,7 @@ const getApprovalColor = (type: string) => {
 };
 
 const ApprovalQueue: React.FC<ApprovalQueueProps> = ({ className }) => {
-  const { user: supabaseUser } = useAuth();
-  const user = adaptSupabaseUser(supabaseUser);
+  const { user } = useAuth();
   const { pendingApprovals, processApproval } = useWorkflowExecution();
   const [comments, setComments] = React.useState<Record<string, string>>({});
   const [processing, setProcessing] = React.useState<Record<string, boolean>>({});

@@ -4,13 +4,11 @@ import { Workflow, WorkflowExecutionLog, ApprovalStep } from '@/types/workflow';
 import { v4 as uuid } from 'uuid';
 import { toast } from "sonner";
 import { useAuth } from '@/hooks/use-auth';
-import { adaptSupabaseUser } from '@/utils/user-helpers';
 import { useWorkflowStepExecution } from './use-workflow-step-execution';
 import { useWorkflowApprovals } from './use-workflow-approvals';
 
 export function useWorkflowExecution() {
-  const { user: supabaseUser } = useAuth();
-  const user = adaptSupabaseUser(supabaseUser);
+  const { user } = useAuth();
   const [executionLogs, setExecutionLogs] = useState<WorkflowExecutionLog[]>([]);
   const [currentExecution, setCurrentExecution] = useState<WorkflowExecutionLog | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);

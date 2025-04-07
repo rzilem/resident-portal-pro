@@ -3,12 +3,10 @@ import { useState, useCallback } from 'react';
 import { ApprovalStep, ApprovalRecord } from '@/types/workflow';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
-import { adaptSupabaseUser } from '@/utils/user-helpers';
 import { v4 as uuid } from 'uuid';
 
 export function useWorkflowApprovals() {
-  const { user: supabaseUser } = useAuth();
-  const user = adaptSupabaseUser(supabaseUser);
+  const { user } = useAuth();
   const [pendingApprovals, setPendingApprovals] = useState<ApprovalStep[]>([]);
 
   /**
