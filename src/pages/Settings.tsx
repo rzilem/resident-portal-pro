@@ -19,7 +19,9 @@ const Settings = () => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<string>("profile");
   const { preferences, savePreferences, isLoading, isSaving } = useSettings();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, checkAuthentication } = useAuth();
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalPreferences, setOriginalPreferences] = useState({});
   
   useEffect(() => {
     // Check if we should open the display tab (from sidebar logo click)
@@ -29,13 +31,30 @@ const Settings = () => {
     }
   }, []);
   
-  const handleResetDefaults = () => {
-    if (!isAuthenticated) {
+  // Store original preferences for change detection
+  useEffect(() => {
+    if (!isLoading && preferences) {
+      setOriginalPreferences(JSON.stringify(preferences));
+    }
+  }, [isLoading, preferences]);
+  
+  // Check for changes whenever preferences update
+  useEffect(() => {
+    if (originalPreferences && preferences) {
+      const currentPrefs = JSON.stringify(preferences);
+      setHasChanges(currentPrefs !== originalPreferences);
+    }
+  }, [preferences, originalPreferences]);
+  
+  const handleResetDefaults = async () => {
+    const isAuth = await checkAuthentication();
+    
+    if (!isAuth) {
       toast.warning('You must be logged in to reset settings');
       return;
     }
     
-    savePreferences({
+    await savePreferences({
       theme: 'system',
       cardStyle: 'default',
       colorMode: 'default',
@@ -44,15 +63,28 @@ const Settings = () => {
       voiceGreetingEnabled: true,
       voiceGreetingType: 'default'
     });
+    
+    toast.success('Settings reset to defaults');
+    setHasChanges(false);
   };
   
-  const handleSaveAll = () => {
-    if (!isAuthenticated) {
+  const handleSaveAll = async () => {
+    const isAuth = await checkAuthentication();
+    
+    if (!isAuth) {
       toast.warning('You must be logged in to save settings');
       return;
     }
     
-    savePreferences(preferences);
+    const success = await savePreferences(preferences);
+    if (success) {
+      toast.success('All settings saved successfully');
+      // Update the original preferences to match current state
+      setOriginalPreferences(JSON.stringify(preferences));
+      setHasChanges(false);
+    } else {
+      toast.error('Failed to save some settings');
+    }
   };
   
   return (
@@ -72,7 +104,7 @@ const Settings = () => {
           <TooltipButton
             tooltipText="Save all settings"
             onClick={handleSaveAll}
-            disabled={isSaving || isLoading}
+            disabled={!hasChanges || isSaving || isLoading}
           >
             {isSaving ? (
               <>

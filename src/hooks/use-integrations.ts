@@ -302,6 +302,6 @@ export function useIntegrations() {
     updateIntegrationSettings,
     checkAuthentication,
     setIsAuthenticated,
-    testWebhook: useCallback(async () => true, []) // Placeholder to keep existing interface
+    testWebhook
   };
 }
