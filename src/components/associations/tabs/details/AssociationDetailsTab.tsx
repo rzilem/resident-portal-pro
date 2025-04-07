@@ -2,7 +2,11 @@
 import React from 'react';
 import { Association } from '@/types/association';
 import { Grid } from '@/components/ui/grid';
-import { GeneralInfoCard, CriticalDatesCard, AssociationStatusCard, QuickContactCard, AIAnalysisCard } from './details';
+import GeneralInfoCard from './GeneralInfoCard';
+import CriticalDatesCard from './CriticalDatesCard';
+import AssociationStatusCard from './AssociationStatusCard';
+import QuickContactCard from './QuickContactCard';
+import AIAnalysisCard from './AIAnalysisCard';
 
 interface AssociationDetailsTabProps {
   association: Association;
