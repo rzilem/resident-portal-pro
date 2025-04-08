@@ -54,10 +54,17 @@ export const importData = async ({
                                record['provider name'] || record['vendor name'] || 
                                record['ProviderName'] || record['VendorName'] ||
                                record['Company Name'] || record['Company'] ||
-                               record['company name'] || record['company'];
+                               record['company name'] || record['company'] ||
+                               record['Name'] || record['name'];
           if (providerName) {
             mappedRecord.name = providerName;
           }
+        }
+        
+        // Ensure vendor has a name - critical for import
+        if (!mappedRecord.name || mappedRecord.name === '') {
+          console.warn("Vendor record missing name, using fallback", record);
+          mappedRecord.name = `Unnamed Vendor (${new Date().toISOString()})`;
         }
       }
       
@@ -100,6 +107,7 @@ export const importData = async ({
         }
       }
       
+      toast.error(errorMessage);
       return {
         success: false,
         recordsImported: result.imported,
@@ -125,6 +133,8 @@ export const importData = async ({
       // Continue despite logging error
     }
     
+    toast.success(`Successfully imported ${result.imported} vendors`);
+    
     return {
       success: true,
       recordsImported: result.imported,
@@ -133,6 +143,8 @@ export const importData = async ({
     
   } catch (error) {
     console.error('Import error:', error);
+    toast.error(error instanceof Error ? error.message : 'Unknown error during import');
+    
     return {
       success: false,
       recordsImported: 0,

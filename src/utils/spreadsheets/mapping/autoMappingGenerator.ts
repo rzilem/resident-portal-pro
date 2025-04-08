@@ -57,7 +57,8 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
         headerLower.includes('provider name') || 
         headerLower === 'name' || 
         headerLower === 'company name' ||
-        headerLower === 'company') {
+        headerLower === 'company' ||
+        headerLower === 'vendor') {
       targetField = 'name';
     }
     else if (headerLower.includes('contact') || headerLower === 'contact name') {
@@ -87,7 +88,7 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
     else if (headerLower === 'zip' || headerLower === 'postal code' || headerLower === 'zip code' || headerLower === 'zipcode') {
       targetField = 'zip';
     }
-    else if (headerLower.includes('category') || headerLower.includes('type') && !headerLower.includes('provider')) {
+    else if (headerLower.includes('category') || (headerLower.includes('type') && !headerLower.includes('provider'))) {
       targetField = 'category';
     }
     else if (headerLower.includes('status')) {

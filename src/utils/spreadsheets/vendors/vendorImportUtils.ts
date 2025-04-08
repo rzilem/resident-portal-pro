@@ -127,16 +127,16 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
     // Modify batch size for large imports
     const BATCH_SIZE = 50; // Increase batch size for better performance with large datasets
 
-    // Insert vendors in batches - without using onConflict since there's no unique constraint
+    // Insert vendors in batches
     for (let i = 0; i < preparedRecords.length; i += BATCH_SIZE) {
       const batch = preparedRecords.slice(i, i + BATCH_SIZE);
       
       console.log(`Importing batch ${Math.floor(i/BATCH_SIZE) + 1} with ${batch.length} vendors`);
       
       try {
-        // Using insert without upsert options since there's no unique constraint on name
+        // Using unique constraint on name added in the migration
         const { data, error } = await supabase
-          .from('vendors')
+          .from("vendors")
           .insert(batch);
         
         if (error) {
@@ -149,7 +149,25 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
             code: error.code
           });
           
-          // Try to continue with other batches despite errors
+          // If it's a unique constraint violation, try importing one by one
+          if (error.code === '23505') { // Unique constraint violation
+            console.log("Unique constraint violation detected, retrying records one by one");
+            
+            for (const record of batch) {
+              try {
+                const { error: singleError } = await supabase
+                  .from("vendors")
+                  .insert([record]);
+                  
+                if (!singleError) {
+                  imported += 1;
+                }
+              } catch (individualError) {
+                console.error("Error with individual record:", individualError);
+                // Continue to the next record
+              }
+            }
+          }
         } else {
           console.log(`Successfully imported batch ${Math.floor(i/BATCH_SIZE) + 1}`);
           imported += batch.length;
@@ -164,7 +182,7 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
     }
 
     const result = {
-      success: errors.length === 0,
+      success: errors.length === 0 || imported > 0,
       imported,
       errors: errors.length,
       errorDetails: errors.length > 0 ? errors : undefined
