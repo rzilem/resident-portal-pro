@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { importData } from '@/utils/spreadsheets/importData';
@@ -204,4 +203,3 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
 };
 
 export default ValidationResults;
-
