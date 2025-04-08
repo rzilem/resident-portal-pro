@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Shield } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { VendorInsurance } from '@/types/vendor';
 import { Badge } from '@/components/ui/badge';
 
