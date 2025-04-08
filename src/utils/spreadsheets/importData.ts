@@ -58,11 +58,21 @@ export const importData = async ({
     
     if (!result.success) {
       console.error('Import errors:', result.errorDetails);
+      let errorMessage = `Import encountered errors: ${result.errors} error(s) occurred`;
+      
+      // Add more detailed error information if available
+      if (result.errorDetails && result.errorDetails.length > 0) {
+        const firstError = result.errorDetails[0];
+        if (firstError.message) {
+          errorMessage += `: ${firstError.message}`;
+        }
+      }
+      
       return {
         success: false,
         recordsImported: result.imported,
         recordsWithWarnings: 0,
-        errorMessage: `Import encountered errors: ${result.errors} error(s) occurred`
+        errorMessage
       };
     }
     

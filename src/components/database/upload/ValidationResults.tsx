@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
@@ -20,7 +21,7 @@ interface ValidationResultsProps {
     sourceField: string;
     targetField: string;
   }[];
-  onComplete: () => void;
+  onComplete: (results: { recordsImported: number, recordsWithWarnings: number }) => void;
   fileName?: string;
   importType?: string;
 }
@@ -79,18 +80,20 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       
       if (result.success) {
         // Save import stats for display
-        setImportStats({
+        const stats = {
           recordsImported: result.recordsImported,
           recordsWithWarnings: result.recordsWithWarnings || 0
-        });
+        };
+        
+        setImportStats(stats);
         
         // Show success toast
         toast.success(`Successfully imported ${result.recordsImported} ${importType === 'vendor' ? 'vendors' : 'records'}`);
         
         // Slight delay before showing success state
         setTimeout(() => {
-          onComplete();
-        }, 1000);
+          onComplete(stats);
+        }, 500);
       } else {
         toast.error(result.errorMessage || "Error importing data");
         setImporting(false);
@@ -237,13 +240,18 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
         </Button>
         <Button 
           onClick={handleFinalize} 
-          disabled={validationResults.errors > 0 || importing}
+          disabled={validationResults.errors > 0 || importing || importStats !== null}
           variant={validationResults.errors > 0 ? "outline" : "default"}
         >
           {importing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               <span>Processing...</span>
+            </>
+          ) : importStats ? (
+            <>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              <span>Import Complete</span>
             </>
           ) : (
             validationResults.errors > 0 ? "Cannot Import with Errors" : "Finalize Import"

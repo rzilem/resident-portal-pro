@@ -119,19 +119,24 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
       
       console.log(`Importing batch ${i/10 + 1} with ${batch.length} vendors`);
       
-      const { data, error } = await supabase
-        .from('vendors')
-        .upsert(batch, { 
-          onConflict: 'name',
-          ignoreDuplicates: false
-        });
-      
-      if (error) {
-        console.error('Error importing vendors batch:', error);
-        errors.push(error);
-      } else {
-        console.log(`Successfully imported batch ${i/10 + 1}`);
-        imported += batch.length;
+      try {
+        const { data, error } = await supabase
+          .from('vendors')
+          .upsert(batch, { 
+            onConflict: 'name',
+            ignoreDuplicates: false
+          });
+        
+        if (error) {
+          console.error('Error importing vendors batch:', error);
+          errors.push(error);
+        } else {
+          console.log(`Successfully imported batch ${i/10 + 1}`);
+          imported += batch.length;
+        }
+      } catch (batchError) {
+        console.error('Exception in vendor batch import:', batchError);
+        errors.push(batchError);
       }
     }
 

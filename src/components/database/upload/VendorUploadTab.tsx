@@ -25,6 +25,10 @@ const VendorUploadTab = () => {
     warnings: number;
     errors: number;
   } | null>(null);
+  const [importResults, setImportResults] = useState<{
+    recordsImported: number;
+    recordsWithWarnings: number;
+  } | null>(null);
 
   const handleFileProcessed = (data: {
     headers: string[]; 
@@ -81,9 +85,10 @@ const VendorUploadTab = () => {
     setStep('validation');
   };
 
-  const handleComplete = () => {
-    console.log("Vendor import completed");
-    toast.success("Vendor import completed successfully!");
+  const handleComplete = (results: { recordsImported: number, recordsWithWarnings: number }) => {
+    console.log("Vendor import completed with results:", results);
+    setImportResults(results);
+    toast.success(`Vendor import completed successfully! ${results.recordsImported} vendors imported.`);
     setStep('success');
   };
 
@@ -91,6 +96,7 @@ const VendorUploadTab = () => {
     setFileData(null);
     setMappings([]);
     setValidationResults(null);
+    setImportResults(null);
     setFileName("");
     setStep('initial');
     toast.info("Ready for a new import");
@@ -172,7 +178,7 @@ const VendorUploadTab = () => {
           onReset={handleReset}
           onClose={handleClose}
           message="Vendor import completed successfully"
-          details={`${validationResults?.valid || 0} vendors were imported`}
+          details={`${importResults?.recordsImported || 0} vendors were imported`}
         />
       )}
     </div>
