@@ -15,15 +15,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { 
   generateOnboardingTemplate, 
-  generateAssociationTemplate, 
-  generatePropertyTemplate 
+  generateVendorTemplate 
 } from '@/utils/exportToExcel';
 import {
   generateResidentTemplate,
   generateOwnerPropertyAssociationTemplate
 } from '@/utils/templates/residentTemplates';
 import {
-  generatePropertyTemplate as generateDetailedPropertyTemplate,
+  generatePropertyTemplate,
   generateAssociationPropertiesTemplate
 } from '@/utils/templates/propertyTemplates';
 
@@ -51,7 +50,7 @@ const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
       icon: <Building className="h-5 w-5 text-purple-500" />,
       fileIcon: <FileSpreadsheet className="h-4 w-4 text-purple-500" />,
       downloadHandler: () => {
-        generateAssociationTemplate();
+        generateOnboardingTemplate('association');
         toast.success('Association template downloaded successfully');
       }
     },
@@ -62,7 +61,7 @@ const TemplatesTab: React.FC<TemplatesTabProps> = ({ onOpenChange }) => {
       icon: <Home className="h-5 w-5 text-green-500" />,
       fileIcon: <FileSpreadsheet className="h-4 w-4 text-green-500" />,
       downloadHandler: () => {
-        generateDetailedPropertyTemplate();
+        generatePropertyTemplate();
         toast.success('Property template downloaded successfully');
       }
     },
