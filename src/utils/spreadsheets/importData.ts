@@ -27,6 +27,7 @@ export const importData = async ({
 }> => {
   try {
     console.log(`Importing ${records.length} records of type: ${importType}`);
+    console.log("Raw mappings:", mappings);
     
     // Map the data according to the mappings
     const mappedRecords = records.map(record => {
@@ -34,7 +35,14 @@ export const importData = async ({
       
       mappings.forEach(mapping => {
         if (mapping.targetField && mapping.targetField !== 'ignore') {
-          mappedRecord[mapping.targetField] = record[mapping.sourceField];
+          // Get the value from the source field
+          const value = record[mapping.sourceField];
+          
+          // If we have a value, assign it to the target field
+          if (value !== undefined && value !== null) {
+            // Use the target field for the key in the mapped record
+            mappedRecord[mapping.targetField] = value;
+          }
         }
       });
       

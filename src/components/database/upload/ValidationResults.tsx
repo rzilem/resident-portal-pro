@@ -57,16 +57,20 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       // Transform data using mappings before import
       const transformedRows = fileData.rows.map(row => {
         const transformedRow: Record<string, any> = {};
+        
         mappings.forEach(mapping => {
           if (mapping.targetField && mapping.targetField !== 'ignore') {
             transformedRow[mapping.sourceField] = row[mapping.sourceField];
           }
         });
+        
         return transformedRow;
       });
+      
+      console.log("Transformed data for import:", transformedRows.slice(0, 2));
 
       const result = await importData({
-        records: fileData.rows,
+        records: transformedRows,
         mappings,
         fileName,
         importType

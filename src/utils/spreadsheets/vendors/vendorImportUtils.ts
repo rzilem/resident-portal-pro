@@ -50,17 +50,24 @@ export const vendorFieldMappings: Record<string, string> = {
 export const processVendorRow = (row: Record<string, any>): Partial<Vendor> => {
   const vendorData: Record<string, any> = {};
 
-  // Map spreadsheet fields to database fields based on target fields (not source fields)
+  // Map spreadsheet fields to database fields based on mappings
   Object.entries(row).forEach(([key, value]) => {
     // Only include non-empty values
     if (value !== undefined && value !== null && value !== '') {
-      vendorData[key] = value;
+      const mappedField = vendorFieldMappings[key];
+      if (mappedField) {
+        vendorData[mappedField] = value;
+      } else {
+        // If no mapping found, use the original key
+        vendorData[key] = value;
+      }
     }
   });
 
   // Default values
   vendorData.status = vendorData.status || 'active';
   
+  console.log("Processed vendor row:", vendorData);
   return vendorData;
 };
 
@@ -76,8 +83,12 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
   try {
     console.log("Starting vendor import with", records.length, "records");
     
+    // Process records using vendor field mappings
+    const processedRecords = records.map(record => processVendorRow(record));
+    console.log("Processed records sample:", processedRecords.slice(0, 2));
+    
     // Filter out records without a name
-    const validRecords = records.filter(record => record.name);
+    const validRecords = processedRecords.filter(record => record.name);
     
     if (validRecords.length === 0) {
       console.error("No valid vendor records found - each vendor must have a name");

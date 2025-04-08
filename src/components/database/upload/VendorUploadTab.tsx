@@ -47,11 +47,17 @@ const VendorUploadTab = () => {
     // Generate vendor-specific mappings
     const autoMappings = generateAutoMappings(data.headers);
     
-    // Map "Provider Name" to "name" for vendors
+    // Map common vendor name fields to "name" target field
     const updatedMappings = autoMappings.map(mapping => {
-      if (mapping.sourceField === 'Provider Name') {
+      const sourceFieldLower = mapping.sourceField.toLowerCase();
+      
+      if (sourceFieldLower === 'provider name' || 
+          sourceFieldLower === 'vendor name' || 
+          sourceFieldLower === 'company name' || 
+          sourceFieldLower === 'name') {
         return { ...mapping, targetField: 'name' };
       }
+      
       return mapping;
     });
     
@@ -84,7 +90,11 @@ const VendorUploadTab = () => {
       
       mappings.forEach(mapping => {
         if (mapping.targetField && mapping.targetField !== 'ignore') {
-          transformedRow[mapping.targetField] = row[mapping.sourceField];
+          // Get source field value from the original row
+          const value = row[mapping.sourceField];
+          
+          // Assign it to the target field name in the transformed row
+          transformedRow[mapping.targetField] = value;
         }
       });
       
@@ -93,9 +103,16 @@ const VendorUploadTab = () => {
     
     console.log("Transformed data sample:", transformedRows.slice(0, 2));
     
+    // Get the target field names after mapping
+    const targetFields = mappings
+      .filter(m => m.targetField && m.targetField !== 'ignore')
+      .map(m => m.targetField);
+    
+    console.log("Target fields for validation:", targetFields);
+    
     // Validate the transformed data
     const validation = validateVendorData(
-      Object.keys(transformedRows[0] || {}),
+      targetFields,
       transformedRows
     );
     
