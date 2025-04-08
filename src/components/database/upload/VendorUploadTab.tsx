@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import FileUpload from './FileUpload';
 import VendorMappingFieldsList from './vendors/VendorMappingFieldsList';
@@ -97,6 +96,14 @@ const VendorUploadTab = () => {
           transformedRow[mapping.targetField] = value;
         }
       });
+      
+      // Ensure provider/vendor name is mapped to 'name'
+      if (!transformedRow.name) {
+        const providerName = row['Provider Name'] || row['Vendor Name'];
+        if (providerName) {
+          transformedRow.name = providerName;
+        }
+      }
       
       return transformedRow;
     });

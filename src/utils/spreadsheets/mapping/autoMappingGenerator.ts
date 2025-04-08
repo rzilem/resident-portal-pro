@@ -40,7 +40,7 @@ export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
     const headerLower = header.toLowerCase();
     let targetField = 'ignore';
     
-    // Common vendor field mappings
+    // Vendor name fields - map any variant to 'name'
     if (headerLower.includes('vendor name') || 
         headerLower.includes('provider name') || 
         headerLower === 'name' || 

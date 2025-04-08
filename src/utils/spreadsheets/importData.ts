@@ -46,6 +46,17 @@ export const importData = async ({
         }
       });
       
+      // For vendor imports, ensure provider/vendor name is mapped to 'name'
+      if (importType === 'vendor') {
+        if (!mappedRecord.name) {
+          // Try to find provider name or vendor name in the original record
+          const providerName = record['Provider Name'] || record['Vendor Name'];
+          if (providerName) {
+            mappedRecord.name = providerName;
+          }
+        }
+      }
+      
       return mappedRecord;
     });
 

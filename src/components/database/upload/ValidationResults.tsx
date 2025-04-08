@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -58,10 +57,9 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       const transformedRows = fileData.rows.map(row => {
         const transformedRow: Record<string, any> = {};
         
-        mappings.forEach(mapping => {
-          if (mapping.targetField && mapping.targetField !== 'ignore') {
-            transformedRow[mapping.sourceField] = row[mapping.sourceField];
-          }
+        // Copy all fields from original row
+        Object.keys(row).forEach(key => {
+          transformedRow[key] = row[key];
         });
         
         return transformedRow;
@@ -188,7 +186,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       )}
       
       {validationResults.errors === 0 && validationResults.warnings > 0 && (
-        <Alert variant="warning">
+        <Alert className="border-yellow-500 bg-yellow-50 text-yellow-800">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Minor Issues Found</AlertTitle>
           <AlertDescription>
