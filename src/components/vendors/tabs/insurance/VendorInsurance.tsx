@@ -2,12 +2,12 @@
 import React from 'react';
 import { Vendor, VendorInsurance as VendorInsuranceType } from '@/types/vendor';
 import { Grid } from '@/components/ui/grid';
-import PolicyInfoCard from './insurance/PolicyInfoCard';
-import AgentInfoCard from './insurance/AgentInfoCard';
-import CoverageDetailsCard from './insurance/CoverageDetailsCard';
-import DocumentsCard from './insurance/DocumentsCard';
+import PolicyInfoCard from './PolicyInfoCard';
+import AgentInfoCard from './AgentInfoCard';
+import CoverageDetailsCard from './CoverageDetailsCard';
+import DocumentsCard from './DocumentsCard';
 import { useVendor } from '@/hooks/useVendors';
-import InsuranceDocumentUploader from './insurance/InsuranceDocumentUploader';
+import InsuranceDocumentUploader from './InsuranceDocumentUploader';
 
 interface VendorInsuranceProps {
   vendor: Vendor;
