@@ -1,9 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { CheckCircle, AlertCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { importData } from '@/utils/spreadsheets/importData';
+import { importData } from '@/utils/spreadsheets/importData'; 
 
 interface ValidationResultsProps {
   validationResults: {
@@ -22,53 +25,46 @@ interface ValidationResultsProps {
     targetField: string;
   }[];
   onComplete: (results: { recordsImported: number, recordsWithWarnings: number }) => void;
-  fileName?: string;
-  importType?: string;
+  fileName: string;
+  importType: string;
 }
 
 const ValidationResults: React.FC<ValidationResultsProps> = ({ 
-  validationResults,
-  onStepChange,
-  fileData,
+  validationResults, 
+  onStepChange, 
+  fileData, 
   mappings,
   onComplete,
-  fileName = "unknown.xlsx",
-  importType = "association"
+  fileName,
+  importType
 }) => {
-  const [importing, setImporting] = useState(false);
-  const [importStats, setImportStats] = useState<{
-    recordsImported: number;
-    recordsWithWarnings: number;
-  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('summary');
   
-  useEffect(() => {
-    // Log for debugging purposes
-    console.log("Validation Results component loaded with:", validationResults);
-  }, [validationResults]);
+  console.log("Validation Results component loaded with:", validationResults);
 
-  const handleFinalize = async () => {
-    if (!validationResults) {
-      toast.error("No validation results available");
-      return;
-    }
-    
-    if (validationResults.errors > 0) {
-      toast.error("Please correct errors before finalizing");
-      return;
-    }
-    
-    if (!fileData || fileData.rows.length === 0) {
+  const handleImport = async () => {
+    if (!fileData || !validationResults) {
       toast.error("No data to import");
       return;
     }
-    
-    setImporting(true);
-    toast.info(`Starting import of ${fileData.rows.length} records...`);
+
+    setLoading(true);
     
     try {
-      console.log(`Starting import for ${importType} with ${fileData.rows.length} records`);
+      console.log("Starting import with", fileData.rows.length, "records");
       
-      // Import the data into Supabase
+      // Transform data using mappings before import
+      const transformedRows = fileData.rows.map(row => {
+        const transformedRow: Record<string, any> = {};
+        mappings.forEach(mapping => {
+          if (mapping.targetField && mapping.targetField !== 'ignore') {
+            transformedRow[mapping.sourceField] = row[mapping.sourceField];
+          }
+        });
+        return transformedRow;
+      });
+
       const result = await importData({
         records: fileData.rows,
         mappings,
@@ -76,186 +72,226 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
         importType
       });
       
-      console.log("Import result:", result);
-      
       if (result.success) {
-        // Save import stats for display
-        const stats = {
+        toast.success(
+          `Import completed successfully! ${result.recordsImported} records imported.`
+        );
+        onComplete({
           recordsImported: result.recordsImported,
-          recordsWithWarnings: result.recordsWithWarnings || 0
-        };
-        
-        setImportStats(stats);
-        
-        // Show success toast
-        toast.success(`Successfully imported ${result.recordsImported} ${importType === 'vendor' ? 'vendors' : 'records'}`);
-        
-        // Slight delay before showing success state
-        setTimeout(() => {
-          onComplete(stats);
-        }, 500);
+          recordsWithWarnings: result.recordsWithWarnings
+        });
       } else {
-        toast.error(result.errorMessage || "Error importing data");
-        setImporting(false);
+        toast.error(`Import failed: ${result.errorMessage || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error("Import error:", error);
-      toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
-      setImporting(false);
+      console.error('Import error:', error);
+      toast.error(`Import error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!validationResults) {
-    return (
-      <div className="text-center py-8">
-        <AlertCircle className="mx-auto h-12 w-12 text-orange-500 mb-4" />
-        <h3 className="text-lg font-medium">No Validation Results</h3>
-        <p className="text-sm text-muted-foreground mt-2 mb-4">
-          Please complete the mapping step first.
-        </p>
-        <Button onClick={() => onStepChange('mapping')}>Return to Mapping</Button>
-      </div>
-    );
+    return <div>No validation results available</div>;
   }
 
+  const validPercentage = 
+    validationResults.total > 0 ? 
+    (validationResults.valid / validationResults.total) * 100 : 0;
+  
+  const warningPercentage = 
+    validationResults.total > 0 ? 
+    (validationResults.warnings / validationResults.total) * 100 : 0;
+  
+  const errorPercentage = 
+    validationResults.total > 0 ? 
+    (validationResults.errors / validationResults.total) * 100 : 0;
+
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Validation Results</h3>
-      <p className="text-sm text-muted-foreground mb-4">
-        Check your data for errors before finalizing
-      </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Total Records</span>
-            <span className="bg-primary/10 text-primary font-medium py-1 px-3 rounded-full">
-              {validationResults.total}
-            </span>
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full">
-            <div 
-              className="h-2 bg-primary rounded-full" 
-              style={{ width: '100%' }}
-            ></div>
-          </div>
-        </div>
-        
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Valid Records</span>
-            <span className="bg-green-100 text-green-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {validationResults.valid}
-            </span>
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full">
-            <div 
-              className="h-2 bg-green-500 rounded-full" 
-              style={{ width: `${(validationResults.valid / validationResults.total) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Records with Warnings</span>
-            <span className="bg-amber-100 text-amber-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              {validationResults.warnings}
-            </span>
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full">
-            <div 
-              className="h-2 bg-amber-500 rounded-full" 
-              style={{ width: `${(validationResults.warnings / validationResults.total) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-        
-        <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Records with Errors</span>
-            <span className="bg-red-100 text-red-800 font-medium py-1 px-3 rounded-full flex items-center gap-1">
-              <XCircle className="h-3.5 w-3.5" />
-              {validationResults.errors}
-            </span>
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full">
-            <div 
-              className="h-2 bg-red-500 rounded-full" 
-              style={{ width: `${(validationResults.errors / validationResults.total) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-      
-      {validationResults.warnings > 0 && (
-        <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-sm mb-4">
-          <h4 className="font-medium text-amber-800 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Warning Details
-          </h4>
-          <ul className="mt-2 space-y-1 text-sm">
-            {validationResults.warnings > 0 && (
-              <li>Some email addresses may be invalid (missing @ symbol)</li>
-            )}
-            {fileData && mappings.find(m => m.targetField === 'phone') && (
-              <li>Some phone numbers may be in an incorrect format</li>
-            )}
-          </ul>
-        </div>
-      )}
-      
-      {validationResults.errors > 0 && (
-        <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded-sm mb-4">
-          <h4 className="font-medium text-red-800 flex items-center gap-2">
-            <XCircle className="h-4 w-4" />
-            Error Details
-          </h4>
-          <ul className="mt-2 space-y-1 text-sm">
-            <li>Some records are missing required fields (Vendor Name)</li>
-          </ul>
-        </div>
-      )}
-      
-      {importStats && (
-        <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded-sm mb-4">
-          <h4 className="font-medium text-green-800 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            Import Complete
-          </h4>
-          <p className="mt-2 text-sm">
-            Successfully imported {importStats.recordsImported} {importType === 'vendor' ? 'vendors' : 'records'}
-            {importStats.recordsWithWarnings > 0 && ` with ${importStats.recordsWithWarnings} warnings`}.
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>
+          <h3 className="text-lg font-medium">Validation Results</h3>
+          <p className="text-sm text-muted-foreground">
+            Review the data validation results before importing
           </p>
         </div>
+      </div>
+
+      <div className="bg-muted/30 p-4 rounded-md space-y-4">
+        <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Total Records:</span>
+            <span className="font-bold">{validationResults.total}</span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="flex items-center justify-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="font-bold">{validationResults.valid}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Valid</span>
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-500" />
+                <span className="font-bold">{validationResults.warnings}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Warnings</span>
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-center gap-2">
+                <XCircle className="h-5 w-5 text-red-500" />
+                <span className="font-bold">{validationResults.errors}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Errors</span>
+            </div>
+          </div>
+        </div>
+        
+        <Progress className="h-2" value={validPercentage} />
+        
+        <div className="flex gap-2 justify-center text-xs">
+          <div className="flex items-center gap-1">
+            <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+            <span>Valid ({Math.round(validPercentage)}%)</span>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+            <span>Warnings ({Math.round(warningPercentage)}%)</span>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+            <span>Errors ({Math.round(errorPercentage)}%)</span>
+          </div>
+        </div>
+      </div>
+
+      {validationResults.errors > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Validation Issues Found</AlertTitle>
+          <AlertDescription>
+            {validationResults.errors} records have errors that will prevent importing.
+            Please go back to check your mappings or fix the source data.
+          </AlertDescription>
+        </Alert>
       )}
       
-      <div className="flex justify-end space-x-2 mt-6">
-        <Button variant="outline" onClick={() => onStepChange('mapping')} disabled={importing}>
-          Back to Mapping
-        </Button>
-        <Button 
-          onClick={handleFinalize} 
-          disabled={validationResults.errors > 0 || importing || importStats !== null}
-          variant={validationResults.errors > 0 ? "outline" : "default"}
+      {validationResults.errors === 0 && validationResults.warnings > 0 && (
+        <Alert variant="warning">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Minor Issues Found</AlertTitle>
+          <AlertDescription>
+            {validationResults.warnings} records have warnings but can still be imported.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {validationResults.errors === 0 && validationResults.warnings === 0 && (
+        <Alert variant="default" className="border-green-500 bg-green-50 text-green-800">
+          <CheckCircle className="h-4 w-4" />
+          <AlertTitle>Data Looks Good</AlertTitle>
+          <AlertDescription>
+            All {validationResults.valid} records are valid and ready to import.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="summary">Summary</TabsTrigger>
+          <TabsTrigger value="data">Data Preview</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="summary" className="space-y-4 pt-4">
+          <div className="border rounded-lg p-4 bg-background">
+            <h4 className="font-medium mb-2">Import Information</h4>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2">
+                <span className="font-medium">Import Type:</span>
+                <span className="capitalize">{importType}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="font-medium">Mapped Fields:</span>
+                <span>{mappings.filter(m => m.targetField !== 'ignore').length}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="font-medium">Valid Records:</span>
+                <span>{validationResults.valid + validationResults.warnings}</span>
+              </li>
+            </ul>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="data" className="space-y-4 pt-4">
+          <div className="border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    {mappings
+                      .filter(mapping => mapping.targetField !== 'ignore')
+                      .map((mapping, index) => (
+                        <th 
+                          key={index}
+                          className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                        >
+                          {mapping.targetField}
+                        </th>
+                      ))
+                    }
+                  </tr>
+                </thead>
+                <tbody className="bg-background divide-y divide-border">
+                  {fileData && fileData.rows.slice(0, 5).map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {mappings
+                        .filter(mapping => mapping.targetField !== 'ignore')
+                        .map((mapping, cellIndex) => (
+                          <td 
+                            key={cellIndex}
+                            className="px-4 py-2 text-sm"
+                          >
+                            {String(row[mapping.sourceField] || '')}
+                          </td>
+                        ))
+                      }
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {fileData && fileData.rows.length > 5 && (
+              <div className="p-2 text-center text-sm text-muted-foreground">
+                Showing 5 of {fileData.rows.length} records
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      <div className="flex justify-end space-x-2">
+        <Button
+          variant="outline"
+          onClick={() => onStepChange('mapping')}
+          disabled={loading}
+          type="button"
         >
-          {importing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span>Processing...</span>
-            </>
-          ) : importStats ? (
-            <>
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              <span>Import Complete</span>
-            </>
-          ) : (
-            validationResults.errors > 0 ? "Cannot Import with Errors" : "Finalize Import"
-          )}
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Mapping
+        </Button>
+        
+        <Button
+          onClick={handleImport}
+          disabled={loading || validationResults.errors > 0}
+          type="button"
+        >
+          {loading ? 'Importing...' : 'Import Data'}
         </Button>
       </div>
     </div>

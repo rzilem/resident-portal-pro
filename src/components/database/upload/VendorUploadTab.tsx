@@ -46,7 +46,17 @@ const VendorUploadTab = () => {
     
     // Generate vendor-specific mappings
     const autoMappings = generateAutoMappings(data.headers);
-    setMappings(autoMappings);
+    
+    // Map "Provider Name" to "name" for vendors
+    const updatedMappings = autoMappings.map(mapping => {
+      if (mapping.sourceField === 'Provider Name') {
+        return { ...mapping, targetField: 'name' };
+      }
+      return mapping;
+    });
+    
+    console.log("Generated mappings:", updatedMappings);
+    setMappings(updatedMappings);
     
     // Move to mapping step
     setStep('mapping');
@@ -68,10 +78,25 @@ const VendorUploadTab = () => {
     
     console.log("Proceeding to validation with mappings:", mappings);
     
-    // Validate the data with the mappings
+    // Transform data using mappings before validation
+    const transformedRows = fileData.rows.map(row => {
+      const transformedRow: Record<string, any> = {};
+      
+      mappings.forEach(mapping => {
+        if (mapping.targetField && mapping.targetField !== 'ignore') {
+          transformedRow[mapping.targetField] = row[mapping.sourceField];
+        }
+      });
+      
+      return transformedRow;
+    });
+    
+    console.log("Transformed data sample:", transformedRows.slice(0, 2));
+    
+    // Validate the transformed data
     const validation = validateVendorData(
-      fileData.headers,
-      fileData.rows
+      Object.keys(transformedRows[0] || {}),
+      transformedRows
     );
     
     setValidationResults({

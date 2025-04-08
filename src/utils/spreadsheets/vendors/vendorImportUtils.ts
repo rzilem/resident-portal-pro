@@ -174,7 +174,11 @@ export const validateVendorData = (
   warningCount: number;
   errorCount: number;
 } => {
-  const requiredFields = ['name']; // Removed 'contact_name' from required fields
+  console.log("Running validation with headers:", headers);
+  console.log("Sample data first row:", rows.length > 0 ? rows[0] : "No rows");
+  
+  // No required fields now that we've removed contact_name
+  const requiredFields = ['name']; 
   const emailField = headers.find(h => h === 'email' || h.toLowerCase() === 'email');
   
   const result = {
