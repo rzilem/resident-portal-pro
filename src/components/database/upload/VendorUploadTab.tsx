@@ -6,8 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FileDown, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FileUpload from './FileUpload';
-import { exportToExcel, generateVendorTemplate } from '@/utils/exportToExcel';
 import { Progress } from "@/components/ui/progress";
+import VendorMappingFieldsList from './vendors/VendorMappingFieldsList';
+import { generateAutoMappings } from '@/utils/spreadsheets/mapping/autoMappingGenerator';
+import { validateMappings } from '@/utils/spreadsheets/mapping/validation';
+import { generateVendorTemplate } from '@/utils/exportToExcel';
+import { importData } from '@/utils/spreadsheets/importData';
+import { ColumnMapping } from '@/utils/spreadsheets/mapping/types';
 
 interface ValidationResult {
   total: number;
@@ -24,6 +29,7 @@ const VendorUploadTab = () => {
     rows: Record<string, any>[];
     fileName: string;
   } | null>(null);
+  const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [validationResults, setValidationResults] = useState<ValidationResult | null>(null);
   const [importProgress, setImportProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
@@ -41,58 +47,57 @@ const VendorUploadTab = () => {
     
     setFileData(data);
     
-    // Automatically validate the data
-    validateVendorData(data);
+    // Generate auto mappings
+    const autoMappings = generateAutoMappings(data.headers);
+    setMappings(autoMappings);
+    
+    // Move to mapping step
+    setStep('mapping');
   };
 
-  const validateVendorData = (data: {
-    headers: string[];
-    rows: Record<string, any>[];
-  }) => {
-    // Check for required fields
-    const requiredFields = ['Provider Name', 'Contact', 'Phone', 'eMail', 'Provider Type'];
-    const missingFields = requiredFields.filter(field => 
-      !data.headers.some(header => header === field || header.toLowerCase() === field.toLowerCase())
-    );
+  const handleUpdateMapping = (index: number, targetField: string) => {
+    const updatedMappings = [...mappings];
+    updatedMappings[index].targetField = targetField;
+    setMappings(updatedMappings);
+  };
+
+  const validateVendorData = () => {
+    if (!fileData) return;
     
-    if (missingFields.length > 0) {
-      toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+    // Validate mappings
+    const validationResult = validateMappings(mappings, 'vendor');
+    
+    if (!validationResult.isValid) {
+      toast.error(validationResult.message);
       return;
     }
     
-    // Validate each row
+    // Count warnings and errors in the data
     let valid = 0;
     let warnings = 0;
     let errors = 0;
     
-    const validatedRecords = data.rows.map(row => {
+    const validatedRecords = fileData.rows.map(row => {
       let hasError = false;
       let hasWarning = false;
       
-      // Check required fields in each row
-      for (const field of requiredFields) {
-        const fieldKey = data.headers.find(
-          h => h === field || h.toLowerCase() === field.toLowerCase()
-        );
-        
-        if (fieldKey && (!row[fieldKey] || row[fieldKey].toString().trim() === '')) {
-          hasError = true;
-          row._errors = row._errors || {};
-          row._errors[fieldKey] = 'Required field is missing';
-        }
+      // Check required fields
+      const nameField = mappings.find(m => m.targetField === 'name')?.sourceField;
+      
+      if (nameField && (!row[nameField] || row[nameField].toString().trim() === '')) {
+        hasError = true;
+        row._errors = { name: 'Vendor name is required' };
       }
       
       // Email validation
-      const emailField = data.headers.find(
-        h => h === 'eMail' || h.toLowerCase() === 'email'
-      );
+      const emailField = mappings.find(m => m.targetField === 'email')?.sourceField;
       
       if (emailField && row[emailField]) {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(row[emailField])) {
           hasWarning = true;
           row._warnings = row._warnings || {};
-          row._warnings[emailField] = 'Invalid email format';
+          row._warnings.email = 'Invalid email format';
         }
       }
       
@@ -104,7 +109,7 @@ const VendorUploadTab = () => {
     });
     
     setValidationResults({
-      total: data.rows.length,
+      total: fileData.rows.length,
       valid,
       warnings,
       errors,
@@ -118,21 +123,32 @@ const VendorUploadTab = () => {
     if (!validationResults || !fileData) return;
     
     setIsImporting(true);
+    setImportProgress(10);
     
     try {
-      // Simulate import process with progress updates
-      for (let i = 0; i <= 100; i += 10) {
-        setImportProgress(i);
-        // Wait for 200ms to simulate processing time
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
+      // Import data to Supabase
+      setImportProgress(30);
       
-      toast.success(`Successfully imported ${validationResults.valid} vendors`);
-      setStep('success');
+      const result = await importData({
+        records: validationResults.records,
+        mappings,
+        fileName: fileData.fileName,
+        importType: 'vendor'
+      });
+      
+      setImportProgress(90);
+      
+      if (result.success) {
+        toast.success(`Successfully imported ${result.recordsImported} vendors`);
+        setStep('success');
+      } else {
+        toast.error(result.errorMessage || 'Error importing vendors');
+      }
     } catch (error) {
       console.error('Import error:', error);
       toast.error('Error importing vendors');
     } finally {
+      setImportProgress(100);
       setIsImporting(false);
     }
   };
@@ -147,6 +163,36 @@ const VendorUploadTab = () => {
     setFileData(null);
     setValidationResults(null);
     setImportProgress(0);
+    setMappings([]);
+  };
+
+  const renderMappingStep = () => {
+    if (!fileData) return null;
+    
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Map Vendor Fields</h3>
+        <p className="text-sm text-muted-foreground">
+          Match your spreadsheet columns to vendor fields
+        </p>
+        
+        <VendorMappingFieldsList 
+          mappings={mappings}
+          fileData={fileData}
+          onUpdateMapping={handleUpdateMapping}
+        />
+        
+        <div className="flex justify-between pt-4">
+          <Button variant="outline" onClick={handleReset}>
+            Back
+          </Button>
+          
+          <Button onClick={validateVendorData}>
+            Continue to Validation
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   const renderValidationResults = () => {
@@ -193,8 +239,8 @@ const VendorUploadTab = () => {
         )}
         
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={handleReset}>
-            Cancel
+          <Button variant="outline" onClick={() => setStep('mapping')}>
+            Back to Mapping
           </Button>
           
           <div className="space-x-2">
@@ -281,6 +327,8 @@ const VendorUploadTab = () => {
           onStepChange={setStep}
         />
       )}
+      
+      {step === 'mapping' && renderMappingStep()}
       
       {step === 'validation' && renderValidationResults()}
       

@@ -1,59 +1,100 @@
 
 import { ColumnMapping } from './types';
+import { findBestFieldMatch } from './fieldMatchers';
 
 /**
- * Generate automatic mappings based on spreadsheet headers
+ * Get vendor field target options
+ */
+export const getVendorFieldOptions = (): string[] => {
+  return [
+    'name',
+    'contact_name',
+    'email',
+    'phone',
+    'address',
+    'address1',
+    'address2',
+    'city',
+    'state',
+    'zip',
+    'category',
+    'status',
+    'payment_terms',
+    'payment_method',
+    'tax_id',
+    'notes',
+    'provider_type',
+    'is_preferred',
+    'is_1099'
+  ];
+};
+
+/**
+ * Generate automatic mappings for vendors
  */
 export const generateAutoMappings = (headers: string[]): ColumnMapping[] => {
+  // Get all possible vendor fields
+  const vendorFields = getVendorFieldOptions();
+  
   return headers.map(header => {
-    const lowerHeader = header.toLowerCase();
+    const headerLower = header.toLowerCase();
     let targetField = 'ignore';
     
-    // Association fields
-    if (lowerHeader.includes('association_name') || lowerHeader === 'name') {
-      targetField = 'association_name';
-    } else if (lowerHeader.includes('address')) {
+    // Common vendor field mappings
+    if (headerLower.includes('vendor name') || 
+        headerLower.includes('provider name') || 
+        headerLower === 'name' || 
+        headerLower === 'company name') {
+      targetField = 'name';
+    }
+    else if (headerLower.includes('contact') || headerLower === 'contact name') {
+      targetField = 'contact_name';
+    }
+    else if (headerLower === 'email' || headerLower === 'e-mail' || headerLower === 'email address') {
+      targetField = 'email';
+    }
+    else if (headerLower.includes('phone')) {
+      targetField = 'phone';
+    }
+    else if (headerLower === 'address' || headerLower === 'street address') {
       targetField = 'address';
-    } else if (lowerHeader === 'city') {
+    }
+    else if (headerLower.includes('address1') || headerLower.includes('street')) {
+      targetField = 'address1';
+    }
+    else if (headerLower.includes('address2') || headerLower.includes('suite')) {
+      targetField = 'address2';
+    }
+    else if (headerLower === 'city') {
       targetField = 'city';
     }
-    
-    // Property fields
-    else if (lowerHeader.includes('unit_number') || lowerHeader === 'unit') {
-      targetField = 'unit_number';
-    } else if (lowerHeader.includes('property_address') || lowerHeader === 'property') {
-      targetField = 'property_address';
-    } else if (lowerHeader.includes('bedrooms')) {
-      targetField = 'bedrooms';
-    } else if (lowerHeader.includes('bathrooms')) {
-      targetField = 'bathrooms';
-    } else if (lowerHeader.includes('square_feet') || lowerHeader.includes('sqft')) {
-      targetField = 'square_feet';
-    } else if (lowerHeader.includes('property_type')) {
-      targetField = 'property_type';
+    else if (headerLower === 'state' || headerLower === 'province') {
+      targetField = 'state';
     }
-    
-    // Resident fields
-    else if (lowerHeader.includes('first_name') || lowerHeader.includes('homeowner_first_name')) {
-      targetField = 'first_name';
-    } else if (lowerHeader.includes('last_name') || lowerHeader.includes('homeowner_last_name')) {
-      targetField = 'last_name';
-    } else if (lowerHeader.includes('homeowner_email')) {
-      targetField = 'email';
-    } else if (lowerHeader.includes('resident_type')) {
-      targetField = 'resident_type';
-    } else if (lowerHeader.includes('move_in_date')) {
-      targetField = 'move_in_date';
-    } else if (lowerHeader.includes('move_out_date')) {
-      targetField = 'move_out_date';
-    } else if (lowerHeader.includes('status')) {
+    else if (headerLower === 'zip' || headerLower === 'postal code' || headerLower === 'zip code') {
+      targetField = 'zip';
+    }
+    else if (headerLower.includes('category') || headerLower.includes('type')) {
+      targetField = 'category';
+    }
+    else if (headerLower.includes('status')) {
       targetField = 'status';
-    } else if (lowerHeader.includes('balance')) {
-      targetField = 'balance';
-    } else if (lowerHeader.includes('mailing_address')) {
-      targetField = 'mailing_address';
-    } else if (lowerHeader.includes('payment_preference')) {
-      targetField = 'payment_preference';
+    }
+    else if (headerLower.includes('payment terms')) {
+      targetField = 'payment_terms';
+    }
+    else if (headerLower.includes('payment method')) {
+      targetField = 'payment_method';
+    }
+    else if (headerLower.includes('tax') || headerLower === 'ein' || headerLower === 'ssn') {
+      targetField = 'tax_id';
+    }
+    else if (headerLower.includes('notes') || headerLower.includes('comments')) {
+      targetField = 'notes';
+    }
+    else {
+      // Use field matcher for anything else
+      targetField = findBestFieldMatch(header, vendorFields);
     }
     
     return {

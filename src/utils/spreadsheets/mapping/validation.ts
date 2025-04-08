@@ -1,38 +1,43 @@
 
 import { ColumnMapping, ValidationResult } from './types';
-import { findMissingRequiredFields } from './fieldMatchers';
 
 /**
  * Validate column mappings
  */
 export const validateMappings = (mappings: ColumnMapping[], importType: string): ValidationResult => {
   const errors: string[] = [];
+  
+  // Define required fields based on import type
   const requiredFields: Record<string, string[]> = {
+    vendor: ['name'],
     association: ['association_name', 'city', 'state'],
     property: ['property_address', 'association_name'],
     resident: ['first_name', 'last_name', 'email']
   };
   
   const requiredForType = requiredFields[importType] || [];
-  const missingFields = findMissingRequiredFields(mappings, requiredForType);
+  const mappedFields = mappings.map(m => m.targetField);
   
   // Check if all required fields are mapped
-  missingFields.forEach(field => {
-    errors.push(`Required field "${field}" is not mapped.`);
+  requiredForType.forEach(field => {
+    if (!mappedFields.includes(field)) {
+      errors.push(`Required field "${field}" is not mapped.`);
+    }
   });
   
-  // Create mock validation results for demonstration
-  const mockValidationResults = {
-    total: mappings.length,
-    valid: mappings.length - errors.length,
-    warnings: Math.floor(mappings.length * 0.1), // 10% have warnings
-    errors: errors.length
-  };
+  // Generate validation results
+  const totalFields = mappings.length;
+  const validFields = mappings.filter(m => m.targetField && m.targetField !== 'ignore').length;
   
   return {
     isValid: errors.length === 0,
     errors,
     message: errors.length > 0 ? `${errors.length} errors found` : "Validation successful",
-    validationResults: mockValidationResults
+    validationResults: {
+      total: totalFields,
+      valid: validFields,
+      warnings: 0,
+      errors: errors.length
+    }
   };
 };

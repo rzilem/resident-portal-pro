@@ -8,10 +8,13 @@ import { Vendor } from '@/types/vendor';
  */
 export const vendorFieldMappings: Record<string, string> = {
   'Provider Name': 'name',
+  'Vendor Name': 'name',
   'DBA': 'dba',
   'Check Name': 'check_name',
   'Contact': 'contact_name',
+  'Contact Name': 'contact_name',
   'Phone': 'phone',
+  'Email': 'email',
   'eMail': 'email',
   'Provider Type': 'provider_type',
   'Default Payment Method': 'default_payment_method',
@@ -25,14 +28,20 @@ export const vendorFieldMappings: Record<string, string> = {
   'Compliance Status': 'compliance_status',
   'Compliance Group': 'compliance_group',
   'Street No': 'street_no',
+  'Address': 'address',
   'Address1': 'address1',
   'Address2': 'address2',
   'City': 'city',
   'State': 'state',
   'Zip': 'zip',
+  'ZIP': 'zip',
   'TaxID': 'tax_id',
+  'Tax ID': 'tax_id',
   'Service Provider ID': 'old_provider_id',
   'Notes': 'notes',
+  'Category': 'category',
+  'Status': 'status',
+  'Rating': 'rating',
 };
 
 /**
@@ -41,17 +50,11 @@ export const vendorFieldMappings: Record<string, string> = {
 export const processVendorRow = (row: Record<string, any>): Partial<Vendor> => {
   const vendorData: Record<string, any> = {};
 
-  // Map spreadsheet fields to database fields
+  // Map spreadsheet fields to database fields based on target fields (not source fields)
   Object.entries(row).forEach(([key, value]) => {
-    const dbField = vendorFieldMappings[key];
-    if (dbField) {
-      // Handle boolean conversions
-      if (['is_1099', 'is_preferred', 'is_default', 'is_compliant', 'hold_payment'].includes(dbField)) {
-        vendorData[dbField] = 
-          value === 'Yes' || value === 'yes' || value === 'true' || value === 'TRUE' || value === true;
-      } else {
-        vendorData[dbField] = value;
-      }
+    // Only include non-empty values
+    if (value !== undefined && value !== null && value !== '') {
+      vendorData[key] = value;
     }
   });
 
@@ -71,22 +74,28 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
   errorDetails?: any[];
 }> => {
   try {
-    const processedVendors: Partial<Vendor>[] = records.map(processVendorRow);
+    // Filter out records without a name
+    const validRecords = records.filter(record => record.name);
+    
+    if (validRecords.length === 0) {
+      return {
+        success: false,
+        imported: 0,
+        errors: 1,
+        errorDetails: ["No valid vendor records found. Each vendor must have a name."]
+      };
+    }
+    
     const errors: any[] = [];
     let imported = 0;
 
     // Insert vendors in batches of 10
-    for (let i = 0; i < processedVendors.length; i += 10) {
-      const batch = processedVendors.slice(i, i + 10);
-      
-      // Filter out vendors with no name
-      const validBatch = batch.filter(vendor => vendor.name);
-      
-      if (validBatch.length === 0) continue;
+    for (let i = 0; i < validRecords.length; i += 10) {
+      const batch = validRecords.slice(i, i + 10);
       
       const { data, error } = await supabase
         .from('vendors')
-        .upsert(validBatch, { 
+        .upsert(batch, { 
           onConflict: 'name',
           ignoreDuplicates: false
         });
@@ -95,7 +104,7 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
         console.error('Error importing vendors batch:', error);
         errors.push(error);
       } else {
-        imported += validBatch.length;
+        imported += batch.length;
       }
     }
 
@@ -129,8 +138,8 @@ export const validateVendorData = (
   warningCount: number;
   errorCount: number;
 } => {
-  const requiredFields = ['Provider Name', 'Contact', 'Phone'];
-  const emailField = headers.find(h => h === 'eMail' || h.toLowerCase() === 'email');
+  const requiredFields = ['name', 'contact_name'];
+  const emailField = headers.find(h => h === 'email' || h.toLowerCase() === 'email');
   
   const result = {
     valid: [] as Record<string, any>[],
@@ -148,8 +157,7 @@ export const validateVendorData = (
     
     // Check required fields
     for (const field of requiredFields) {
-      const value = row[field];
-      if (!value || value.toString().trim() === '') {
+      if (!row[field] || row[field].toString().trim() === '') {
         isValid = false;
         errors[field] = 'Required field is missing';
       }

@@ -2,30 +2,48 @@
 import { ColumnMapping } from './types';
 
 /**
- * Find the best match between source fields and target fields
+ * Find best match for a field in target fields
  */
 export const findBestFieldMatch = (sourceField: string, targetFields: string[]): string => {
-  const lowerSource = sourceField.toLowerCase();
+  const lowerSourceField = sourceField.toLowerCase();
   
-  // Exact match
-  const exactMatch = targetFields.find(tf => tf.toLowerCase() === lowerSource);
-  if (exactMatch) return exactMatch;
+  // Direct matches
+  const directMatch = targetFields.find(
+    field => field.toLowerCase() === lowerSourceField
+  );
   
-  // Contains match
-  const containsMatch = targetFields.find(tf => lowerSource.includes(tf.toLowerCase()));
-  if (containsMatch) return containsMatch;
+  if (directMatch) return directMatch;
   
-  // Default
+  // Partial matches (source contains target or target contains source)
+  for (const targetField of targetFields) {
+    if (lowerSourceField.includes(targetField.toLowerCase()) || 
+        targetField.toLowerCase().includes(lowerSourceField)) {
+      return targetField;
+    }
+  }
+  
+  // Word similarity matches
+  const sourceWords = lowerSourceField.split(/[_\s-]+/);
+  
+  for (const targetField of targetFields) {
+    const targetWords = targetField.toLowerCase().split(/[_\s-]+/);
+    const hasCommonWords = sourceWords.some(word => 
+      targetWords.some(targetWord => targetWord.includes(word) || word.includes(targetWord))
+    );
+    
+    if (hasCommonWords) return targetField;
+  }
+  
   return 'ignore';
 };
 
 /**
- * Find required fields that are missing from the mappings
+ * Find missing required fields
  */
 export const findMissingRequiredFields = (
   mappings: ColumnMapping[], 
   requiredFields: string[]
 ): string[] => {
   const mappedFields = mappings.map(m => m.targetField);
-  return requiredFields.filter(f => !mappedFields.includes(f));
+  return requiredFields.filter(field => !mappedFields.includes(field));
 };
