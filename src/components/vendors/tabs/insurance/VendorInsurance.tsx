@@ -41,7 +41,7 @@ const VendorInsurance: React.FC<VendorInsuranceProps> = ({ vendor }) => {
       
       <InsuranceDocumentUploader 
         vendor={vendor}
-        onUploadComplete={handleDocumentsRefresh}
+        onDocumentUploaded={handleDocumentsRefresh}
       />
     </div>
   );
