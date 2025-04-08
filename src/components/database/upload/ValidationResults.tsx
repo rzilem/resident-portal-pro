@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
@@ -214,7 +213,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
             Error Details
           </h4>
           <ul className="mt-2 space-y-1 text-sm">
-            <li>Some records are missing required fields (Vendor Name or Contact Name)</li>
+            <li>Some records are missing required fields (Vendor Name)</li>
           </ul>
         </div>
       )}

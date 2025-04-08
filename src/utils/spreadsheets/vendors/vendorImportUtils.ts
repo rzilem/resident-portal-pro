@@ -169,7 +169,7 @@ export const validateVendorData = (
   warningCount: number;
   errorCount: number;
 } => {
-  const requiredFields = ['name', 'contact_name'];
+  const requiredFields = ['name']; // Removed 'contact_name' from required fields
   const emailField = headers.find(h => h === 'email' || h.toLowerCase() === 'email');
   
   const result = {
