@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Vendor } from '@/types/vendor';
@@ -23,7 +24,7 @@ interface InsuranceDocument {
   document_type: string;
   file_path: string;
   uploaded_at: string;
-  expiration_date: string;
+  expiration_date: string | null;
   url?: string;
 }
 
@@ -48,7 +49,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
       // Generate URLs for documents
       const docsWithUrls = await Promise.all(data.map(async (doc) => {
         const { data: urlData } = supabase.storage
-          .from('documents') // Changed from 'vendor_documents' to 'documents'
+          .from('documents')
           .getPublicUrl(doc.file_path);
         
         return {
@@ -160,10 +161,13 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
           <PolicyInfoCard insurance={insurance} />
           <CoverageDetailsCard insurance={insurance} />
           <AgentInfoCard insurance={insurance} />
-          <DocumentsCard documents={[
-            ...formatDocumentsForDisplay(),
-            ...(insurance.documents || [])
-          ]} />
+          <DocumentsCard 
+            documents={[
+              ...formatDocumentsForDisplay(),
+              ...(insurance.documents || [])
+            ]} 
+            isLoading={isLoading}
+          />
         </div>
       </CardContent>
     </>

@@ -1868,6 +1868,53 @@ export type Database = {
           },
         ]
       }
+      vendor_insurance_documents: {
+        Row: {
+          document_name: string
+          document_type: string | null
+          expiration_date: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_verified: boolean | null
+          uploaded_at: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          document_name: string
+          document_type?: string | null
+          expiration_date?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_verified?: boolean | null
+          uploaded_at?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          document_name?: string
+          document_type?: string | null
+          expiration_date?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_verified?: boolean | null
+          uploaded_at?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_insurance_documents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_notes: {
         Row: {
           content: string

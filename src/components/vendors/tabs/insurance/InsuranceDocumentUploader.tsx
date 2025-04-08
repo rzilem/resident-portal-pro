@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client"; // Updated import path
+import { supabase } from "@/integrations/supabase/client";
 import { Vendor } from '@/types/vendor';
 
 interface InsuranceDocumentUploaderProps {
@@ -65,7 +65,7 @@ const InsuranceDocumentUploader: React.FC<InsuranceDocumentUploaderProps> = ({
     setIsUploading(true);
     
     try {
-      // 1. Upload file to Supabase storage using the documents bucket
+      // 1. Upload file to Supabase storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `vendors/${vendor.id}/${fileName}`;
@@ -78,12 +78,7 @@ const InsuranceDocumentUploader: React.FC<InsuranceDocumentUploaderProps> = ({
         throw uploadError;
       }
       
-      // 2. Get the public URL
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-      
-      // 3. Save document metadata to database
+      // 2. Save document metadata to database using our new table
       const { error: metadataError } = await supabase
         .from('vendor_insurance_documents')
         .insert({
@@ -101,8 +96,13 @@ const InsuranceDocumentUploader: React.FC<InsuranceDocumentUploaderProps> = ({
         throw metadataError;
       }
       
-      // 4. Update vendor insurance information if needed
+      // 3. Update vendor insurance information if needed
       if (documentType === 'insurance_certificate' && vendor.insurance) {
+        // Get the URL for the document
+        const { data: urlData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(filePath);
+        
         const { error: vendorUpdateError } = await supabase
           .from('vendors')
           .update({
