@@ -20,12 +20,24 @@ const VendorCardList = ({ vendors, columns }: VendorCardListProps) => {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'MMM d, yyyy');
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (e) {
+      return 'Invalid date';
+    }
   };
 
   const handleCardClick = (vendorId: string) => {
     navigate(`/vendors/${vendorId}`);
   };
+
+  if (vendors.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No vendors found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -39,7 +51,7 @@ const VendorCardList = ({ vendors, columns }: VendorCardListProps) => {
             <div className="flex justify-between items-start mb-2">
               <div>
                 <h3 className="font-medium">{vendor.name}</h3>
-                <p className="text-sm text-muted-foreground">{vendor.contactName}</p>
+                {vendor.contactName && <p className="text-sm text-muted-foreground">{vendor.contactName}</p>}
               </div>
               <Badge variant={vendor.status === 'active' ? 'default' : 'secondary'}>
                 {vendor.status === 'active' ? 'Active' : 'Inactive'}
@@ -47,28 +59,28 @@ const VendorCardList = ({ vendors, columns }: VendorCardListProps) => {
             </div>
             
             <div className="space-y-1 mb-2">
-              {visibleColumns.includes(columns.find(c => c.id === 'email')!) && (
+              {visibleColumns.includes(columns.find(c => c.id === 'email')!) && vendor.email && (
                 <div className="flex items-center text-sm">
                   <Mail className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                   <span>{vendor.email}</span>
                 </div>
               )}
               
-              {visibleColumns.includes(columns.find(c => c.id === 'phone')!) && (
+              {visibleColumns.includes(columns.find(c => c.id === 'phone')!) && vendor.phone && (
                 <div className="flex items-center text-sm">
                   <Phone className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                   <span>{vendor.phone}</span>
                 </div>
               )}
               
-              {visibleColumns.includes(columns.find(c => c.id === 'category')!) && (
+              {visibleColumns.includes(columns.find(c => c.id === 'category')!) && vendor.category && (
                 <div className="flex items-center text-sm">
                   <Building2 className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                   <span>{vendor.category}</span>
                 </div>
               )}
               
-              {visibleColumns.includes(columns.find(c => c.id === 'lastInvoiceDate')!) && (
+              {visibleColumns.includes(columns.find(c => c.id === 'lastInvoiceDate')!) && vendor.lastInvoiceDate && (
                 <div className="flex items-center text-sm">
                   <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                   <span>Last Invoice: {formatDate(vendor.lastInvoiceDate)}</span>

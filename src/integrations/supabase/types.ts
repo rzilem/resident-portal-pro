@@ -1815,6 +1815,59 @@ export type Database = {
           },
         ]
       }
+      vendor_insurance: {
+        Row: {
+          agent_email: string | null
+          agent_name: string | null
+          agent_phone: string | null
+          coverage_amount: number | null
+          coverage_type: string | null
+          created_at: string | null
+          expiration_date: string | null
+          id: string
+          policy_number: string | null
+          provider: string | null
+          updated_at: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          agent_email?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          coverage_amount?: number | null
+          coverage_type?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          policy_number?: string | null
+          provider?: string | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          agent_email?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          coverage_amount?: number | null
+          coverage_type?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          policy_number?: string | null
+          provider?: string | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_insurance_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_notes: {
         Row: {
           content: string
@@ -1878,6 +1931,60 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vendor_services_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_tags: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          label: string
+          type: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          label: string
+          type: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          label?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      vendor_to_tags: {
+        Row: {
+          tag_id: string
+          vendor_id: string
+        }
+        Insert: {
+          tag_id: string
+          vendor_id: string
+        }
+        Update: {
+          tag_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_to_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_to_tags_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"

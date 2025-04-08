@@ -19,7 +19,11 @@ const VendorTable = ({ vendors, columns }: VendorTableProps) => {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'MMM d, yyyy');
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (e) {
+      return 'Invalid date';
+    }
   };
 
   const handleRowClick = (vendorId: string) => {
@@ -36,32 +40,40 @@ const VendorTable = ({ vendors, columns }: VendorTableProps) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {vendors.map((vendor) => (
-          <TableRow 
-            key={vendor.id}
-            onClick={() => handleRowClick(vendor.id)}
-            className="cursor-pointer hover:bg-muted/50"
-          >
-            {visibleColumns.map((column) => (
-              <TableCell key={`${vendor.id}-${column.id}`}>
-                {column.id === 'name' && vendor.name}
-                {column.id === 'contactName' && vendor.contactName}
-                {column.id === 'email' && vendor.email}
-                {column.id === 'phone' && vendor.phone}
-                {column.id === 'category' && vendor.category}
-                {column.id === 'status' && (
-                  <Badge variant={vendor.status === 'active' ? 'default' : 'secondary'}>
-                    {vendor.status === 'active' ? 'Active' : 'Inactive'}
-                  </Badge>
-                )}
-                {column.id === 'paymentTerms' && vendor.paymentTerms}
-                {column.id === 'paymentMethod' && vendor.paymentMethod}
-                {column.id === 'lastInvoiceDate' && formatDate(vendor.lastInvoiceDate)}
-                {column.id === 'rating' && <VendorRating rating={vendor.rating || 0} />}
-              </TableCell>
-            ))}
+        {vendors.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={visibleColumns.length} className="text-center h-24">
+              No vendors found
+            </TableCell>
           </TableRow>
-        ))}
+        ) : (
+          vendors.map((vendor) => (
+            <TableRow 
+              key={vendor.id}
+              onClick={() => handleRowClick(vendor.id)}
+              className="cursor-pointer hover:bg-muted/50"
+            >
+              {visibleColumns.map((column) => (
+                <TableCell key={`${vendor.id}-${column.id}`}>
+                  {column.id === 'name' && vendor.name}
+                  {column.id === 'contactName' && (vendor.contactName || '-')}
+                  {column.id === 'email' && (vendor.email || '-')}
+                  {column.id === 'phone' && (vendor.phone || '-')}
+                  {column.id === 'category' && (vendor.category || '-')}
+                  {column.id === 'status' && (
+                    <Badge variant={vendor.status === 'active' ? 'default' : 'secondary'}>
+                      {vendor.status === 'active' ? 'Active' : 'Inactive'}
+                    </Badge>
+                  )}
+                  {column.id === 'paymentTerms' && (vendor.paymentTerms || '-')}
+                  {column.id === 'paymentMethod' && (vendor.paymentMethod || '-')}
+                  {column.id === 'lastInvoiceDate' && formatDate(vendor.lastInvoiceDate)}
+                  {column.id === 'rating' && <VendorRating rating={vendor.rating || 0} />}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   );

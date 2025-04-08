@@ -1,98 +1,110 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Truck, Box, FileCheck, AlertTriangle, Building2, Shield } from "lucide-react";
 import { Vendor } from '@/types/vendor';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color?: string;
+}
+
+const StatCard = ({ title, value, icon, color = "bg-primary/10" }: StatCardProps) => (
+  <Card>
+    <CardContent className="p-4 flex items-center">
+      <div className={`${color} p-2 rounded-lg mr-4`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-muted-foreground">{title}</p>
+        <h3 className="text-2xl font-medium">{value}</h3>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 interface VendorStatsProps {
   vendors: Vendor[];
+  isLoading?: boolean;
 }
 
-const VendorStats: React.FC<VendorStatsProps> = ({ vendors }) => {
-  const totalVendors = vendors.length;
+const VendorStats: React.FC<VendorStatsProps> = ({ vendors, isLoading = false }) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-4">
+              <Skeleton className="h-8 w-8 mb-2 rounded" />
+              <Skeleton className="h-4 w-20 mb-2" />
+              <Skeleton className="h-6 w-12" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   const activeVendors = vendors.filter(v => v.status === 'active').length;
-  const inactiveVendors = totalVendors - activeVendors;
+  const inactiveVendors = vendors.filter(v => v.status === 'inactive').length;
   
-  // Calculate percentage of active vendors
-  const activePercentage = totalVendors > 0 ? (activeVendors / totalVendors) * 100 : 0;
-  
-  // Group vendors by category
-  const categoryCounts = vendors.reduce((acc, vendor) => {
-    acc[vendor.category] = (acc[vendor.category] || 0) + 1;
+  const categories = vendors.reduce((acc, vendor) => {
+    if (vendor.category) {
+      acc[vendor.category] = (acc[vendor.category] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
-  
-  // Find the most common category
-  let topCategory = { name: 'None', count: 0 };
-  Object.entries(categoryCounts).forEach(([category, count]) => {
-    if (count > topCategory.count) {
-      topCategory = { name: category, count };
-    }
-  });
 
+  const topCategory = Object.entries(categories).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None';
+  
+  // Calculate vendors with insurance expiring soon (within 30 days)
+  const vendorsWithInsurance = vendors.filter(v => v.insurance && v.insurance.expirationDate).length;
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Vendors</p>
-              <h3 className="text-2xl font-bold mt-1">{totalVendors}</h3>
-            </div>
-            <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <StatCard 
+        title="Total Vendors" 
+        value={vendors.length} 
+        icon={<Truck className="text-primary h-5 w-5" />} 
+      />
       
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Active Vendors</p>
-              <h3 className="text-2xl font-bold mt-1">{activeVendors}</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {activePercentage.toFixed(0)}% of total
-              </p>
-            </div>
-            <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <StatCard 
+        title="Active Vendors" 
+        value={activeVendors} 
+        icon={<Box className="text-green-600 h-5 w-5" />} 
+        color="bg-green-100"
+      />
       
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Inactive Vendors</p>
-              <h3 className="text-2xl font-bold mt-1">{inactiveVendors}</h3>
-            </div>
-            <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center">
-              <AlertCircle className="h-5 w-5 text-amber-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <StatCard 
+        title="Inactive Vendors" 
+        value={inactiveVendors} 
+        icon={<AlertTriangle className="text-yellow-600 h-5 w-5" />} 
+        color="bg-yellow-100"
+      />
       
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Top Category</p>
-              <h3 className="text-2xl font-bold mt-1">{topCategory.name}</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {topCategory.count} vendor{topCategory.count !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <Clock className="h-5 w-5 text-blue-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <StatCard 
+        title="Top Category" 
+        value={topCategory} 
+        icon={<Building2 className="text-blue-600 h-5 w-5" />} 
+        color="bg-blue-100"
+      />
+      
+      <StatCard 
+        title="Service Categories" 
+        value={Object.keys(categories).length} 
+        icon={<FileCheck className="text-indigo-600 h-5 w-5" />} 
+        color="bg-indigo-100"
+      />
+      
+      <StatCard 
+        title="With Insurance" 
+        value={vendorsWithInsurance} 
+        icon={<Shield className="text-purple-600 h-5 w-5" />} 
+        color="bg-purple-100"
+      />
     </div>
   );
 };
