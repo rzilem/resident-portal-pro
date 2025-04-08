@@ -18,6 +18,8 @@ export interface Vendor {
   tags?: VendorTag[];
   lastInvoiceDate?: string;
   insurance?: VendorInsurance;
+  association_id?: string;
+  payment_terms_id?: string;
 }
 
 // Use type from resident.ts with extension
@@ -36,6 +38,7 @@ export interface VendorTag {
 }
 
 export interface VendorInsurance {
+  id?: string;
   policyNumber?: string;
   provider?: string;
   expirationDate?: string;
@@ -51,7 +54,13 @@ export interface VendorInsurance {
     name: string;
     url?: string;
     uploadDate: string;
+    expirationDate?: string;
+    isVerified?: boolean;
   }[];
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
+  verifiedBy?: string;
+  verifiedAt?: string;
+  nextVerificationDate?: string;
 }
 
 export interface VendorInvoice {
@@ -72,4 +81,45 @@ export interface VendorService {
   description?: string;
   rate?: number;
   rateType?: 'hourly' | 'fixed' | 'monthly';
+}
+
+export interface VendorCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface VendorRating {
+  id: string;
+  vendorId: string;
+  rating: number;
+  comment?: string;
+  ratedBy?: string;
+  createdAt: string;
+}
+
+export interface PaymentTerms {
+  id: string;
+  name: string;
+  daysDue: number;
+  description?: string;
+}
+
+export interface InsuranceNotification {
+  id: string;
+  vendorId: string;
+  insuranceId?: string;
+  notificationType: string;
+  scheduledDate: string;
+  sentAt?: string;
+  recipient?: string;
+  status: 'pending' | 'sent' | 'failed';
+}
+
+export interface InsuranceRequirement {
+  id: string;
+  vendorCategoryId: string;
+  minCoverageAmount?: number;
+  requiredCoverageTypes?: string[];
+  description?: string;
 }

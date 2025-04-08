@@ -1207,6 +1207,30 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_terms: {
+        Row: {
+          created_at: string | null
+          days_due: number | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          days_due?: number | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          days_due?: number | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -1768,6 +1792,30 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       vendor_documents: {
         Row: {
           document_type: string | null
@@ -1775,6 +1823,7 @@ export type Database = {
           file_path: string
           file_type: string | null
           id: string
+          is_insurance: boolean | null
           name: string
           size: number | null
           uploaded_at: string | null
@@ -1787,6 +1836,7 @@ export type Database = {
           file_path: string
           file_type?: string | null
           id?: string
+          is_insurance?: boolean | null
           name: string
           size?: number | null
           uploaded_at?: string | null
@@ -1799,6 +1849,7 @@ export type Database = {
           file_path?: string
           file_type?: string | null
           id?: string
+          is_insurance?: boolean | null
           name?: string
           size?: number | null
           uploaded_at?: string | null
@@ -1825,10 +1876,14 @@ export type Database = {
           created_at: string | null
           expiration_date: string | null
           id: string
+          next_verification_date: string | null
           policy_number: string | null
           provider: string | null
           updated_at: string | null
           vendor_id: string | null
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           agent_email?: string | null
@@ -1839,10 +1894,14 @@ export type Database = {
           created_at?: string | null
           expiration_date?: string | null
           id?: string
+          next_verification_date?: string | null
           policy_number?: string | null
           provider?: string | null
           updated_at?: string | null
           vendor_id?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           agent_email?: string | null
@@ -1853,10 +1912,14 @@ export type Database = {
           created_at?: string | null
           expiration_date?: string | null
           id?: string
+          next_verification_date?: string | null
           policy_number?: string | null
           provider?: string | null
           updated_at?: string | null
           vendor_id?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -1915,6 +1978,95 @@ export type Database = {
           },
         ]
       }
+      vendor_insurance_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          insurance_id: string | null
+          notification_type: string
+          recipient: string | null
+          scheduled_date: string
+          sent_at: string | null
+          status: string | null
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          insurance_id?: string | null
+          notification_type: string
+          recipient?: string | null
+          scheduled_date: string
+          sent_at?: string | null
+          status?: string | null
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          insurance_id?: string | null
+          notification_type?: string
+          recipient?: string | null
+          scheduled_date?: string
+          sent_at?: string | null
+          status?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_insurance_notifications_insurance_id_fkey"
+            columns: ["insurance_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_insurance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_insurance_notifications_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_insurance_requirements: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          min_coverage_amount: number | null
+          required_coverage_types: string[] | null
+          updated_at: string | null
+          vendor_category_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          min_coverage_amount?: number | null
+          required_coverage_types?: string[] | null
+          updated_at?: string | null
+          vendor_category_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          min_coverage_amount?: number | null
+          required_coverage_types?: string[] | null
+          updated_at?: string | null
+          vendor_category_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_insurance_requirements_vendor_category_id_fkey"
+            columns: ["vendor_category_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_notes: {
         Row: {
           content: string
@@ -1940,6 +2092,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vendor_notes_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rated_by: string | null
+          rating: number
+          vendor_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rated_by?: string | null
+          rating: number
+          vendor_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rated_by?: string | null
+          rating?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_ratings_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
@@ -2043,6 +2230,7 @@ export type Database = {
         Row: {
           address1: string | null
           address2: string | null
+          association_id: string | null
           check_name: string | null
           city: string | null
           compliance_group: string | null
@@ -2063,6 +2251,7 @@ export type Database = {
           name: string
           notes: string | null
           old_provider_id: string | null
+          payment_terms_id: string | null
           phone: string | null
           provider_type: string | null
           report_1099_box: string | null
@@ -2077,6 +2266,7 @@ export type Database = {
         Insert: {
           address1?: string | null
           address2?: string | null
+          association_id?: string | null
           check_name?: string | null
           city?: string | null
           compliance_group?: string | null
@@ -2097,6 +2287,7 @@ export type Database = {
           name: string
           notes?: string | null
           old_provider_id?: string | null
+          payment_terms_id?: string | null
           phone?: string | null
           provider_type?: string | null
           report_1099_box?: string | null
@@ -2111,6 +2302,7 @@ export type Database = {
         Update: {
           address1?: string | null
           address2?: string | null
+          association_id?: string | null
           check_name?: string | null
           city?: string | null
           compliance_group?: string | null
@@ -2131,6 +2323,7 @@ export type Database = {
           name?: string
           notes?: string | null
           old_provider_id?: string | null
+          payment_terms_id?: string | null
           phone?: string | null
           provider_type?: string | null
           report_1099_box?: string | null
@@ -2142,7 +2335,22 @@ export type Database = {
           updated_at?: string | null
           zip?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vendor_association_fk"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payment_terms_fk"
+            columns: ["payment_terms_id"]
+            isOneToOne: false
+            referencedRelation: "payment_terms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       violation_attachments: {
         Row: {

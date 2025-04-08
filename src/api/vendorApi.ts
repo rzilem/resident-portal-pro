@@ -1,6 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Vendor, VendorTag, VendorService, VendorInsurance } from "@/types/vendor";
+import { 
+  Vendor, 
+  VendorTag, 
+  VendorService, 
+  VendorInsurance, 
+  VendorRating,
+  VendorCategory,
+  PaymentTerms,
+  InsuranceNotification,
+  InsuranceRequirement
+} from "@/types/vendor";
 import { toast } from "sonner";
 
 // Get all vendors
@@ -8,14 +18,28 @@ export const getVendors = async (): Promise<Vendor[]> => {
   try {
     const { data, error } = await supabase
       .from("vendors")
-      .select("*")
+      .select("*, vendor_ratings(*)")
       .order("name");
 
     if (error) {
       throw error;
     }
 
-    return data || [];
+    // Calculate average rating for each vendor
+    const vendorsWithRatings = data.map(vendor => {
+      let avgRating = null;
+      if (vendor.vendor_ratings && vendor.vendor_ratings.length > 0) {
+        const sum = vendor.vendor_ratings.reduce((acc: number, curr: any) => acc + curr.rating, 0);
+        avgRating = Math.round((sum / vendor.vendor_ratings.length) * 10) / 10;
+      }
+      
+      return {
+        ...vendor,
+        rating: avgRating,
+      };
+    });
+
+    return vendorsWithRatings || [];
   } catch (error) {
     console.error("Error fetching vendors:", error);
     toast.error("Failed to load vendors");
@@ -28,7 +52,10 @@ export const getVendorById = async (id: string): Promise<Vendor | null> => {
   try {
     const { data, error } = await supabase
       .from("vendors")
-      .select("*")
+      .select(`
+        *,
+        vendor_ratings(*)
+      `)
       .eq("id", id)
       .single();
 
@@ -36,7 +63,20 @@ export const getVendorById = async (id: string): Promise<Vendor | null> => {
       throw error;
     }
 
-    return data;
+    // Calculate average rating
+    let avgRating = null;
+    if (data.vendor_ratings && data.vendor_ratings.length > 0) {
+      const sum = data.vendor_ratings.reduce((acc: number, curr: any) => acc + curr.rating, 0);
+      avgRating = Math.round((sum / data.vendor_ratings.length) * 10) / 10;
+    }
+
+    // Transform vendor data to match our interface
+    const vendor: Vendor = {
+      ...data,
+      rating: avgRating,
+    };
+
+    return vendor;
   } catch (error) {
     console.error(`Error fetching vendor with ID ${id}:`, error);
     toast.error("Failed to load vendor details");
@@ -166,7 +206,18 @@ export const updateVendorInsurance = async (vendorId: string, insurance: Omit<Ve
       // Update existing insurance
       const { error } = await supabase
         .from("vendor_insurance")
-        .update(insurance)
+        .update({
+          policy_number: insurance.policyNumber,
+          provider: insurance.provider,
+          expiration_date: insurance.expirationDate,
+          coverage_amount: insurance.coverageAmount,
+          coverage_type: insurance.coverageType,
+          agent_name: insurance.agent?.name,
+          agent_email: insurance.agent?.email,
+          agent_phone: insurance.agent?.phone,
+          verification_status: insurance.verificationStatus || 'pending',
+          next_verification_date: insurance.nextVerificationDate
+        })
         .eq("vendor_id", vendorId);
 
       if (error) throw error;
@@ -174,7 +225,19 @@ export const updateVendorInsurance = async (vendorId: string, insurance: Omit<Ve
       // Insert new insurance
       const { error } = await supabase
         .from("vendor_insurance")
-        .insert([{ ...insurance, vendor_id: vendorId }]);
+        .insert([{ 
+          vendor_id: vendorId,
+          policy_number: insurance.policyNumber,
+          provider: insurance.provider,
+          expiration_date: insurance.expirationDate,
+          coverage_amount: insurance.coverageAmount,
+          coverage_type: insurance.coverageType,
+          agent_name: insurance.agent?.name,
+          agent_email: insurance.agent?.email,
+          agent_phone: insurance.agent?.phone,
+          verification_status: insurance.verificationStatus || 'pending',
+          next_verification_date: insurance.nextVerificationDate
+        }]);
 
       if (error) throw error;
     }
@@ -201,7 +264,28 @@ export const getVendorInsurance = async (vendorId: string): Promise<VendorInsura
       throw error;
     }
 
-    return data;
+    if (!data) return null;
+
+    // Transform database fields to our interface
+    const insurance: VendorInsurance = {
+      id: data.id,
+      policyNumber: data.policy_number,
+      provider: data.provider,
+      expirationDate: data.expiration_date,
+      coverageAmount: data.coverage_amount,
+      coverageType: data.coverage_type,
+      agent: {
+        name: data.agent_name,
+        email: data.agent_email,
+        phone: data.agent_phone,
+      },
+      verificationStatus: data.verification_status,
+      verifiedBy: data.verified_by,
+      verifiedAt: data.verified_at,
+      nextVerificationDate: data.next_verification_date
+    };
+
+    return insurance;
   } catch (error) {
     console.error(`Error fetching insurance for vendor ${vendorId}:`, error);
     toast.error("Failed to load insurance information");
@@ -209,17 +293,120 @@ export const getVendorInsurance = async (vendorId: string): Promise<VendorInsura
   }
 };
 
+// Get vendor categories
+export const getVendorCategories = async (): Promise<VendorCategory[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("vendor_categories")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching vendor categories:", error);
+    toast.error("Failed to load categories");
+    return [];
+  }
+};
+
+// Get payment terms
+export const getPaymentTerms = async (): Promise<PaymentTerms[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("payment_terms")
+      .select("*")
+      .order("days_due");
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map(term => ({
+      id: term.id,
+      name: term.name,
+      daysDue: term.days_due,
+      description: term.description
+    })) || [];
+  } catch (error) {
+    console.error("Error fetching payment terms:", error);
+    toast.error("Failed to load payment terms");
+    return [];
+  }
+};
+
+// Add or update vendor rating
+export const rateVendor = async (vendorId: string, rating: number, comment?: string): Promise<boolean> => {
+  try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { error } = await supabase
+      .from("vendor_ratings")
+      .insert([{
+        vendor_id: vendorId,
+        rating,
+        comment,
+        rated_by: user.id
+      }]);
+
+    if (error) throw error;
+
+    toast.success("Rating submitted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error rating vendor:", error);
+    toast.error("Failed to submit rating");
+    return false;
+  }
+};
+
+// Get vendor ratings
+export const getVendorRatings = async (vendorId: string): Promise<VendorRating[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("vendor_ratings")
+      .select("*, profiles:rated_by(first_name, last_name)")
+      .eq("vendor_id", vendorId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((rating: any) => ({
+      id: rating.id,
+      vendorId: rating.vendor_id,
+      rating: rating.rating,
+      comment: rating.comment,
+      ratedBy: rating.rated_by,
+      ratedByName: rating.profiles ? `${rating.profiles.first_name} ${rating.profiles.last_name}` : 'Unknown User',
+      createdAt: rating.created_at
+    })) || [];
+  } catch (error) {
+    console.error(`Error fetching ratings for vendor ${vendorId}:`, error);
+    toast.error("Failed to load vendor ratings");
+    return [];
+  }
+};
+
 // Upload vendor document
 export const uploadVendorDocument = async (
   vendorId: string,
   file: File,
-  documentType: string
+  documentType: string,
+  expirationDate?: string,
+  isInsurance: boolean = false
 ): Promise<string | null> => {
   try {
     const filePath = `${vendorId}/${Date.now()}_${file.name}`;
     
     const { error: uploadError } = await supabase.storage
-      .from("vendor_documents")
+      .from("documents")
       .upload(filePath, file);
 
     if (uploadError) {
@@ -227,7 +414,7 @@ export const uploadVendorDocument = async (
     }
 
     const { data: urlData } = supabase.storage
-      .from("vendor_documents")
+      .from("documents")
       .getPublicUrl(filePath);
 
     const url = urlData.publicUrl;
@@ -239,9 +426,12 @@ export const uploadVendorDocument = async (
         {
           vendor_id: vendorId,
           name: file.name,
-          url: url,
+          file_path: filePath,
           document_type: documentType,
-          is_insurance: documentType.toLowerCase().includes('insurance')
+          is_insurance: isInsurance,
+          expiration_date: expirationDate,
+          file_type: file.type,
+          size: file.size
         }
       ]);
 
@@ -270,7 +460,19 @@ export const getVendorDocuments = async (vendorId: string) => {
       throw error;
     }
 
-    return data || [];
+    // Generate URLs for the documents
+    const documentsWithUrls = await Promise.all(data.map(async (doc) => {
+      const { data: urlData } = supabase.storage
+        .from("documents")
+        .getPublicUrl(doc.file_path);
+
+      return {
+        ...doc,
+        url: urlData.publicUrl
+      };
+    }));
+
+    return documentsWithUrls || [];
   } catch (error) {
     console.error(`Error fetching documents for vendor ${vendorId}:`, error);
     toast.error("Failed to load vendor documents");
@@ -293,7 +495,7 @@ export const deleteVendorDocument = async (documentId: string, filePath: string)
 
     // Delete from storage
     const { error: storageError } = await supabase.storage
-      .from("vendor_documents")
+      .from("documents")
       .remove([filePath]);
 
     if (storageError) {
@@ -306,5 +508,91 @@ export const deleteVendorDocument = async (documentId: string, filePath: string)
     console.error("Error deleting vendor document:", error);
     toast.error("Failed to delete document");
     return false;
+  }
+};
+
+// Get insurance notifications for a vendor
+export const getInsuranceNotifications = async (vendorId: string): Promise<InsuranceNotification[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("vendor_insurance_notifications")
+      .select("*")
+      .eq("vendor_id", vendorId)
+      .order("scheduled_date", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((notification: any) => ({
+      id: notification.id,
+      vendorId: notification.vendor_id,
+      insuranceId: notification.insurance_id,
+      notificationType: notification.notification_type,
+      scheduledDate: notification.scheduled_date,
+      sentAt: notification.sent_at,
+      recipient: notification.recipient,
+      status: notification.status
+    })) || [];
+  } catch (error) {
+    console.error(`Error fetching insurance notifications for vendor ${vendorId}:`, error);
+    toast.error("Failed to load insurance notifications");
+    return [];
+  }
+};
+
+// Schedule an insurance notification
+export const scheduleInsuranceNotification = async (
+  notification: Omit<InsuranceNotification, "id" | "status">
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("vendor_insurance_notifications")
+      .insert([{
+        vendor_id: notification.vendorId,
+        insurance_id: notification.insuranceId,
+        notification_type: notification.notificationType,
+        scheduled_date: notification.scheduledDate,
+        recipient: notification.recipient,
+        status: 'pending'
+      }]);
+
+    if (error) {
+      throw error;
+    }
+
+    toast.success("Notification scheduled successfully");
+    return true;
+  } catch (error) {
+    console.error("Error scheduling insurance notification:", error);
+    toast.error("Failed to schedule notification");
+    return false;
+  }
+};
+
+// Get insurance requirements
+export const getInsuranceRequirements = async (): Promise<InsuranceRequirement[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("vendor_insurance_requirements")
+      .select("*, vendor_categories(name)")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((req: any) => ({
+      id: req.id,
+      vendorCategoryId: req.vendor_category_id,
+      vendorCategoryName: req.vendor_categories?.name,
+      minCoverageAmount: req.min_coverage_amount,
+      requiredCoverageTypes: req.required_coverage_types,
+      description: req.description
+    })) || [];
+  } catch (error) {
+    console.error("Error fetching insurance requirements:", error);
+    toast.error("Failed to load insurance requirements");
+    return [];
   }
 };

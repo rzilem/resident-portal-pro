@@ -27,9 +27,9 @@ const AgentInfoCard: React.FC<AgentInfoCardProps> = ({ insurance }) => {
             {insurance?.agent?.email ? (
               <a 
                 href={`mailto:${insurance.agent.email}`} 
-                className="text-primary hover:underline"
+                className="text-primary hover:underline flex items-center"
               >
-                <Mail className="h-3 w-3 inline mr-1" />
+                <Mail className="h-3 w-3 mr-1" />
                 {insurance.agent.email}
               </a>
             ) : (
@@ -42,9 +42,9 @@ const AgentInfoCard: React.FC<AgentInfoCardProps> = ({ insurance }) => {
             {insurance?.agent?.phone ? (
               <a 
                 href={`tel:${insurance.agent.phone}`} 
-                className="text-primary hover:underline"
+                className="text-primary hover:underline flex items-center"
               >
-                <Phone className="h-3 w-3 inline mr-1" />
+                <Phone className="h-3 w-3 mr-1" />
                 {insurance.agent.phone}
               </a>
             ) : (
