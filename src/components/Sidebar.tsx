@@ -118,7 +118,6 @@ export function Sidebar({
                 }
                 
                 const navItem = item as NavItem;
-                console.log(`Rendering nav item: ${navItem.label}, isOpen: ${!!openGroups[navItem.label]}`);
                 
                 if (navItem.items && navItem.items.length > 0) {
                   return (

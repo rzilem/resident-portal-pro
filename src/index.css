@@ -205,4 +205,18 @@
   .fade-in {
     @apply animate-fade-in;
   }
+
+  /* These are our new animations for state transitions */
+  .sidebar-item {
+    @apply transition-all duration-200;
+  }
+  
+  .sidebar-item-active {
+    @apply transition-transform duration-200;
+  }
+
+  /* Adding a new animation for the sidebar chevron to be smoother */
+  .chevron-rotate {
+    @apply transition-transform duration-300 ease-in-out;
+  }
 }

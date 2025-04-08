@@ -22,7 +22,7 @@ export function RegularNavItem({ item }: RegularNavItemProps) {
       className={cn(
         "w-full justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[225px]", 
         isActive ? "font-medium bg-accent text-accent-foreground" : "font-normal",
-        "transition-all duration-200 hover:scale-[1.02]" // Add subtle scale animation on hover
+        "transition-transform duration-200 hover:scale-[1.02]" // Modified to only use transform transition
       )}
       onClick={() => navigate(item.href || '/')}
     >

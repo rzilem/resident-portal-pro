@@ -47,7 +47,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
             className={cn(
               "flex-1 justify-start font-normal px-2.5 py-1.5 h-8 text-sm max-w-[225px]",
               isActive ? "font-medium bg-accent text-accent-foreground" : "font-normal",
-              "transition-all duration-200 hover:scale-[1.02]" // Add subtle scale animation on hover
+              "transition-transform duration-200 hover:scale-[1.02]" // Modified to only use transform transition
             )}
             onClick={(e) => item.href && handleNavigate(item.href, e)}
           >
@@ -63,7 +63,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
               size="sm"
               className={cn(
                 "px-1 w-7 h-8", // Further reduced width
-                "transition-colors duration-200"
+                "transition-opacity hover:opacity-90" // Changed to only use opacity transition
               )}
               onClick={handleToggle}
               data-chevron="true"
@@ -91,7 +91,7 @@ export function CollapsibleNavItem({ item, isOpen, onToggle }: CollapsibleNavIte
                     className={cn(
                       "w-full justify-start text-xs px-2 py-1 h-7 max-w-[225px]",
                       isSubItemActive ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50 font-normal",
-                      "transition-all duration-200 hover:scale-[1.02]" // Add subtle scale animation on hover
+                      "transition-transform duration-200 hover:scale-[1.02]" // Modified to only use transform transition
                     )}
                     onClick={() => handleChildClick(subItem.href)}
                   >
