@@ -23,12 +23,48 @@ import {
   Star,
   DollarSign
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface VendorMetricsDashboardProps {
   vendors: Vendor[];
+  isLoading?: boolean;
 }
 
-const VendorMetricsDashboard: React.FC<VendorMetricsDashboardProps> = ({ vendors }) => {
+const VendorMetricsDashboard: React.FC<VendorMetricsDashboardProps> = ({ vendors, isLoading = false }) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          
+          <Skeleton className="h-8 w-32" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-10 w-16 mb-2" />
+                <Skeleton className="h-4 w-28" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <div>
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
