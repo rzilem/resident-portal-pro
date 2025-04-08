@@ -10,8 +10,9 @@ interface CoverageDetailsCardProps {
 }
 
 const CoverageDetailsCard: React.FC<CoverageDetailsCardProps> = ({ insurance }) => {
-  const formatCurrency = (amount?: number) => {
-    if (!amount && amount !== 0) return 'Not specified';
+  const formatCurrency = (amount?: number | null) => {
+    if (amount === undefined || amount === null) return 'Not specified';
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',

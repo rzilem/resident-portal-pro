@@ -16,11 +16,15 @@ const PolicyInfoCard: React.FC<PolicyInfoCardProps> = ({ insurance }) => {
     try {
       return format(new Date(dateString), 'MMMM d, yyyy');
     } catch (error) {
+      console.error('Invalid date format:', dateString);
       return 'Invalid date';
     }
   };
   
-  const isExpired = insurance?.expirationDate && new Date(insurance.expirationDate) < new Date();
+  // Check if insurance exists and if expirationDate is valid before checking expiration
+  const isExpired = insurance?.expirationDate && 
+                    new Date(insurance.expirationDate).toString() !== 'Invalid Date' && 
+                    new Date(insurance.expirationDate) < new Date();
 
   return (
     <Card>
