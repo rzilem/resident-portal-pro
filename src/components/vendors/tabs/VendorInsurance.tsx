@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Vendor } from '@/types/vendor';
 import { format } from 'date-fns';
-import { Shield, Calendar, DollarSign, FileText, RefreshCw, Plus } from 'lucide-react';
+import { Shield, Calendar, DollarSign, FileText, RefreshCw, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import AgentInfoCard from './insurance/AgentInfoCard';
 import DocumentsCard from './insurance/DocumentsCard';
 import InsuranceStatusBadge from './insurance/InsuranceStatusBadge';
 import InsuranceDocumentUploader from './insurance/InsuranceDocumentUploader';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface VendorInsuranceTabProps {
   vendor: Vendor;
@@ -25,6 +26,7 @@ interface InsuranceDocument {
   file_path: string;
   uploaded_at: string;
   expiration_date: string | null;
+  is_verified: boolean;
   url?: string;
 }
 
@@ -32,6 +34,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
   const [documents, setDocuments] = useState<InsuranceDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
+  const [expiringDocuments, setExpiringDocuments] = useState<InsuranceDocument[]>([]);
   
   const loadDocuments = async () => {
     setIsLoading(true);
@@ -48,17 +51,38 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
       
       // Generate URLs for documents
       const docsWithUrls = await Promise.all(data.map(async (doc) => {
-        const { data: urlData } = supabase.storage
-          .from('documents')
-          .getPublicUrl(doc.file_path);
-        
-        return {
-          ...doc,
-          url: urlData.publicUrl
-        };
+        try {
+          const { data: urlData } = supabase.storage
+            .from('documents')
+            .getPublicUrl(doc.file_path);
+          
+          return {
+            ...doc,
+            url: urlData.publicUrl
+          };
+        } catch (err) {
+          console.error(`Error getting URL for document ${doc.id}:`, err);
+          return {
+            ...doc,
+            url: undefined
+          };
+        }
       }));
       
       setDocuments(docsWithUrls);
+      
+      // Check for documents expiring in the next 30 days
+      const now = new Date();
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(now.getDate() + 30);
+      
+      const expiring = docsWithUrls.filter(doc => {
+        if (!doc.expiration_date) return false;
+        const expirationDate = new Date(doc.expiration_date);
+        return expirationDate > now && expirationDate <= thirtyDaysFromNow;
+      });
+      
+      setExpiringDocuments(expiring);
     } catch (error) {
       console.error('Error loading documents:', error);
       toast.error('Failed to load insurance documents');
@@ -76,11 +100,34 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
       id: doc.id,
       name: doc.document_name,
       url: doc.url,
-      uploadDate: doc.uploaded_at
+      uploadDate: doc.uploaded_at,
+      expirationDate: doc.expiration_date,
+      isVerified: doc.is_verified
     }));
   };
   
-  if (!vendor.insurance) {
+  const hasExpiredInsurance = () => {
+    if (vendor.insurance?.expirationDate) {
+      return new Date(vendor.insurance.expirationDate) < new Date();
+    }
+    
+    // If no main insurance record, check if any documents are expired
+    if (documents.length > 0) {
+      const insuranceCertificates = documents.filter(
+        doc => doc.document_type === 'insurance_certificate' && doc.expiration_date
+      );
+      
+      if (insuranceCertificates.length > 0) {
+        return insuranceCertificates.some(
+          doc => doc.expiration_date && new Date(doc.expiration_date) < new Date()
+        );
+      }
+    }
+    
+    return false;
+  };
+  
+  if (!vendor.insurance && documents.length === 0) {
     return (
       <CardContent className="p-6 text-center">
         <Shield className="h-12 w-12 mx-auto text-muted-foreground/50" />
@@ -102,6 +149,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
               onDocumentUploaded={() => {
                 loadDocuments();
                 setShowUploader(false);
+                toast.success("Insurance document uploaded successfully");
               }} 
             />
           </div>
@@ -110,8 +158,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
     );
   }
   
-  const { insurance } = vendor;
-  const isExpired = insurance.expirationDate && new Date(insurance.expirationDate) < new Date();
+  const isExpired = hasExpiredInsurance();
   
   return (
     <>
@@ -122,7 +169,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
             <CardDescription>Details about vendor's insurance coverage</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <InsuranceStatusBadge isExpired={!!isExpired} />
+            <InsuranceStatusBadge isExpired={isExpired} />
             <Button 
               variant="outline" 
               size="sm" 
@@ -137,10 +184,23 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
       </CardHeader>
       
       <CardContent className="p-6">
+        {expiringDocuments.length > 0 && (
+          <Alert className="mb-4" variant="warning">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Insurance documents expiring soon</AlertTitle>
+            <AlertDescription>
+              {expiringDocuments.length === 1 
+                ? `1 document will expire in the next 30 days` 
+                : `${expiringDocuments.length} documents will expire in the next 30 days`}. Please review the documents.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex justify-end mb-4">
           <Button 
             onClick={() => setShowUploader(!showUploader)}
           >
+            <Plus className="h-4 w-4 mr-2" />
             {showUploader ? 'Cancel' : 'Add Insurance Document'}
           </Button>
         </div>
@@ -152,21 +212,23 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
               onDocumentUploaded={() => {
                 loadDocuments();
                 setShowUploader(false);
+                toast.success("Insurance document uploaded successfully");
               }} 
             />
           </div>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <PolicyInfoCard insurance={insurance} />
-          <CoverageDetailsCard insurance={insurance} />
-          <AgentInfoCard insurance={insurance} />
+          <PolicyInfoCard insurance={vendor.insurance} />
+          <CoverageDetailsCard insurance={vendor.insurance} />
+          <AgentInfoCard insurance={vendor.insurance} />
           <DocumentsCard 
             documents={[
               ...formatDocumentsForDisplay(),
-              ...(insurance.documents || [])
+              ...(vendor.insurance?.documents || [])
             ]} 
             isLoading={isLoading}
+            onRefresh={loadDocuments}
           />
         </div>
       </CardContent>
