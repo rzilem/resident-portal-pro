@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface Document {
   id: string;
@@ -144,20 +144,22 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ documents, isLoading = fa
                   <div className="font-medium flex items-center">
                     {doc.name}
                     {doc.isVerified !== undefined && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="ml-1">
-                            {doc.isVerified ? (
-                              <Check className="h-3.5 w-3.5 text-green-500" />
-                            ) : (
-                              <Clock className="h-3.5 w-3.5 text-amber-500" />
-                            )}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {doc.isVerified ? "Verified document" : "Pending verification"}
-                        </TooltipContent>
-                      </Tooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="ml-1">
+                              {doc.isVerified ? (
+                                <Check className="h-3.5 w-3.5 text-green-500" />
+                              ) : (
+                                <Clock className="h-3.5 w-3.5 text-amber-500" />
+                              )}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {doc.isVerified ? "Verified document" : "Pending verification"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -173,24 +175,43 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ documents, isLoading = fa
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleView(doc)}
-                    disabled={!doc.url}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleDownload(doc)}
-                    disabled={!doc.url}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleView(doc)}
+                          disabled={!doc.url}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        View document
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleDownload(doc)}
+                          disabled={!doc.url}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Download document
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             );
