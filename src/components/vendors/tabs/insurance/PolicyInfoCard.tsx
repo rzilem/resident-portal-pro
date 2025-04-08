@@ -6,7 +6,7 @@ import { VendorInsurance } from '@/types/vendor';
 import { format } from 'date-fns';
 
 interface PolicyInfoCardProps {
-  insurance: VendorInsurance;
+  insurance: VendorInsurance | null | undefined;
 }
 
 const PolicyInfoCard: React.FC<PolicyInfoCardProps> = ({ insurance }) => {
@@ -30,13 +30,13 @@ const PolicyInfoCard: React.FC<PolicyInfoCardProps> = ({ insurance }) => {
       <CardContent className="text-sm space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <div className="text-muted-foreground">Policy Number:</div>
-          <div className="font-medium">{insurance.policyNumber || 'Not specified'}</div>
+          <div className="font-medium">{insurance?.policyNumber || 'Not specified'}</div>
           
           <div className="text-muted-foreground">Provider:</div>
-          <div className="font-medium">{insurance.provider || 'Not specified'}</div>
+          <div className="font-medium">{insurance?.provider || 'Not specified'}</div>
           
           <div className="text-muted-foreground">Expiration Date:</div>
-          <div className="font-medium">{formatDate(insurance.expirationDate)}</div>
+          <div className="font-medium">{formatDate(insurance?.expirationDate)}</div>
         </div>
       </CardContent>
     </Card>

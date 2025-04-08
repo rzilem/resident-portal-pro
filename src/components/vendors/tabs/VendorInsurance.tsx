@@ -158,6 +158,7 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
     );
   }
   
+  // Update this part to initialize insurance as null if not present
   const isExpired = hasExpiredInsurance();
   
   return (
@@ -219,9 +220,9 @@ const VendorInsuranceTab: React.FC<VendorInsuranceTabProps> = ({ vendor }) => {
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <PolicyInfoCard insurance={vendor.insurance} />
-          <CoverageDetailsCard insurance={vendor.insurance} />
-          <AgentInfoCard insurance={vendor.insurance} />
+          <PolicyInfoCard insurance={vendor.insurance || null} />
+          <CoverageDetailsCard insurance={vendor.insurance || null} />
+          <AgentInfoCard insurance={vendor.insurance || null} />
           <DocumentsCard 
             documents={[
               ...formatDocumentsForDisplay(),
