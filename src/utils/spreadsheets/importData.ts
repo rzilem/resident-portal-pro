@@ -67,15 +67,21 @@ export const importData = async ({
     }
     
     // Log the import operation
-    await supabase.from('file_operation_logs').insert({
-      operation_type: `import_${importType}`,
-      file_name: fileName,
-      file_count: records.length,
-      metadata: { 
-        imported: result.imported,
-        mappings: mappings
-      }
-    });
+    try {
+      await supabase.from('file_operation_logs').insert({
+        operation_type: `import_${importType}`,
+        file_name: fileName,
+        file_count: records.length,
+        metadata: { 
+          imported: result.imported,
+          mappings: mappings
+        }
+      });
+      console.log("Import operation logged successfully");
+    } catch (logError) {
+      console.error("Error logging import operation:", logError);
+      // Continue despite logging error
+    }
     
     return {
       success: true,

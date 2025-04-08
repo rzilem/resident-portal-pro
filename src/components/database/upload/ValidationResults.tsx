@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
@@ -62,6 +63,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
     }
     
     setImporting(true);
+    toast.info(`Starting import of ${fileData.rows.length} records...`);
     
     try {
       console.log(`Starting import for ${importType} with ${fileData.rows.length} records`);
@@ -92,11 +94,11 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
         }, 1000);
       } else {
         toast.error(result.errorMessage || "Error importing data");
+        setImporting(false);
       }
     } catch (error) {
       console.error("Import error:", error);
       toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
-    } finally {
       setImporting(false);
     }
   };
@@ -198,11 +200,8 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
             {validationResults.warnings > 0 && (
               <li>Some email addresses may be invalid (missing @ symbol)</li>
             )}
-            {fileData && mappings.find(m => m.targetField === 'homeowner_phone') && (
+            {fileData && mappings.find(m => m.targetField === 'phone') && (
               <li>Some phone numbers may be in an incorrect format</li>
-            )}
-            {fileData && !mappings.find(m => m.targetField === 'unit_number') && (
-              <li>Unit numbers not mapped for possible multi-unit properties</li>
             )}
           </ul>
         </div>
@@ -215,10 +214,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
             Error Details
           </h4>
           <ul className="mt-2 space-y-1 text-sm">
-            <li>Some records are missing required fields (Association Name, Address, Phone, Email, or Total Units)</li>
-            {fileData && mappings.some(m => m.targetField === 'association_email') && (
-              <li>Some association email addresses are completely missing</li>
-            )}
+            <li>Some records are missing required fields (Vendor Name or Contact Name)</li>
           </ul>
         </div>
       )}

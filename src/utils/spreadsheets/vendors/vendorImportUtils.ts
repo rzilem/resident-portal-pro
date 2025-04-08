@@ -74,10 +74,13 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
   errorDetails?: any[];
 }> => {
   try {
+    console.log("Starting vendor import with", records.length, "records");
+    
     // Filter out records without a name
     const validRecords = records.filter(record => record.name);
     
     if (validRecords.length === 0) {
+      console.error("No valid vendor records found - each vendor must have a name");
       return {
         success: false,
         imported: 0,
@@ -86,12 +89,35 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
       };
     }
     
+    console.log("Found", validRecords.length, "valid vendor records");
+    
     const errors: any[] = [];
     let imported = 0;
 
+    // Transform boolean strings to actual booleans
+    const preparedRecords = validRecords.map(record => {
+      const processedRecord = {...record};
+      
+      // Process boolean fields
+      ['hold_payment', 'is_1099', 'is_preferred', 'is_default', 'is_compliant'].forEach(field => {
+        if (field in processedRecord) {
+          const value = String(processedRecord[field]).toLowerCase();
+          if (['yes', 'y', 'true', '1'].includes(value)) {
+            processedRecord[field] = true;
+          } else if (['no', 'n', 'false', '0'].includes(value)) {
+            processedRecord[field] = false;
+          }
+        }
+      });
+      
+      return processedRecord;
+    });
+
     // Insert vendors in batches of 10
-    for (let i = 0; i < validRecords.length; i += 10) {
-      const batch = validRecords.slice(i, i + 10);
+    for (let i = 0; i < preparedRecords.length; i += 10) {
+      const batch = preparedRecords.slice(i, i + 10);
+      
+      console.log(`Importing batch ${i/10 + 1} with ${batch.length} vendors`);
       
       const { data, error } = await supabase
         .from('vendors')
@@ -104,16 +130,21 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
         console.error('Error importing vendors batch:', error);
         errors.push(error);
       } else {
+        console.log(`Successfully imported batch ${i/10 + 1}`);
         imported += batch.length;
       }
     }
 
-    return {
+    const result = {
       success: errors.length === 0,
       imported,
       errors: errors.length,
       errorDetails: errors.length > 0 ? errors : undefined
     };
+    
+    console.log("Import result:", result);
+    
+    return result;
   } catch (error) {
     console.error('Error in importVendors:', error);
     return {
@@ -183,6 +214,12 @@ export const validateVendorData = (
       result.errorCount++;
     }
   }
+  
+  console.log("Validation results:", {
+    validCount: result.validCount,
+    warningCount: result.warningCount,
+    errorCount: result.errorCount
+  });
   
   return result;
 };

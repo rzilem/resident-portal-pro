@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import FileUpload from './FileUpload';
-import FieldMapping from './FieldMapping';
-import ValidationResults from './ValidationResults';
 import VendorMappingFieldsList from './vendors/VendorMappingFieldsList';
+import ValidationResults from './ValidationResults';
 import SuccessState from './SuccessState';
 import { validateVendorData } from '@/utils/spreadsheets/vendors/vendorImportUtils';
 import { generateAutoMappings } from '@/utils/spreadsheets/mapping/autoMappingGenerator';
+import { toast } from 'sonner';
 
 const VendorUploadTab = () => {
   const [step, setStep] = useState<'initial' | 'mapping' | 'validation' | 'success'>('initial');
@@ -46,6 +46,8 @@ const VendorUploadTab = () => {
     
     // Move to mapping step
     setStep('mapping');
+    
+    toast.info(`File processed. ${data.rows.length} records found.`);
   };
   
   const handleMappingUpdate = (index: number, targetField: string) => {
@@ -55,7 +57,10 @@ const VendorUploadTab = () => {
   };
 
   const handleContinueToValidation = () => {
-    if (!fileData) return;
+    if (!fileData) {
+      toast.error("No file data available");
+      return;
+    }
     
     console.log("Proceeding to validation with mappings:", mappings);
     
@@ -72,11 +77,13 @@ const VendorUploadTab = () => {
       errors: validation.errorCount
     });
     
+    toast.info(`Validation complete. ${validation.validCount} valid records found.`);
     setStep('validation');
   };
 
   const handleComplete = () => {
     console.log("Vendor import completed");
+    toast.success("Vendor import completed successfully!");
     setStep('success');
   };
 
@@ -86,6 +93,12 @@ const VendorUploadTab = () => {
     setValidationResults(null);
     setFileName("");
     setStep('initial');
+    toast.info("Ready for a new import");
+  };
+  
+  const handleClose = () => {
+    // This could navigate away or close a modal depending on implementation
+    handleReset();
   };
 
   return (
@@ -157,7 +170,7 @@ const VendorUploadTab = () => {
       {step === 'success' && (
         <SuccessState 
           onReset={handleReset}
-          onClose={() => {}}
+          onClose={handleClose}
           message="Vendor import completed successfully"
           details={`${validationResults?.valid || 0} vendors were imported`}
         />
