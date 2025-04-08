@@ -118,8 +118,8 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
       );
     } else {
       return (
-        <Alert variant="success" className="mb-4">
-          <CheckCircle className="h-4 w-4" />
+        <Alert variant="default" className="mb-4 border-green-500 bg-green-50 text-green-700 dark:bg-green-900/20 dark:border-green-500 dark:text-green-400">
+          <CheckCircle className="h-4 w-4 text-green-500" />
           <AlertTitle>Validation passed</AlertTitle>
           <AlertDescription>
             All {validationResults.valid} records are ready to be imported.
@@ -204,3 +204,4 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
 };
 
 export default ValidationResults;
+
