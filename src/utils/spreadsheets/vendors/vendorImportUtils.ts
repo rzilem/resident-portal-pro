@@ -67,6 +67,24 @@ export const processVendorRow = (row: Record<string, any>): Partial<Vendor> => {
   // Default values
   vendorData.status = vendorData.status || 'active';
   
+  // Handle boolean fields - convert text values like "New Service Provider" to proper boolean
+  if (vendorData.hold_payment !== undefined) {
+    // If hold_payment is a string and not already a boolean
+    if (typeof vendorData.hold_payment === 'string') {
+      const value = vendorData.hold_payment.toLowerCase();
+      if (['yes', 'y', 'true', '1'].includes(value)) {
+        vendorData.hold_payment = true;
+      } else if (['no', 'n', 'false', '0'].includes(value)) {
+        vendorData.hold_payment = false;
+      } else {
+        // For any other string value (like "New Service Provider"), store the reason
+        // but set the boolean flag to true
+        vendorData.hold_reason = vendorData.hold_payment;
+        vendorData.hold_payment = true;
+      }
+    }
+  }
+  
   console.log("Processed vendor row:", vendorData);
   return vendorData;
 };
@@ -110,7 +128,7 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
       const processedRecord = {...record};
       
       // Process boolean fields
-      ['hold_payment', 'is_1099', 'is_preferred', 'is_default', 'is_compliant'].forEach(field => {
+      ['is_1099', 'is_preferred', 'is_default', 'is_compliant'].forEach(field => {
         if (field in processedRecord) {
           const value = String(processedRecord[field]).toLowerCase();
           if (['yes', 'y', 'true', '1'].includes(value)) {
