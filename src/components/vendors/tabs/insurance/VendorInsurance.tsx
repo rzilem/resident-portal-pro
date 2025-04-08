@@ -40,7 +40,7 @@ const VendorInsurance: React.FC<VendorInsuranceProps> = ({ vendor }) => {
       </Grid>
       
       <InsuranceDocumentUploader 
-        vendorId={vendor.id}
+        vendor={vendor}
         onUploadComplete={handleDocumentsRefresh}
       />
     </div>
