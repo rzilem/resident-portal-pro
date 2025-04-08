@@ -52,7 +52,9 @@ export const importData = async ({
           // Try to find provider name or vendor name in the original record
           const providerName = record['Provider Name'] || record['Vendor Name'] || 
                                record['provider name'] || record['vendor name'] || 
-                               record['ProviderName'] || record['VendorName'];
+                               record['ProviderName'] || record['VendorName'] ||
+                               record['Company Name'] || record['Company'] ||
+                               record['company name'] || record['company'];
           if (providerName) {
             mappedRecord.name = providerName;
           }

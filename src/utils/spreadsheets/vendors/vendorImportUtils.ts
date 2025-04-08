@@ -127,19 +127,17 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
     // Modify batch size for large imports
     const BATCH_SIZE = 50; // Increase batch size for better performance with large datasets
 
-    // Insert vendors in batches
+    // Insert vendors in batches - without using onConflict since there's no unique constraint
     for (let i = 0; i < preparedRecords.length; i += BATCH_SIZE) {
       const batch = preparedRecords.slice(i, i + BATCH_SIZE);
       
       console.log(`Importing batch ${Math.floor(i/BATCH_SIZE) + 1} with ${batch.length} vendors`);
       
       try {
+        // Using insert without upsert options since there's no unique constraint on name
         const { data, error } = await supabase
           .from('vendors')
-          .upsert(batch, { 
-            onConflict: 'name',
-            ignoreDuplicates: false
-          });
+          .insert(batch);
         
         if (error) {
           console.error('Error importing vendors batch:', error);
