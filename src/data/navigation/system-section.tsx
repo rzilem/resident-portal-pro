@@ -1,3 +1,4 @@
+
 import { Cog, Building, Shield, Puzzle, Sliders, Upload, Mail, Clock } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -30,7 +31,7 @@ export const getSystemSection = (currentPath: string): NavItem => ({
       active: currentPath === "/email-workflows"
     },
     {
-      label: "System Uploads",
+      label: "Data Import & Export",
       icon: Upload,
       href: "/system-uploads",
       active: currentPath === "/system-uploads"

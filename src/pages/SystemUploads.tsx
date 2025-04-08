@@ -37,8 +37,8 @@ const SystemUploads = () => {
   return (
     <div className="container mx-auto py-6 space-y-6 animate-fade-in">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">System Uploads</h1>
-        <p className="text-muted-foreground">Import and manage data in your system</p>
+        <h1 className="text-3xl font-bold">Data Import & Export</h1>
+        <p className="text-muted-foreground">Bulk import and export data for your organization</p>
       </div>
       
       <Card>
@@ -53,11 +53,11 @@ const SystemUploads = () => {
             <TabsList className="mb-6 grid w-full grid-cols-1 md:grid-cols-4">
               <TabsTrigger value="upload" className="flex items-center gap-2">
                 <FileUp className="h-4 w-4" />
-                <span>Upload Data</span>
+                <span>Resident & Property</span>
               </TabsTrigger>
               <TabsTrigger value="vendors" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span>Vendor Import</span>
+                <span>Vendors</span>
               </TabsTrigger>
               <TabsTrigger value="templates" className="flex items-center gap-2">
                 <FileDown className="h-4 w-4" />
@@ -99,12 +99,12 @@ const SystemUploads = () => {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
-              <CardTitle className="text-lg">Data Upload</CardTitle>
+              <CardTitle className="text-lg">Resident & Property</CardTitle>
               <TooltipButton 
                 variant="ghost" 
                 size="icon" 
                 className="text-blue-500" 
-                tooltipText="Upload data files"
+                tooltipText="Upload resident and property data"
               >
                 <Upload className="h-5 w-5" />
               </TooltipButton>
@@ -115,7 +115,7 @@ const SystemUploads = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Import bulk data from Excel or CSV files. Update existing records or add new ones.
+              Import bulk data for residents, properties, and associations from Excel or CSV files.
             </p>
             <TooltipButton 
               className="w-full mt-4" 
@@ -125,7 +125,7 @@ const SystemUploads = () => {
                 setUploadStep('initial');
               }}
             >
-              Start Data Upload
+              Import Data
             </TooltipButton>
           </CardContent>
         </Card>
@@ -133,7 +133,7 @@ const SystemUploads = () => {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
-              <CardTitle className="text-lg">Vendor Import</CardTitle>
+              <CardTitle className="text-lg">Vendor Management</CardTitle>
               <TooltipButton 
                 variant="ghost" 
                 size="icon" 
@@ -144,7 +144,7 @@ const SystemUploads = () => {
               </TooltipButton>
             </div>
             <CardDescription>
-              Import vendor data
+              Import and export vendor data
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -156,7 +156,7 @@ const SystemUploads = () => {
               tooltipText="Import vendor information"
               onClick={() => setActiveTab('vendors')}
             >
-              Import Vendors
+              Vendor Import
             </TooltipButton>
           </CardContent>
         </Card>

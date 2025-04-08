@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CardHeader } from '@/components/ui/card';
-import { PlusCircle, Download, Upload } from 'lucide-react';
+import { PlusCircle, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VendorColumnsSelector, { VendorColumn } from './VendorColumnsSelector';
 
@@ -24,19 +24,10 @@ const VendorHeader = ({ columns, onColumnsChange }: VendorHeaderProps) => {
           size="sm"
           asChild
         >
-          <Link to="/vendors/import">
-            <Upload className="h-4 w-4 mr-1" />
-            Import Vendors
+          <Link to="/system-uploads">
+            <Download className="h-4 w-4 mr-1" />
+            Import/Export
           </Link>
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => {}}
-        >
-          <Download className="h-4 w-4 mr-1" />
-          Export
         </Button>
         
         <VendorColumnsSelector 
