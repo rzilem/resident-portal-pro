@@ -40,13 +40,17 @@ export const importData = async ({
       
       return mappedRecord;
     });
+
+    console.log("Mapped records sample:", mappedRecords.slice(0, 2));
     
     let result;
     
     // Based on import type, call the appropriate import function
     switch (importType) {
       case 'vendor':
+        console.log("Calling vendor import function");
         result = await importVendors(mappedRecords);
+        console.log("Vendor import result:", result);
         break;
       default:
         throw new Error(`Import type ${importType} not supported`);

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileCheck, AlertCircle, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
@@ -36,6 +35,10 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
   importType = "association"
 }) => {
   const [importing, setImporting] = useState(false);
+  const [importStats, setImportStats] = useState<{
+    recordsImported: number;
+    recordsWithWarnings: number;
+  } | null>(null);
   
   useEffect(() => {
     // Log for debugging purposes
@@ -61,6 +64,8 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
     setImporting(true);
     
     try {
+      console.log(`Starting import for ${importType} with ${fileData.rows.length} records`);
+      
       // Import the data into Supabase
       const result = await importData({
         records: fileData.rows,
@@ -69,9 +74,22 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
         importType
       });
       
+      console.log("Import result:", result);
+      
       if (result.success) {
-        toast.success(`Successfully imported ${result.recordsImported} records with ${result.recordsWithWarnings} warnings`);
-        onComplete();
+        // Save import stats for display
+        setImportStats({
+          recordsImported: result.recordsImported,
+          recordsWithWarnings: result.recordsWithWarnings || 0
+        });
+        
+        // Show success toast
+        toast.success(`Successfully imported ${result.recordsImported} ${importType === 'vendor' ? 'vendors' : 'records'}`);
+        
+        // Slight delay before showing success state
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
       } else {
         toast.error(result.errorMessage || "Error importing data");
       }
@@ -202,6 +220,19 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
               <li>Some association email addresses are completely missing</li>
             )}
           </ul>
+        </div>
+      )}
+      
+      {importStats && (
+        <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded-sm mb-4">
+          <h4 className="font-medium text-green-800 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            Import Complete
+          </h4>
+          <p className="mt-2 text-sm">
+            Successfully imported {importStats.recordsImported} {importType === 'vendor' ? 'vendors' : 'records'}
+            {importStats.recordsWithWarnings > 0 && ` with ${importStats.recordsWithWarnings} warnings`}.
+          </p>
         </div>
       )}
       
