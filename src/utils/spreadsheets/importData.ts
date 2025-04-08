@@ -50,7 +50,9 @@ export const importData = async ({
       if (importType === 'vendor') {
         if (!mappedRecord.name) {
           // Try to find provider name or vendor name in the original record
-          const providerName = record['Provider Name'] || record['Vendor Name'];
+          const providerName = record['Provider Name'] || record['Vendor Name'] || 
+                               record['provider name'] || record['vendor name'] || 
+                               record['ProviderName'] || record['VendorName'];
           if (providerName) {
             mappedRecord.name = providerName;
           }
@@ -67,7 +69,7 @@ export const importData = async ({
     // Based on import type, call the appropriate import function
     switch (importType) {
       case 'vendor':
-        console.log("Calling vendor import function");
+        console.log("Calling vendor import function with", mappedRecords.length, "records");
         result = await importVendors(mappedRecords);
         console.log("Vendor import result:", result);
         break;
@@ -82,7 +84,16 @@ export const importData = async ({
       // Add more detailed error information if available
       if (result.errorDetails && result.errorDetails.length > 0) {
         const firstError = result.errorDetails[0];
-        if (firstError.message) {
+        if (typeof firstError === 'object' && firstError.error) {
+          errorMessage += `: ${firstError.error}`;
+          
+          // If there's a batch number, include it
+          if (firstError.batch) {
+            errorMessage += ` (in batch ${firstError.batch})`;
+          }
+        } else if (typeof firstError === 'string') {
+          errorMessage += `: ${firstError}`;
+        } else if (firstError.message) {
           errorMessage += `: ${firstError.message}`;
         }
       }

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -53,26 +54,22 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
     try {
       console.log("Starting import with", fileData.rows.length, "records");
       
-      // Transform data using mappings before import
-      const transformedRows = fileData.rows.map(row => {
-        const transformedRow: Record<string, any> = {};
-        
-        // Copy all fields from original row
-        Object.keys(row).forEach(key => {
-          transformedRow[key] = row[key];
-        });
-        
-        return transformedRow;
-      });
+      // Get mapped fields
+      const mappedFields = mappings
+        .filter(mapping => mapping.targetField !== 'ignore')
+        .map(mapping => mapping.targetField);
       
-      console.log("Transformed data for import:", transformedRows.slice(0, 2));
-
+      console.log("Mapped fields:", mappedFields);
+      
+      // Directly use the original data and let importData handle the mapping
       const result = await importData({
-        records: transformedRows,
+        records: fileData.rows,
         mappings,
         fileName,
         importType
       });
+      
+      console.log("Import result:", result);
       
       if (result.success) {
         toast.success(
@@ -83,6 +80,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
           recordsWithWarnings: result.recordsWithWarnings
         });
       } else {
+        console.error("Import failed:", result.errorMessage);
         toast.error(`Import failed: ${result.errorMessage || 'Unknown error'}`);
       }
     } catch (error) {

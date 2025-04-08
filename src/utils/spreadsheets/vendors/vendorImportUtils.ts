@@ -124,11 +124,14 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
       return processedRecord;
     });
 
-    // Insert vendors in batches of 10
-    for (let i = 0; i < preparedRecords.length; i += 10) {
-      const batch = preparedRecords.slice(i, i + 10);
+    // Modify batch size for large imports
+    const BATCH_SIZE = 50; // Increase batch size for better performance with large datasets
+
+    // Insert vendors in batches
+    for (let i = 0; i < preparedRecords.length; i += BATCH_SIZE) {
+      const batch = preparedRecords.slice(i, i + BATCH_SIZE);
       
-      console.log(`Importing batch ${i/10 + 1} with ${batch.length} vendors`);
+      console.log(`Importing batch ${Math.floor(i/BATCH_SIZE) + 1} with ${batch.length} vendors`);
       
       try {
         const { data, error } = await supabase
@@ -140,14 +143,25 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
         
         if (error) {
           console.error('Error importing vendors batch:', error);
-          errors.push(error);
+          errors.push({
+            batch: Math.floor(i/BATCH_SIZE) + 1,
+            error: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          
+          // Try to continue with other batches despite errors
         } else {
-          console.log(`Successfully imported batch ${i/10 + 1}`);
+          console.log(`Successfully imported batch ${Math.floor(i/BATCH_SIZE) + 1}`);
           imported += batch.length;
         }
       } catch (batchError) {
         console.error('Exception in vendor batch import:', batchError);
-        errors.push(batchError);
+        errors.push({
+          batch: Math.floor(i/BATCH_SIZE) + 1,
+          error: batchError instanceof Error ? batchError.message : String(batchError)
+        });
       }
     }
 
@@ -167,7 +181,7 @@ export const importVendors = async (records: Record<string, any>[]): Promise<{
       success: false,
       imported: 0,
       errors: 1,
-      errorDetails: [error]
+      errorDetails: [error instanceof Error ? error.message : String(error)]
     };
   }
 };

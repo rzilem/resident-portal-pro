@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import FileUpload from './FileUpload';
 import VendorMappingFieldsList from './vendors/VendorMappingFieldsList';
@@ -50,9 +51,9 @@ const VendorUploadTab = () => {
     const updatedMappings = autoMappings.map(mapping => {
       const sourceFieldLower = mapping.sourceField.toLowerCase();
       
-      if (sourceFieldLower === 'provider name' || 
-          sourceFieldLower === 'vendor name' || 
-          sourceFieldLower === 'company name' || 
+      if (sourceFieldLower.includes('vendor name') || 
+          sourceFieldLower.includes('provider name') || 
+          sourceFieldLower.includes('company name') || 
           sourceFieldLower === 'name') {
         return { ...mapping, targetField: 'name' };
       }
@@ -99,7 +100,11 @@ const VendorUploadTab = () => {
       
       // Ensure provider/vendor name is mapped to 'name'
       if (!transformedRow.name) {
-        const providerName = row['Provider Name'] || row['Vendor Name'];
+        // Try multiple variations of vendor/provider name fields
+        const providerName = row['Provider Name'] || row['Vendor Name'] || 
+                            row['provider name'] || row['vendor name'] || 
+                            row['Company Name'] || row['company name'] ||
+                            row['ProviderName'] || row['VendorName'];
         if (providerName) {
           transformedRow.name = providerName;
         }
